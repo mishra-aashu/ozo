@@ -29,10 +29,16 @@ jobs:
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
-    - name: Deploy to GitHub Pages
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Deploy to docs folder
       if: github.ref == 'refs/heads/master'
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        publish_dir: ./dist
-        destination_dir: docs
+      run: |
+        # Create docs directory if it doesn't exist
+        mkdir -p docs
+        # Copy built files to docs
+        cp -r dist/* docs/
+        # Add and commit changes
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add docs/
+        git commit -m "Deploy to GitHub Pages" || echo "No changes to commit"
+        git push
