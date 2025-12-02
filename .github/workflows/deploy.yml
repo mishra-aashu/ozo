@@ -29,12 +29,20 @@ jobs:
         VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
         VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+    - name: Upload build artifacts
+      if: github.ref == 'refs/heads/master'
+      uses: actions/upload-artifact@v4
+      with:
+        name: ozo-build
+        path: dist/
+
     - name: Build completed
       if: github.ref == 'refs/heads/master'
       run: |
         echo "✅ Build completed successfully!"
-        echo "📁 Built files are in ./dist/"
-        echo "🌐 To deploy manually:"
-        echo "   1. Download the dist folder from GitHub Actions artifacts"
-        echo "   2. Upload contents to GitHub Pages or your hosting provider"
-        echo "   3. Or configure Pages to deploy from master branch root"
+        echo "📦 Download 'ozo-build' artifact from Actions > Artifacts"
+        echo "🌐 Deploy to: https://mishra-aashu.github.io/ozo/"
+        echo "📋 Steps:"
+        echo "   1. Download artifact"
+        echo "   2. Extract files"
+        echo "   3. Upload to GitHub Pages or hosting provider"
