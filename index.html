@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#E23744" />
+    <meta name="description" content="OZO - India's fastest grocery delivery app. Get groceries, fruits, vegetables, dairy and daily essentials delivered in minutes!" />
+    <meta name="keywords" content="grocery delivery, online grocery, vegetables, fruits, dairy, OZO, fast delivery, blinkit alternative" />
+    <meta name="author" content="OZO Team" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ozoapp.com/" />
+    <meta property="og:title" content="OZO - Groceries Delivered in Minutes" />
+    <meta property="og:description" content="Get groceries, fruits, vegetables, dairy and daily essentials delivered in minutes!" />
+    <meta property="og:image" content="/og-image.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OZO - Groceries Delivered in Minutes" />
+    <meta name="twitter:description" content="Get groceries, fruits, vegetables, dairy and daily essentials delivered in minutes!" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <title>OZO - Groceries Delivered in Minutes 🛒</title>
+
+    <!-- Inline Critical CSS for faster loading -->
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        background-color: #ffffff;
+        color: #1C1C1C;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        overflow-x: hidden;
+      }
+
+      #root {
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Loading Screen */
+      .initial-loader {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, #E23744 0%, #C41E3A 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+      }
+
+      .initial-loader.hidden {
+        opacity: 0;
+        visibility: hidden;
+      }
+
+      .loader-logo {
+        font-family: 'Poppins', sans-serif;
+        font-size: 4rem;
+        font-weight: 800;
+        color: white;
+        margin-bottom: 1rem;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      .loader-tagline {
+        color: rgba(255, 255, 255, 0.9);
+        font-size: 1rem;
+        margin-bottom: 2rem;
+      }
+
+      .loader-spinner {
+        width: 50px;
+        height: 50px;
+        border: 4px solid rgba(255, 255, 255, 0.3);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+      }
+
+      .loader-dots {
+        display: flex;
+        gap: 8px;
+        margin-top: 1.5rem;
+      }
+
+      .loader-dot {
+        width: 12px;
+        height: 12px;
+        background: white;
+        border-radius: 50%;
+        animation: bounce 1.4s ease-in-out infinite;
+      }
+
+      .loader-dot:nth-child(1) { animation-delay: 0s; }
+      .loader-dot:nth-child(2) { animation-delay: 0.2s; }
+      .loader-dot:nth-child(3) { animation-delay: 0.4s; }
+
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+
+      @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+      }
+
+      @keyframes bounce {
+        0%, 80%, 100% { transform: translateY(0); }
+        40% { transform: translateY(-15px); }
+      }
+
+      /* Scrollbar Styling */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #E23744, #0D9E4F);
+        border-radius: 10px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #E23744;
+      }
+
+      /* Selection Color */
+      ::selection {
+        background: rgba(226, 55, 68, 0.3);
+        color: #1C1C1C;
+      }
+
+      /* Mobile Touch Highlight */
+      * {
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      /* Smooth Image Loading */
+      img {
+        opacity: 1;
+        transition: opacity 0.3s ease;
+      }
+
+      img[data-src] {
+        opacity: 0;
+      }
+    </style>
+</head>
+<body>
+    <!-- Initial Loading Screen -->
+    <div class="initial-loader" id="initialLoader">
+      <div class="loader-logo">🛒 OZO</div>
+      <p class="loader-tagline">Groceries delivered in minutes!</p>
+      <div class="loader-spinner"></div>
+      <div class="loader-dots">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+    </div>
+
+    <!-- React App Root -->
+    <div id="root"></div>
+
+    <!-- Hide loader when app loads -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loader = document.getElementById('initialLoader');
+          if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(function() {
+              loader.style.display = 'none';
+            }, 500);
+          }
+        }, 1500);
+      });
+    </script>
+
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
