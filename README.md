@@ -245,13 +245,6 @@ npm run preview
 4. Change role from 'customer' to 'admin'
 5. Access admin panel at `/admin`
 
-### Admin Credentials (Development)
-```
-Email: admin@ozo.com
-Password: admin123
-```
-
----
 
 ## 📱 PWA Installation
 
