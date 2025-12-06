@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="theme-color" content="#E23744" />
+    <meta name="description" content="OZO - India's fastest grocery delivery app. Get groceries, fruits, vegetables, dairy and daily essentials delivered in minutes!" />
+    <meta name="keywords" content="grocery delivery, online grocery, vegetables, fruits, dairy, OZO, fast delivery, blinkit alternative" />
+    <meta name="author" content="OZO Team" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ozoapp.com/" />
+    <meta property="og:title" content="OZO - Groceries Delivered in Minutes" />
+    <meta property="og:description" content="Get groceries, fruits, vegetables, dairy and daily essentials delivered in minutes!" />
+    <meta property="og:image" content="/og-image.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OZO - Groceries Delivered in Minutes" />
+    <meta name="twitter:description" content="Get groceries, fruits, vegetables, dairy and daily essentials delivered in minutes!" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <title>OZO - Groceries Delivered in Minutes 🛒</title>
+
+    <!-- Styles moved to CSS file -->
+  <script type="module" crossorigin src="/assets/index-DFbRDhEY.js"></script>
+  <link rel="modulepreload" crossorigin href="/assets/vendor-DIi0FYja.js">
+  <link rel="modulepreload" crossorigin href="/assets/ui-Dq0-tIuk.js">
+  <link rel="modulepreload" crossorigin href="/assets/supabase-59_Dso1d.js">
+  <link rel="modulepreload" crossorigin href="/assets/animations-CzK6GjzT.js">
+  <link rel="stylesheet" crossorigin href="/assets/index-CxEUfmE4.css">
+</head>
+<body>
+    <!-- Initial Loading Screen -->
+    <div class="initial-loader" id="initialLoader">
+      <div class="loader-logo">🛒 OZO</div>
+      <p class="loader-tagline">Groceries delivered in minutes!</p>
+      <div class="loader-spinner"></div>
+      <div class="loader-dots">
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+        <div class="loader-dot"></div>
+      </div>
+    </div>
+
+    <!-- React App Root -->
+    <div id="root"></div>
+
+    <!-- Hide loader when app loads -->
+    <script>
+      window.addEventListener('load', function() {
+        setTimeout(function() {
+          const loader = document.getElementById('initialLoader');
+          if (loader) {
+            loader.classList.add('hidden');
+            setTimeout(function() {
+              loader.style.display = 'none';
+            }, 500);
+          }
+        }, 1500);
+      });
+    </script>
+
+</body>
+</html>
