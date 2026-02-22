@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" shape-rendering="geometricPrecision">
+  <!-- Red rounded-rectangle background -->
+  <rect x="0" y="0" width="512" height="512" rx="90" ry="90" fill="#B71C1C"/>
+
+  <!-- Shopping bag body (white) -->
+  <path d="
+    M 130 195
+    L 110 440
+    Q 108 465, 133 465
+    L 383 465
+    Q 408 465, 406 440
+    L 386 195
+    Q 385 175, 365 175
+    L 151 175
+    Q 131 175, 130 195
+    Z
+  " fill="white"/>
+
+  <!-- Bag handle (curved, stroke only) -->
+  <path d="
+    M 200 175
+    C 200 100, 200 75, 256 75
+    C 312 75, 312 100, 312 175
+  " fill="none" stroke="white" stroke-width="24" stroke-linecap="round"/>
+
+  <!-- Speed lines on left side of bag (white, showing motion/delivery speed) -->
+  <rect x="62" y="270" width="70" height="14" rx="7" fill="white"/>
+  <rect x="52" y="305" width="85" height="14" rx="7" fill="white"/>
+  <rect x="62" y="340" width="70" height="14" rx="7" fill="white"/>
+
+  <!-- "OZO" text on the bag -->
+  <text
+    x="275"
+    y="380"
+    font-family="Arial Black, Impact, sans-serif"
+    font-size="110"
+    font-weight="900"
+    fill="#B71C1C"
+    text-anchor="middle"
+    letter-spacing="2"
+  >OZO</text>
+</svg>

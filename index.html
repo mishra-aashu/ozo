@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en-IN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#E23744" />
+    <meta name="google-site-verification" content="JOAuyG3VG9hC5sNhbRAP9UQxD5NxrrFW1xc6rFnqWw8" />
+    <meta name="description" content="Order fresh vegetables, fruits, dairy, and daily groceries on OZO Mart. Fast 30-minute delivery in Aurangabad, Bihar. सोचो मत, #OZOपेखोजो!" />
+    <meta name="keywords" content="online grocery, grocery delivery, fresh fruits, fresh vegetables, online vegetables, Mithila specials, thekua, makhana, OZO, OZO Mart, 30-minute delivery, quick commerce, Patna grocery delivery, Aurangabad grocery delivery" />
+    <meta name="author" content="OZO Team" />
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://www.ozomart.store/" />
+    <meta property="og:title" content="OZO Mart | 30-Min Grocery Delivery in Aurangabad" />
+    <meta property="og:description" content="Order fresh vegetables, fruits, dairy &amp; daily groceries on OZO Mart. Fast 30-min delivery in Aurangabad, Bihar. #OZOपेखोजो!" />
+    <meta property="og:image" content="https://www.ozomart.store/android-chrome-512x512.png" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="OZO Mart | 30-Min Grocery Delivery in Aurangabad" />
+    <meta name="twitter:description" content="Order fresh vegetables, fruits, dairy &amp; daily groceries on OZO Mart. Fast 30-min delivery in Aurangabad, Bihar. #OZOपेखोजो!" />
+    <meta name="twitter:image" content="https://www.ozomart.store/android-chrome-512x512.png" />
+
+    <!-- Favicon / Brand Icon — .ico first for Google Search compatibility -->
+    <link rel="icon" href="/favicon.ico" sizes="48x48" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/android-chrome-192x192.png" />
+    <link rel="icon" type="image/png" sizes="512x512" href="/android-chrome-512x512.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&family=Dancing+Script:wght@700&family=Playfair+Display:ital,wght@1,600;1,700&display=swap" rel="stylesheet" />
+
+
+
+    <!-- GroceryStore Local Business Schema — Aurangabad Hyperlocal SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "GroceryStore",
+      "name": "OZO Mart",
+      "url": "https://www.ozomart.store",
+      "logo": "https://www.ozomart.store/images/logo_transparent.png",
+      "image": "https://www.ozomart.store/android-chrome-512x512.png",
+      "description": "Aurangabad's premier 30-minute hyperlocal grocery delivery service. Order fresh vegetables, fruits, dairy and daily essentials.",
+      "priceRange": "₹₹",
+      "servesCuisine": "Grocery",
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Aurangabad",
+        "addressRegion": "Bihar",
+        "postalCode": "824101",
+        "addressCountry": "IN"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "24.7527",
+        "longitude": "84.3740"
+      },
+      "areaServed": {
+        "@type": "City",
+        "name": "Aurangabad",
+        "containedInPlace": {
+          "@type": "State",
+          "name": "Bihar"
+        }
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday",
+          "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "06:00",
+        "closes": "23:00"
+      },
+      "sameAs": [
+        "https://www.facebook.com/ozomart.store",
+        "https://www.instagram.com/ozomart.store"
+      ]
+    }
+    </script>
+
+    <title>OZO Mart | 30-Min Grocery Delivery in Aurangabad</title>
+
+    <!-- Inline script to set the theme before rendering to prevent white flash in dark mode -->
+    <script>
+      (function() {
+        try {
+          const stored = localStorage.getItem('ozo-theme-storage');
+          let isDark = true; // Default to night mode
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (parsed && parsed.state && parsed.state.theme !== undefined) {
+              isDark = parsed.state.theme === 'dark';
+            }
+          }
+          if (isDark) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <!-- Cashfree Payment Gateway SDK (v3) -->
+    <script src="https://sdk.cashfree.com/js/v3/cashfree.js" defer></script>
+
+    <!-- OneSignal SDK Integration -->
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+    <script>
+      window.OneSignalDeferred = window.OneSignalDeferred || [];
+    </script>
+</head>
+<body>
+    <!-- React App Root -->
+    <div id="root">
+        <!-- Static SEO Content for Bots (Hidden from normal users to prevent flash) -->
+        <div class="seo-initial-content" style="display: none; padding: 20px; font-family: sans-serif; max-width: 800px; margin: 0 auto;">
+            <header style="border-bottom: 2px solid #E23744; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 24px; font-weight: bold; color: #E23744;">OZO Mart</span>
+                <span style="background: rgba(226, 55, 68, 0.1); color: #E23744; padding: 5px 10px; border-radius: 15px; font-size: 12px; font-weight: bold;">10-30 Min Delivery</span>
+            </header>
+            
+            <main>
+                <h1 style="font-size: 28px; color: #111; margin-bottom: 10px;">OZO Mart | Jo Chahiye, Jab Chahiye | Online Grocery Delivery</h1>
+                <p style="font-size: 15px; color: #444; line-height: 1.6; margin-bottom: 25px;">
+                    Welcome to <strong>OZO Mart (OZO)</strong> – India's premium quick-commerce grocery delivery platform. 
+                    We bring farm-fresh vegetables, organic fruits, daily essentials, dairy, snacks, and authentic Mithila regional specialties 
+                    (like premium Makhana and homemade Thekua) straight to your doorstep in just 10 to 30 minutes. 
+                    सोचो मत, <strong>#OZOपेखोजो</strong>!
+                </p>
+
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-size: 18px; color: #222; border-left: 3px solid #E23744; padding-left: 10px; margin-bottom: 15px;">Shop by Category</h2>
+                    <ul style="list-style: none; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                        <li><a href="/aurangabad-bihar/category/vegetables" style="color: #E23744; text-decoration: none; font-weight: bold;">🥬 Fresh Vegetables</a></li>
+                        <li><a href="/aurangabad-bihar/category/fruits" style="color: #E23744; text-decoration: none; font-weight: bold;">🍎 Fresh Fruits</a></li>
+                        <li><a href="/aurangabad-bihar/category/mithila-specials" style="color: #E23744; text-decoration: none; font-weight: bold;">🌾 Mithila Specials</a></li>
+                        <li><a href="/aurangabad-bihar/category/dairy-breakfast" style="color: #E23744; text-decoration: none; font-weight: bold;">🥛 Dairy & Breakfast</a></li>
+                        <li><a href="/aurangabad-bihar/category/munchies-snacks" style="color: #E23744; text-decoration: none; font-weight: bold;">🍪 Munchies & Snacks</a></li>
+                        <li><a href="/aurangabad-bihar/category/staples-grains" style="color: #E23744; text-decoration: none; font-weight: bold;">🍚 Staples & Grains</a></li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-size: 18px; color: #222; border-left: 3px solid #E23744; padding-left: 10px; margin-bottom: 15px;">Our Active Service Cities</h2>
+                    <ul style="list-style: none; padding: 0;">
+                        <li style="margin-bottom: 8px;">📍 <strong>OZO Aurangabad:</strong> Providing Aurangabad's fastest grocery delivery across all sectors and streets.</li>
+                    </ul>
+                </div>
+
+                <div style="margin-bottom: 30px; background: #f9f9f9; padding: 15px; border-radius: 8px; border: 1px solid #eee;">
+                    <h2 style="font-size: 18px; color: #222; margin-top: 0; margin-bottom: 15px;">Download the OZO App</h2>
+                    <p style="font-size: 14px; color: #555; margin-bottom: 15px;">Order on the go and get discounts up to 50% off on your first order. Available on Android.</p>
+                    <a href="https://play.google.com/store/apps/details?id=com.ozomart" style="background: #E23744; color: #fff; text-decoration: none; padding: 10px 20px; border-radius: 5px; font-weight: bold; display: inline-block;">Get the OZO Mart App</a>
+                </div>
+
+                <div style="margin-bottom: 30px;">
+                    <h2 style="font-size: 18px; color: #222; border-left: 3px solid #E23744; padding-left: 10px; margin-bottom: 15px;">Frequently Asked Questions (FAQ)</h2>
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="font-size: 15px; color: #333; margin-bottom: 5px;">What is OZO?</h3>
+                        <p style="font-size: 14px; color: #555; margin-top: 0;">OZO (also operating as OZO Mart) is a hyperlocal quick commerce grocery delivery service that delivers fresh groceries and Bihar specialties directly to customers within 10-30 minutes.</p>
+                    </div>
+
+                    <div style="margin-bottom: 15px;">
+                        <h3 style="font-size: 15px; color: #333; margin-bottom: 5px;">How do I order from OZO?</h3>
+                        <p style="font-size: 14px; color: #555; margin-top: 0;">You can download the OZO Mart app from Google Play Store or browse products on our website to place an order.</p>
+                    </div>
+                </div>
+            </main>
+            
+            <footer style="margin-top: 40px; padding-top: 15px; border-top: 1px solid #eee; text-align: center; font-size: 12px; color: #888;">
+                <p>&copy; 2025 OZO Mart. All rights reserved. <a href="/privacy" style="color: #888;">Privacy Policy</a> | <a href="/terms" style="color: #888;">Terms of Service</a> | <a href="/contact" style="color: #888;">Contact Us</a></p>
+            </footer>
+        </div>
+    </div>
+
+
+    <!-- Google Translate Hidden Element and Init Script -->
+    <div id="google_translate_element" style="display: none;"></div>
+
+    <script type="text/javascript">
+      // NOTE: googleTranslateElementInit is intentionally NOT defined here.
+      // It is defined once in App.jsx (loadGoogleTranslate) so the script tag
+      // and the callback are always in sync and there is only one definition.
+
+      // Google Translate injects a banner iframe and body/html style offsets
+      // that push the page down. We suppress all of that using a MutationObserver
+      // so we react precisely when the elements appear instead of polling at a
+      // fixed interval (which wastes CPU for the entire lifetime of the page).
+      (function() {
+        var suppressGoogleTranslateUI = function() {
+          // Hide the banner iframe
+          var frames = document.getElementsByClassName('goog-te-banner-frame');
+          for (var i = 0; i < frames.length; i++) {
+            frames[i].style.setProperty('display', 'none', 'important');
+            frames[i].style.setProperty('visibility', 'hidden', 'important');
+          }
+          // Reset any body/html offsets injected by the translate widget
+          if (document.body) {
+            document.body.style.setProperty('top', '0px', 'important');
+          }
+          document.documentElement.style.setProperty('padding-top', '0px', 'important');
+        };
+
+        // Run once immediately in case translate is already active (e.g. cached state)
+        window.addEventListener('load', suppressGoogleTranslateUI);
+
+        // Watch for Google Translate injecting new nodes or changing attributes
+        // (it modifies body.style.top and inserts the banner iframe dynamically).
+        var observer = new MutationObserver(function(mutations) {
+          var needsSuppression = mutations.some(function(m) {
+            // Attribute change on body/html (top, padding-top) or new child nodes
+            return (
+              (m.type === 'attributes' &&
+                (m.target === document.body || m.target === document.documentElement)) ||
+              m.type === 'childList'
+            );
+          });
+          if (needsSuppression) {
+            suppressGoogleTranslateUI();
+          }
+        });
+
+        // Start observing once the DOM is ready
+        var startObserver = function() {
+          if (document.body) {
+            observer.observe(document.body, {
+              attributes: true,
+              attributeFilter: ['style', 'class'],
+              childList: true,
+              subtree: false,
+            });
+          }
+          observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['style', 'class'],
+            subtree: false,
+          });
+        };
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', startObserver);
+        } else {
+          startObserver();
+        }
+      })();
+    </script>
+
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>

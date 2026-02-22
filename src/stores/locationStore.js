@@ -1,0 +1,666 @@
+import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
+import { supabase } from '../lib/supabase'
+import toast from 'react-hot-toast'
+import { reverseGeocode } from '../lib/geocoding'
+import { GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
+
+export const useLocationStore = create(
+  persist(
+    (set, get) => ({
+      address: null,
+      coordinates: null,
+      addressDetails: null,
+      selectedCitySlug: null,
+      nearestCity: null,
+      tracedThrough: null,
+      userAddresses: [],
+      isDetecting: false,
+      isLoading: false,
+      error: null,
+      activeCities: [],
+      serviceabilityModal: {
+        isOpen: false,
+        cityName: '',
+        pincode: '',
+        onConfirm: null
+      },
+
+      showServiceabilityModal: (cityName, pincode, onConfirm = null) => {
+        set({
+          serviceabilityModal: {
+            isOpen: true,
+            cityName,
+            pincode,
+            onConfirm
+          }
+        })
+      },
+
+      closeServiceabilityModal: () => {
+        const modalState = get().serviceabilityModal
+        if (modalState.onConfirm) {
+          modalState.onConfirm()
+        }
+        set({
+          serviceabilityModal: {
+            isOpen: false,
+            cityName: '',
+            pincode: '',
+            onConfirm: null
+          }
+        })
+      },
+
+      fetchActiveCities: async () => {
+        try {
+          const { data: activeCities } = await supabase
+            .from('operating_cities')
+            .select('*')
+            .eq('is_active', true)
+          if (activeCities) {
+            set({ activeCities })
+            return activeCities
+          }
+        } catch (e) {
+          console.error('Failed to fetch active cities:', e)
+        }
+        return []
+      },
+
+      setAddress: (address) => set({ address }),
+      setSelectedCitySlug: (selectedCitySlug) => set({ selectedCitySlug }),
+      setCoordinates: async (coordinates) => {
+        set({ coordinates })
+        if (coordinates) {
+          await get().updateNearestCitySlug(coordinates.lat, coordinates.lng)
+        }
+      },
+
+      updateNearestCitySlug: async (lat, lng) => {
+        try {
+          const { data: activeCities } = await supabase
+            .from('operating_cities')
+            .select('*')
+            .eq('is_active', true)
+          
+          if (activeCities && activeCities.length > 0) {
+            let nearestCityObj = activeCities[0]
+            let minDistance = Infinity
+            const R = 6371 // Earth's radius in km
+
+            for (const city of activeCities) {
+              if (city.latitude && city.longitude) {
+                const cLat = parseFloat(city.latitude)
+                const cLng = parseFloat(city.longitude)
+                
+                const dLat = (cLat - lat) * Math.PI / 180
+                const dLon = (cLng - lng) * Math.PI / 180
+                const a = 
+                  Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+                  Math.cos(lat * Math.PI / 180) * Math.cos(cLat * Math.PI / 180) * 
+                  Math.sin(dLon / 2) * Math.sin(dLon / 2)
+                const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+                const distance = R * c
+
+                if (distance < minDistance) {
+                  minDistance = distance
+                  nearestCityObj = city
+                }
+              }
+            }
+
+            const maxRadius = parseFloat(nearestCityObj.service_radius_km) || 30.0
+            const isServiceable = minDistance <= maxRadius
+
+            set({ 
+              selectedCitySlug: isServiceable ? nearestCityObj.slug : null,
+              nearestCity: nearestCityObj,
+              activeCities: activeCities
+            })
+          }
+        } catch (e) {
+          console.error('Failed to update nearest city slug:', e)
+        }
+      },
+
+      // Fetch saved addresses from Supabase
+      fetchUserAddresses: async (options = {}) => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            return { success: true, data: get().userAddresses || [] }
+          }
+
+          // If the stored addresses belong to a different user (e.g. after
+          // account switch), clear them before fetching the correct ones so
+          // one user never briefly sees another user's addresses.
+          const existingAddresses = get().userAddresses || []
+          const addressesBelongToDifferentUser =
+            existingAddresses.length > 0 &&
+            existingAddresses.some(
+              a => a.user_id && a.user_id !== session.user.id
+            )
+          if (addressesBelongToDifferentUser) {
+            get().clearUserAddresses()
+          }
+
+          // If there are guest addresses, sync/upload them to database first
+          const guestAddresses = (get().userAddresses || []).filter(
+            addr => addr.id && addr.id.toString().startsWith('temp-addr-')
+          )
+          
+          if (guestAddresses.length > 0) {
+            set({ isLoading: true })
+            const { data: dbAddresses } = await supabase
+              .from('addresses')
+              .select('*')
+              .eq('user_id', session.user.id)
+            const dbList = dbAddresses || []
+
+            for (const addr of guestAddresses) {
+              const { id, created_at, ...cleanAddrData } = addr
+              
+              // Check if duplicate already exists in DB addresses
+              const duplicateInDb = dbList.find(dbAddr => {
+                if (cleanAddrData.latitude && cleanAddrData.longitude && dbAddr.latitude && dbAddr.longitude) {
+                  const latDiff = Math.abs(parseFloat(dbAddr.latitude) - parseFloat(cleanAddrData.latitude))
+                  const lngDiff = Math.abs(parseFloat(dbAddr.longitude) - parseFloat(cleanAddrData.longitude))
+                  return latDiff < 0.00025 && lngDiff < 0.00025
+                }
+                const line1Match = (dbAddr.address_line1 || '').toLowerCase().trim() === (cleanAddrData.address_line1 || '').toLowerCase().trim()
+                const cityMatch = (dbAddr.city || '').toLowerCase().trim() === (cleanAddrData.city || '').toLowerCase().trim()
+                const pinMatch = (dbAddr.pincode || '').toString().trim() === (cleanAddrData.pincode || '').toString().trim()
+                return line1Match && cityMatch && pinMatch
+              })
+
+              if (duplicateInDb) {
+                continue // Skip syncing this duplicate guest address
+              }
+              
+              if (cleanAddrData.is_default) {
+                await supabase
+                  .from('addresses')
+                  .update({ is_default: false })
+                  .eq('user_id', session.user.id)
+              }
+              
+              const { error: insertError } = await supabase
+                .from('addresses')
+                .insert([{ ...cleanAddrData, user_id: session.user.id }])
+              
+              if (insertError) {
+                console.error('Failed to sync guest address:', insertError)
+              }
+            }
+          }
+
+          set({ isLoading: true })
+          let query = supabase
+            .from('addresses')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .order('created_at', { ascending: false })
+
+          if (options.signal) {
+            query = query.abortSignal(options.signal)
+          }
+
+          const { data, error } = await query
+
+          if (error) throw error
+          set({ userAddresses: data, isLoading: false })
+          return { success: true, data }
+        } catch (error) {
+          if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+            console.log('Fetch addresses aborted.')
+            return { success: false, error, aborted: true }
+          }
+          console.error('Fetch addresses error:', error)
+          set({ isLoading: false })
+          return { success: false, error }
+        }
+      },
+
+      // Add a new address
+      addUserAddress: async (addressData, silent = false) => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          const userAddresses = get().userAddresses || []
+
+          // Check if an address with almost identical coordinates or matching address lines already exists
+          const existingAddress = userAddresses.find(addr => {
+            if (addressData.latitude && addressData.longitude && addr.latitude && addr.longitude) {
+              const latDiff = Math.abs(parseFloat(addr.latitude) - parseFloat(addressData.latitude))
+              const lngDiff = Math.abs(parseFloat(addr.longitude) - parseFloat(addressData.longitude))
+              return latDiff < 0.00025 && lngDiff < 0.00025
+            }
+            const line1Match = (addr.address_line1 || '').toLowerCase().trim() === (addressData.address_line1 || '').toLowerCase().trim()
+            const cityMatch = (addr.city || '').toLowerCase().trim() === (addressData.city || '').toLowerCase().trim()
+            const pinMatch = (addr.pincode || '').toString().trim() === (addressData.pincode || '').toString().trim()
+            return line1Match && cityMatch && pinMatch
+          })
+
+          if (existingAddress) {
+            // Update default status if requested and not already default
+            if (addressData.is_default && !existingAddress.is_default) {
+              existingAddress.is_default = true
+              if (session) {
+                await supabase
+                  .from('addresses')
+                  .update({ is_default: false })
+                  .eq('user_id', session.user.id)
+                await supabase
+                  .from('addresses')
+                  .update({ is_default: true })
+                  .eq('id', existingAddress.id)
+                await get().fetchUserAddresses()
+              } else {
+                set({
+                  userAddresses: userAddresses.map(a => 
+                    a.id === existingAddress.id ? { ...a, is_default: true } : { ...a, is_default: false }
+                  )
+                })
+              }
+            }
+            return existingAddress
+          }
+
+          if (!session) {
+            // Guest mode: save to local state / storage
+            const newAddress = {
+              id: `temp-addr-${Date.now()}`,
+              ...addressData,
+              created_at: new Date().toISOString()
+            }
+            
+            let currentAddresses = get().userAddresses || []
+            if (addressData.is_default) {
+              currentAddresses = currentAddresses.map(addr => ({ ...addr, is_default: false }))
+            }
+            
+            set({
+              userAddresses: [newAddress, ...currentAddresses]
+            })
+            if (!silent) {
+              toast.success('Address saved locally')
+            }
+            return newAddress
+          }
+
+          set({ isLoading: true })
+
+          // If the new address is default, reset other default addresses first
+          if (addressData.is_default) {
+            await supabase
+              .from('addresses')
+              .update({ is_default: false })
+              .eq('user_id', session.user.id)
+          }
+
+          const { data, error } = await supabase
+            .from('addresses')
+            .insert([{ ...addressData, user_id: session.user.id }])
+            .select()
+            .single()
+
+          if (error) throw error
+          
+          await get().fetchUserAddresses()
+          if (!silent) {
+            toast.success('Address saved successfully')
+          }
+          return data
+        } catch (error) {
+          console.error('Add address error:', error)
+          toast.error('Failed to save address')
+          set({ isLoading: false })
+          return null
+        }
+      },
+
+      // Update an address
+      updateUserAddress: async (addressId, addressData) => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            // Guest mode: update locally
+            let currentAddresses = get().userAddresses || []
+            if (addressData.is_default) {
+              currentAddresses = currentAddresses.map(addr => ({ ...addr, is_default: false }))
+            }
+            const updatedAddresses = currentAddresses.map(addr => 
+              addr.id === addressId ? { ...addr, ...addressData } : addr
+            )
+            set({ userAddresses: updatedAddresses })
+            toast.success('Address updated locally')
+            return updatedAddresses.find(addr => addr.id === addressId)
+          }
+
+          set({ isLoading: true })
+
+          // If this address is set to default, reset other default addresses first
+          if (addressData.is_default) {
+            await supabase
+              .from('addresses')
+              .update({ is_default: false })
+              .eq('user_id', session.user.id)
+          }
+
+          const { data, error } = await supabase
+            .from('addresses')
+            .update(addressData)
+            .eq('id', addressId)
+            .eq('user_id', session.user.id)
+            .select()
+            .single()
+
+          if (error) throw error
+
+          await get().fetchUserAddresses()
+          toast.success('Address updated successfully')
+          return data
+        } catch (error) {
+          console.error('Update address error:', error)
+          toast.error('Failed to update address')
+          set({ isLoading: false })
+          return null
+        }
+      },
+
+      // Delete an address
+      deleteUserAddress: async (addressId) => {
+        try {
+          const { data: { session } } = await supabase.auth.getSession()
+          if (!session) {
+            // Guest mode: delete locally
+            set({
+              userAddresses: (get().userAddresses || []).filter(addr => addr.id !== addressId)
+            })
+            toast.success('Address deleted locally')
+            return true
+          }
+
+          set({ isLoading: true })
+          const { error } = await supabase
+            .from('addresses')
+            .delete()
+            .eq('id', addressId)
+            .eq('user_id', session.user.id)
+
+          if (error) throw error
+
+          await get().fetchUserAddresses()
+          toast.success('Address deleted successfully')
+          return true
+        } catch (error) {
+          console.error('Delete address error:', error)
+          toast.error('Failed to delete address')
+          set({ isLoading: false })
+          return false
+        }
+      },
+
+      detectLocation: async (isManual = false, silent = false) => {
+        set({ isDetecting: true, error: null })
+        if (isManual) {
+          localStorage.removeItem('ozo_location_permission_denied')
+        }
+        
+        if (!navigator.geolocation) {
+          const errMsg = 'Geolocation is not supported by your browser'
+          set({ 
+            error: errMsg, 
+            isDetecting: false 
+          })
+          if (isManual && !silent) {
+            toast.error(errMsg)
+          }
+          return false
+        }
+
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords
+              localStorage.removeItem('ozo_location_permission_denied')
+              
+              try {
+                // Reverse geocoding to fetch detailed address via utility
+                const { displayName, addressDetails } = await reverseGeocode(latitude, longitude)
+                
+                // Construct a shorter, cleaner display address (e.g. Road, Suburb, City)
+                const road = addressDetails.road || addressDetails.street || ''
+                const suburb = addressDetails.suburb || addressDetails.neighbourhood || addressDetails.village || ''
+                const city = addressDetails.city || addressDetails.town || addressDetails.county || ''
+                
+                let displayAddress = ''
+                if (road || suburb) {
+                  displayAddress = [road, suburb, city].filter(Boolean).join(', ')
+                } else {
+                  displayAddress = displayName || `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+                }
+
+                 set({ 
+                  coordinates: { lat: latitude, lng: longitude },
+                  address: displayAddress,
+                  addressDetails: addressDetails,
+                  isDetecting: false,
+                  tracedThrough: 'gps'
+                })
+                await get().updateNearestCitySlug(latitude, longitude)
+                if (isManual && !silent) {
+                  toast.success('Location detected successfully!')
+                }
+                resolve(true)
+              } catch (err) {
+                // Fallback to simple display
+                const nearestCity = get().nearestCity
+                set({ 
+                  coordinates: { lat: latitude, lng: longitude },
+                  address: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+                  addressDetails: {
+                    road: '',
+                    suburb: '',
+                    city: nearestCity?.name || '',
+                    state: nearestCity?.state || '',
+                    postcode: nearestCity?.allowed_pincodes?.[0] || ''
+                  },
+                  isDetecting: false,
+                  tracedThrough: 'gps'
+                })
+                await get().updateNearestCitySlug(latitude, longitude)
+                if (isManual && !silent) {
+                  toast.success('Location detected successfully!')
+                }
+                resolve(true)
+              }
+            },
+            (error) => {
+              let errMsg = 'Failed to detect location'
+              if (error.code === error.PERMISSION_DENIED) {
+                localStorage.setItem('ozo_location_permission_denied', 'true')
+                errMsg = 'Location permission denied. Please enable location permissions.'
+              }
+              set({ 
+                error: errMsg, 
+                isDetecting: false 
+              })
+              if (isManual) {
+                toast.error(errMsg)
+              }
+              resolve(false)
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+          )
+        })
+      },
+
+      // Clears GPS-derived location state and the selected city.
+      // User addresses are intentionally NOT cleared here — they belong to
+      // the user's profile, not to the current GPS position. Wiping them on
+      // every sign-out causes a visible flash of empty addresses when the
+      // user signs back in before the DB fetch completes, and loses
+      // guest-mode addresses that were saved locally.
+      // Addresses are cleared in fetchUserAddresses when the user ID changes.
+      clearLocation: () => set({
+        address: null,
+        coordinates: null,
+        addressDetails: null,
+        selectedCitySlug: null,
+        tracedThrough: null,
+      }),
+
+      // Explicitly clear saved addresses — called when the user account changes
+      // (different user logs in) to prevent one user seeing another's addresses.
+      clearUserAddresses: () => set({ userAddresses: [] }),
+    }),
+    {
+      name: 'ozo-location-storage',
+      partialize: (state) => ({ 
+        address: state.address, 
+        coordinates: state.coordinates,
+        addressDetails: state.addressDetails,
+        selectedCitySlug: state.selectedCitySlug,
+        nearestCity: state.nearestCity,
+        activeCities: state.activeCities,
+        userAddresses: state.userAddresses,
+        tracedThrough: state.tracedThrough
+      }),
+    }
+  )
+)
+
+// Dynamic Circle Geofence Check (Haversine Formula)
+//
+// Accepts an optional `config` object so callers that already hold the cart
+// store state can pass it in directly. This keeps locationStore free of any
+// dependency on cartStore (which imports locationStore), preventing a circular
+// module dependency.
+//
+// config shape (all optional):
+//   { deliveryConfig: { store_lat, store_lng },
+//     geofenceConfig: { warehouse_lat, warehouse_lng, max_radius_km } }
+//
+// Call sites that have useCartStore available should pass:
+//   checkDeliveryZoneStatus(lat, lng, useCartStore.getState())
+export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
+  if (!userLat || !userLng) return false;
+  const lat = parseFloat(userLat);
+  const lng = parseFloat(userLng);
+  if (isNaN(lat) || isNaN(lng)) return false;
+
+  try {
+    const locationState = useLocationStore.getState();
+    const activeCities = locationState.activeCities || [];
+
+    // If we have active cities loaded, check if coordinates fall within any active city's radius
+    if (activeCities.length > 0) {
+      const R = 6371; // Earth's radius in KM
+      for (const city of activeCities) {
+        if (!city.latitude || !city.longitude) continue;
+        const cLat = parseFloat(city.latitude);
+        const cLng = parseFloat(city.longitude);
+        const maxRadius = parseFloat(city.service_radius_km) || 15.0;
+
+        const dLat = (lat - cLat) * Math.PI / 180;
+        const dLon = (lng - cLng) * Math.PI / 180;
+        const a = 
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(cLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        if (distance <= maxRadius) {
+          return true; // Found a serviceable city!
+        }
+      }
+      return false; // Coordinates checked and none of the active cities cover them
+    }
+
+    // Fallback: If activeCities are not loaded yet, use nearestCity or GEOFENCE_DEFAULTS
+    let centerLat = GEOFENCE_DEFAULTS.warehouse_lat;
+    let centerLng = GEOFENCE_DEFAULTS.warehouse_lng;
+    let maxRadius = GEOFENCE_DEFAULTS.max_radius_km;
+
+    const nearestCity = locationState.nearestCity;
+    if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
+      centerLat = parseFloat(nearestCity.latitude);
+      centerLng = parseFloat(nearestCity.longitude);
+      maxRadius = parseFloat(nearestCity.service_radius_km) || 2.5;
+    } else if (config) {
+      const { deliveryConfig, geofenceConfig } = config;
+      if (deliveryConfig && deliveryConfig.store_lat) {
+        centerLat = parseFloat(deliveryConfig.store_lat);
+        centerLng = parseFloat(deliveryConfig.store_lng);
+      } else if (geofenceConfig) {
+        if (geofenceConfig.warehouse_lat) centerLat = parseFloat(geofenceConfig.warehouse_lat);
+        if (geofenceConfig.warehouse_lng) centerLng = parseFloat(geofenceConfig.warehouse_lng);
+      }
+      if (geofenceConfig && geofenceConfig.max_radius_km) {
+        maxRadius = parseFloat(geofenceConfig.max_radius_km);
+      }
+    }
+
+    const R = 6371; // Earth's radius in KM
+    const dLat = (lat - centerLat) * Math.PI / 180;
+    const dLon = (lng - centerLng) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(centerLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
+      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    return distance <= maxRadius;
+  } catch (e) {
+    console.error("Error checking dynamic delivery zone:", e);
+    return false;
+  }
+};
+
+export const findMatchingActiveCity = (cityName) => {
+  if (!cityName) return null;
+  const cleanInput = cityName.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+  const activeCities = useLocationStore.getState().activeCities || [];
+  
+  // Try exact or substring match first
+  let matched = activeCities.find(c => {
+    const cleanCityName = c.name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+    return cleanCityName === cleanInput || cleanCityName.includes(cleanInput) || cleanInput.includes(cleanCityName);
+  });
+  
+  // Fallback: match by slug
+  if (!matched) {
+    const cleanSlugInput = cityName.toLowerCase().replace(/[\s,]+/g, '-').replace(/[^a-z0-9-]/g, '').trim();
+    matched = activeCities.find(c => {
+      const cleanSlug = c.slug.toLowerCase().trim();
+      return cleanSlug === cleanSlugInput || cleanSlug.includes(cleanSlugInput) || cleanSlugInput.includes(cleanSlug);
+    });
+  }
+  
+  return matched;
+};
+
+export const findCityByPincode = (pincode) => {
+  if (!pincode) return null;
+  const cleanPin = pincode.toString().trim();
+  const activeCities = useLocationStore.getState().activeCities || [];
+  return activeCities.find(c => c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.includes(cleanPin));
+};
+
+// Check if a pincode is serviceable based on the nearest city's configuration or entered city.
+// Always returns true because physical geofence (coordinates check) is the Single Source of Truth for delivery serviceability.
+export const checkPincodeServiceable = (pincode, cityName = null) => {
+  return true;
+};
+
+export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => {
+  useLocationStore.getState().showServiceabilityModal(cityName, pincode, onConfirm);
+};
+
+// Initialize active cities on module load
+if (typeof window !== 'undefined') {
+  useLocationStore.getState().fetchActiveCities().catch(console.error);
+}
