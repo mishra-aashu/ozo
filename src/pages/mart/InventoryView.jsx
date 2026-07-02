@@ -1466,7 +1466,57 @@ const InventoryView = () => {
   const renderLocalToolWidget = () => {
     const { online, status, processed, total, currentProduct } = localToolState
 
-    if (!online) return null
+    if (!online) {
+      return (
+        <div className="mb-6 bg-gradient-to-r from-blue-950/15 to-indigo-950/15 dark:from-blue-950/30 dark:to-indigo-950/30 border border-blue-500/20 dark:border-blue-400/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-blue-500/5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            {/* Status Info */}
+            <div className="flex items-center gap-4">
+              <div className="relative">
+                <div className="h-12 w-12 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center text-blue-500 dark:text-blue-400">
+                  <Download className="h-5 w-5 animate-bounce" />
+                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-gray-400 rounded-full border-2 border-white dark:border-[#070709]" />
+              </div>
+              
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-blue-600 dark:text-blue-400 uppercase tracking-widest">Local Image Finder</span>
+                  <span className="text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase bg-gray-500/20 text-gray-500">
+                    Offline
+                  </span>
+                </div>
+                
+                <h3 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                  Automate missing product images directly from your desktop.
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Connect the local helper tool to scan missing images and auto-resolve using barcodes.
+                </p>
+              </div>
+            </div>
+
+            {/* Action Button */}
+            <div className="flex items-center gap-3 w-full md:w-auto shrink-0">
+              {downloadUrl ? (
+                <a
+                  href={downloadUrl}
+                  download="OzoMartImageTool.exe"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full md:w-auto px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl text-center transition-all cursor-pointer shadow-lg shadow-blue-500/10 flex items-center justify-center gap-2"
+                >
+                  <Download className="w-4 h-4" />
+                  Download Desktop Assistant
+                </a>
+              ) : (
+                <span className="text-xs text-gray-400 italic">Download link not configured.</span>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
 
     const isRunning = status === 'running'
     const isPaused = status === 'paused'
