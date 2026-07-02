@@ -28,20 +28,32 @@ def build():
         sys.exit(0)
 
     # Now we are guaranteed to be in a virtual environment
+    print("Installing/updating dependencies from image_tool/requirements.txt inside virtual environment...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "-r", "image_tool/requirements.txt"])
+
     try:
         import PyInstaller
     except ImportError:
         print("Installing PyInstaller inside virtual environment...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", "pyinstaller"])
 
+    # Build the React frontend first so the dist/ directory is fresh and complete
+    print("🏗️ Building OzoMart React Frontend (npm run build)...")
+    try:
+        subprocess.check_call(["npm", "run", "build"], shell=sys.platform.startswith('win'))
+    except Exception as e:
+        print(f"⚠️ Warning: npm run build failed: {e}")
+        print("Make sure you have Node.js and npm installed, and run npm run build manually if needed.")
+
     # Determine paths and separator based on OS
     sep = ';' if sys.platform.startswith('win') else ':'
     pyinstaller_bin = os.path.join(sys.prefix, "Scripts", "pyinstaller.exe") if sys.platform.startswith('win') else os.path.join(sys.prefix, "bin", "pyinstaller")
     
-    # Build command
+    # Build command including both the dist/ React build and the standalone templates
     cmd = [
         pyinstaller_bin,
         "--onefile",
+        f"--add-data=dist{sep}dist",
         f"--add-data=image_tool/templates{sep}image_tool/templates",
         "--name=OzoMartImageTool",
         "run_image_tool.py"

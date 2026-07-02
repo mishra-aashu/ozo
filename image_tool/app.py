@@ -1,21 +1,56 @@
 import os
 import threading
 import time
-from flask import Flask, render_template, jsonify, request, Response
+import sys
+import hashlib
+from flask import Flask, jsonify, request, Response, send_from_directory
 from . import supabase_client
 from . import searcher
 from . import uploader
 from . import cache
 
-import sys
+import requests
+from Crypto.Cipher import AES
 
-# Support PyInstaller bundling
+CRYPTO_SECRET = "OzoSecretEncryptionKey2026!"
+
+def decrypt_text(hex_str, secret):
+    try:
+        encrypted_data = bytes.fromhex(hex_str)
+        iv = encrypted_data[:12]
+        ciphertext_and_tag = encrypted_data[12:]
+        ciphertext = ciphertext_and_tag[:-16]
+        tag = ciphertext_and_tag[-16:]
+        key = hashlib.sha256(secret.encode('utf-8')).digest()
+        cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
+        decrypted = cipher.decrypt_and_verify(ciphertext, tag)
+        return decrypted.decode('utf-8')
+    except Exception as e:
+        print(f"❌ Decryption helper failed: {e}")
+        raise e
+
+def encrypt_text(text, secret):
+    try:
+        key = hashlib.sha256(secret.encode('utf-8')).digest()
+        iv = os.urandom(12)
+        cipher = AES.new(key, AES.MODE_GCM, nonce=iv)
+        ciphertext, tag = cipher.encrypt_and_digest(text.encode('utf-8'))
+        combined = iv + ciphertext + tag
+        return combined.hex()
+    except Exception as e:
+        print(f"❌ Encryption helper failed: {e}")
+        raise e
+
+# Determine paths
 if getattr(sys, 'frozen', False):
-    template_folder = os.path.join(sys._MEIPASS, 'image_tool', 'templates')
-    static_folder = os.path.join(sys._MEIPASS, 'image_tool', 'static')
-    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+    dist_folder = os.path.join(sys._MEIPASS, 'dist')
+    standalone_template_dir = os.path.join(sys._MEIPASS, 'image_tool', 'templates')
 else:
-    app = Flask(__name__, template_folder='templates', static_folder='static')
+    dist_folder = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'dist')
+    standalone_template_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
+
+# Initialize Flask
+app = Flask(__name__, static_folder=None, template_folder=None)
 
 # Locked configuration (for single-mart login/handshake)
 locked_config = {
@@ -185,9 +220,9 @@ def progress_worker(mart_id, products):
 
 # Routes
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+@app.route('/image-tool-dashboard')
+def serve_standalone_dashboard():
+    return send_from_directory(standalone_template_dir, 'index.html')
 
 @app.route('/api/marts')
 def api_marts():
@@ -391,9 +426,149 @@ def progress_stream():
                 
     return Response(event_stream(), content_type='text/event-stream')
 
+# API proxy to intercept and forward Supabase DB calls locally
+@app.route('/api/proxy/<path:subpath>', methods=['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'])
+def local_supabase_proxy(subpath):
+    if request.method == 'OPTIONS':
+        resp = Response("", status=204)
+        resp.headers['Access-Control-Allow-Origin'] = '*'
+        resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+        resp.headers['Access-Control-Allow-Headers'] = '*'
+        resp.headers['Access-Control-Expose-Headers'] = 'x-encrypted'
+        return resp
+
+    SUPABASE_URL = "https://ungxccwdondssatixzlz.supabase.co"
+    target_url = f"{SUPABASE_URL}/{subpath}"
+    if request.query_string:
+        target_url += f"?{request.query_string.decode('utf-8')}"
+
+    # Prepare headers to forward
+    headers_to_forward = [
+        'authorization',
+        'apikey',
+        'content-type',
+        'prefer',
+        'x-client-info',
+        'accept',
+        'x-original-content-type'
+    ]
+    
+    forward_headers = {}
+    for h in headers_to_forward:
+        val = request.headers.get(h)
+        if val is not None:
+            forward_headers[h] = val
+
+    # Read body
+    req_body = request.get_data()
+    is_encrypted = request.headers.get('x-encrypted') == 'true'
+    
+    if req_body and is_encrypted:
+        try:
+            # Decrypt body
+            decrypted_str = decrypt_text(req_body.decode('utf-8'), CRYPTO_SECRET)
+            req_body = decrypted_str.encode('utf-8')
+            
+            # Restore original content-type
+            orig_ct = request.headers.get('x-original-content-type')
+            if orig_ct:
+                forward_headers['content-type'] = orig_ct
+            else:
+                forward_headers['content-type'] = 'application/json'
+            
+            if 'x-original-content-type' in forward_headers:
+                del forward_headers['x-original-content-type']
+        except Exception as e:
+            print(f"❌ Proxy decryption error: {e}")
+            return jsonify({"error": "Request decryption failed"}), 400
+
+    # Execute request
+    try:
+        res = requests.request(
+            method=request.method,
+            url=target_url,
+            headers=forward_headers,
+            data=req_body,
+            timeout=30,
+            allow_redirects=False
+        )
+    except Exception as e:
+        print(f"❌ Proxy connection error: {e}")
+        return jsonify({"error": str(e)}), 502
+
+    # Prepare response headers
+    resp_headers = {}
+    for k, v in res.headers.items():
+        k_lower = k.lower()
+        if k_lower not in ['content-encoding', 'content-length', 'transfer-encoding', 'connection']:
+            resp_headers[k] = v
+
+    # Add CORS
+    resp_headers['Access-Control-Allow-Origin'] = '*'
+    resp_headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS, PATCH'
+    resp_headers['Access-Control-Allow-Headers'] = '*'
+    resp_headers['Access-Control-Expose-Headers'] = 'x-encrypted'
+
+    # Read and encrypt response if it is JSON
+    content_type = res.headers.get('content-type', '')
+    res_data = res.content
+    
+    if 'application/json' in content_type and res_data:
+        try:
+            encrypted_hex = encrypt_text(res_data.decode('utf-8'), CRYPTO_SECRET)
+            res_data = encrypted_hex.encode('utf-8')
+            resp_headers['content-type'] = 'text/plain'
+            resp_headers['x-encrypted'] = 'true'
+        except Exception as e:
+            print(f"⚠️ Proxy response encryption error: {e}")
+
+    # Build Flask response
+    response = Response(res_data, status=res.status_code)
+    for k, v in resp_headers.items():
+        response.headers[k] = v
+        
+    return response
+
+# API endpoint for searching images (DuckDuckGo fallback)
+@app.route('/api/search-image')
+def local_search_image():
+    query = request.args.get('q', '').strip()
+    if not query:
+        return jsonify({"error": 'Query parameter "q" is required'}), 400
+        
+    try:
+        candidates = searcher.search_duckduckgo_images(query)
+        formatted_results = []
+        for cand in candidates:
+            formatted_results.append({
+                "url": cand["imageUrl"],
+                "thumbnail": cand["thumbnail"],
+                "title": cand["title"],
+                "source": cand["source"]
+            })
+        return jsonify({"results": formatted_results})
+    except Exception as e:
+        print(f"❌ Local search-image failed: {e}")
+        return jsonify({"error": str(e)}), 500
+
+# Catch-all route to serve the SPA React application from dist folder
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def catch_all(path):
+    if path.startswith('api/'):
+        return jsonify({"error": "Not Found"}), 404
+        
+    file_path = os.path.join(dist_folder, path)
+    if os.path.exists(file_path) and os.path.isfile(file_path):
+        return send_from_directory(dist_folder, path)
+        
+    if os.path.exists(os.path.join(dist_folder, 'index.html')):
+        return send_from_directory(dist_folder, 'index.html')
+        
+    return "OzoMart Portal frontend not built yet. Please run 'npm run build' to compile it.", 404
+
 if __name__ == '__main__':
     import webbrowser
-    # Check if this is the main process of the auto-reloader (or reload isn't running)
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         print("🌍 Opening dashboard http://localhost:5000 in your browser...")
         threading.Timer(1.2, lambda: webbrowser.open("http://localhost:5000")).start()
