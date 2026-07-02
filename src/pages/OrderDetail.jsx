@@ -1573,105 +1573,107 @@ const OrderDetail = () => {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white dark:bg-[#151515] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative overflow-y-auto max-h-[90vh] custom-scrollbar"
+              className="bg-white dark:bg-[#151515] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center gap-3 text-gray-900 dark:text-white mb-6">
+              <div className="flex items-center gap-3 text-gray-900 dark:text-white mb-4 flex-shrink-0">
                 <AlertCircle size={28} className="text-ozo-red animate-pulse" />
                 <h3 className="text-xl font-black uppercase tracking-tight">Cancel Order Request</h3>
               </div>
               
-              <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
-                To prevent fuel and food wastage, cancellation is restricted. Please contact our support team or your assigned Captain to authorize this request.
-              </p>
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 my-2 space-y-6">
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
+                  To prevent fuel and food wastage, cancellation is restricted. Please contact our support team or your assigned Captain to authorize this request.
+                </p>
 
-              {/* Rider / Support card info displayed directly inside modal */}
-              {currentOrder?.rider ? (
-                <div className="p-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-white/10 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-300 dark:border-white/10 shadow-inner">
-                    {currentOrder.rider.selfie_url ? (
-                      <OptimizedImage
-                        src={currentOrder.rider.selfie_url}
-                        alt={currentOrder.rider.full_name || 'Rider'}
-                        width={100}
-                        className="w-full h-full object-cover"
-                        containerClassName="w-full h-full"
-                      />
-                    ) : (
-                      <span className="font-black text-sm text-gray-500">{currentOrder?.rider?.full_name?.charAt(0) || 'C'}</span>
-                    )}
+                {/* Rider / Support card info displayed directly inside modal */}
+                {currentOrder?.rider ? (
+                  <div className="p-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-200 dark:bg-white/10 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0 border border-gray-300 dark:border-white/10 shadow-inner">
+                      {currentOrder.rider.selfie_url ? (
+                        <OptimizedImage
+                          src={currentOrder.rider.selfie_url}
+                          alt={currentOrder.rider.full_name || 'Rider'}
+                          width={100}
+                          className="w-full h-full object-cover"
+                          containerClassName="w-full h-full"
+                        />
+                      ) : (
+                        <span className="font-black text-sm text-gray-500">{currentOrder?.rider?.full_name?.charAt(0) || 'C'}</span>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Assigned Captain</h5>
+                      <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">{currentOrder?.rider?.full_name || 'Assigned Captain'}</h4>
+                      <p className="text-xs font-bold text-gray-500">{currentOrder?.rider?.phone || ''}</p>
+                    </div>
+                    <a 
+                      href={`tel:${currentOrder.rider.phone}`}
+                      className="w-10 h-10 bg-ozo-red hover:bg-ozo-red/90 text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all flex-shrink-0"
+                      title="Call Captain"
+                    >
+                      <Phone size={16} />
+                    </a>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Assigned Captain</h5>
-                    <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">{currentOrder?.rider?.full_name || 'Assigned Captain'}</h4>
-                    <p className="text-xs font-bold text-gray-500">{currentOrder?.rider?.phone || ''}</p>
+                ) : (
+                  <div className="p-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl flex items-center gap-4">
+                    <div className="w-12 h-12 bg-gray-200 dark:bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 text-ozo-red">
+                      <Phone size={20} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h5 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Ozo Customer Support</h5>
+                      <h4 className="text-sm font-black text-gray-900 dark:text-white">+91 1800-OZO-DEL</h4>
+                      <p className="text-xs font-bold text-gray-500">Helpline Center</p>
+                    </div>
+                    <a 
+                      href="tel:+911800-OZO-DEL"
+                      className="w-10 h-10 bg-ozo-red hover:bg-ozo-red/90 text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all flex-shrink-0"
+                      title="Call Support"
+                    >
+                      <Phone size={16} />
+                    </a>
                   </div>
-                  <a 
-                    href={`tel:${currentOrder.rider.phone}`}
-                    className="w-10 h-10 bg-ozo-red hover:bg-ozo-red/90 text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all flex-shrink-0"
-                    title="Call Captain"
-                  >
-                    <Phone size={16} />
-                  </a>
-                </div>
-              ) : (
-                <div className="p-4 bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-3xl flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-gray-200 dark:bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0 text-ozo-red">
-                    <Phone size={20} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h5 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Ozo Customer Support</h5>
-                    <h4 className="text-sm font-black text-gray-900 dark:text-white">+91 1800-OZO-DEL</h4>
-                    <p className="text-xs font-bold text-gray-500">Helpline Center</p>
-                  </div>
-                  <a 
-                    href="tel:+911800-OZO-DEL"
-                    className="w-10 h-10 bg-ozo-red hover:bg-ozo-red/90 text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all flex-shrink-0"
-                    title="Call Support"
-                  >
-                    <Phone size={16} />
-                  </a>
-                </div>
-              )}
+                )}
 
-              {/* Cancellation Reason Selector */}
-              <div className="mb-6">
-                <ReasonSelector
-                  type="cancel"
-                  selectedReason={cancelReason}
-                  onChange={setCancelReason}
-                  customNote={cancelCustomNote}
-                  onCustomNoteChange={setCancelCustomNote}
-                />
-              </div>
-
-              <div className="space-y-4 mb-6">
-                <label className="flex items-start gap-3 cursor-pointer select-none">
-                  <input 
-                    type="checkbox" 
-                    checked={hasCalledPartner}
-                    onChange={(e) => setHasCalledPartner(e.target.checked)}
-                    className="mt-1 w-4 h-4 text-ozo-red border-gray-300 rounded focus:ring-ozo-red accent-ozo-red cursor-pointer"
-                  />
-                  <span className="text-xs text-gray-700 dark:text-gray-300 font-bold leading-relaxed">
-                    I have discussed this cancellation with {currentOrder.rider ? 'Captain' : 'Customer Support'}.
-                  </span>
-                </label>
-
+                {/* Cancellation Reason Selector */}
                 <div>
-                  <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">
-                    Type "CONFIRM" to authorize
-                  </label>
-                  <input 
-                    type="text" 
-                    value={confirmationText}
-                    onChange={(e) => setConfirmationText(e.target.value)}
-                    placeholder="Type CONFIRM here"
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-ozo-red/20 font-bold text-sm text-center uppercase"
+                  <ReasonSelector
+                    type="cancel"
+                    selectedReason={cancelReason}
+                    onChange={setCancelReason}
+                    customNote={cancelCustomNote}
+                    onCustomNoteChange={setCancelCustomNote}
                   />
+                </div>
+
+                <div className="space-y-4">
+                  <label className="flex items-start gap-3 cursor-pointer select-none">
+                    <input 
+                      type="checkbox" 
+                      checked={hasCalledPartner}
+                      onChange={(e) => setHasCalledPartner(e.target.checked)}
+                      className="mt-1 w-4 h-4 text-ozo-red border-gray-300 rounded focus:ring-ozo-red accent-ozo-red cursor-pointer"
+                    />
+                    <span className="text-xs text-gray-700 dark:text-gray-300 font-bold leading-relaxed">
+                      I have discussed this cancellation with {currentOrder.rider ? 'Captain' : 'Customer Support'}.
+                    </span>
+                  </label>
+
+                  <div>
+                    <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">
+                      Type "CONFIRM" to authorize
+                    </label>
+                    <input 
+                      type="text" 
+                      value={confirmationText}
+                      onChange={(e) => setConfirmationText(e.target.value)}
+                      placeholder="Type CONFIRM here"
+                      className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-ozo-red/20 font-bold text-sm text-center uppercase"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-shrink-0 pt-2 border-t border-gray-50 dark:border-white/5">
                 <button 
                   onClick={() => {
                     setIsCancelModalOpen(false)
@@ -1705,9 +1707,9 @@ const OrderDetail = () => {
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white dark:bg-[#151515] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative overflow-y-auto max-h-[90vh] custom-scrollbar space-y-6"
+              className="bg-white dark:bg-[#151515] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3 text-gray-900 dark:text-white">
                   <RefreshCw size={24} className="text-amber-500 animate-spin animate-duration-10000" />
                   <h3 className="text-xl font-black uppercase tracking-tight">Return Order</h3>
@@ -1720,42 +1722,44 @@ const OrderDetail = () => {
                 </button>
               </div>
 
-              <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
-                <h5 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">Strict Policy Enforcement</h5>
-                <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 leading-relaxed space-y-2">
-                  <span className="block mb-2 text-amber-600 dark:text-amber-400 font-bold">Returns must be filed within 15 minutes of delivery. A <strong>live camera photo</strong> of the damaged/expired products is mandatory (no gallery uploads).</span>
-                  <span className="block text-[11px] text-gray-500 font-medium">
-                    To maintain the highest standards of food safety and hygiene, OZO Mart operates a strict quality check loop. Since grocery items include fresh perishables (milk, vegetables, frozen goods) that require immediate refrigeration, any discrepancy in quality, expiry, or items must be logged within 15 minutes of delivery. This allows our dark stores to instantly investigate the batch and process your refund or replacement without delay.
-                  </span>
-                </p>
-              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 my-2 space-y-6">
+                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
+                  <h5 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">Strict Policy Enforcement</h5>
+                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 leading-relaxed space-y-2">
+                    <span className="block mb-2 text-amber-600 dark:text-amber-400 font-bold">Returns must be filed within 15 minutes of delivery. A <strong>live camera photo</strong> of the damaged/expired products is mandatory (no gallery uploads).</span>
+                    <span className="block text-[11px] text-gray-500 font-medium">
+                      To maintain the highest standards of food safety and hygiene, OZO Mart operates a strict quality check loop. Since grocery items include fresh perishables (milk, vegetables, frozen goods) that require immediate refrigeration, any discrepancy in quality, expiry, or items must be logged within 15 minutes of delivery. This allows our dark stores to instantly investigate the batch and process your refund or replacement without delay.
+                    </span>
+                  </p>
+                </div>
 
-              <ReasonSelector
-                type="return"
-                selectedReason={returnReason}
-                onChange={setReturnReason}
-                customNote={returnCustomNote}
-                onCustomNoteChange={setReturnCustomNote}
-              />
-
-              {/* Live Photo Upload */}
-              <div className="flex flex-col gap-2">
-                <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                  Live Photo Proof
-                </label>
-                <ImageUpload
-                  value={returnImage}
-                  onChange={setReturnImage}
-                  multiple={false}
-                  capture="environment"
-                  label="Capture Photo"
+                <ReasonSelector
+                  type="return"
+                  selectedReason={returnReason}
+                  onChange={setReturnReason}
+                  customNote={returnCustomNote}
+                  onCustomNoteChange={setReturnCustomNote}
                 />
-                <span className="text-[10px] font-bold text-gray-500 mt-1 block">
-                  * Opens camera directly on mobile. Make sure to capture the defect clearly.
-                </span>
+
+                {/* Live Photo Upload */}
+                <div className="flex flex-col gap-2">
+                  <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                    Live Photo Proof
+                  </label>
+                  <ImageUpload
+                    value={returnImage}
+                    onChange={setReturnImage}
+                    multiple={false}
+                    capture="environment"
+                    label="Capture Photo"
+                  />
+                  <span className="text-[10px] font-bold text-gray-550 mt-1 block">
+                    * Opens camera directly on mobile. Make sure to capture the defect clearly.
+                  </span>
+                </div>
               </div>
 
-              <div className="flex gap-3 pt-2">
+              <div className="flex gap-3 flex-shrink-0 pt-2 border-t border-gray-50 dark:border-white/5">
                 <button
                   type="button"
                   onClick={() => setIsReturnModalOpen(false)}
