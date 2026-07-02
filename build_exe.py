@@ -36,10 +36,11 @@ def build():
 
     # Determine paths and separator based on OS
     sep = ';' if sys.platform.startswith('win') else ':'
+    pyinstaller_bin = os.path.join(sys.prefix, "Scripts", "pyinstaller.exe") if sys.platform.startswith('win') else os.path.join(sys.prefix, "bin", "pyinstaller")
     
     # Build command
     cmd = [
-        "pyinstaller",
+        pyinstaller_bin,
         "--onefile",
         f"--add-data=image_tool/templates{sep}image_tool/templates",
         "--name=OzoMartImageTool",
