@@ -1,0 +1,2562 @@
+[
+  {
+    "id": "ea6a6c4f-e1a3-4568-a87a-dab663e6465b",
+    "name": "M.G Road",
+    "name_hi": "एम.जी. रोड",
+    "type": "commercial/street",
+    "latitude": 24.7501,
+    "longitude": 84.3712,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "eb2256ef-fae9-4e27-b1d3-952d070f9f33",
+    "name": "Old G.T. Road",
+    "name_hi": "ओल्ड जी.टी. रोड",
+    "type": "secondary",
+    "latitude": 24.7523,
+    "longitude": 84.3734,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "85ea71b5-61e6-4fb4-a4a6-7a4297bbe62f",
+    "name": "Maharaj Ganj Road",
+    "name_hi": "महाराज गंज रोड",
+    "type": "street",
+    "latitude": 24.7562,
+    "longitude": 84.3685,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "0f951bb2-51ae-409b-9a33-01f598fb5ec3",
+    "name": "Naga Bigha",
+    "name_hi": "नागा बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.7485,
+    "longitude": 84.378,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "f44bb1ea-d858-42e1-8ceb-32452dc35169",
+    "name": "Kewani Mohalla",
+    "name_hi": "केवानी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7588,
+    "longitude": 84.3762,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "7b13e924-108b-4a93-8b66-32105671ade8",
+    "name": "Gurdeo Nagar",
+    "name_hi": "गुरुदेव नगर",
+    "type": "residential/colony",
+    "latitude": 24.741,
+    "longitude": 84.3695,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "58c8c289-aff9-4cb2-8e09-2ade1fa8da0f",
+    "name": "Kama Bigha",
+    "name_hi": "कामा बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.762,
+    "longitude": 84.365,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "c40585e0-76f7-43c0-97dc-4a0e7ab4a869",
+    "name": "Bihari Bigha",
+    "name_hi": "बिहारी बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.7645,
+    "longitude": 84.3662,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "afb41f3f-2af0-4df3-8ec3-a735c8e804c7",
+    "name": "Ratanuan Road",
+    "name_hi": "रतनुआं रोड",
+    "type": "residential/street",
+    "latitude": 24.739,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "a7c8cc00-62c7-402e-b33b-8e3fb87d281e",
+    "name": "Club Road",
+    "name_hi": "क्लब रोड",
+    "type": "residential/street",
+    "latitude": 24.758,
+    "longitude": 84.372,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "5bc8a052-72cd-4ba4-a239-389cfd122bd3",
+    "name": "Yodha Marg",
+    "name_hi": "योद्धा मार्ग",
+    "type": "residential/street",
+    "latitude": 24.7515,
+    "longitude": 84.375,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "5fa64db7-62c5-4e25-9b9c-4e05ddf0cb66",
+    "name": "Tikri Road",
+    "name_hi": "टिकरी रोड",
+    "type": "tertiary",
+    "latitude": 24.755,
+    "longitude": 84.368,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8564f442-1ef3-4fe0-aae9-8098f06cb54d",
+    "name": "Navadih Road",
+    "name_hi": "नवाडीह रोड",
+    "type": "secondary",
+    "latitude": 24.7431,
+    "longitude": 84.3789,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "78921cdd-a9a9-415d-974c-1c593190ae45",
+    "name": "Karma Road",
+    "name_hi": "करमा रोड",
+    "type": "secondary/street",
+    "latitude": 24.761,
+    "longitude": 84.379,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "0eab34d5-e239-42ff-a7e5-9e785f3fe44c",
+    "name": "Dayanand Marg",
+    "name_hi": "दयानन्द मार्ग",
+    "type": "residential/street",
+    "latitude": 24.7542,
+    "longitude": 84.3728,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "0975a739-6b06-49a6-9ad2-b8fd8fe0585e",
+    "name": "Punpun Road",
+    "name_hi": "पुनपुन रोड",
+    "type": "tertiary/street",
+    "latitude": 24.74,
+    "longitude": 84.39,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "c051a7a2-1738-40de-8988-f499d771bfc5",
+    "name": "M.P Colony Road",
+    "name_hi": "एम.पी. कॉलोनी रोड",
+    "type": "residential/street",
+    "latitude": 24.7495,
+    "longitude": 84.3812,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "71edaa76-2421-4774-882b-fe6e63c63264",
+    "name": "PHED Colony",
+    "name_hi": "पी.एच.ई.डी. कॉलोनी",
+    "type": "residential/colony",
+    "latitude": 24.746,
+    "longitude": 84.3795,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "3bd53e42-c715-491c-9f27-7058c66a76d9",
+    "name": "Irrigation Colony",
+    "name_hi": "इरीगेशन कॉलोनी",
+    "type": "residential/colony",
+    "latitude": 24.748,
+    "longitude": 84.374,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "fbb9d26c-b25e-4af0-8fff-7075a11f1edf",
+    "name": "Adarsh Nagar",
+    "name_hi": "आदर्श नगर",
+    "type": "residential/colony",
+    "latitude": 24.738,
+    "longitude": 84.362,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "794bff33-12c6-49f9-9d9c-aac978f97119",
+    "name": "S.S. College Road",
+    "name_hi": "एस.एस. कॉलेज रोड",
+    "type": "residential/street",
+    "latitude": 24.735,
+    "longitude": 84.358,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8ca58c67-e0c6-4965-9afa-1164beb5fc14",
+    "name": "Sunurganj Mohalla",
+    "name_hi": "सुनुरगंज मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7595,
+    "longitude": 84.364,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "4d41c694-988e-471f-bdfb-fc7649abf4da",
+    "name": "Riyasat Mali",
+    "name_hi": "रियासत माली",
+    "type": "residential/mohalla",
+    "latitude": 24.761,
+    "longitude": 84.359,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "05b01303-71a8-4700-a42f-0e413c156305",
+    "name": "Riyasat Pawai",
+    "name_hi": "रियासत पवई",
+    "type": "residential/mohalla",
+    "latitude": 24.763,
+    "longitude": 84.357,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "d0893a69-a6be-4eff-966e-a9b8d6f9c49b",
+    "name": "Karma Bhagwan",
+    "name_hi": "करमा भगवान",
+    "type": "residential/mohalla",
+    "latitude": 24.767,
+    "longitude": 84.381,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "98b71280-6b66-492a-8f71-9932319540e6",
+    "name": "R.B. Nagar",
+    "name_hi": "आर.बी. नगर",
+    "type": "residential/colony",
+    "latitude": 24.7415,
+    "longitude": 84.3605,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "3bd5c20b-8ada-4677-8862-e8f391980db6",
+    "name": "Thana Road",
+    "name_hi": "थाना रोड",
+    "type": "commercial/street",
+    "latitude": 24.752,
+    "longitude": 84.369,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "98d345b0-c7eb-4c40-8d39-3b55a7e50ace",
+    "name": "Hospital Road",
+    "name_hi": "अस्पताल रोड",
+    "type": "street",
+    "latitude": 24.754,
+    "longitude": 84.3725,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "f6869a6b-dcd5-4a68-b55a-d8f28c182f22",
+    "name": "Main Road Daudnagar",
+    "name_hi": "मेन रोड दाउदनगर",
+    "type": "commercial/street",
+    "latitude": 25.028,
+    "longitude": 84.402,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "cf9681f9-bff6-46f9-bafa-eef4a5ec84c7",
+    "name": "Samser Nagar",
+    "name_hi": "शमशेर नगर",
+    "type": "residential/mohalla",
+    "latitude": 25.035,
+    "longitude": 84.398,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "c676be97-4616-4b00-8429-aac575553dd2",
+    "name": "Ramchandra Nagar",
+    "name_hi": "रामचन्द्र नगर",
+    "type": "residential/colony",
+    "latitude": 24.721,
+    "longitude": 84.349,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "049b21a7-0715-4c5d-8451-8d98639e08ed",
+    "name": "Dewaria Kala",
+    "name_hi": "देवरिया कला",
+    "type": "residential/mohalla",
+    "latitude": 24.718,
+    "longitude": 84.341,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "de7950f8-ba5a-412a-a7ee-5ba665548357",
+    "name": "Jaisri Bigha",
+    "name_hi": "जयश्री बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.725,
+    "longitude": 84.351,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8f34ebfe-7557-409f-8307-8834b6337ccf",
+    "name": "Nirmal Bigha",
+    "name_hi": "निर्मल बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.7505,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8ed869d8-4b4d-49be-95c2-e12656efe8fe",
+    "name": "Murgi Bigha",
+    "name_hi": "मुर्गी बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.749,
+    "longitude": 84.391,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "cc52ee7e-7618-402f-8323-0ea1aadbf6e7",
+    "name": "Bala Bigha",
+    "name_hi": "बाला बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.744,
+    "longitude": 84.382,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "2483daff-eee5-40f2-838f-58c0022d142f",
+    "name": "Wahid Bigha",
+    "name_hi": "वाहिद बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.7465,
+    "longitude": 84.3875,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "505e691c-70f2-4eaa-a40e-786c8f2fb32a",
+    "name": "Hasauli",
+    "name_hi": "हसौली",
+    "type": "residential/mohalla",
+    "latitude": 24.76,
+    "longitude": 84.399,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "370acbd1-3015-4c0a-8ada-3981e95a0538",
+    "name": "Dambha",
+    "name_hi": "दम्भा",
+    "type": "residential/mohalla",
+    "latitude": 24.765,
+    "longitude": 84.402,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "a392d32e-cab5-47ac-8d42-3630f201cdce",
+    "name": "Bela Road",
+    "name_hi": "बेला रोड",
+    "type": "residential/street",
+    "latitude": 24.749,
+    "longitude": 84.398,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "ed3a0a41-3449-4df3-9949-64fb2ffe1249",
+    "name": "Tendua Road",
+    "name_hi": "तेन्दुआ रोड",
+    "type": "residential/street",
+    "latitude": 24.758,
+    "longitude": 84.405,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "f4af3541-7b9f-49de-b037-b450c5d3c077",
+    "name": "Dabura Kalan",
+    "name_hi": "दबुरा कलां",
+    "type": "residential/mohalla",
+    "latitude": 24.735,
+    "longitude": 84.392,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "72a02a70-8975-486c-bc1f-d9020b3fc67e",
+    "name": "Dabura Khurd",
+    "name_hi": "दबुरा खुर्द",
+    "type": "residential/mohalla",
+    "latitude": 24.732,
+    "longitude": 84.395,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "46b81e16-ba56-42f3-bf74-2e30c7ae957d",
+    "name": "Senuari",
+    "name_hi": "सेनुआरी",
+    "type": "residential/mohalla",
+    "latitude": 24.755,
+    "longitude": 84.399,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "f0444771-696a-4c44-af18-a138f8e0dbf2",
+    "name": "Naugarh Road",
+    "name_hi": "नौगढ़ रोड",
+    "type": "residential/street",
+    "latitude": 24.729,
+    "longitude": 84.368,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "093062c8-1d08-416a-aadc-c29129a22715",
+    "name": "Ibrahimpur Mohalla",
+    "name_hi": "इब्राहिमपुर मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.727,
+    "longitude": 84.372,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "747ab6a9-db88-49e2-8645-b377bccdfb67",
+    "name": "Itahat Road",
+    "name_hi": "इतहत रोड",
+    "type": "residential/street",
+    "latitude": 24.725,
+    "longitude": 84.375,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "f7654df0-5d2d-4f82-8d04-30a63ba32c3f",
+    "name": "Chauria Road",
+    "name_hi": "चौड़िया रोड",
+    "type": "residential/street",
+    "latitude": 24.721,
+    "longitude": 84.379,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "07fdbea4-864e-49a8-81ac-8ecc25c192e4",
+    "name": "Manjurahi",
+    "name_hi": "मंजुराही",
+    "type": "residential/mohalla",
+    "latitude": 24.718,
+    "longitude": 84.382,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "d1dd319d-a6e6-45b3-9ca9-3ba682318fa7",
+    "name": "Kanbehari",
+    "name_hi": "कानबिहारी",
+    "type": "residential/mohalla",
+    "latitude": 24.715,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "2e7d72e7-8468-4d2a-b646-54f6041a3493",
+    "name": "Risiap Road",
+    "name_hi": "रिसियप रोड",
+    "type": "secondary/street",
+    "latitude": 24.708,
+    "longitude": 84.392,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "2b2147ef-e5a2-488b-b599-10f6e9a0df49",
+    "name": "Kunda Mohalla",
+    "name_hi": "कुंडा मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.711,
+    "longitude": 84.395,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "6f14d686-0245-4ca7-b02c-80aa8fceea6d",
+    "name": "Bajauli Road",
+    "name_hi": "बजौली रोड",
+    "type": "residential/street",
+    "latitude": 24.714,
+    "longitude": 84.398,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "b102b3e9-2955-40f3-bf95-15c64eb36cc2",
+    "name": "Baligaon",
+    "name_hi": "बलिगांव",
+    "type": "residential/mohalla",
+    "latitude": 24.775,
+    "longitude": 84.345,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "2cd72c54-9127-40b7-b290-4139cbfbf06b",
+    "name": "Akhoini",
+    "name_hi": "अखोइनी",
+    "type": "residential/mohalla",
+    "latitude": 24.772,
+    "longitude": 84.348,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "2585d9a5-be1a-4ed9-8c0d-90be56da6320",
+    "name": "Chein Road",
+    "name_hi": "चेन रोड",
+    "type": "residential/street",
+    "latitude": 24.768,
+    "longitude": 84.349,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "071b4901-ea9c-4bfe-a4db-708ebf03d169",
+    "name": "Choukhara",
+    "name_hi": "चौखड़ा",
+    "type": "residential/mohalla",
+    "latitude": 24.765,
+    "longitude": 84.351,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "a8abad67-68cb-43b9-9cd7-1911237b4fb1",
+    "name": "Gardi",
+    "name_hi": "गर्दी",
+    "type": "residential/mohalla",
+    "latitude": 24.762,
+    "longitude": 84.353,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "0202282c-34cc-4bf6-a517-4eeb81b97728",
+    "name": "Chitwar Khap",
+    "name_hi": "चितवार खाप",
+    "type": "residential/mohalla",
+    "latitude": 24.7592,
+    "longitude": 84.3941,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "6cdc17e7-a0b1-4707-853b-681a883ad9c5",
+    "name": "Ghoshta",
+    "name_hi": "घोष्टा",
+    "type": "residential/mohalla",
+    "latitude": 24.759,
+    "longitude": 84.355,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "5565a4ec-6307-4823-8eaf-3d5d62ffc68a",
+    "name": "Udhampur Road",
+    "name_hi": "उधमपुर रोड",
+    "type": "residential/street",
+    "latitude": 24.753,
+    "longitude": 84.359,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "e07ed583-cd57-4aab-a9ed-4170f54bcd33",
+    "name": "Rajoi Road",
+    "name_hi": "रजोई रोड",
+    "type": "residential/street",
+    "latitude": 24.75,
+    "longitude": 84.361,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "3ec6c501-b09d-48ae-99d0-d23eacf6cd6e",
+    "name": "Sikandarpur",
+    "name_hi": "सिकंदरपुर",
+    "type": "residential/mohalla",
+    "latitude": 24.747,
+    "longitude": 84.363,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "f7c9af4b-c0a9-419f-aa0a-e683a560dddd",
+    "name": "Sansa",
+    "name_hi": "सांसा",
+    "type": "residential/mohalla",
+    "latitude": 25.045,
+    "longitude": 84.408,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "223e6c4b-bf8b-4721-9920-436f4d75989f",
+    "name": "Tarar Road",
+    "name_hi": "तरार रोड",
+    "type": "residential/street",
+    "latitude": 25.048,
+    "longitude": 84.412,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8b2d8687-427d-43d8-b2f1-58416e847d79",
+    "name": "Jamuaon Road",
+    "name_hi": "जमुआओं रोड",
+    "type": "residential/street",
+    "latitude": 25.051,
+    "longitude": 84.415,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "796810d5-6029-4871-82ee-2f1b8b261840",
+    "name": "Khaira Mohalla",
+    "name_hi": "खैरा मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 25.054,
+    "longitude": 84.418,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "c6dad981-0351-4829-bb8f-547b8f9693e6",
+    "name": "Mahawar Road",
+    "name_hi": "महावर रोड",
+    "type": "residential/street",
+    "latitude": 25.057,
+    "longitude": 84.421,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "4e613a27-2ec8-4129-8992-34786b5021a1",
+    "name": "Mohamadpur",
+    "name_hi": "मोहम्मदपुर",
+    "type": "residential/mohalla",
+    "latitude": 25.06,
+    "longitude": 84.424,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "ac82aa81-1986-41a4-901e-655cf093535a",
+    "name": "Naudiha Road",
+    "name_hi": "नौडीहा रोड",
+    "type": "residential/street",
+    "latitude": 25.063,
+    "longitude": 84.427,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "2821a64e-c7e7-4dd2-bcb9-fb715f40bbd3",
+    "name": "Jamhor Road",
+    "name_hi": "जम्होर रोड",
+    "type": "secondary/street",
+    "latitude": 24.721,
+    "longitude": 84.332,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "c18d4ded-827b-4139-86cf-7199227b6e58",
+    "name": "Dewaria",
+    "name_hi": "देवरिया",
+    "type": "residential/mohalla",
+    "latitude": 24.718,
+    "longitude": 84.335,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "b442a761-c538-4e1b-81da-faefefe045b0",
+    "name": "Hartholi Road",
+    "name_hi": "हरथोली रोड",
+    "type": "residential/street",
+    "latitude": 24.715,
+    "longitude": 84.338,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "1ba18e0d-a93d-485b-b54e-7b95de1f92ad",
+    "name": "Karsaon Road",
+    "name_hi": "करसांव रोड",
+    "type": "residential/street",
+    "latitude": 24.712,
+    "longitude": 84.341,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "98e0309a-0259-4aa2-b9ab-240756d00d24",
+    "name": "Panrawan Road",
+    "name_hi": "पंडरावां रोड",
+    "type": "residential/street",
+    "latitude": 24.709,
+    "longitude": 84.344,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "d43a71b4-2707-467f-826e-01e6a3e7228d",
+    "name": "Pauthu Road",
+    "name_hi": "पौथू रोड",
+    "type": "residential/street",
+    "latitude": 24.706,
+    "longitude": 84.347,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "0c8c6090-3129-4aa5-8e75-0c0c50365f4b",
+    "name": "Pokhrahan Road",
+    "name_hi": "पोखराहां रोड",
+    "type": "residential/street",
+    "latitude": 24.703,
+    "longitude": 84.35,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "ae065a49-5023-4bb3-8090-79588fa02fc2",
+    "name": "Sarsawli Road",
+    "name_hi": "सरसौली रोड",
+    "type": "residential/street",
+    "latitude": 24.7,
+    "longitude": 84.353,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "bf46aebb-edf8-4fe8-b426-3ca08a4f30a5",
+    "name": "Unthoo Road",
+    "name_hi": "उन्ठू रोड",
+    "type": "residential/street",
+    "latitude": 24.697,
+    "longitude": 84.356,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "d4b14082-3d44-46ca-9732-30230e894a44",
+    "name": "Alampur Mohalla",
+    "name_hi": "आलमपुर मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.694,
+    "longitude": 84.359,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "c7631e53-15f0-4289-bdfd-159311970a86",
+    "name": "Bakan Road",
+    "name_hi": "बाकन रोड",
+    "type": "residential/street",
+    "latitude": 24.691,
+    "longitude": 84.362,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8c79ac33-4c35-4369-8cb2-56b5139f0c96",
+    "name": "Bakhari Road",
+    "name_hi": "बखरी रोड",
+    "type": "residential/street",
+    "latitude": 24.688,
+    "longitude": 84.365,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "49660b71-2b68-47a4-8fdd-e2c410b12cb1",
+    "name": "Basdiha Road",
+    "name_hi": "बसडीहा रोड",
+    "type": "residential/street",
+    "latitude": 24.685,
+    "longitude": 84.368,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "b37bb2c4-b6ee-486c-9ecc-335ff9c2a299",
+    "name": "Atrauli Road",
+    "name_hi": "अतरौली रोड",
+    "type": "residential/street",
+    "latitude": 24.605,
+    "longitude": 84.321,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "af865cd8-a80e-418e-9127-5f1f92e9d500",
+    "name": "Balia Road",
+    "name_hi": "बलिया रोड",
+    "type": "residential/street",
+    "latitude": 24.608,
+    "longitude": 84.324,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "ffdd3d57-9261-422f-8d71-17cb1dae923f",
+    "name": "Bedauli Road",
+    "name_hi": "बेदौली रोड",
+    "type": "residential/street",
+    "latitude": 24.611,
+    "longitude": 84.327,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "ad5a12f8-9674-49a2-89b9-2fbae2239a77",
+    "name": "Dhongra Road",
+    "name_hi": "धोंगड़ा रोड",
+    "type": "residential/street",
+    "latitude": 24.614,
+    "longitude": 84.33,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "a6c7be45-8e24-4d01-88be-846a34c05545",
+    "name": "Deshpur Road",
+    "name_hi": "देशपुर रोड",
+    "type": "residential/street",
+    "latitude": 24.617,
+    "longitude": 84.333,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "15be9aab-c712-4d16-a25a-b1416dd1b094",
+    "name": "Dumra Road",
+    "name_hi": "दुमरा रोड",
+    "type": "residential/street",
+    "latitude": 24.62,
+    "longitude": 84.336,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "4dbc864c-862d-447c-bacc-26ccd843ec14",
+    "name": "Gheura Road",
+    "name_hi": "घेउरा रोड",
+    "type": "residential/street",
+    "latitude": 24.623,
+    "longitude": 84.339,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "dc3a9984-8227-44b9-944b-6785b86e1764",
+    "name": "Mahsu Road",
+    "name_hi": "महसू रोड",
+    "type": "residential/street",
+    "latitude": 24.626,
+    "longitude": 84.342,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "0e23d640-503a-44ab-a3d9-37c6a08f9d55",
+    "name": "Matpa Road",
+    "name_hi": "मातपा रोड",
+    "type": "residential/street",
+    "latitude": 24.629,
+    "longitude": 84.345,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "fb9ebbc9-ce63-4c1a-9973-848e4dcee774",
+    "name": "Pandaria Road",
+    "name_hi": "पंडरिया रोड",
+    "type": "residential/street",
+    "latitude": 24.632,
+    "longitude": 84.348,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "12a67c7b-b45f-4a43-9c79-78ba7545ab18",
+    "name": "Parta Road",
+    "name_hi": "परता रोड",
+    "type": "residential/street",
+    "latitude": 24.635,
+    "longitude": 84.351,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "8ab05713-e69e-445e-b68c-55f10ca3753d",
+    "name": "Narayanpur Road",
+    "name_hi": "नारायणपुर रोड",
+    "type": "residential/street",
+    "latitude": 24.638,
+    "longitude": 84.354,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "b823aafd-8dc2-4d73-849d-0718565dd2d9",
+    "name": "Cinema Hall Road",
+    "name_hi": "सिनेमा हॉल रोड",
+    "type": "commercial/street",
+    "latitude": 24.7512,
+    "longitude": 84.3695,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "848d15f4-bb7f-4ec4-83e8-5630e53ae2b5",
+    "name": "Rajarshi Vidya Mandir +2 School",
+    "name_hi": "राजर्षि विद्या मंदिर +2 स्कूल",
+    "type": "education",
+    "latitude": 24.75468443,
+    "longitude": 84.3814832,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "6d2c1520-a6d4-4c3d-a937-c637a3e6e076",
+    "name": "Hotel Saraswati Inn",
+    "name_hi": "होटल सरस्वती इन",
+    "type": "hotel",
+    "latitude": 24.75396613,
+    "longitude": 84.3720452,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "47e3d047-25b8-45c3-9917-73973aae8f44",
+    "name": "Nawadih Masjid",
+    "name_hi": "नवाडीह मस्जिद",
+    "type": "religious",
+    "latitude": 24.75703393,
+    "longitude": 84.3761654,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "9f6515b1-1562-48e4-a212-ba89551af0de",
+    "name": "Domino's Pizza | Hotel Sky View",
+    "name_hi": "डोमिनोज पिज्जा | होटल स्काई व्यू",
+    "type": "food/restaurant",
+    "latitude": 24.75544483,
+    "longitude": 84.3707414,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "9796e260-3110-4db3-85b2-534a5e1b3f52",
+    "name": "Sachchidanand Sinha College",
+    "name_hi": "सच्चिदानंद सिन्हा कॉलेज",
+    "type": "education",
+    "latitude": 24.74858853,
+    "longitude": 84.3919177,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "dd86149c-956b-428e-aa79-c4646a2ff12b",
+    "name": "Jama Masjid",
+    "name_hi": "जामा मस्जिद",
+    "type": "religious",
+    "latitude": 24.75039563,
+    "longitude": 84.3774981,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "0c880537-ef1c-4688-8c34-05aedd2cfbd0",
+    "name": "Anugrah Girls High School",
+    "name_hi": "अनुग्रह गर्ल्स हाई स्कूल",
+    "type": "education",
+    "latitude": 24.75091973,
+    "longitude": 84.3724579,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "22d7e66d-e9c3-4167-9338-331402329e67",
+    "name": "Hanuman Temple",
+    "name_hi": "हनुमान मंदिर",
+    "type": "religious",
+    "latitude": 24.74802843,
+    "longitude": 84.392893,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "e6efe7b4-45ec-47bb-9da0-da96828826c4",
+    "name": "B.N. Classes",
+    "name_hi": "बी.एन. क्लासेस",
+    "type": "education",
+    "latitude": 24.74743923,
+    "longitude": 84.3911212,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "211d8033-a83a-4c82-a158-cee595c327ef",
+    "name": "Chiku Lassi & Coffee Shop",
+    "name_hi": "चीकू लस्सी एंड कॉफी शॉप",
+    "type": "food/restaurant",
+    "latitude": 24.74658943,
+    "longitude": 84.3900619,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "7e9abe1b-4651-43bb-8e2d-f545a895cc38",
+    "name": "Devkriti Resort",
+    "name_hi": "देवकृति रिसॉर्ट",
+    "type": "hotel",
+    "latitude": 24.74556243,
+    "longitude": 84.3899003,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "899c3880-a162-4f3f-a7a6-5fd0150949c8",
+    "name": "Manpasand Gents Beauty Parlour",
+    "name_hi": "मनपसंद जेंट्स ब्यूटी पार्लर",
+    "type": "commercial",
+    "latitude": 24.74429223,
+    "longitude": 84.3899206,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "238b2819-0304-459f-8b35-9262592500b6",
+    "name": "The Lotus Cafe & Restaurant",
+    "name_hi": "द लोटस कैफे एंड रेस्टोरेंट",
+    "type": "food/restaurant",
+    "latitude": 24.74420093,
+    "longitude": 84.3889201,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "d9427906-ea79-4532-87cb-fc504ffbbef7",
+    "name": "Bodhi Taru Academy",
+    "name_hi": "बोधि तरु एकेडमी",
+    "type": "education",
+    "latitude": 24.74457513,
+    "longitude": 84.3915447,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "ebefacdb-731c-4545-83ec-c9e77580be33",
+    "name": "Mahi Library",
+    "name_hi": "माही लाइब्रेरी",
+    "type": "amenity/library",
+    "latitude": 24.74461893,
+    "longitude": 84.3889695,
+    "is_active": true,
+    "created_at": "2026-06-02T18:55:10.652342+00:00"
+  },
+  {
+    "id": "a2a2d23e-61c9-42eb-adbb-9354270430da",
+    "name": "Parishad Bazar",
+    "name_hi": "परिषद बाजार",
+    "type": "commercial/street",
+    "latitude": 24.75299213,
+    "longitude": 84.37431797,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "5577c3a2-aef5-485d-b8b7-8faa277ce794",
+    "name": "Road 1",
+    "name_hi": "रोड 1",
+    "type": "residential/street",
+    "latitude": 24.74708345,
+    "longitude": 84.37202597,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "1eb65b2f-7cbb-43c9-a57a-a9ba87cc9ec0",
+    "name": "Road 2",
+    "name_hi": "रोड 2",
+    "type": "residential/street",
+    "latitude": 24.74870054,
+    "longitude": 84.37215923,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "e4a21c51-c1cd-4d20-bed3-fce654234e4f",
+    "name": "Road 3",
+    "name_hi": "रोड 3",
+    "type": "residential/street",
+    "latitude": 24.74869965,
+    "longitude": 84.37182947,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "85578c99-c47c-4a17-9dec-4472ba3af8da",
+    "name": "Road 4",
+    "name_hi": "रोड 4",
+    "type": "residential/street",
+    "latitude": 24.74983676,
+    "longitude": 84.37216271,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "6e822f53-9148-4155-9d6c-ba0e0be527c8",
+    "name": "Yodha Road",
+    "name_hi": "योद्धा रोड",
+    "type": "residential/street",
+    "latitude": 24.75063154,
+    "longitude": 84.37200526,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "266530ab-d6c4-4b2d-99ab-049ad25efd1b",
+    "name": "Barun-Daudnagar Road",
+    "name_hi": "बारून-दाउदनगर रोड",
+    "type": "secondary/street",
+    "latitude": 24.92526462,
+    "longitude": 84.27012901,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "bc5f39b3-2351-4aea-96ef-521c3ebcaef7",
+    "name": "Gopal Street",
+    "name_hi": "गोपाल स्ट्रीट",
+    "type": "tertiary/street",
+    "latitude": 24.82481733,
+    "longitude": 84.19026491,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "23102114-3b9a-4787-acb2-16eef5260d00",
+    "name": "Indrapuri Barrage",
+    "name_hi": "इंद्रपुरी बैराज",
+    "type": "residential/mohalla",
+    "latitude": 24.83594753,
+    "longitude": 84.1354155,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "eec90ac5-83b0-4a65-93ff-11c91c4dc9bb",
+    "name": "M.P colony Road",
+    "name_hi": "एम.पी. कॉलोनी रोड",
+    "type": "residential/street",
+    "latitude": 24.74943998,
+    "longitude": 84.37233072,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "aa0642e5-564c-44cd-8262-e8464083c584",
+    "name": "Mohan Road",
+    "name_hi": "मोहन रोड",
+    "type": "tertiary/street",
+    "latitude": 24.82794136,
+    "longitude": 84.20630375,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "dca90434-087d-4a9f-890a-868000a3048b",
+    "name": "Old GT Road",
+    "name_hi": "ओल्ड जी.टी. रोड",
+    "type": "secondary/street",
+    "latitude": 24.75469533,
+    "longitude": 84.37138652,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "58ee91b2-3c17-4903-b665-97d8617adb3d",
+    "name": "Sun Street",
+    "name_hi": "सन स्ट्रीट",
+    "type": "tertiary/street",
+    "latitude": 24.68759098,
+    "longitude": 84.33563402,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "a4636a4a-3a35-4e6b-a4f3-b59c1eb4a34c",
+    "name": "Quazi Mohalla",
+    "name_hi": "काजी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7485,
+    "longitude": 84.3721,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "7ee16fd3-bf9f-4dfd-b991-e7b0f74aa2e6",
+    "name": "New Quazi Mohalla",
+    "name_hi": "न्यू काजी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.749,
+    "longitude": 84.3735,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "a3db3c67-e921-4e90-90c4-213e4d630235",
+    "name": "Diwan Mohalla",
+    "name_hi": "दीवान मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7468,
+    "longitude": 84.3751,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "bc604935-a538-4f7f-ae5d-45b31347cc88",
+    "name": "Ganj Mohalla",
+    "name_hi": "गंज मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7562,
+    "longitude": 84.3791,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ece586a1-c4a6-4e0d-9b20-8010a3f2419f",
+    "name": "Bhumihar Tola",
+    "name_hi": "भूमिहार टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7445,
+    "longitude": 84.3685,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "7733b499-2c73-49ae-b0b5-d42d76acd9e5",
+    "name": "Islamtoli",
+    "name_hi": "इस्लामतोली",
+    "type": "residential/mohalla",
+    "latitude": 24.7479,
+    "longitude": 84.3745,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "5a725d48-87e3-4d45-98d4-b9c14864440a",
+    "name": "Pathan Toli",
+    "name_hi": "पठान टोली",
+    "type": "residential/mohalla",
+    "latitude": 24.7461,
+    "longitude": 84.3762,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "f9ec2886-dc3e-4bcb-9ad4-66531e0dd134",
+    "name": "Ansari Mohalla",
+    "name_hi": "अंसारी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7455,
+    "longitude": 84.373,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "3f5f9485-691a-495d-8dac-b87b72ac5d58",
+    "name": "Mallick Tola",
+    "name_hi": "मल्लिक टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7471,
+    "longitude": 84.3738,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "c04afaca-d15d-40f0-92ee-3507fbacf8bd",
+    "name": "Qureshi Mohalla",
+    "name_hi": "कुरैशी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7495,
+    "longitude": 84.3768,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "8676a658-8799-4922-9c5c-b9ae3cfd059f",
+    "name": "Darzi Mohalla",
+    "name_hi": "दर्जी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7481,
+    "longitude": 84.371,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "df3f9132-4fe7-406a-ae25-1e9b16d3c7b9",
+    "name": "Dhobi Tola",
+    "name_hi": "धोबी टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7415,
+    "longitude": 84.362,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "106feabf-c30c-4c07-adf2-352edb041df6",
+    "name": "Kasai Mohalla",
+    "name_hi": "कसाई मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7491,
+    "longitude": 84.3758,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ba9e26fc-d7eb-49eb-9544-b1babe77ed83",
+    "name": "Syed Tola",
+    "name_hi": "सैयद टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7465,
+    "longitude": 84.3749,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "7f0f756d-dcbf-4c9e-9ad7-aab96aa4af74",
+    "name": "Sahu Tola",
+    "name_hi": "साहू टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7515,
+    "longitude": 84.3725,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ceaf1730-3d97-4e3a-a3bc-0822186b66cb",
+    "name": "Rajput Tola",
+    "name_hi": "राजपूत टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7432,
+    "longitude": 84.367,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "8c2cfcaa-f62c-4f7d-98f4-0a437fbaf2c3",
+    "name": "Mandi Mohalla",
+    "name_hi": "मंडी मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7555,
+    "longitude": 84.378,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "5985fb64-6076-430e-ba08-e752a3d6c5fe",
+    "name": "Pokhara Mohalla",
+    "name_hi": "पोखरा मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7428,
+    "longitude": 84.3639,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "5d9db9e2-ff5e-4d0b-8d9c-99b36748f9da",
+    "name": "New Pokhara Mohalla",
+    "name_hi": "न्यू पोखरा मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.742,
+    "longitude": 84.3625,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "da803423-dcbd-48dd-9b0b-2c909eff00d7",
+    "name": "Ahiyapur",
+    "name_hi": "अहियापुर",
+    "type": "residential/mohalla",
+    "latitude": 24.741,
+    "longitude": 84.365,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "c680e73a-69fe-47fe-a7af-b752db58f403",
+    "name": "Cinema Road",
+    "name_hi": "सिनेमा रोड",
+    "type": "residential/street",
+    "latitude": 24.7475,
+    "longitude": 84.368,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "425af827-ce72-49c5-b152-eb6ef19372e7",
+    "name": "College Road",
+    "name_hi": "कॉलेज रोड",
+    "type": "residential/street",
+    "latitude": 24.745,
+    "longitude": 84.3665,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "d10cccce-981a-463b-b9bc-c8d6bb4612d1",
+    "name": "Milki Mohalla",
+    "name_hi": "मिल्की मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.7435,
+    "longitude": 84.3645,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "5abf1ec4-e5ba-4a90-afe5-8f33f9d80361",
+    "name": "Khaira Bind",
+    "name_hi": "खैरा बाइंड",
+    "type": "residential/mohalla",
+    "latitude": 24.739,
+    "longitude": 84.359,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "d3e3f91e-3ed0-4b8c-b799-cf68e94f62ce",
+    "name": "Kali Bari",
+    "name_hi": "काली बाड़ी",
+    "type": "residential/mohalla",
+    "latitude": 24.7425,
+    "longitude": 84.363,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "8c72a909-5615-41fb-acf8-80250ef7f4c4",
+    "name": "Dani Bigha",
+    "name_hi": "दानी बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.7538,
+    "longitude": 84.3789,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "3540fae1-3b16-4572-a32a-4adf81760cb6",
+    "name": "Judge Colony",
+    "name_hi": "जज कॉलोनी",
+    "type": "residential/colony",
+    "latitude": 24.753,
+    "longitude": 84.371,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "1c703108-aaa6-4008-b85d-00a61efc5a8f",
+    "name": "Officers Colony",
+    "name_hi": "ऑफिसर्स कॉलोनी",
+    "type": "residential/colony",
+    "latitude": 24.7545,
+    "longitude": 84.373,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "b568f59a-df67-4b53-9e76-ba5bf3b6daea",
+    "name": "Kutchehry Road",
+    "name_hi": "कचहरी रोड",
+    "type": "residential/street",
+    "latitude": 24.754,
+    "longitude": 84.372,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "a7aa9d54-4973-497d-bd1f-54aacfc50910",
+    "name": "New Dani Bigha",
+    "name_hi": "न्यू दानी बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.755,
+    "longitude": 84.38,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "6a9fb280-9bfb-46ae-a3a0-82b3d1328e26",
+    "name": "Gandhi Nagar",
+    "name_hi": "गांधी नगर",
+    "type": "residential/colony",
+    "latitude": 24.7525,
+    "longitude": 84.3765,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "3b4c7322-6e2e-4de5-8945-6dc42cba2762",
+    "name": "Vikas Nagar",
+    "name_hi": "विकासनगर",
+    "type": "residential/colony",
+    "latitude": 24.7535,
+    "longitude": 84.3685,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "09bd81f2-e323-4a7e-b30a-a8c543441d18",
+    "name": "Patel Nagar",
+    "name_hi": "पटेल नगर",
+    "type": "residential/colony",
+    "latitude": 24.7542,
+    "longitude": 84.3775,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ffc43fbb-e25a-4459-9a3e-8b7811c53b3c",
+    "name": "Shastri Nagar",
+    "name_hi": "शास्त्री नगर",
+    "type": "residential/colony",
+    "latitude": 24.7552,
+    "longitude": 84.374,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "60e6d364-b1eb-464d-b7b3-de6a4327586d",
+    "name": "Nawadih",
+    "name_hi": "नवाडीह",
+    "type": "residential/mohalla",
+    "latitude": 24.757,
+    "longitude": 84.381,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ef2dbde9-4b67-481a-9866-2f91e7c41d4b",
+    "name": "New Nawadih",
+    "name_hi": "न्यू नवाडीह",
+    "type": "residential/mohalla",
+    "latitude": 24.758,
+    "longitude": 84.383,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "5487ca32-4de8-4239-9dc0-bfa762ba759b",
+    "name": "Rampur",
+    "name_hi": "रामपुर",
+    "type": "residential/mohalla",
+    "latitude": 24.761,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "bd51ad06-f234-4529-9d87-57c0e39f8cd4",
+    "name": "Jasoia",
+    "name_hi": "जसोइया",
+    "type": "residential/mohalla",
+    "latitude": 24.764,
+    "longitude": 84.391,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "e02d4229-c124-4c36-946f-82ff8379ee41",
+    "name": "Jasoia Tola",
+    "name_hi": "जसोइया टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.765,
+    "longitude": 84.393,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "21f8d119-48b9-4a58-ab71-89d66ed419cf",
+    "name": "New Karma Road",
+    "name_hi": "न्यू करमा रोड",
+    "type": "residential/street",
+    "latitude": 24.744,
+    "longitude": 84.384,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "9fabcfd5-988c-494f-9104-e70f754e886b",
+    "name": "Shahpur",
+    "name_hi": "शाहपुर",
+    "type": "residential/mohalla",
+    "latitude": 24.768,
+    "longitude": 84.398,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "50a42a5e-79d2-4109-8da9-339bb7718043",
+    "name": "Obra Road Area",
+    "name_hi": "ओबरा रोड इलाका",
+    "type": "residential/street",
+    "latitude": 24.765,
+    "longitude": 84.365,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "87fe0325-2262-41be-afdf-3b02afafab41",
+    "name": "Bypass Colony",
+    "name_hi": "बायपास कॉलोनी",
+    "type": "residential/colony",
+    "latitude": 24.7595,
+    "longitude": 84.389,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "de666aae-0b1f-45bc-b91b-4948436b9df1",
+    "name": "Chittorgarh",
+    "name_hi": "चित्तौड़नगर",
+    "type": "residential/mohalla",
+    "latitude": 24.738,
+    "longitude": 84.375,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "6d994cde-7861-4985-871f-698d1f04fcea",
+    "name": "Maharana Pratap Nagar",
+    "name_hi": "महाराणा प्रताप नगर",
+    "type": "residential/colony",
+    "latitude": 24.7395,
+    "longitude": 84.377,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "db91efb7-183f-4a1a-ac73-00d8bdd7d554",
+    "name": "Anugrah Nagar",
+    "name_hi": "अनुग्रह नगर",
+    "type": "residential/colony",
+    "latitude": 24.735,
+    "longitude": 84.372,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "8e1d55c7-ca53-41d1-a90d-2f55949dcabb",
+    "name": "Block Campus",
+    "name_hi": "ब्लॉक कैंपस",
+    "type": "residential/colony",
+    "latitude": 24.741,
+    "longitude": 84.376,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "603e59b2-351b-427d-af12-abb84ea3c65c",
+    "name": "Red Cross Road",
+    "name_hi": "रेड क्रॉस रोड",
+    "type": "residential/street",
+    "latitude": 24.7515,
+    "longitude": 84.369,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "5b74a23c-9307-43d0-afbd-0ba43ffb7691",
+    "name": "Bind Toli",
+    "name_hi": "बिंद टोली",
+    "type": "residential/mohalla",
+    "latitude": 24.737,
+    "longitude": 84.374,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "49ba623d-4414-4a7f-ba06-1c67d2525328",
+    "name": "Mistri Toli",
+    "name_hi": "मिस्त्री टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7525,
+    "longitude": 84.3715,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ae4b1cf7-5a4c-49df-88e8-6388a7e8fe91",
+    "name": "Gosain Tola",
+    "name_hi": "गोसांई टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7502,
+    "longitude": 84.3735,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "3fb4fb11-480a-4649-a610-1465f1014427",
+    "name": "Mirza Bigha",
+    "name_hi": "मिरजा बीघा",
+    "type": "residential/mohalla",
+    "latitude": 24.736,
+    "longitude": 84.362,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "c3fba134-57af-440a-88b9-fa1353d28995",
+    "name": "Dusadh Toli",
+    "name_hi": "दुसाध टोली",
+    "type": "residential/mohalla",
+    "latitude": 24.7405,
+    "longitude": 84.369,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "045f68bb-3a9c-47f2-8ab2-809e96ef678b",
+    "name": "Chamar Toli",
+    "name_hi": "चमार टोली",
+    "type": "residential/mohalla",
+    "latitude": 24.744,
+    "longitude": 84.3715,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "73588063-85e7-44d5-923a-d01eb1e59428",
+    "name": "Thakur Bari Road",
+    "name_hi": "ठाकुर बाड़ी रोड",
+    "type": "residential/street",
+    "latitude": 24.7498,
+    "longitude": 84.3685,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "7f2b08a9-a0bd-4514-a63d-8ad64930a6ee",
+    "name": "Kumhar Toli",
+    "name_hi": "कुम्हार टोली",
+    "type": "residential/mohalla",
+    "latitude": 24.746,
+    "longitude": 84.369,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "54df3591-5a76-4704-9b6c-6f3e86140c16",
+    "name": "Teli Toli",
+    "name_hi": "तेली टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.7488,
+    "longitude": 84.373,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "c890bd1a-9682-4ba2-bbfd-ed177395407e",
+    "name": "Mali Tola",
+    "name_hi": "माली टोला",
+    "type": "residential/mohalla",
+    "latitude": 24.745,
+    "longitude": 84.3705,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "de49d104-bb43-49fa-8256-071493e2f5a5",
+    "name": "Old Bus Stand Road",
+    "name_hi": "पुराना बस स्टैंड रोड",
+    "type": "secondary/street",
+    "latitude": 24.7518,
+    "longitude": 84.3705,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "56891681-98e0-46e0-b279-bc1de76a1197",
+    "name": "New Bus Stand Area",
+    "name_hi": "नया बस स्टैंड क्षेत्र",
+    "type": "residential/mohalla",
+    "latitude": 24.759,
+    "longitude": 84.3825,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "069eb757-53f9-4e7a-9419-3f04baa6518a",
+    "name": "Station Road",
+    "name_hi": "स्टेशन रोड",
+    "type": "secondary/street",
+    "latitude": 24.734,
+    "longitude": 84.384,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "2f4521ff-ab13-4d00-b2e3-4be1ea8b63bc",
+    "name": "Khaira Mirja",
+    "name_hi": "खैरा Mirja",
+    "type": "residential/mohalla",
+    "latitude": 24.731,
+    "longitude": 84.382,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "e8a4683a-7c14-4f8a-951c-c150bcb580bf",
+    "name": "Peer Kafan",
+    "name_hi": "पीर कफन",
+    "type": "residential/mohalla",
+    "latitude": 24.733,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "d53f75ca-b393-4d01-81fc-c1b409c07277",
+    "name": "Ansari Nagar - Station Road",
+    "name_hi": "अंसरी नगर",
+    "type": "secondary/street",
+    "latitude": 24.736,
+    "longitude": 84.383,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "6eca474c-73a6-4f5c-9ef9-cef4c0f66a61",
+    "name": "Anandpura",
+    "name_hi": "आनंदपुरा",
+    "type": "residential/mohalla",
+    "latitude": 24.7575,
+    "longitude": 84.371,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "e0e2f72d-6421-45bb-ad89-81820311d53b",
+    "name": "Akauna",
+    "name_hi": "अकौना",
+    "type": "residential/mohalla",
+    "latitude": 24.762,
+    "longitude": 84.376,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "9ffb8c6e-e00b-4cfb-b164-d869e7913738",
+    "name": "Balat",
+    "name_hi": "बलात",
+    "type": "residential/mohalla",
+    "latitude": 24.732,
+    "longitude": 84.398,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "e85af1e7-0f68-43a1-a6d6-a5d6c36b340c",
+    "name": "Ibrahimpur",
+    "name_hi": "इब्राहिमपुर",
+    "type": "residential/mohalla",
+    "latitude": 24.765,
+    "longitude": 84.402,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "112501cd-85aa-464b-a808-61a6540573be",
+    "name": "Bela",
+    "name_hi": "बेला",
+    "type": "residential/mohalla",
+    "latitude": 24.739,
+    "longitude": 84.378,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "31ec672e-0860-494b-9a97-fb3eb074f08d",
+    "name": "Parsadih",
+    "name_hi": "परसाडीह",
+    "type": "residential/mohalla",
+    "latitude": 24.7495,
+    "longitude": 84.392,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "b7330e80-265a-42ca-b4ba-82049040ad47",
+    "name": "Naugarh",
+    "name_hi": "नौगढ़",
+    "type": "residential/mohalla",
+    "latitude": 24.7385,
+    "longitude": 84.389,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "40f3f314-320a-46d7-bf8b-ed7515ac2322",
+    "name": "Manjhar",
+    "name_hi": "मंजार",
+    "type": "residential/mohalla",
+    "latitude": 24.76,
+    "longitude": 84.387,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "efcbba5c-28e2-435c-8510-1a0e1be84da2",
+    "name": "Parawan",
+    "name_hi": "परवां",
+    "type": "residential/mohalla",
+    "latitude": 24.755,
+    "longitude": 84.41,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ec98f55e-004d-40cc-80b8-011d6a7b673a",
+    "name": "Phesar Road Area",
+    "name_hi": "फेसर रोड क्षेत्र",
+    "type": "residential/street",
+    "latitude": 24.725,
+    "longitude": 84.42,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "997ce711-aa33-446b-8299-4454b2a9da5f",
+    "name": "Maharana Pratap Chowk",
+    "name_hi": "महाराणा प्रताप चौक",
+    "type": "junction/commercial",
+    "latitude": 24.7585,
+    "longitude": 84.3821,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "94754ad0-e00d-44f6-aaa1-c05c66a59df8",
+    "name": "Jasoia More",
+    "name_hi": "जसोइया मोड़",
+    "type": "junction/commercial",
+    "latitude": 24.7635,
+    "longitude": 84.3905,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "4f397190-52f7-46b7-ab12-2d94e9e49c1d",
+    "name": "Ambedkar Chowk",
+    "name_hi": "अंबेडकर चौक",
+    "type": "junction/commercial",
+    "latitude": 24.7532,
+    "longitude": 84.3708,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "4a378b07-c536-4cb7-9120-fbfff799e6d0",
+    "name": "S.N. Sinha Chowk",
+    "name_hi": "सत्येंद्र नारायण सिन्हा चौक",
+    "type": "junction/commercial",
+    "latitude": 24.7536,
+    "longitude": 84.378,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "dff69ab3-885e-44ba-be90-34c2fd8e892f",
+    "name": "Nawadih More",
+    "name_hi": "नावाडीह मोड़",
+    "type": "junction/commercial",
+    "latitude": 24.7565,
+    "longitude": 84.3805,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "c66b7473-693d-4a24-b995-69e3a463cf7d",
+    "name": "Mahavir Sthan",
+    "name_hi": "महावीर स्थान",
+    "type": "junction/commercial",
+    "latitude": 24.7508,
+    "longitude": 84.3718,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "6274408f-3f9e-48c9-924c-be5cb8f2bd08",
+    "name": "Sabzi Mandi Lane",
+    "name_hi": "सब्जी मंडी गली",
+    "type": "commercial/street",
+    "latitude": 24.7492,
+    "longitude": 84.3725,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "ceea1548-af8f-4df8-8ff7-ba0fb18d9e77",
+    "name": "Gaddi Lane",
+    "name_hi": "गद्दी गली",
+    "type": "commercial/street",
+    "latitude": 24.7475,
+    "longitude": 84.3732,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "0b8ade91-4cae-4303-af47-808f058e8379",
+    "name": "Babu Bazar",
+    "name_hi": "बाबू बाजार",
+    "type": "residential/mohalla",
+    "latitude": 24.7482,
+    "longitude": 84.3702,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "e2d3ec1e-9523-4a06-a90c-00b6e0f6e210",
+    "name": "Sonar Patti",
+    "name_hi": "सोनार पट्टी",
+    "type": "commercial/street",
+    "latitude": 24.7502,
+    "longitude": 84.3722,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "0be2737f-bbfc-49fc-aa90-b71f81469e4f",
+    "name": "Bajaj Lane",
+    "name_hi": "बजाज गली",
+    "type": "commercial/street",
+    "latitude": 24.7498,
+    "longitude": 84.3715,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "32b7c483-862e-4f8a-b745-9149d963349c",
+    "name": "Jawahar Rozgar Lane",
+    "name_hi": "जवाहर रोजगार लेन",
+    "type": "commercial/street",
+    "latitude": 24.7548,
+    "longitude": 84.3725,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "215e3afe-b638-4abf-b635-305a3c6c251a",
+    "name": "Peer Saheb More",
+    "name_hi": "पीर साहेब मोड़",
+    "type": "junction/commercial",
+    "latitude": 24.747,
+    "longitude": 84.374,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "a24edb15-78a3-4dbe-8ec2-5f1ee3411084",
+    "name": "Jama Masjid Road",
+    "name_hi": "जामा मस्जिद रोड",
+    "type": "residential/street",
+    "latitude": 24.7478,
+    "longitude": 84.3742,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "071a0247-b05d-4a86-9e0c-864bf88ba9fc",
+    "name": "Dhamni Chowk",
+    "name_hi": "धमनी चौक",
+    "type": "junction/commercial",
+    "latitude": 24.7445,
+    "longitude": 84.3755,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "431b49ca-92b8-44cb-ae30-40d62001a5ef",
+    "name": "S. Sinha College",
+    "name_hi": "सच्चिदानंद सिन्हा कॉलेज",
+    "type": "residential/mohalla",
+    "latitude": 24.748379,
+    "longitude": 84.393217,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "d397a1df-0d98-4ee8-bee0-65e9421a780b",
+    "name": "Sinha College More",
+    "name_hi": "सिन्हा कॉलेज मोड़",
+    "type": "junction/commercial",
+    "latitude": 24.7582,
+    "longitude": 84.3915,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "17c37c56-9224-4806-9ccd-725a32c24e98",
+    "name": "Sinha College Road",
+    "name_hi": "सिन्हा कॉलेज रोड",
+    "type": "residential/street",
+    "latitude": 24.753,
+    "longitude": 84.3925,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "51db3138-a75f-4342-a60b-783445283a6c",
+    "name": "Nawadih Road",
+    "name_hi": "नवाडीह रोड",
+    "type": "secondary/street",
+    "latitude": 24.757,
+    "longitude": 84.381,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "641d8580-a69d-4e2f-9219-eee1f22e0c7e",
+    "name": "Tailik Dharamshala",
+    "name_hi": "तैलिका धर्मशाला",
+    "type": "residential/colony",
+    "latitude": 24.7555,
+    "longitude": 84.3752,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "ae011ce8-5a0d-4e28-95fa-0e8f0060af38",
+    "name": "Dharamshala Chowk",
+    "name_hi": "धर्मशाला चौक",
+    "type": "junction/commercial",
+    "latitude": 24.751,
+    "longitude": 84.3725,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "d39410db-dfb9-4c75-97f8-e51a2b553151",
+    "name": "AN Road Station",
+    "name_hi": "अनुग्रह नारायण (AN) रोड स्टेशन",
+    "type": "secondary/street",
+    "latitude": 24.7825,
+    "longitude": 84.425,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "4a4a4d43-db56-4e95-a55a-eb483f9b4662",
+    "name": "D.A.V. Public School",
+    "name_hi": "डी.ए.वी. पब्लिक स्कूल",
+    "type": "residential/colony",
+    "latitude": 24.7685,
+    "longitude": 84.378,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "0045c11f-3a94-40ef-b717-4d99c6c1aeb6",
+    "name": "Ora",
+    "name_hi": "ओरा",
+    "type": "residential/mohalla",
+    "latitude": 24.7314,
+    "longitude": 84.3721,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "9b1ab436-e7da-4be6-b4ec-02bcffd5d80e",
+    "name": "Saint Ignatius School",
+    "name_hi": "सेंट इग्नेशियस स्कूल",
+    "type": "residential/colony",
+    "latitude": 24.762,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "879ab0fc-c0a1-4037-b2a8-c3c560f04205",
+    "name": "Kishori Sinha Mahila College",
+    "name_hi": "किशोरी सिन्हा महिला कॉलेज",
+    "type": "residential/colony",
+    "latitude": 24.7545,
+    "longitude": 84.3795,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "f3f7e40c-d8c6-451b-a4f9-eb8b9b6c80a6",
+    "name": "Saraswati Shishu Mandir (Dani Bigha)",
+    "name_hi": "सरस्वती शिशु मंदिर (दानी बीघा)",
+    "type": "residential/colony",
+    "latitude": 24.7538,
+    "longitude": 84.3785,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "1bf00c21-d6bc-45ce-856f-f2bc8c28b760",
+    "name": "Narayana Mission School",
+    "name_hi": "नारायण मिशन स्कूल",
+    "type": "residential/colony",
+    "latitude": 24.765,
+    "longitude": 84.39,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "183e5a18-db90-4a81-a03f-74f2c56e600f",
+    "name": "R.L.S.Y. College (राम लखन सिंह यादव)",
+    "name_hi": "आर.एल.एस.वाई. कॉलेज (राम लखन सिंह यादव)",
+    "type": "residential/mohalla",
+    "latitude": 24.742343,
+    "longitude": 84.380345,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "0fc0cd59-d59e-4dc0-bba2-9522b72edbd5",
+    "name": "Town Inter School (टाउन स्कूल)",
+    "name_hi": "टाउन इंटर स्कूल (टाउन स्कूल)",
+    "type": "residential/mohalla",
+    "latitude": 24.7505,
+    "longitude": 84.371,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "ed58f7b2-b445-4d7f-a21a-ef43286dcf71",
+    "name": "Anugrah Inter School",
+    "name_hi": "अनुग्रह इंटर स्कूल",
+    "type": "residential/mohalla",
+    "latitude": 24.746,
+    "longitude": 84.3725,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "5674d427-f44d-4508-b261-87b88f67bcdb",
+    "name": "Saraswati Vidya Mandir (Main)",
+    "name_hi": "सरस्वती विद्या मंदिर (मुख्य)",
+    "type": "residential/mohalla",
+    "latitude": 24.7455,
+    "longitude": 84.368,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "cc39b04f-3b03-49ac-beb8-7b35e6c1b160",
+    "name": "Notre Dame Academy (Old Branch)",
+    "name_hi": "नोटर डैम एकेडमी (पुरानी शाखा)",
+    "type": "residential/mohalla",
+    "latitude": 24.748,
+    "longitude": 84.365,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "60c6918f-71a1-4ba9-b2aa-b16016e2f77c",
+    "name": "B.L. Indo Public School",
+    "name_hi": "बी.एल. इंडो पब्लिक स्कूल",
+    "type": "residential/colony",
+    "latitude": 24.7515,
+    "longitude": 84.366,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "eccf14ad-2f16-4414-8497-55e3f1ac9a57",
+    "name": "Vivekanand Mission School",
+    "name_hi": "विवेकानंद मिशन school",
+    "type": "residential/colony",
+    "latitude": 24.7525,
+    "longitude": 84.3645,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "71df3c15-4d50-462b-bf66-ba528a8857a0",
+    "name": "Saint Anna High School",
+    "name_hi": "सेंट अन्ना हाई स्कूल",
+    "type": "residential/colony",
+    "latitude": 24.753,
+    "longitude": 84.367,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "b6af0d0f-c45c-4250-a6ab-5e558ad72547",
+    "name": "Kidzee Play School",
+    "name_hi": "किडजी प्ले स्कूल",
+    "type": "residential/colony",
+    "latitude": 24.7512,
+    "longitude": 84.3668,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "48ac7dce-81c2-4012-80cb-cca39334ed85",
+    "name": "Police Line School",
+    "name_hi": "पुलिस लाइन स्कूल",
+    "type": "residential/mohalla",
+    "latitude": 24.769,
+    "longitude": 84.368,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "fae07a5b-8af2-4de3-aa93-7f9290cc4097",
+    "name": "Gyan Bharti School",
+    "name_hi": "ज्ञान भारती स्कूल",
+    "type": "residential/mohalla",
+    "latitude": 24.765,
+    "longitude": 84.3695,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "c7de9d13-50ae-42d1-9e9d-43b2e2151f55",
+    "name": "Heritage School",
+    "name_hi": "हेरिटेज स्कूल",
+    "type": "residential/mohalla",
+    "latitude": 24.762,
+    "longitude": 84.372,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "8ee99381-aacc-4829-b6e7-3fe357714042",
+    "name": "Simpkins School",
+    "name_hi": "सिम्पकिंस स्कूल",
+    "type": "residential/mohalla",
+    "latitude": 24.7605,
+    "longitude": 84.374,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "59fbba8d-544c-458d-b6e8-23bd4d041f53",
+    "name": "UMS Nawadih (मिडिल स्कूल)",
+    "name_hi": "यू.एम.एस. नवाडीह (मिडिल स्कूल)",
+    "type": "residential/mohalla",
+    "latitude": 24.757,
+    "longitude": 84.381,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "1e7f1d2e-a54c-4ea9-955f-c1c569fb6b3a",
+    "name": "Euro Kids (Pre-School)",
+    "name_hi": "यूरो किड्स (प्री-स्कूल)",
+    "type": "residential/mohalla",
+    "latitude": 24.7565,
+    "longitude": 84.3825,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "4e3aa694-a60f-41c0-b61f-39b991713537",
+    "name": "Public School Nawadih",
+    "name_hi": "पब्लिक स्कूल नवाडीह",
+    "type": "residential/mohalla",
+    "latitude": 24.758,
+    "longitude": 84.3835,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "6bddc1b9-d88c-4a2e-a773-610fb469372d",
+    "name": "Rajkiya Madhya Vidyalaya Shahpur",
+    "name_hi": "राजकीय मध्य विद्यालय शाहपुर",
+    "type": "residential/mohalla",
+    "latitude": 24.7415,
+    "longitude": 84.372,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "ab7a9f46-573d-4455-951e-e31c4dd02e59",
+    "name": "Ambedkar Residential School",
+    "name_hi": "अम्बेडकर आवासीय विद्यालय",
+    "type": "residential/mohalla",
+    "latitude": 24.739,
+    "longitude": 84.375,
+    "is_active": true,
+    "created_at": "2026-06-03T09:46:20.960392+00:00"
+  },
+  {
+    "id": "a69cd842-05ed-40c1-a8a2-de3cfbf91835",
+    "name": "Domino's Pizza",
+    "name_hi": "डोमिनोज़ पिज्जा",
+    "type": "junction/commercial",
+    "latitude": 24.75135,
+    "longitude": 84.37145,
+    "is_active": true,
+    "created_at": "2026-06-03T09:51:49.818393+00:00"
+  },
+  {
+    "id": "6008b53d-bfe0-4fc2-a50d-212e3c78122a",
+    "name": "New Bus Stand",
+    "name_hi": "नया बस स्टैंड",
+    "type": "junction/commercial",
+    "latitude": 24.7588,
+    "longitude": 84.3824,
+    "is_active": true,
+    "created_at": "2026-06-03T09:51:49.818393+00:00"
+  },
+  {
+    "id": "fe3e1f52-5740-4c1d-bb7c-b9e6780f98c4",
+    "name": "Old Bus Stand (Govt Bus Depot)",
+    "name_hi": "सरकारी बस डिपो (ओल्ड बस स्टैंड)",
+    "type": "junction/commercial",
+    "latitude": 24.7518,
+    "longitude": 84.3705,
+    "is_active": true,
+    "created_at": "2026-06-03T09:51:49.818393+00:00"
+  },
+  {
+    "id": "e6617c4f-dce3-4fcc-9617-31633ac3d3d9",
+    "name": "Aurangabad Bypass (NH-19)",
+    "name_hi": "औरंगाबाद बाईपास (NH-19)",
+    "type": "secondary/street",
+    "latitude": 24.7655,
+    "longitude": 84.385,
+    "is_active": true,
+    "created_at": "2026-06-03T09:51:49.818393+00:00"
+  },
+  {
+    "id": "0cddf883-0ab3-4b24-9ea9-e1a280032ab5",
+    "name": "Ramesh Chowk",
+    "name_hi": "रमेश चौक",
+    "type": "junction/commercial",
+    "latitude": 24.75125,
+    "longitude": 84.37125,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "5c1cef20-5079-4dc3-973d-cc611ebfefcc",
+    "name": "Srikrishna Nagar",
+    "name_hi": "श्रीकृष्ण नगर",
+    "type": "residential/colony",
+    "latitude": 24.7511,
+    "longitude": 84.3664,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "677ea1f2-9fc1-4436-9101-ff7019269f5d",
+    "name": "Shahpur Mohalla",
+    "name_hi": "शाहपुर मोहल्ला",
+    "type": "residential/mohalla",
+    "latitude": 24.740935,
+    "longitude": 84.371555,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  },
+  {
+    "id": "176264e4-f7e3-4bf5-a86b-93b401a7fff9",
+    "name": "Ashok Road",
+    "name_hi": "अशोक रोड",
+    "type": "tertiary/street",
+    "latitude": 24.7515,
+    "longitude": 84.375,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "1c2de485-dcad-41ff-bcea-1c6c06fdb611",
+    "name": "Block Road",
+    "name_hi": "ब्लॉक रोड",
+    "type": "secondary/street",
+    "latitude": 24.741,
+    "longitude": 84.376,
+    "is_active": true,
+    "created_at": "2026-06-03T09:35:29.234557+00:00"
+  },
+  {
+    "id": "005d2c5d-a8e3-4f73-b130-6fac35a16ef5",
+    "name": "Vikings Gym",
+    "name_hi": "वाइकिंग्स जिम",
+    "type": "junction/commercial",
+    "latitude": 24.7511,
+    "longitude": 84.3745,
+    "is_active": true,
+    "created_at": "2026-06-03T09:51:49.818393+00:00"
+  },
+  {
+    "id": "031e06c2-5a93-4b3f-97f1-17a8efcda9f5",
+    "name": "Railway Colony",
+    "name_hi": "रेलवे कॉलोनी",
+    "type": "residential/colony",
+    "latitude": 24.6985,
+    "longitude": 84.4012,
+    "is_active": true,
+    "created_at": "2026-06-03T09:43:36.121622+00:00"
+  },
+  {
+    "id": "0321a218-d1b9-4af6-9a20-185100ec66a3",
+    "name": "Kapasya Road",
+    "name_hi": "कपस्या रोड",
+    "type": "residential/road",
+    "latitude": 24.742,
+    "longitude": 84.3815,
+    "is_active": true,
+    "created_at": "2026-06-02T18:24:35.315436+00:00"
+  }
+]

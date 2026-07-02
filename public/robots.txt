@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+
+# Exclude Admin, Mart and Captain dashboard pathways from crawling to avoid index noise
+Disallow: /admin/
+Disallow: /mart/
+Disallow: /captain/
+Disallow: /checkout/
+Disallow: /orders/
+Disallow: /profile/
+Disallow: /settings/
+Disallow: /cart
+
+Sitemap: https://www.ozomart.store/sitemap.xml

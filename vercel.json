@@ -1,0 +1,97 @@
+{
+  "crons": [
+    {
+      "path": "/api/mandi-sync",
+      "schedule": "0 5 * * *"
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/api/proxy/:path*",
+      "destination": "/api/proxy"
+    },
+    {
+      "source": "/sitemap.xml",
+      "destination": "/api/sitemap-index"
+    },
+    {
+      "source": "/sitemap-static.xml",
+      "destination": "/api/sitemap-static"
+    },
+    {
+      "source": "/sitemap-:city.xml",
+      "destination": "/api/sitemap-city?city=:city"
+    },
+    {
+      "source": "/api/sitemap-:city.xml",
+      "destination": "/api/sitemap-city?city=:city"
+    },
+    {
+      "source": "/:key([a-zA-Z0-9]{32}).txt",
+      "destination": "/api/indexnow-key?key=:key"
+    },
+    {
+      "source": "/product-images/:slug.png",
+      "destination": "/api/product-image?slug=:slug"
+    },
+    {
+      "source": "/",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?homepage=true"
+    },
+    {
+      "source": "/:city([a-zA-Z0-9_-]+)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?city=:city"
+    },
+    {
+      "source": "/product/:category/:product",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?city=product&product=:product"
+    },
+    {
+      "source": "/:city/:category/:product",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?city=:city&product=:product"
+    },
+    {
+      "source": "/:city/:product",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?city=:city&product=:product"
+    },
+    {
+      "source": "/((?!api/).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
