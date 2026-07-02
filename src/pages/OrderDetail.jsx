@@ -145,7 +145,7 @@ const OrderTrackingMap = ({ order }) => {
   const hasRiderCoords = captainLat && captainLng
 
   return (
-    <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6">
+    <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6">
       <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-4">
         <div>
           <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
@@ -257,7 +257,7 @@ const ProductReviewForm = ({ productId, onSubmit, isSubmitting }) => {
           value={reviewText}
           onChange={(e) => setReviewText(e.target.value)}
           placeholder="What did you like or dislike about this product? Share your experience..."
-          className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] px-4 py-3 text-sm focus:border-ozo-red focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-medium placeholder:text-gray-400 dark:placeholder:text-gray-550 placeholder:opacity-50 resize-none overflow-hidden"
+          className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#09090b] px-4 py-3 text-sm focus:border-ozo-red focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-medium placeholder:text-gray-400 dark:placeholder:text-gray-550 placeholder:opacity-50 resize-none overflow-hidden"
         />
       </div>
 
@@ -990,9 +990,13 @@ const OrderDetail = () => {
       }
     >
       {currentOrder && (
-        <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24 transition-colors duration-300">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#070709] pb-24 transition-colors duration-300 relative overflow-hidden">
+          {/* Ambient decorative background glows */}
+          <div className="absolute top-[20%] left-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-ozo-red/5 dark:bg-ozo-red/[0.012] blur-[120px] rounded-full pointer-events-none z-0" />
+          <div className="absolute bottom-[20%] right-[-10%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-indigo-500/5 dark:bg-indigo-500/[0.012] blur-[120px] rounded-full pointer-events-none z-0" />
+
       {/* Header */}
-      <div className="bg-white dark:bg-[#0d0d0d] border-b border-gray-100 dark:border-white/5 pt-12 pb-8">
+      <div className="bg-white dark:bg-[#0d0d0f] border-b border-gray-100 dark:border-white/5 pt-12 pb-8 relative z-10">
         <div className="container-custom">
           {/* SEO Breadcrumb Trail */}
           <Breadcrumb items={breadcrumbItems} className="mb-4" />
@@ -1047,7 +1051,7 @@ const OrderDetail = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2 space-y-8">
             {/* Tracking / Timeline */}
-            <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-4 sm:p-8 shadow-sm border border-gray-100 dark:border-white/5">
+            <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-4 sm:p-8 shadow-sm border border-gray-100 dark:border-white/5 relative z-10">
               <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-10">
                 Track <span className="text-gradient">Order.</span>
               </h2>
@@ -1111,7 +1115,7 @@ const OrderDetail = () => {
 
               {/* Product Review System */}
               {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(currentOrder.status) && (
-                <div ref={reviewSectionRef} className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+                <div ref={reviewSectionRef} className="bg-white dark:bg-[#121214] rounded-[2.5rem] overflow-hidden shadow-sm border border-gray-100 dark:border-white/5 relative z-10">
                   <div className="p-8 border-b border-gray-50 dark:border-white/5">
                     <h3 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
                       <Star size={22} className="text-yellow-500 fill-current animate-pulse" />
@@ -1254,7 +1258,7 @@ const OrderDetail = () => {
               )}
 
               {/* Order Items */}
-              <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] overflow-hidden shadow-sm border border-gray-100 dark:border-white/5">
+              <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] overflow-hidden shadow-sm border border-gray-100 dark:border-white/5 relative z-10">
                 <div className="p-8 border-b border-gray-50 dark:border-white/5">
                   <h2 className="text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
                     Order Items <span className="text-gradient">({currentOrder.order_items?.length || 0}).</span>
@@ -1330,7 +1334,7 @@ const OrderDetail = () => {
           <div className="space-y-8">
             {/* Captain / Rider details card */}
             {currentOrder.rider && (
-              <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6">
+              <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6 relative z-10">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
                     <Truck size={20} className="text-ozo-red animate-pulse" />
@@ -1395,7 +1399,7 @@ const OrderDetail = () => {
             )}
 
             {/* Delivery Details */}
-            <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5">
+            <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 relative z-10">
               <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-6 flex items-center gap-2">
                 <MapPin size={20} className="text-ozo-green" />
                 Delivery <span className="text-gradient">Address.</span>
@@ -1435,7 +1439,7 @@ const OrderDetail = () => {
             </div>
 
             {/* Payment Summary */}
-            <div className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6">
+            <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6 relative z-10">
               <div>
                 <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
                   <CreditCard size={20} className="text-blue-500" />
@@ -1568,12 +1572,12 @@ const OrderDetail = () => {
       {/* Cancellation Dialog Backdrop & Modal */}
       <AnimatePresence>
         {isCancelModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white dark:bg-[#151515] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col max-h-[90vh]"
+              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col max-h-[90vh]"
             >
               <div className="flex items-center gap-3 text-gray-900 dark:text-white mb-4 flex-shrink-0">
                 <AlertCircle size={28} className="text-ozo-red animate-pulse" />
@@ -1702,12 +1706,12 @@ const OrderDetail = () => {
       {/* Return Request Backdrop & Modal */}
       <AnimatePresence>
         {isReturnModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 15 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 15 }}
-              className="bg-white dark:bg-[#151515] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col max-h-[90vh]"
+              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 max-w-md w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col max-h-[90vh]"
             >
               <div className="flex items-center justify-between mb-4 flex-shrink-0">
                 <div className="flex items-center gap-3 text-gray-900 dark:text-white">
@@ -1723,7 +1727,7 @@ const OrderDetail = () => {
               </div>
 
               <div className="flex-1 overflow-y-auto custom-scrollbar pr-2 -mr-2 my-2 space-y-6">
-                <div className="p-4 bg-amber-500/5 border border-amber-500/20 rounded-2xl">
+                <div className="p-4 bg-amber-500/[0.04] dark:bg-amber-500/[0.06] border border-amber-500/20 rounded-2xl">
                   <h5 className="text-[10px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-widest mb-1">Strict Policy Enforcement</h5>
                   <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 leading-relaxed space-y-2">
                     <span className="block mb-2 text-amber-600 dark:text-amber-400 font-bold">Returns must be filed within 15 minutes of delivery. A <strong>live camera photo</strong> of the damaged/expired products is mandatory (no gallery uploads).</span>
