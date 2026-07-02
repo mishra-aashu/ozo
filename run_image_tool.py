@@ -9,8 +9,39 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from image_tool.app import app
 
 def open_browser():
-    print("🌍 Opening dashboard http://localhost:5000 in your browser...")
-    webbrowser.open("http://localhost:5000")
+    url = "http://localhost:5000"
+    print(f"🌍 Opening dashboard {url} in standalone app mode...")
+    import subprocess
+    import shutil
+    
+    chrome_path = None
+    if sys.platform.startswith('win'):
+        paths = [
+            os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
+            os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
+            os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe")
+        ]
+        for p in paths:
+            if os.path.exists(p):
+                chrome_path = p
+                break
+    elif sys.platform == 'darwin':
+        p = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        if os.path.exists(p):
+            chrome_path = p
+    else:
+        # Linux
+        chrome_path = shutil.which("google-chrome") or shutil.which("chrome") or shutil.which("chromium-browser") or shutil.which("chromium")
+
+    if chrome_path:
+        try:
+            subprocess.Popen([chrome_path, f"--app={url}"])
+            return
+        except Exception as e:
+            print(f"⚠️ Failed to launch Chrome app mode: {e}")
+            
+    # Fallback to default browser tab
+    webbrowser.open(url)
 
 if __name__ == "__main__":
     # Autostart browser in a separate thread
