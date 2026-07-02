@@ -79,3 +79,7 @@ bb_image_downloader/
 image_tool/__pycache__/
 !run_image_tool.py
 !build_exe.py
+
+# PyInstaller build artifacts
+build/
+*.spec

@@ -17,6 +17,20 @@ if getattr(sys, 'frozen', False):
 else:
     app = Flask(__name__, template_folder='templates', static_folder='static')
 
+# Locked configuration (for single-mart login/handshake)
+locked_config = {
+    "mart_id": None,
+    "mart_name": None,
+    "authenticated": False
+}
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET,POST,PUT,DELETE,OPTIONS'
+    return response
+
 # Global job state
 job_state = {
     "status": "idle",  # idle, running, paused, stopped, completed
@@ -177,11 +191,19 @@ def index():
 
 @app.route('/api/marts')
 def api_marts():
+    if locked_config["authenticated"]:
+        return jsonify([{
+            "id": locked_config["mart_id"],
+            "name": locked_config["mart_name"],
+            "slug": "locked"
+        }])
     marts = supabase_client.list_marts()
     return jsonify(marts)
 
 @app.route('/api/inventory/<mart_id>')
 def api_inventory(mart_id):
+    if locked_config["authenticated"] and str(mart_id) != str(locked_config["mart_id"]):
+        return jsonify({"error": "Unauthorized. This tool is locked to another store."}), 403
     products = supabase_client.get_mart_missing_image_products(mart_id)
     return jsonify({
         "products_missing_count": len(products),
@@ -198,6 +220,9 @@ def api_start():
     
     if not mart_id:
         return jsonify({"error": "mart_id is required"}), 400
+        
+    if locked_config["authenticated"] and str(mart_id) != str(locked_config["mart_id"]):
+        return jsonify({"error": "Unauthorized. This tool is locked to another store."}), 403
         
     with state_lock:
         if job_state["status"] == "running":
@@ -244,7 +269,46 @@ def api_stop():
 @app.route('/api/status')
 def api_status():
     with state_lock:
-        return jsonify(job_state)
+        return jsonify({
+            **job_state,
+            "locked_config": locked_config
+        })
+
+@app.route('/api/config', methods=['POST', 'OPTIONS'])
+def api_config():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    data = request.json or {}
+    mart_id = data.get("mart_id")
+    mart_name = data.get("mart_name")
+    
+    if not mart_id or not mart_name:
+        return jsonify({"error": "mart_id and mart_name are required"}), 400
+        
+    global locked_config
+    locked_config["mart_id"] = str(mart_id)
+    locked_config["mart_name"] = str(mart_name)
+    locked_config["authenticated"] = True
+    
+    return jsonify({
+        "success": True,
+        "locked_config": locked_config
+    })
+
+@app.route('/api/logout', methods=['POST', 'OPTIONS'])
+def api_logout():
+    if request.method == 'OPTIONS':
+        return '', 200
+        
+    global locked_config
+    locked_config["mart_id"] = None
+    locked_config["mart_name"] = None
+    locked_config["authenticated"] = False
+    
+    return jsonify({
+        "success": True
+    })
 
 @app.route('/api/manual-search', methods=['POST'])
 def api_manual_search():

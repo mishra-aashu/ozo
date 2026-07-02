@@ -120,6 +120,33 @@ const InventoryView = () => {
     fetchImageToolConfig()
   }, [])
 
+  // Connect and lock the Localhost Image Tool to this mart on mount/change
+  useEffect(() => {
+    if (!currentMart || !currentMart.id) return
+
+    const handshakeLocalhostTool = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/config', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            mart_id: currentMart.id,
+            mart_name: currentMart.name
+          })
+        })
+        if (res.ok) {
+          console.log('✅ Localhost Image Tool successfully locked to store:', currentMart.name)
+        }
+      } catch (err) {
+        // Silent catch: localhost tool might not be running, which is fine
+      }
+    }
+
+    handshakeLocalhostTool()
+  }, [currentMart])
+
 
   const handleSearchImages = async (customQuery) => {
     const q = (customQuery !== undefined ? customQuery : imageSearchQuery).trim()
