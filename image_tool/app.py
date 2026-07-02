@@ -7,7 +7,15 @@ from . import searcher
 from . import uploader
 from . import cache
 
-app = Flask(__name__, template_folder='templates', static_folder='static')
+import sys
+
+# Support PyInstaller bundling
+if getattr(sys, 'frozen', False):
+    template_folder = os.path.join(sys._MEIPASS, 'image_tool', 'templates')
+    static_folder = os.path.join(sys._MEIPASS, 'image_tool', 'static')
+    app = Flask(__name__, template_folder=template_folder, static_folder=static_folder)
+else:
+    app = Flask(__name__, template_folder='templates', static_folder='static')
 
 # Global job state
 job_state = {

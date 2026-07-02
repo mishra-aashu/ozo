@@ -77,3 +77,5 @@ bb_image_downloader/
 # Allow OzoMart Image Tool files
 !image_tool/**
 image_tool/__pycache__/
+!run_image_tool.py
+!build_exe.py
