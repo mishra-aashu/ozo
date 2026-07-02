@@ -402,10 +402,44 @@ def progress_stream():
     return Response(event_stream(), content_type='text/event-stream')
 
 if __name__ == '__main__':
-    import webbrowser
-    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
-        print("🌍 Opening dashboard http://localhost:5000 in your browser...")
-        threading.Timer(1.2, lambda: webbrowser.open("http://localhost:5000")).start()
+    from dotenv import load_dotenv
+    load_dotenv()
+    url = os.getenv("OZOMART_PORTAL_URL", "https://ozomart.store/mart")
     
-    print("🚀 Starting OzoMart Localhost Image Tool on http://localhost:5000")
+    import webbrowser
+    import subprocess
+    import shutil
+    
+    def open_browser():
+        print(f"🌍 Opening OzoMart Portal ({url}) in standalone app mode...")
+        chrome_path = None
+        if sys.platform.startswith('win'):
+            paths = [
+                os.path.expandvars(r"%ProgramFiles%\Google\Chrome\Application\chrome.exe"),
+                os.path.expandvars(r"%ProgramFiles(x86)%\Google\Chrome\Application\chrome.exe"),
+                os.path.expandvars(r"%LocalAppData%\Google\Chrome\Application\chrome.exe")
+            ]
+            for p in paths:
+                if os.path.exists(p):
+                    chrome_path = p
+                    break
+        elif sys.platform == 'darwin':
+            p = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+            if os.path.exists(p):
+                chrome_path = p
+        else:
+            chrome_path = shutil.which("google-chrome") or shutil.which("chrome") or shutil.which("chromium-browser") or shutil.which("chromium")
+
+        if chrome_path:
+            try:
+                subprocess.Popen([chrome_path, f"--app={url}"])
+                return
+            except Exception:
+                pass
+        webbrowser.open(url)
+
+    if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
+        threading.Timer(1.2, open_browser).start()
+    
+    print("🚀 Starting OzoMart Local Background Service on http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
