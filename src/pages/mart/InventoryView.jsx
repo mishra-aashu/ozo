@@ -16,7 +16,9 @@ import {
   AlertTriangle,
   ChevronDown,
   Plus,
-  X
+  X,
+  Image,
+  Loader2
 } from 'lucide-react'
 
 const InventoryView = () => {
@@ -88,9 +90,46 @@ const InventoryView = () => {
     mrp: '',
     image_url: '',
     stock_quantity: '0',
-    mart_price: '',
-    mart_mrp: ''
   })
+
+  // Image Search State for Custom Products
+  const [imageSearchQuery, setImageSearchQuery] = useState('')
+  const [imageSearchResults, setImageSearchResults] = useState([])
+  const [isSearchingImages, setIsSearchingImages] = useState(false)
+  const [showImageSearchGrid, setShowImageSearchGrid] = useState(false)
+
+  const handleSearchImages = async (customQuery) => {
+    const q = (customQuery !== undefined ? customQuery : imageSearchQuery).trim()
+    if (!q) {
+      toast.error('Please enter a product name or search term first')
+      return
+    }
+    setIsSearchingImages(true)
+    setShowImageSearchGrid(true)
+    try {
+      const res = await fetch(`/api/search-image?q=${encodeURIComponent(q)}`)
+      if (!res.ok) {
+        throw new Error('Failed to fetch images')
+      }
+      const data = await res.json()
+      setImageSearchResults(data.results || [])
+    } catch (err) {
+      console.error('Error searching images:', err)
+      toast.error('Failed to load images. Try typing a different search query.')
+    } finally {
+      setIsSearchingImages(false)
+    }
+  }
+
+  // Clear image search when modal closes
+  useEffect(() => {
+    if (!showSingleProductModal) {
+      setImageSearchQuery('')
+      setImageSearchResults([])
+      setIsSearchingImages(false)
+      setShowImageSearchGrid(false)
+    }
+  }, [showSingleProductModal])
 
   // Fetch categories
   useEffect(() => {
@@ -1916,17 +1955,131 @@ const InventoryView = () => {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
-                      Product Image URL
-                    </label>
-                    <input
-                      type="url"
-                      placeholder="e.g. https://images.unsplash.com/... or paste direct link"
-                      value={newProductForm.image_url}
-                      onChange={(e) => setNewProductForm(prev => ({ ...prev, image_url: e.target.value }))}
-                      className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
-                    />
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider">
+                        Product Image URL
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const defaultQuery = `${newProductForm.brand || ''} ${newProductForm.name || ''}`.trim()
+                          setImageSearchQuery(defaultQuery)
+                          const nextShow = !showImageSearchGrid
+                          setShowImageSearchGrid(nextShow)
+                          if (nextShow && defaultQuery) {
+                            handleSearchImages(defaultQuery)
+                          }
+                        }}
+                        className="text-xs font-bold text-emerald-600 dark:text-[#00FF66] hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Image className="w-3.5 h-3.5" />
+                        {showImageSearchGrid ? 'Hide Search' : '✨ Find Online Images'}
+                      </button>
+                    </div>
+
+                    <div className="flex gap-3">
+                      {newProductForm.image_url && (
+                        <div className="w-11 h-11 rounded-xl bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] flex-shrink-0 flex items-center justify-center p-1 overflow-hidden">
+                          <img
+                            src={newProductForm.image_url}
+                            alt="Preview"
+                            className="w-full h-full object-contain rounded-lg"
+                            onError={(e) => { e.target.src = 'https://wsrv.nl/?url=placeholder&default=ssl' }}
+                          />
+                        </div>
+                      )}
+                      <input
+                        type="url"
+                        placeholder="e.g. https://images.unsplash.com/... or search online"
+                        value={newProductForm.image_url}
+                        onChange={(e) => setNewProductForm(prev => ({ ...prev, image_url: e.target.value }))}
+                        className="flex-1 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                      />
+                    </div>
+
+                    {showImageSearchGrid && (
+                      <div className="mt-3 p-4 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl space-y-3">
+                        <div className="flex gap-2">
+                          <div className="relative flex-1">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
+                            <input
+                              type="text"
+                              placeholder="Search images..."
+                              value={imageSearchQuery}
+                              onChange={(e) => setImageSearchQuery(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault()
+                                  handleSearchImages()
+                                }
+                              }}
+                              className="w-full bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-1.5 pl-9 pr-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => handleSearchImages()}
+                            disabled={isSearchingImages}
+                            className="px-3 py-1.5 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00e65c] disabled:opacity-50 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer"
+                          >
+                            {isSearchingImages ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              'Search'
+                            )}
+                          </button>
+                        </div>
+
+                        {isSearchingImages ? (
+                          <div className="grid grid-cols-4 gap-2 pt-2 animate-pulse">
+                            {[...Array(8)].map((_, i) => (
+                              <div key={i} className="aspect-square bg-gray-200 dark:bg-white/5 rounded-lg" />
+                            ))}
+                          </div>
+                        ) : imageSearchResults.length > 0 ? (
+                          <div className="grid grid-cols-4 gap-2 max-h-48 overflow-y-auto p-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-white/10">
+                            {imageSearchResults.map((img, i) => {
+                              const isSelected = newProductForm.image_url === img.url
+                              return (
+                                <div
+                                  key={i}
+                                  onClick={() => setNewProductForm(prev => ({ ...prev, image_url: img.url }))}
+                                  className={`relative aspect-square cursor-pointer rounded-lg overflow-hidden border bg-white dark:bg-[#0c0c14] flex items-center justify-center p-0.5 group transition-all hover:scale-105 duration-200 ${
+                                    isSelected
+                                      ? 'border-emerald-500 dark:border-[#00FF66] ring-2 ring-emerald-500/20 dark:ring-[#00FF66]/20'
+                                      : 'border-gray-200 dark:border-[#1e1e2f] hover:border-emerald-400 dark:hover:border-[#00FF66]/40'
+                                  }`}
+                                  title={img.title}
+                                >
+                                  <img
+                                    src={img.thumbnail || img.url}
+                                    alt={img.title}
+                                    className="w-full h-full object-contain rounded-md"
+                                    loading="lazy"
+                                    onError={(e) => { e.target.src = 'https://wsrv.nl/?url=placeholder&default=ssl' }}
+                                  />
+                                  {isSelected && (
+                                    <div className="absolute inset-0 bg-emerald-500/10 dark:bg-[#00FF66]/5 flex items-center justify-center">
+                                      <div className="bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black rounded-full p-0.5 shadow">
+                                        <Check className="w-2.5 h-2.5 font-bold" />
+                                      </div>
+                                    </div>
+                                  )}
+                                  <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-white py-0.5 px-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {img.source || 'image'}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          <div className="text-center py-6 text-gray-500 dark:text-gray-400 text-xs">
+                            {imageSearchQuery ? 'No images found. Try a different query.' : 'Type a query and search for images.'}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   {/* Actions */}
