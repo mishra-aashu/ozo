@@ -49,11 +49,9 @@ def build():
     sep = ';' if sys.platform.startswith('win') else ':'
     pyinstaller_bin = os.path.join(sys.prefix, "Scripts", "pyinstaller.exe") if sys.platform.startswith('win') else os.path.join(sys.prefix, "bin", "pyinstaller")
     
-    # Build command including both the dist/ React build and the standalone templates
     cmd = [
         pyinstaller_bin,
         "--onefile",
-        f"--add-data=dist{sep}dist",
         f"--add-data=image_tool/templates{sep}image_tool/templates",
         "--name=OzoMartImageTool",
         "run_image_tool.py"

@@ -17,5 +17,5 @@ if __name__ == "__main__":
     threading.Timer(1.2, open_browser).start()
     
     print("🚀 Starting OzoMart Localhost Image Tool on http://localhost:5000")
-    # Run server without reload
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    # Run server without reload, enabling multithreading so long-running SSE streams don't block auth or api status checks
+    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
