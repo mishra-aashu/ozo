@@ -32,7 +32,15 @@
     },
     {
       "source": "/product-images/:slug.png",
-      "destination": "/api/product-image?slug=:slug"
+      "destination": "/api/image?slug=:slug"
+    },
+    {
+      "source": "/api/upload-image",
+      "destination": "/api/image"
+    },
+    {
+      "source": "/api/resolve-link",
+      "destination": "/api/geocode?type=resolve-link"
     },
     {
       "source": "/",
