@@ -333,24 +333,135 @@ const MartProfile = () => {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  // Download QR code image
-  const handleDownloadQr = async () => {
-    try {
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(window.location.href)}`
-      const response = await fetch(qrUrl)
-      const blob = await response.blob()
-      const blobUrl = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = blobUrl
-      link.download = `${mart?.name?.toLowerCase().replace(/\s+/g, '-')}-qr.png`
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(blobUrl)
-      toast.success('QR Code downloaded successfully!')
-    } catch (error) {
-      console.error('Failed to download QR code:', error)
-      toast.error('Failed to download QR code. Please try again.')
+  // Download QR code flyer
+  const handleDownloadQr = () => {
+    toast.loading('Generating store flyer...', { id: 'generating-flyer' })
+    const canvas = document.createElement('canvas')
+    canvas.width = 800
+    canvas.height = 1100
+    const ctx = canvas.getContext('2d')
+
+    // 1. Draw background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
+    gradient.addColorStop(0, '#0d0d11')
+    gradient.addColorStop(1, '#070709')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    // 2. Draw ambient glows
+    const redGlow = ctx.createRadialGradient(0, 0, 10, 0, 0, 400)
+    redGlow.addColorStop(0, 'rgba(235, 20, 20, 0.15)')
+    redGlow.addColorStop(1, 'rgba(235, 20, 20, 0)')
+    ctx.fillStyle = redGlow
+    ctx.beginPath()
+    ctx.arc(0, 0, 400, 0, Math.PI * 2)
+    ctx.fill()
+
+    const indigoGlow = ctx.createRadialGradient(canvas.width, canvas.height, 10, canvas.width, canvas.height, 400)
+    indigoGlow.addColorStop(0, 'rgba(79, 70, 229, 0.15)')
+    indigoGlow.addColorStop(1, 'rgba(79, 70, 229, 0)')
+    ctx.fillStyle = indigoGlow
+    ctx.beginPath()
+    ctx.arc(canvas.width, canvas.height, 400, 0, Math.PI * 2)
+    ctx.fill()
+
+    // 3. Draw OZO logo header
+    ctx.textAlign = 'center'
+    
+    // "OZO MART" brand text
+    ctx.fillStyle = '#ff2a44' // Ozo Red
+    ctx.font = '900 64px system-ui, -apple-system, sans-serif'
+    ctx.fillText('OZO MART', canvas.width / 2, 140)
+
+    // Tagline "SCAN TO SHOP"
+    ctx.fillStyle = '#a1a1aa' // Zinc 400
+    ctx.font = 'bold 22px system-ui, -apple-system, sans-serif'
+    ctx.fillText('SCAN  TO  SHOP', canvas.width / 2, 200)
+
+    // 4. Load & draw QR code
+    const qrImg = new Image()
+    qrImg.crossOrigin = 'anonymous'
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(window.location.href)}`
+    
+    qrImg.onload = () => {
+      // Draw a beautiful white card in the center for the QR code
+      const cardWidth = 560
+      const cardHeight = 560
+      const cardX = (canvas.width - cardWidth) / 2
+      const cardY = 260
+      const cardRadius = 40
+
+      // Draw shadow for card
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.4)'
+      ctx.shadowBlur = 30
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 15
+
+      // Draw white rounded card
+      ctx.fillStyle = '#ffffff'
+      if (ctx.roundRect) {
+        ctx.beginPath()
+        ctx.roundRect(cardX, cardY, cardWidth, cardHeight, cardRadius)
+        ctx.fill()
+      } else {
+        ctx.fillRect(cardX, cardY, cardWidth, cardHeight)
+      }
+
+      // Reset shadow
+      ctx.shadowColor = 'transparent'
+      ctx.shadowBlur = 0
+      ctx.shadowOffsetX = 0
+      ctx.shadowOffsetY = 0
+
+      // Draw the QR Code image inside the card (centered)
+      const qrSize = 460
+      const qrX = cardX + (cardWidth - qrSize) / 2
+      const qrY = cardY + (cardHeight - qrSize) / 2
+      ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
+
+      // 5. Draw Store Name below QR card
+      ctx.fillStyle = '#ffffff'
+      ctx.font = '900 44px system-ui, -apple-system, sans-serif'
+      ctx.fillText(mart?.name || 'Ozo Mart Store', canvas.width / 2, 890)
+
+      // 6. Draw Store Address (trimmed to fit)
+      if (mart?.address) {
+        ctx.fillStyle = '#a1a1aa'
+        ctx.font = '500 22px system-ui, -apple-system, sans-serif'
+        let addressToShow = mart.address
+        if (addressToShow.length > 55) {
+          addressToShow = addressToShow.substring(0, 52) + '...'
+        }
+        ctx.fillText(addressToShow, canvas.width / 2, 940)
+      }
+
+      // 7. Draw Footer brand tagline
+      ctx.fillStyle = '#4b5563' // Gray 600
+      ctx.font = 'bold 18px system-ui, -apple-system, sans-serif'
+      ctx.fillText('ORDER  •  ZERO DELAY  •  ON-TIME', canvas.width / 2, 1030)
+
+      // 8. Trigger Download
+      canvas.toBlob((blob) => {
+        toast.dismiss('generating-flyer')
+        if (!blob) {
+          toast.error('Failed to generate flyer image')
+          return
+        }
+        const blobUrl = URL.createObjectURL(blob)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = `${mart?.name?.toLowerCase().replace(/\s+/g, '-')}-flyer-qr.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(blobUrl)
+        toast.success('Store QR Flyer downloaded successfully!')
+      }, 'image/png')
+    }
+
+    qrImg.onerror = () => {
+      toast.dismiss('generating-flyer')
+      toast.error('Failed to load QR code image for flyer generation')
     }
   }
 
