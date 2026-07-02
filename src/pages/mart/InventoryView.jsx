@@ -101,6 +101,102 @@ const InventoryView = () => {
   // Dynamic download URL state for Localhost Image Tool
   const [downloadUrl, setDownloadUrl] = useState('')
 
+  // Localhost Image Tool integration states
+  const [localToolState, setLocalToolState] = useState({
+    online: false,
+    status: 'offline',
+    processed: 0,
+    total: 0,
+    currentProduct: '',
+    lockedConfig: null
+  })
+
+  // Poll Localhost Image Tool status
+  useEffect(() => {
+    let intervalId
+    
+    const checkLocalTool = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/status')
+        if (res.ok) {
+          const data = await res.json()
+          setLocalToolState({
+            online: true,
+            status: data.status || 'idle',
+            processed: data.processed || 0,
+            total: data.total || 0,
+            currentProduct: data.current_product || '',
+            lockedConfig: data.locked_config || null
+          })
+        } else {
+          setLocalToolState(prev => ({ ...prev, online: false, status: 'offline' }))
+        }
+      } catch (err) {
+        setLocalToolState(prev => ({ ...prev, online: false, status: 'offline' }))
+      }
+    }
+
+    checkLocalTool()
+    intervalId = setInterval(checkLocalTool, 3000)
+
+    return () => clearInterval(intervalId)
+  }, [])
+
+  const startLocalPipeline = async () => {
+    if (!currentMart || !currentMart.id) return
+    try {
+      const res = await fetch('http://localhost:5000/api/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mart_id: currentMart.id,
+          mart_name: currentMart.name
+        })
+      })
+      if (res.ok) {
+        toast.success('Started local image auto-finder!')
+      } else {
+        const errData = await res.json()
+        toast.error(errData.error || 'Failed to start local tool')
+      }
+    } catch (err) {
+      toast.error('Could not communicate with local tool')
+    }
+  }
+
+  const pauseLocalPipeline = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/pause', { method: 'POST' })
+      if (res.ok) {
+        toast.success('Paused local image finder')
+      }
+    } catch (err) {
+      toast.error('Failed to communicate with local tool')
+    }
+  }
+
+  const resumeLocalPipeline = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/resume', { method: 'POST' })
+      if (res.ok) {
+        toast.success('Resumed local image finder')
+      }
+    } catch (err) {
+      toast.error('Failed to communicate with local tool')
+    }
+  }
+
+  const stopLocalPipeline = async () => {
+    try {
+      const res = await fetch('http://localhost:5000/api/stop', { method: 'POST' })
+      if (res.ok) {
+        toast.success('Stopping local image finder...')
+      }
+    } catch (err) {
+      toast.error('Failed to communicate with local tool')
+    }
+  }
+
   // Fetch download URL config on mount
   useEffect(() => {
     const fetchImageToolConfig = async () => {
@@ -1367,8 +1463,133 @@ const InventoryView = () => {
     )
   }
 
+  const renderLocalToolWidget = () => {
+    const { online, status, processed, total, currentProduct } = localToolState
+
+    if (!online) return null
+
+    const isRunning = status === 'running'
+    const isPaused = status === 'paused'
+    const percent = total > 0 ? Math.round((processed / total) * 100) : 0
+
+    return (
+      <div className="mb-6 bg-gradient-to-r from-emerald-950/10 to-teal-950/10 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-500/20 dark:border-[#00FF66]/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-emerald-500/5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          {/* Status Info */}
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 dark:bg-[#00FF66]/10 flex items-center justify-center text-emerald-400 dark:text-[#00FF66]">
+                {isRunning ? (
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                ) : (
+                  <Package className="h-5 w-5" />
+                )}
+              </div>
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-500 dark:bg-[#00FF66] rounded-full border-2 border-white dark:border-[#070709] animate-pulse" />
+            </div>
+            
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black text-emerald-600 dark:text-[#00FF66] uppercase tracking-widest">Local Image Finder</span>
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase ${
+                  isRunning ? 'bg-emerald-500/20 text-emerald-600 dark:text-[#00FF66]' :
+                  isPaused ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' :
+                  'bg-gray-500/20 text-gray-500'
+                }`}>
+                  {status}
+                </span>
+              </div>
+              
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mt-0.5">
+                {isRunning 
+                  ? `Automating product images...` 
+                  : `Desktop app connected and ready.`
+                }
+              </h3>
+              
+              {isRunning && currentProduct && (
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Current: <span className="font-semibold text-gray-855 dark:text-gray-200">{currentProduct}</span>
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Progress & Controls */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto">
+            {total > 0 && (
+              <div className="flex-1 sm:w-48">
+                <div className="flex justify-between text-[11px] font-bold text-gray-700 dark:text-gray-300 mb-1">
+                  <span>Progress</span>
+                  <span>{processed} / {total} ({percent}%)</span>
+                </div>
+                <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 dark:from-[#00FF66] dark:to-teal-450 transition-all duration-500 rounded-full" 
+                    style={{ width: `${percent}%` }}
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2">
+              {isRunning ? (
+                <>
+                  <button
+                    onClick={pauseLocalPipeline}
+                    className="px-3.5 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  >
+                    Pause
+                  </button>
+                  <button
+                    onClick={stopLocalPipeline}
+                    className="px-3.5 py-2 bg-red-650 hover:bg-red-750 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  >
+                    Stop
+                  </button>
+                </>
+              ) : isPaused ? (
+                <>
+                  <button
+                    onClick={resumeLocalPipeline}
+                    className="px-3.5 py-2 bg-emerald-500 dark:bg-[#00FF66] dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00e65c] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  >
+                    Resume
+                  </button>
+                  <button
+                    onClick={stopLocalPipeline}
+                    className="px-3.5 py-2 bg-red-650 hover:bg-red-750 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                  >
+                    Stop
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={startLocalPipeline}
+                  className="px-4 py-2.5 bg-emerald-500 dark:bg-[#00FF66] dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00e65c] text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/10"
+                >
+                  Start Automating Images
+                </button>
+              )}
+
+              <a
+                href="http://localhost:5000"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3.5 py-2.5 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
+              >
+                Open Dashboard
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="flex-1 flex flex-col p-4 lg:p-8 overflow-hidden bg-gray-50 dark:bg-[#070709] pb-16 lg:pb-8">
+      {renderLocalToolWidget()}
       {/* Control Bar */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
         <div>
