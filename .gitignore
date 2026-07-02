@@ -46,7 +46,9 @@ __pycache__/
 .venv/
 venv/
 env/
+.venv-image-tool/
 *.py
+
 
 # Cloudflare Worker Proxy
 supabase-proxy-worker/index.js
@@ -71,3 +73,7 @@ bb_image_downloader/
 
 # Agent memory files
 .memory/
+
+# Allow OzoMart Image Tool files
+!image_tool/**
+image_tool/__pycache__/
