@@ -12,6 +12,7 @@ import {
   Search,
   Share2,
   ExternalLink,
+  QrCode,
   Store,
   Check,
   ChevronRight,
@@ -113,6 +114,7 @@ const MartProfile = () => {
   const [page, setPage] = useState(0)
   const [hasMore, setHasMore] = useState(true)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
+  const [isQrModalOpen, setIsQrModalOpen] = useState(false)
   const ITEMS_PER_PAGE = 24
 
   // Edit Modal State
@@ -329,6 +331,27 @@ const MartProfile = () => {
     setCopied(true)
     toast.success('Store link copied to clipboard!')
     setTimeout(() => setCopied(false), 2000)
+  }
+
+  // Download QR code image
+  const handleDownloadQr = async () => {
+    try {
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(window.location.href)}`
+      const response = await fetch(qrUrl)
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `${mart?.name?.toLowerCase().replace(/\s+/g, '-')}-qr.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+      toast.success('QR Code downloaded successfully!')
+    } catch (error) {
+      console.error('Failed to download QR code:', error)
+      toast.error('Failed to download QR code. Please try again.')
+    }
   }
 
   // Check store status (open/closed)
@@ -591,6 +614,14 @@ const MartProfile = () => {
               title="Share Store Link"
             >
               {copied ? <Check className="w-4 h-4 md:w-5 md:h-5 text-ozo-green" /> : <Share2 className="w-4 h-4 md:w-5 md:h-5" />}
+            </button>
+
+            <button
+              onClick={() => setIsQrModalOpen(true)}
+              className="p-2.5 md:p-3.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 rounded-xl md:rounded-2xl transition-all text-gray-700 dark:text-gray-300 flex items-center justify-center active:scale-95 shadow-sm"
+              title="Show Store QR Code"
+            >
+              <QrCode className="w-4 h-4 md:w-5 md:h-5" />
             </button>
             
             {mart.address && (
@@ -1418,6 +1449,80 @@ const MartProfile = () => {
                       <span>Save Changes</span>
                     </>
                   )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* QR Code Sharing Modal */}
+      <AnimatePresence>
+        {isQrModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 max-w-sm w-full shadow-2xl border border-gray-100 dark:border-white/5 relative flex flex-col items-center text-center overflow-hidden"
+            >
+              {/* Top ambient glowing circle */}
+              <div className="absolute -top-12 -left-12 w-28 h-28 bg-ozo-red/10 blur-2xl rounded-full pointer-events-none" />
+              <div className="absolute -bottom-12 -right-12 w-28 h-28 bg-indigo-600/10 blur-2xl rounded-full pointer-events-none" />
+
+              {/* Close Button */}
+              <button
+                onClick={() => setIsQrModalOpen(false)}
+                className="absolute top-6 right-6 p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+                title="Close"
+              >
+                <X size={18} />
+              </button>
+
+              {/* Icon & Store Info */}
+              <div className="w-12 h-12 rounded-2xl bg-ozo-red/10 flex items-center justify-center text-ozo-red mb-4 mt-2">
+                <Store size={22} />
+              </div>
+              <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-1">
+                Scan to Shop
+              </h3>
+              <p className="text-xs text-ozo-gray dark:text-gray-400 font-black mb-6 max-w-[200px] truncate">
+                {mart?.name}
+              </p>
+
+              {/* QR Code Container */}
+              <div className="p-4 bg-white rounded-3xl shadow-inner border border-gray-150 relative mb-6">
+                <img
+                  src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(window.location.href)}`}
+                  alt={`${mart?.name} QR Code`}
+                  className="w-48 h-48 object-contain animate-fade-in"
+                />
+              </div>
+
+              {/* Buttons Actions */}
+              <div className="w-full space-y-3">
+                <button
+                  onClick={handleShare}
+                  className="w-full py-3 bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 rounded-xl font-black text-xs uppercase tracking-widest text-gray-700 dark:text-gray-300 transition-all flex items-center justify-center gap-2"
+                >
+                  {copied ? (
+                    <>
+                      <Check className="w-4 h-4 text-ozo-green" />
+                      <span>Copied!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Share2 className="w-4 h-4" />
+                      <span>Copy Store Link</span>
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={handleDownloadQr}
+                  className="w-full py-3 bg-gradient-ozo hover:opacity-90 text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg shadow-ozo-red/20 active:scale-95"
+                >
+                  <Upload className="w-4 h-4 rotate-180" />
+                  <span>Download QR Image</span>
                 </button>
               </div>
             </motion.div>
