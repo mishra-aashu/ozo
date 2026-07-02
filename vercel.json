@@ -12,19 +12,19 @@
     },
     {
       "source": "/sitemap.xml",
-      "destination": "/api/sitemap-index"
+      "destination": "/api/sitemap?type=index"
     },
     {
       "source": "/sitemap-static.xml",
-      "destination": "/api/sitemap-static"
+      "destination": "/api/sitemap?type=static"
     },
     {
       "source": "/sitemap-:city.xml",
-      "destination": "/api/sitemap-city?city=:city"
+      "destination": "/api/sitemap?type=city&city=:city"
     },
     {
       "source": "/api/sitemap-:city.xml",
-      "destination": "/api/sitemap-city?city=:city"
+      "destination": "/api/sitemap?type=city&city=:city"
     },
     {
       "source": "/:key([a-zA-Z0-9]{32}).txt",
