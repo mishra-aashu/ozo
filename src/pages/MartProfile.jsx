@@ -466,7 +466,11 @@ const MartProfile = () => {
   if (!mart) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#070709] pb-20 relative overflow-hidden">
+      {/* Ambient decorative background glows */}
+      <div className="absolute top-[350px] left-[-15%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-ozo-red/5 dark:bg-ozo-red/[0.015] blur-[120px] rounded-full pointer-events-none z-0" />
+      <div className="absolute top-[800px] right-[-15%] w-[50vw] h-[50vw] max-w-[600px] max-h-[600px] bg-amber-500/5 dark:bg-amber-500/[0.015] blur-[120px] rounded-full pointer-events-none z-0" />
+
       <SEO 
         title={`${mart.name} - OZO Mart`}
         description={mart.description || `Order fresh groceries, organic items, and home essentials from ${mart.name} on OZO Mart. Fast delivery to your doorstep.`}
@@ -502,7 +506,7 @@ const MartProfile = () => {
 
       {/* Mart Info Card */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 md:-mt-36 relative z-10">
-        <div className="bg-white/80 dark:bg-[#111111]/80 backdrop-blur-xl border border-white/20 dark:border-white/5 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-8 shadow-premium flex flex-col md:flex-row items-center md:items-start justify-between gap-4 md:gap-6">
+        <div className="bg-white/95 dark:bg-[#121214]/95 backdrop-blur-xl border border-gray-150 dark:border-white/5 rounded-[2rem] md:rounded-[2.5rem] p-4 md:p-8 shadow-premium flex flex-col md:flex-row items-center md:items-start justify-between gap-4 md:gap-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 text-center md:text-left w-full">
             {/* Logo */}
             <div className="w-20 h-20 md:w-36 md:h-36 rounded-2xl md:rounded-3xl overflow-hidden bg-white dark:bg-white/5 border border-white dark:border-white/10 shadow-premium flex-shrink-0 flex items-center justify-center relative group">
@@ -570,7 +574,7 @@ const MartProfile = () => {
                       key={idx}
                       className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[9px] md:text-[10px] font-black uppercase tracking-wider border shrink-0 ${config.color}`}
                     >
-                      <Icon className="w-3 h-3 shrink-0" />
+                      <Icon className="w-3.5 h-3.5 shrink-0" />
                       <span>{badgeText}</span>
                     </span>
                   )
@@ -583,7 +587,7 @@ const MartProfile = () => {
           <div className="flex items-center gap-2 mt-2 md:mt-0 justify-center w-full md:w-auto shrink-0">
             <button
               onClick={handleShare}
-              className="p-2.5 md:p-3.5 bg-gray-55 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 rounded-xl md:rounded-2xl transition-all text-gray-700 dark:text-gray-300 flex items-center justify-center active:scale-95 shadow-sm"
+              className="p-2.5 md:p-3.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 rounded-xl md:rounded-2xl transition-all text-gray-700 dark:text-gray-300 flex items-center justify-center active:scale-95 shadow-sm"
               title="Share Store Link"
             >
               {copied ? <Check className="w-4 h-4 md:w-5 md:h-5 text-ozo-green" /> : <Share2 className="w-4 h-4 md:w-5 md:h-5" />}
@@ -594,7 +598,7 @@ const MartProfile = () => {
                 href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mart.name + ' ' + mart.address)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="p-2.5 md:p-3.5 bg-gray-55 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 rounded-xl md:rounded-2xl transition-all text-gray-700 dark:text-gray-300 flex items-center justify-center active:scale-95 shadow-sm"
+                className="p-2.5 md:p-3.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 rounded-xl md:rounded-2xl transition-all text-gray-700 dark:text-gray-300 flex items-center justify-center active:scale-95 shadow-sm"
                 title="View Directions"
               >
                 <ExternalLink className="w-4 h-4 md:w-5 md:h-5" />
@@ -652,14 +656,14 @@ const MartProfile = () => {
               className="space-y-8"
             >
               {/* Inner Store Search & Categories */}
-              <div className="flex flex-col gap-6 bg-white dark:bg-[#111] p-5 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm">
+              <div className="flex flex-col gap-6 bg-white dark:bg-[#121214] p-5 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm">
                 <div className="relative w-full max-w-lg mx-auto">
                   <input
                     type="text"
                     placeholder={`Search products in ${mart.name}...`}
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full pl-12 pr-10 py-3.5 bg-gray-55 dark:bg-black border border-gray-200 dark:border-white/5 rounded-2xl text-sm font-bold text-gray-900 dark:text-white placeholder-gray-450 focus:outline-none focus:ring-2 focus:ring-ozo-red/20 focus:border-ozo-red transition-all shadow-inner"
+                    className="w-full pl-12 pr-10 py-3.5 bg-gray-50 dark:bg-[#09090b] border border-gray-200 dark:border-white/5 rounded-2xl text-sm font-bold text-gray-900 dark:text-white placeholder-gray-450 focus:outline-none focus:ring-2 focus:ring-ozo-red/20 focus:border-ozo-red transition-all shadow-inner"
                   />
                   <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
                   {searchQuery && (
@@ -679,7 +683,7 @@ const MartProfile = () => {
                     className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all border flex items-center gap-1.5 ${
                       selectedCategory === 'all'
                         ? 'bg-gradient-ozo text-white border-transparent shadow-lg shadow-ozo-red/20 scale-[1.02]'
-                        : 'bg-gray-55 dark:bg-black text-gray-500 dark:text-gray-400 border-gray-150 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
+                        : 'bg-gray-50 dark:bg-[#09090b] text-gray-500 dark:text-gray-400 border-gray-150 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
                     }`}
                   >
                     <span>All Products</span>
@@ -692,7 +696,7 @@ const MartProfile = () => {
                       className={`px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all border flex items-center gap-1.5 ${
                         selectedCategory === cat.id
                           ? 'bg-gradient-ozo text-white border-transparent shadow-lg shadow-ozo-red/20 scale-[1.02]'
-                          : 'bg-gray-55 dark:bg-black text-gray-500 dark:text-gray-400 border-gray-150 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
+                          : 'bg-gray-50 dark:bg-[#09090b] text-gray-500 dark:text-gray-400 border-gray-150 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10'
                       }`}
                     >
                       <span>{cat.name}</span>
@@ -704,7 +708,7 @@ const MartProfile = () => {
               {/* Product Grid */}
               <div>
                 {filteredProducts.length === 0 ? (
-                  <div className="bg-white dark:bg-[#111] rounded-[2.5rem] border border-gray-100 dark:border-white/5 p-16 text-center max-w-lg mx-auto shadow-sm">
+                  <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] border border-gray-100 dark:border-white/5 p-16 text-center max-w-lg mx-auto shadow-sm">
                     <Info className="w-14 h-14 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-xl font-black text-gray-800 dark:text-white mb-2">No Products Available</h3>
                     <p className="text-sm font-semibold text-gray-500 dark:text-gray-400 leading-relaxed">
@@ -765,7 +769,7 @@ const MartProfile = () => {
               {/* Left & Middle Column: Store details & features */}
               <div className="lg:col-span-2 space-y-6">
                 {/* Store Description and Info */}
-                <div className="bg-white dark:bg-[#111] p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
+                <div className="bg-white dark:bg-[#121214] p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
                   <div>
                     <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider mb-2">About The Store</h3>
                     <p className="text-sm font-semibold text-gray-500 dark:text-gray-450 leading-relaxed">
@@ -787,7 +791,7 @@ const MartProfile = () => {
 
                 {/* Why Shop Here Badges detail list */}
                 {mart.guarantees && mart.guarantees.length > 0 && (
-                  <div className="bg-white dark:bg-[#111] p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
+                  <div className="bg-white dark:bg-[#121214] p-6 md:p-8 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-6">
                     <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Guarantees</h3>
                     
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -826,7 +830,7 @@ const MartProfile = () => {
               {/* Right Column: Business hours & map details */}
               <div className="space-y-6">
                 {/* Business Hours Summary */}
-                <div className="bg-white dark:bg-[#111] p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-4">
+                <div className="bg-white dark:bg-[#121214] p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-4">
                   <h3 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-ozo-red" />
                     <span>Business Hours</span>
@@ -864,7 +868,7 @@ const MartProfile = () => {
 
                 {/* Google Maps Embed Mock Card */}
                 {mart.address && (
-                  <div className="bg-white dark:bg-[#111] p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-4">
+                  <div className="bg-white dark:bg-[#121214] p-6 rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-sm space-y-4">
                     <h3 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
                       <MapPin className="w-4 h-4 text-ozo-red" />
                       <span>Directions</span>
@@ -1111,7 +1115,7 @@ const MartProfile = () => {
                 </div>
 
                 {/* Store Badges Custom Configuration */}
-                <div className="space-y-3 bg-gray-55 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5">
+                <div className="space-y-3 bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5">
                   <div>
                     <h4 className="text-sm font-black text-gray-800 dark:text-white">Store Highlights / Badges</h4>
                     <p className="text-xs text-gray-500 font-bold mt-0.5">Customize badges shown on your store profile page</p>
@@ -1219,7 +1223,7 @@ const MartProfile = () => {
                 </div>
 
                 {/* Store Guarantees Configuration */}
-                <div className="space-y-4 bg-gray-55 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5">
+                <div className="space-y-4 bg-gray-50 dark:bg-white/5 rounded-2xl p-4 border border-gray-100 dark:border-white/5">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="text-sm font-black text-gray-800 dark:text-white">Store Guarantees</h4>
@@ -1337,7 +1341,7 @@ const MartProfile = () => {
                         <Store className="w-6 h-6 text-gray-400" />
                       )}
                     </div>
-                    <label className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-4 cursor-pointer hover:bg-gray-55/50 dark:hover:bg-white/5 transition-colors">
+                    <label className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-4 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                       {uploadingLogo ? (
                         <Loader2 className="w-5 h-5 animate-spin text-ozo-red" />
                       ) : (
@@ -1369,7 +1373,7 @@ const MartProfile = () => {
                         <div className="w-full h-full bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600" />
                       )}
                     </div>
-                    <label className="w-full flex items-center justify-center gap-2 border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-3 cursor-pointer hover:bg-gray-55/50 dark:hover:bg-white/5 transition-colors">
+                    <label className="w-full flex items-center justify-center gap-2 border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-3 cursor-pointer hover:bg-gray-50/50 dark:hover:bg-white/5 transition-colors">
                       {uploadingBanner ? (
                         <Loader2 className="w-5 h-5 animate-spin text-ozo-red" />
                       ) : (
