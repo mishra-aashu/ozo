@@ -27,7 +27,8 @@ import {
   FileDown,
   FileUp,
   Play,
-  AlertTriangle
+  AlertTriangle,
+  Image
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -202,6 +203,11 @@ const AdminSettings = () => {
     cashfree_enabled: true,
     razorpay_enabled: false,
     cod_enabled: true
+  })
+
+  // State for Localhost Image Tool Config
+  const [imageToolConfig, setImageToolConfig] = useState({
+    download_url: ''
   })
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -381,6 +387,9 @@ const AdminSettings = () => {
           auto_sync: true,
           mappings: {}
         }
+        let imageTool = {
+          download_url: ''
+        }
 
         data.forEach(item => {
           switch (item.key) {
@@ -433,6 +442,10 @@ const AdminSettings = () => {
               mandiSync = { ...mandiSync, ...item.value }
               addLog('Mandi synchronization configuration loaded successfully.', 'success')
               break
+            case 'image_tool_config':
+              imageTool = { ...imageTool, ...item.value }
+              addLog('Image Resolver tool configuration loaded successfully.', 'success')
+              break
             default:
               addLog(`Unknown configuration key: ${item.key}`, 'warning')
           }
@@ -450,6 +463,7 @@ const AdminSettings = () => {
         setServiceHoursConfig(serviceHours)
         setPaymentConfig(payment)
         setMandiSyncConfig(mandiSync)
+        setImageToolConfig(imageTool)
       }
 
       // Load active offers list for notification dropdown
@@ -930,6 +944,20 @@ const AdminSettings = () => {
         })
       if (errMandi) throw errMandi
       addLog('mandi_sync_config updated successfully.', 'success')
+
+      // 13. Save Image Tool configuration
+      addLog('Updating image_tool_config...', 'info')
+      const { error: errImageTool } = await supabase
+        .from('app_settings')
+        .upsert({
+          key: 'image_tool_config',
+          value: {
+            download_url: imageToolConfig.download_url
+          },
+          description: 'Download link configuration for the Localhost Product Image Tool'
+        })
+      if (errImageTool) throw errImageTool
+      addLog('image_tool_config updated successfully.', 'success')
 
       // Reload settings & trigger success
       await fetchSettings()
@@ -2628,6 +2656,43 @@ const AdminSettings = () => {
                     </div>
                   )}
 
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Localhost Image Tool Settings Card */}
+            <motion.div
+              variants={cardVariants}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-premium flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-blue-100 dark:bg-blue-950/20 text-blue-600 dark:text-blue-450 rounded-2xl">
+                    <Image className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-gray-800 dark:text-white">Localhost Image Tool</h2>
+                    <p className="text-xs text-gray-400">Configure desktop application download link</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 dark:text-gray-400 uppercase mb-2">
+                      Application Executable Download Link (Windows .exe)
+                    </label>
+                    <input
+                      type="url"
+                      placeholder="https://example.com/OzoMartImageTool.exe"
+                      value={imageToolConfig.download_url}
+                      onChange={e => setImageToolConfig({ ...imageToolConfig, download_url: e.target.value })}
+                      className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold"
+                      required
+                    />
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      Provide a URL to the standalone OzoMart executable file. This link will be displayed on the Mart Dashboard under the "Download Image Tool" action button for easy access by store owners.
+                    </p>
+                  </div>
                 </div>
               </div>
             </motion.div>

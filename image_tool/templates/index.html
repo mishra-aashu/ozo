@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> OzoMart Image Tool — Localhost Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #111827, #030712);
+        }
+        h1, h2, h3, .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glow-orange {
+            box-shadow: 0 0 30px rgba(249, 115, 22, 0.15);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: rgba(249, 115, 22, 0.5);
+        }
+    </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-12">
+
+    <!-- Header Section -->
+    <header class="max-w-7xl mx-auto px-6 pt-8 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <div class="h-12 w-12 rounded-2xl bg-gradient-to-tr from-orange-500 to-amber-400 flex items-center justify-center shadow-lg shadow-orange-500/20">
+                <i data-lucide="image" class="h-6 w-6 text-white"></i>
+            </div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-orange-400 to-amber-300 bg-clip-text text-transparent">OzoMart</h1>
+                <p class="text-xs text-slate-400 font-medium tracking-wide uppercase">Localhost Image Tool</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <span class="px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold flex items-center gap-1.5">
+                <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                Local Server Active
+            </span>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-6 mt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+        
+        <!-- Left Column: Settings and Progress (7 Cols) -->
+        <div class="lg:col-span-7 flex flex-col gap-6">
+            
+            <!-- Mart Selector / Config -->
+            <div class="glass-panel rounded-3xl p-6 glow-orange transition-all duration-300">
+                <h2 class="text-lg font-bold mb-4 flex items-center gap-2 text-orange-400">
+                    <i data-lucide="store" class="h-5 w-5"></i>
+                    1. Select Your Mart Store
+                </h2>
+                <div class="flex flex-col sm:flex-row gap-4">
+                    <div class="relative flex-1">
+                        <select id="martSelect" class="w-full bg-slate-900/90 border border-slate-700/80 rounded-2xl py-3 px-4 text-slate-200 outline-none focus:border-orange-500 transition-colors appearance-none cursor-pointer">
+                            <option value="">Loading marts...</option>
+                        </select>
+                        <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
+                            <i data-lucide="chevron-down" class="h-5 w-5"></i>
+                        </div>
+                    </div>
+                    <button id="loadBtn" class="bg-slate-800 hover:bg-slate-700 text-white font-medium py-3 px-6 rounded-2xl flex items-center justify-center gap-2 border border-slate-700/50 transition-colors">
+                        <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+                        Load Data
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stats & Progress Dashboard (Hidden when Idle) -->
+            <div id="progressPanel" class="glass-panel rounded-3xl p-6 hidden">
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <h3 id="progressTitle" class="text-lg font-bold text-slate-200">🔍 Scanning Inventory...</h3>
+                        <p id="currentProductText" class="text-sm text-slate-400 mt-1 truncate max-w-md">Initializing pipeline...</p>
+                    </div>
+                    <div id="controls" class="flex gap-2">
+                        <button id="pauseResumeBtn" class="bg-orange-500 hover:bg-orange-600 text-white p-3 rounded-xl transition-colors shadow-lg shadow-orange-500/20">
+                            <i data-lucide="pause" class="h-4 w-4"></i>
+                        </button>
+                        <button id="stopBtn" class="bg-rose-500 hover:bg-rose-600 text-white p-3 rounded-xl transition-colors shadow-lg shadow-rose-500/20">
+                            <i data-lucide="square" class="h-4 w-4"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="relative w-full h-4 bg-slate-900/80 rounded-full overflow-hidden mb-6 border border-slate-800">
+                    <div id="progressBar" class="absolute top-0 left-0 h-full bg-gradient-to-r from-orange-500 to-amber-400 transition-all duration-300 w-0"></div>
+                </div>
+
+                <!-- Metrics Grid -->
+                <div class="grid grid-cols-4 gap-4">
+                    <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 text-center">
+                        <p class="text-xs text-slate-400 font-semibold uppercase tracking-wider">Total Scan</p>
+                        <p id="statTotal" class="text-2xl font-bold text-slate-200 mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 text-center">
+                        <p class="text-xs text-emerald-400 font-semibold uppercase tracking-wider">Images Found</p>
+                        <p id="statFound" class="text-2xl font-bold text-emerald-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 text-center">
+                        <p class="text-xs text-rose-400 font-semibold uppercase tracking-wider">Not Found</p>
+                        <p id="statNotFound" class="text-2xl font-bold text-rose-400 mt-1">0</p>
+                    </div>
+                    <div class="bg-slate-900/50 border border-slate-800/80 rounded-2xl p-4 text-center">
+                        <p class="text-xs text-amber-400 font-semibold uppercase tracking-wider">Completed</p>
+                        <p id="statPercent" class="text-2xl font-bold text-amber-400 mt-1">0%</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Console -->
+            <div class="glass-panel rounded-3xl p-6 flex-1 flex flex-col min-h-[350px]">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-base font-bold text-slate-300 flex items-center gap-2">
+                        <i data-lucide="terminal" class="h-4 w-4"></i>
+                        Live Resolution Logs
+                    </h3>
+                    <button id="clearLogsBtn" class="text-xs text-slate-400 hover:text-slate-200">Clear Logs</button>
+                </div>
+                <div id="logConsole" class="flex-1 overflow-y-auto bg-slate-950/80 border border-slate-800/80 rounded-2xl p-4 font-mono text-xs text-slate-300 custom-scrollbar space-y-2 max-h-[400px]">
+                    <div class="text-slate-500">// Select a store and click "Load Data" to see details.</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Products List and Manual Search (5 Cols) -->
+        <div class="lg:col-span-5 flex flex-col gap-6">
+            
+            <!-- Products Panel -->
+            <div class="glass-panel rounded-3xl p-6 flex flex-col h-[650px]">
+                <div class="flex justify-between items-center mb-4">
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-200 flex items-center gap-2">
+                            <i data-lucide="package" class="h-5 w-5 text-orange-400"></i>
+                            Missing Image List
+                        </h3>
+                        <p id="missingCountText" class="text-xs text-slate-400 mt-0.5">Select a store to view items</p>
+                    </div>
+                    <button id="startPipelineBtn" class="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold py-2 px-5 rounded-xl transition-all shadow-lg shadow-orange-500/20 text-sm hidden flex items-center gap-2">
+                        <i data-lucide="play" class="h-4 w-4"></i>
+                        Start Resolution
+                    </button>
+                </div>
+                
+                <!-- Search Input for Local List -->
+                <div class="relative mb-4">
+                    <input id="listSearch" type="text" placeholder="Search missing products..." class="w-full bg-slate-900 border border-slate-850 rounded-xl py-2 pl-10 pr-4 text-sm text-slate-200 outline-none focus:border-slate-700 transition-colors">
+                    <div class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                        <i data-lucide="search" class="h-4 w-4"></i>
+                    </div>
+                </div>
+
+                <!-- Products Table -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2 pr-1" id="productList">
+                    <div class="text-center py-12 text-slate-500 text-sm">
+                        No store selected.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Manual Image Selector Modal (Glassmorphic Popup) -->
+    <div id="manualSearchModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative">
+            <button id="closeModalBtn" class="absolute right-4 top-4 text-slate-400 hover:text-slate-200">
+                <i data-lucide="x" class="h-6 w-6"></i>
+            </button>
+            <h3 class="text-lg font-bold text-slate-200 mb-2">🔍 Web Image Search</h3>
+            <p id="modalProdName" class="text-xs text-slate-400 mb-4">Resolving custom product image...</p>
+            
+            <div class="flex gap-2 mb-6">
+                <input id="modalSearchInput" type="text" class="flex-1 bg-slate-900 border border-slate-700 rounded-xl py-2 px-4 text-slate-200 outline-none focus:border-orange-500" placeholder="Search search engines...">
+                <button id="modalSearchBtn" class="bg-orange-500 hover:bg-orange-600 text-white font-medium py-2 px-6 rounded-xl transition-colors">
+                    Search
+                </button>
+            </div>
+
+            <!-- Image Results Grid -->
+            <div id="modalResults" class="grid grid-cols-3 gap-3 overflow-y-auto max-h-[350px] pr-1 custom-scrollbar min-h-[150px]">
+                <div class="col-span-3 text-center py-8 text-slate-500 text-sm">Search to fetch images from DuckDuckGo...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script imports and controller code -->
+    <script>
+        // DOM Elements
+        const martSelect = document.getElementById('martSelect');
+        const loadBtn = document.getElementById('loadBtn');
+        const progressPanel = document.getElementById('progressPanel');
+        const progressTitle = document.getElementById('progressTitle');
+        const currentProductText = document.getElementById('currentProductText');
+        const progressBar = document.getElementById('progressBar');
+        const statTotal = document.getElementById('statTotal');
+        const statFound = document.getElementById('statFound');
+        const statNotFound = document.getElementById('statNotFound');
+        const statPercent = document.getElementById('statPercent');
+        const logConsole = document.getElementById('logConsole');
+        const clearLogsBtn = document.getElementById('clearLogsBtn');
+        const productList = document.getElementById('productList');
+        const missingCountText = document.getElementById('missingCountText');
+        const startPipelineBtn = document.getElementById('startPipelineBtn');
+        const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const listSearch = document.getElementById('listSearch');
+        const manualSearchModal = document.getElementById('manualSearchModal');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const modalProdName = document.getElementById('modalProdName');
+        const modalSearchInput = document.getElementById('modalSearchInput');
+        const modalSearchBtn = document.getElementById('modalSearchBtn');
+        const modalResults = document.getElementById('modalResults');
+
+        let loadedProducts = [];
+        let selectedProductForManual = null;
+        let eventSource = null;
+
+        // Initialize Lucide Icons
+        lucide.createIcons();
+
+        // 1. Fetch Marts List
+        async function fetchMarts() {
+            try {
+                const res = await fetch('/api/marts');
+                const data = await res.json();
+                martSelect.innerHTML = '<option value="">-- Choose Mart --</option>';
+                data.forEach(mart => {
+                    const opt = document.createElement('option');
+                    opt.value = mart.id;
+                    opt.textContent = `${mart.name} (${mart.slug})`;
+                    martSelect.appendChild(opt);
+                });
+            } catch (err) {
+                console.error(err);
+                martSelect.innerHTML = '<option value="">Error loading marts</option>';
+            }
+        }
+
+        // 2. Fetch missing items for selected mart
+        async function loadMissingProducts() {
+            const martId = martSelect.value;
+            if (!martId) return alert("Please select a mart first!");
+            
+            missingCountText.textContent = "Loading inventory...";
+            productList.innerHTML = '<div class="text-center py-12"><div class="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div><span class="text-sm text-slate-400">Fetching missing items...</span></div>';
+            
+            try {
+                const res = await fetch(`/api/inventory/${martId}`);
+                const data = await res.json();
+                loadedProducts = data.products;
+                
+                missingCountText.textContent = `${data.products_missing_count} products missing images`;
+                renderProducts(loadedProducts);
+                
+                if (data.products_missing_count > 0) {
+                    startPipelineBtn.classList.remove('hidden');
+                } else {
+                    startPipelineBtn.classList.add('hidden');
+                }
+            } catch (err) {
+                productList.innerHTML = `<div class="text-center py-12 text-rose-400 text-sm">Failed to load data: ${err}</div>`;
+            }
+        }
+
+        // Render Products to List
+        function renderProducts(products) {
+            if (products.length === 0) {
+                productList.innerHTML = '<div class="text-center py-12 text-slate-500 text-sm">🎉 No missing images in this store!</div>';
+                return;
+            }
+            
+            productList.innerHTML = '';
+            products.forEach(p => {
+                const item = document.createElement('div');
+                item.className = "flex items-center justify-between p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 rounded-2xl transition-all gap-3";
+                item.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-semibold text-slate-200 truncate">${p.name}</h4>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs font-mono text-slate-500 flex items-center gap-1">
+                                <i data-lucide="barcode" class="h-3 w-3"></i>
+                                ${p.barcode || 'No Barcode'}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <!-- Manual Search btn -->
+                        <button onclick="openManualSearch('${p.id}', '${p.name.replace(/'/g, "\\'")}', '${p.barcode || ''}')" class="text-slate-400 hover:text-orange-400 p-2 hover:bg-slate-800 rounded-xl transition-all" title="Search Images Web">
+                            <i data-lucide="search" class="h-4 w-4"></i>
+                        </button>
+                        <!-- File Upload input -->
+                        <label class="text-slate-400 hover:text-emerald-400 p-2 hover:bg-slate-800 rounded-xl transition-all cursor-pointer" title="Upload Image File">
+                            <i data-lucide="upload" class="h-4 w-4"></i>
+                            <input type="file" accept="image/*" class="hidden" onchange="uploadImageFile(event, '${p.id}', '${p.barcode || ''}')">
+                        </label>
+                    </div>
+                `;
+                productList.appendChild(item);
+            });
+            lucide.createIcons();
+        }
+
+        // Live Logs console appender
+        function appendLog(timestamp, message, type, thumbnail, found_name) {
+            const entry = document.createElement('div');
+            entry.className = "flex flex-col gap-1 py-1 border-b border-slate-900 pb-2";
+            
+            let color = "text-slate-300";
+            if (type === "success") color = "text-emerald-400 font-semibold";
+            if (type === "error") color = "text-rose-400";
+            if (type === "warning") color = "text-amber-400";
+            if (type === "search") color = "text-blue-400";
+
+            let previewHtml = "";
+            if (thumbnail) {
+                previewHtml = `
+                    <div class="flex items-center gap-3 mt-1 bg-slate-900/50 p-2 rounded-xl border border-slate-800/80 w-fit">
+                        <img src="${thumbnail}" class="h-10 w-10 object-contain bg-white rounded-lg" onerror="this.src='https://placehold.co/40'">
+                        <div>
+                            <p class="text-[10px] text-slate-400">Resolved Image Preview</p>
+                            <p class="text-[10px] text-slate-300 font-medium truncate max-w-[250px]">${found_name || ''}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            entry.innerHTML = `
+                <span class="text-slate-500 shrink-0 font-medium">[${timestamp}]</span>
+                <span class="${color}">${message}</span>
+                ${previewHtml}
+            `;
+            
+            logConsole.appendChild(entry);
+            logConsole.scrollTop = logConsole.scrollHeight;
+        }
+
+        // Start Server-Sent Events for Live Progress Updates
+        function connectSSE() {
+            if (eventSource) {
+                eventSource.close();
+            }
+            
+            eventSource = new EventSource('/api/progress-stream');
+            eventSource.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                // Update UI state
+                if (data.status === "running") {
+                    progressPanel.classList.remove('hidden');
+                    progressTitle.innerHTML = `<span class="flex items-center gap-2"><div class="animate-spin h-4 w-4 border-2 border-orange-500 border-t-transparent rounded-full"></div> Running Image Pipeline...</span>`;
+                    currentProductText.textContent = `Scanning: ${data.current_product || 'Initializing...'}`;
+                    pauseResumeBtn.innerHTML = '<i data-lucide="pause" class="h-4 w-4"></i>';
+                    lucide.createIcons();
+                } else if (data.status === "paused") {
+                    progressPanel.classList.remove('hidden');
+                    progressTitle.textContent = "⏸️ Pipeline Paused";
+                    currentProductText.textContent = "Pipeline execution is paused.";
+                    pauseResumeBtn.innerHTML = '<i data-lucide="play" class="h-4 w-4"></i>';
+                    lucide.createIcons();
+                } else if (data.status === "completed") {
+                    progressPanel.classList.remove('hidden');
+                    progressTitle.textContent = "🏁 pipeline Completed!";
+                    currentProductText.textContent = `Resolved: ${data.found} images, Not Found: ${data.not_found}`;
+                    startPipelineBtn.classList.add('hidden');
+                } else {
+                    progressPanel.classList.add('hidden');
+                }
+
+                // Update Stats
+                statTotal.textContent = data.total;
+                statFound.textContent = data.found;
+                statNotFound.textContent = data.not_found;
+                
+                const completedCount = data.completed;
+                const totalCount = data.total || 1;
+                const percent = Math.min(Math.round((completedCount / totalCount) * 100), 100);
+                statPercent.textContent = `${percent}%`;
+                progressBar.style.width = `${percent}%`;
+
+                // Update Logs
+                logConsole.innerHTML = '';
+                if (data.logs.length === 0) {
+                    logConsole.innerHTML = '<div class="text-slate-500">// Logs display here.</div>';
+                }
+                data.logs.forEach(log => {
+                    appendLog(log.timestamp, log.message, log.type, log.thumbnail, log.found_name);
+                });
+            };
+        }
+
+        // Trigger start pipeline
+        async function startPipeline() {
+            const martId = martSelect.value;
+            const selectText = martSelect.options[martSelect.selectedIndex].text;
+            
+            if (!martId) return alert("Select a mart!");
+            
+            try {
+                const res = await fetch('/api/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ mart_id: martId, mart_name: selectText })
+                });
+                const data = await res.json();
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    connectSSE();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        // Pause/Resume Pipeline
+        pauseResumeBtn.addEventListener('click', async () => {
+            const currentStatus = progressTitle.textContent;
+            const isPaused = currentStatus.includes("Paused");
+            const endpoint = isPaused ? '/api/resume' : '/api/pause';
+            
+            await fetch(endpoint, { method: 'POST' });
+        });
+
+        // Stop Pipeline
+        stopBtn.addEventListener('click', async () => {
+            if (confirm("Are you sure you want to stop the current image search?")) {
+                await fetch('/api/stop', { method: 'POST' });
+            }
+        });
+
+        // Open manual search modal
+        function openManualSearch(productId, productName, barcode) {
+            selectedProductForManual = { id: productId, name: productName, barcode: barcode };
+            modalProdName.textContent = `Resolving for: ${productName} (Barcode: ${barcode || 'N/A'})`;
+            modalSearchInput.value = productName;
+            modalResults.innerHTML = '<div class="col-span-3 text-center py-8 text-slate-500 text-sm">Click Search to query DuckDuckGo Images...</div>';
+            manualSearchModal.classList.remove('hidden');
+        }
+
+        // Trigger Manual web search inside Modal
+        async function runManualSearch() {
+            const query = modalSearchInput.value.trim();
+            if (!query) return;
+            
+            modalResults.innerHTML = '<div class="col-span-3 text-center py-12"><div class="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div><span class="text-slate-400 text-xs">Querying DuckDuckGo...</span></div>';
+            
+            try {
+                const res = await fetch('/api/manual-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ q: query })
+                });
+                const data = await res.json();
+                
+                if (data.results && data.results.length > 0) {
+                    modalResults.innerHTML = '';
+                    data.results.forEach(img => {
+                        const card = document.createElement('div');
+                        card.className = "group relative bg-slate-900 border border-slate-800 rounded-2xl overflow-hidden cursor-pointer hover:border-orange-500 transition-all";
+                        card.onclick = () => selectManualImage(img.imageUrl);
+                        card.innerHTML = `
+                            <div class="h-28 bg-white flex items-center justify-center p-2">
+                                <img src="${img.thumbnail}" class="h-full w-full object-contain" onerror="this.src='https://placehold.co/100'">
+                            </div>
+                            <div class="p-2 bg-slate-950/85">
+                                <p class="text-[10px] text-slate-300 truncate font-semibold" title="${img.title}">${img.title}</p>
+                                <p class="text-[8px] text-slate-500 mt-0.5 truncate">${img.source}</p>
+                            </div>
+                        `;
+                        modalResults.appendChild(card);
+                    });
+                } else {
+                    modalResults.innerHTML = '<div class="col-span-3 text-center py-12 text-rose-400 text-sm">No images found. Try a different query.</div>';
+                }
+            } catch (err) {
+                modalResults.innerHTML = `<div class="col-span-3 text-center py-12 text-rose-400 text-sm">Search failed: ${err}</div>`;
+            }
+        }
+
+        // Apply selected manual image
+        async function selectManualImage(imageUrl) {
+            if (!selectedProductForManual) return;
+            
+            const prod = selectedProductForManual;
+            modalResults.innerHTML = '<div class="col-span-3 text-center py-12"><div class="animate-spin h-8 w-8 border-4 border-orange-500 border-t-transparent rounded-full mx-auto mb-2"></div><span class="text-slate-400 text-xs">Uploading chosen image to CDN...</span></div>';
+            
+            try {
+                const res = await fetch('/api/manual-select', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        product_id: prod.id,
+                        image_url: imageUrl,
+                        barcode: prod.barcode
+                    })
+                });
+                
+                const data = await res.json();
+                if (data.success) {
+                    alert("Image resolved successfully!");
+                    manualSearchModal.classList.add('hidden');
+                    loadMissingProducts(); // Reload missing products list
+                } else {
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (err) {
+                alert(`Exception applying image: ${err}`);
+            }
+        }
+
+        // Upload custom image file
+        async function uploadImageFile(event, productId, barcode) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append("product_id", productId);
+            formData.append("barcode", barcode);
+            formData.append("image", file);
+            
+            missingCountText.textContent = "Uploading image...";
+            
+            try {
+                const res = await fetch('/api/upload-file', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    alert("Custom image uploaded and saved successfully!");
+                    loadMissingProducts();
+                } else {
+                    alert(`Upload failed: ${data.error}`);
+                    loadMissingProducts();
+                }
+            } catch (err) {
+                alert(`Upload error: ${err}`);
+                loadMissingProducts();
+            }
+        }
+
+        // Filter product lists locally on search query
+        listSearch.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase().trim();
+            const filtered = loadedProducts.filter(p => 
+                p.name.toLowerCase().includes(q) || 
+                (p.barcode && p.barcode.includes(q))
+            );
+            renderProducts(filtered);
+        });
+
+        // Event listeners Setup
+        loadBtn.addEventListener('click', loadMissingProducts);
+        startPipelineBtn.addEventListener('click', startPipeline);
+        clearLogsBtn.addEventListener('click', () => logConsole.innerHTML = '<div class="text-slate-500">// Logs cleared.</div>');
+        closeModalBtn.addEventListener('click', () => manualSearchModal.classList.add('hidden'));
+        modalSearchBtn.addEventListener('click', runManualSearch);
+        modalSearchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') runManualSearch();
+        });
+
+        // Load initially
+        fetchMarts();
+        connectSSE();
+
+    </script>
+</body>
+</html>
