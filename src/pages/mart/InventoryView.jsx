@@ -306,7 +306,8 @@ const InventoryView = () => {
     setIsSearchingImages(true)
     setShowImageSearchGrid(true)
     try {
-      const res = await fetch(`/api/search-image?q=${encodeURIComponent(q)}`)
+      const barcodeParam = newProductForm.barcode?.trim() ? `&barcode=${encodeURIComponent(newProductForm.barcode.trim())}` : ''
+      const res = await fetch(`/api/search-image?q=${encodeURIComponent(q)}${barcodeParam}`)
       if (!res.ok) {
         throw new Error('Failed to fetch images')
       }
@@ -2657,11 +2658,14 @@ const InventoryView = () => {
                       <button
                         type="button"
                         onClick={() => {
-                          const defaultQuery = `${newProductForm.brand || ''} ${newProductForm.name || ''}`.trim()
+                          let defaultQuery = `${newProductForm.brand || ''} ${newProductForm.name || ''}`.trim()
+                          if (!defaultQuery && newProductForm.barcode?.trim()) {
+                            defaultQuery = newProductForm.barcode.trim()
+                          }
                           setImageSearchQuery(defaultQuery)
                           const nextShow = !showImageSearchGrid
                           setShowImageSearchGrid(nextShow)
-                          if (nextShow && defaultQuery) {
+                          if (nextShow && (defaultQuery || newProductForm.barcode?.trim())) {
                             handleSearchImages(defaultQuery)
                           }
                         }}
@@ -2760,8 +2764,8 @@ const InventoryView = () => {
                                       </div>
                                     </div>
                                   )}
-                                  <div className="absolute bottom-0 inset-x-0 bg-black/60 text-[8px] text-white py-0.5 px-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {img.source || 'image'}
+                                  <div className="absolute bottom-0 inset-x-0 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black text-[9px] font-bold text-center py-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                    Select Image
                                   </div>
                                 </div>
                               )
