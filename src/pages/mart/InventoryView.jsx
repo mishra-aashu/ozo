@@ -73,7 +73,10 @@ const InventoryView = () => {
     product_identifier: '',
     stock_quantity: '',
     mart_price: '',
-    mart_mrp: ''
+    mart_mrp: '',
+    product_name: '',
+    brand_name: '',
+    product_unit: ''
   })
   const [previewRows, setPreviewRows] = useState([])
   const [isMatching, setIsMatching] = useState(false)
@@ -601,7 +604,10 @@ const InventoryView = () => {
       product_identifier: '',
       stock_quantity: '',
       mart_price: '',
-      mart_mrp: ''
+      mart_mrp: '',
+      product_name: '',
+      brand_name: '',
+      product_unit: ''
     }
 
     const serialHeaders = ['sno', 's_no', 'slno', 'sl_no', 'serial', 'index', 'srno', 'sr_no', 'id', 'no']
@@ -648,6 +654,33 @@ const InventoryView = () => {
         !serialHeaders.includes(clean)
       ) {
         if (!mapping.mart_mrp) mapping.mart_mrp = h
+      }
+
+      // Product Name matching
+      if (
+        (clean === 'name' || clean === 'title' || clean === 'item' || clean === 'product' ||
+        clean.includes('name') || clean.includes('title') || clean.includes('itemname')) &&
+        !serialHeaders.includes(clean)
+      ) {
+        if (!mapping.product_name) mapping.product_name = h
+      }
+
+      // Brand Name matching
+      if (
+        (clean === 'brand' || clean === 'mfg' || clean === 'manufacturer' || clean === 'make' || clean === 'company' ||
+        clean.includes('brand') || clean.includes('mfg')) &&
+        !serialHeaders.includes(clean)
+      ) {
+        if (!mapping.brand_name) mapping.brand_name = h
+      }
+
+      // Unit matching
+      if (
+        (clean === 'unit' || clean === 'weight' || clean === 'size' || clean === 'pack' || clean === 'measure' ||
+        clean.includes('unit') || clean.includes('weight') || clean.includes('pack')) &&
+        !serialHeaders.includes(clean)
+      ) {
+        if (!mapping.product_unit) mapping.product_unit = h
       }
     })
 
@@ -699,7 +732,8 @@ const InventoryView = () => {
       const unmatched = nonSerialHeaders.find(h => 
         h !== mapping.product_identifier && 
         !h.toLowerCase().includes('price') && 
-        !h.toLowerCase().includes('mrp')
+        !h.toLowerCase().includes('mrp') &&
+        !h.toLowerCase().includes('name')
       )
       mapping.stock_quantity = unmatched || nonSerialHeaders[1] || headers[1] || ''
     }
@@ -754,6 +788,9 @@ const InventoryView = () => {
       const qtyIndex = csvHeaders.indexOf(columnMapping.stock_quantity)
       const priceIndex = csvHeaders.indexOf(columnMapping.mart_price)
       const mrpIndex = csvHeaders.indexOf(columnMapping.mart_mrp)
+      const nameIndex = csvHeaders.indexOf(columnMapping.product_name)
+      const brandIndex = csvHeaders.indexOf(columnMapping.brand_name)
+      const unitIndex = csvHeaders.indexOf(columnMapping.product_unit)
 
       if (identifierIndex === -1) {
         toast.error('Please select a column for Product Identifier')
@@ -779,13 +816,32 @@ const InventoryView = () => {
         return isNaN(num) ? 0 : num
       }
 
-      const mappedRows = csvRawRows.map(r => ({
-        identifier: r[identifierIndex]?.trim() || '',
-        stock_quantity: cleanInteger(r[qtyIndex]),
-        mart_price: cleanNumber(r[priceIndex]),
-        mart_mrp: cleanNumber(r[mrpIndex]),
-        name: r.find((val, idx) => idx !== identifierIndex && idx !== qtyIndex && idx !== priceIndex && idx !== mrpIndex) || ''
-      })).filter(r => r.identifier !== '')
+      const mappedRows = csvRawRows.map(r => {
+        const rowName = nameIndex !== -1 ? r[nameIndex]?.trim() : ''
+        const rowBrand = brandIndex !== -1 ? r[brandIndex]?.trim() : ''
+        const rowUnit = unitIndex !== -1 ? r[unitIndex]?.trim() : ''
+
+        // Fallback for name if not mapped specifically
+        const fallbackName = r.find((val, idx) => 
+          idx !== identifierIndex && 
+          idx !== qtyIndex && 
+          idx !== priceIndex && 
+          idx !== mrpIndex && 
+          idx !== nameIndex && 
+          idx !== brandIndex && 
+          idx !== unitIndex
+        ) || ''
+
+        return {
+          identifier: r[identifierIndex]?.trim() || '',
+          stock_quantity: cleanInteger(r[qtyIndex]),
+          mart_price: cleanNumber(r[priceIndex]),
+          mart_mrp: cleanNumber(r[mrpIndex]),
+          name: rowName || fallbackName,
+          brand: rowBrand,
+          unit: rowUnit
+        }
+      }).filter(r => r.identifier !== '')
 
       if (mappedRows.length === 0) {
         toast.error('No rows with valid identifiers found')
@@ -918,34 +974,107 @@ const InventoryView = () => {
   }
 
   const executeBulkImport = async () => {
-    const validRows = previewRows.filter(r => r.status === 'matched').map(r => ({
-      product_id: r.product.id,
-      stock_quantity: r.stock_quantity,
-      mart_price: r.mart_price,
-      mart_mrp: r.mart_mrp,
-      is_available: r.stock_quantity > 0
-    }))
-
-    if (validRows.length === 0) {
-      toast.error('No matched products to import')
-      return
-    }
-
-    const res = await importInventoryRows(validRows)
-    if (res.success) {
-      setShowUploader(false)
-      setCsvFileName('')
-      setCsvHeaders([])
-      setCsvRawRows([])
-      setPreviewRows([])
-      setImportStep('upload')
-      
-      // Auto-trigger local image helper tool if online
-      if (localToolState.online) {
-        setTimeout(() => {
-          startLocalPipeline()
-        }, 800)
+    try {
+      const getFallbackCategoryId = () => {
+        if (categories.length === 0) return null
+        const otherCat = categories.find(c => {
+          const n = c.name.toLowerCase()
+          return n.includes('other') || n.includes('general') || n.includes('grocery') || n.includes('pack')
+        })
+        return otherCat ? otherCat.id : categories[0].id
       }
+
+      const matchedRows = previewRows.filter(r => r.status === 'matched').map(r => ({
+        product_id: r.product.id,
+        stock_quantity: r.stock_quantity,
+        mart_price: r.mart_price,
+        mart_mrp: r.mart_mrp,
+        is_available: r.stock_quantity > 0
+      }))
+
+      const notFoundRowsWithNames = previewRows.filter(r => r.status === 'not_found' && r.name && r.name.trim() !== '')
+      
+      let createdRows = []
+      if (notFoundRowsWithNames.length > 0) {
+        const catId = getFallbackCategoryId()
+        const newProductsPayload = notFoundRowsWithNames.map(r => {
+          const baseSlug = r.name.toLowerCase().trim()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/(^-|-$)+/g, '')
+          const slug = `${baseSlug}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
+          
+          return {
+            name: r.name.trim(),
+            slug,
+            brand: r.brand?.trim() || null,
+            unit: r.unit?.trim() || '1 unit',
+            category_id: catId,
+            price: r.mart_price || 0,
+            mrp: r.mart_mrp || r.mart_price || 0,
+            barcode: r.identifier?.trim() || null,
+            is_available: true
+          }
+        })
+
+        toast.loading(`Creating ${newProductsPayload.length} new custom products...`, { id: 'import-loading' })
+        const { data: createdProducts, error: productsError } = await supabase
+          .from('products')
+          .insert(newProductsPayload)
+          .select()
+
+        if (productsError) {
+          toast.dismiss('import-loading')
+          throw productsError
+        }
+
+        toast.dismiss('import-loading')
+
+        if (createdProducts && createdProducts.length > 0) {
+          createdRows = createdProducts.map(p => {
+            const matchingRow = notFoundRowsWithNames.find(r => 
+              (r.identifier && p.barcode && r.identifier.trim() === p.barcode.trim()) || 
+              (r.name.trim().toLowerCase() === p.name.trim().toLowerCase())
+            )
+            return {
+              product_id: p.id,
+              stock_quantity: matchingRow ? matchingRow.stock_quantity : 0,
+              mart_price: matchingRow ? matchingRow.mart_price : p.price,
+              mart_mrp: matchingRow ? matchingRow.mart_mrp : p.mrp,
+              is_available: matchingRow ? matchingRow.stock_quantity > 0 : true
+            }
+          })
+        }
+      }
+
+      const allRowsToImport = [...matchedRows, ...createdRows]
+
+      if (allRowsToImport.length === 0) {
+        toast.error('No matched or new products to import')
+        return
+      }
+
+      toast.loading(`Importing ${allRowsToImport.length} products to inventory...`, { id: 'import-loading' })
+      const res = await importInventoryRows(allRowsToImport)
+      toast.dismiss('import-loading')
+
+      if (res.success) {
+        setShowUploader(false)
+        setCsvFileName('')
+        setCsvHeaders([])
+        setCsvRawRows([])
+        setPreviewRows([])
+        setImportStep('upload')
+        
+        // Auto-trigger local image helper tool if online
+        if (localToolState.online) {
+          setTimeout(() => {
+            startLocalPipeline()
+          }, 800)
+        }
+      }
+    } catch (err) {
+      console.error('Bulk import failed:', err)
+      toast.error('Bulk import failed: ' + err.message)
     }
   }
 
@@ -1270,7 +1399,7 @@ const InventoryView = () => {
     }
 
     return (
-      <div className="flex-1 max-w-xl mx-auto w-full py-8 flex flex-col justify-center overflow-y-auto scrollbar-hide">
+      <div className="flex-1 max-w-5xl mx-auto w-full py-8 flex flex-col justify-center overflow-y-auto scrollbar-hide">
         <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-3xl p-8 shadow-xl">
           <div className="flex items-center gap-3 mb-6">
             <button 
@@ -1280,7 +1409,7 @@ const InventoryView = () => {
               <ArrowLeft className="w-4 h-4" />
             </button>
             <div>
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white font-sans">Map Columns</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white font-sans">Map CSV Columns</h3>
               <div className="flex items-center gap-2 mt-0.5">
                 <p className="text-xs text-gray-500">Source: {csvFileName}</p>
                 <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20">
@@ -1290,89 +1419,254 @@ const InventoryView = () => {
             </div>
           </div>
 
-          <div className="space-y-5">
-            {/* Identifier Mapping */}
-            <div>
-              <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Product Identifier <span className="text-[#FF3366]">*</span>
-              </label>
-              <CustomSelect
-                value={columnMapping.product_identifier}
-                onChange={(val) => setColumnMapping(prev => ({ ...prev, product_identifier: val }))}
-                placeholder="-- Select Column (Barcode / SKU / Slug) --"
-                isRequired={true}
-              />
-              <p className="text-[11px] text-gray-550 mt-1">This column will match products using barcode, slug or name.</p>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left side: CSV Columns (Source Tags) */}
+            <div className="lg:col-span-4 bg-gray-50/50 dark:bg-[#08080f] rounded-2xl p-5 border border-gray-150 dark:border-[#131320] flex flex-col gap-4">
+              <div>
+                <h4 className="text-xs font-black text-gray-800 dark:text-gray-200 uppercase tracking-wider">CSV Columns Detected</h4>
+                <p className="text-[11px] text-gray-500 mt-1 leading-relaxed">
+                  Drag these columns to target slots, or use the dropdowns to match them.
+                </p>
+              </div>
+
+              <div className="flex flex-col gap-2.5 overflow-y-auto max-h-[480px] pr-1.5 scrollbar-hide">
+                {csvHeaders.map((h) => {
+                  const samples = getColumnSamples(h)
+                  const isMapped = Object.values(columnMapping).includes(h)
+                  
+                  return (
+                    <div
+                      key={h}
+                      draggable
+                      onDragStart={(e) => {
+                        e.dataTransfer.setData("text/plain", h)
+                      }}
+                      className={`p-3 rounded-xl border transition-all cursor-grab active:cursor-grabbing flex flex-col gap-1 select-none ${
+                        isMapped
+                          ? 'bg-emerald-500/5 dark:bg-[#00FF66]/[0.02] border-emerald-500/20 text-emerald-600 dark:text-[#00FF66] opacity-60'
+                          : 'bg-white dark:bg-[#12121e] border-gray-200 dark:border-[#1e1e2f] hover:border-emerald-500 dark:hover:border-[#00FF66] hover:shadow-sm text-gray-800 dark:text-gray-200'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-xs truncate">{h}</span>
+                        {isMapped && (
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-[#00FF66]">
+                            Mapped
+                          </span>
+                        )}
+                      </div>
+                      {samples.length > 0 && (
+                        <span className="text-[10px] text-gray-550 dark:text-gray-400 font-normal truncate">
+                          e.g. {samples.join(', ')}
+                        </span>
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
             </div>
 
-            {/* Stock Mapping */}
-            <div>
-              <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Stock Quantity
-              </label>
-              <CustomSelect
-                value={columnMapping.stock_quantity}
-                onChange={(val) => setColumnMapping(prev => ({ ...prev, stock_quantity: val }))}
-                placeholder="-- Select Column (Default: 0) --"
-              />
-            </div>
+            {/* Right side: Mapping target slots */}
+            <div className="lg:col-span-8 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Product Identifier Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, product_identifier: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Product Identifier <span className="text-[#FF3366]">*</span>
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Used for matching products (Barcode / SKU / Slug)</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.product_identifier}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, product_identifier: val }))}
+                    placeholder="Drop column here or select..."
+                    isRequired={true}
+                  />
+                </div>
 
-            {/* Mart Price Mapping */}
-            <div>
-              <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Mart Selling Price (₹)
-              </label>
-              <CustomSelect
-                value={columnMapping.mart_price}
-                onChange={(val) => setColumnMapping(prev => ({ ...prev, mart_price: val }))}
-                placeholder="-- Select Column (Default: Global Catalog Price) --"
-              />
-            </div>
+                {/* Product Name Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, product_name: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Product Name
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Allows auto-creation of missing products</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.product_name}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, product_name: val }))}
+                    placeholder="Drop column here or select..."
+                  />
+                </div>
 
-            {/* Mart MRP Mapping */}
-            <div>
-              <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
-                Mart MRP (₹)
-              </label>
-              <CustomSelect
-                value={columnMapping.mart_mrp}
-                onChange={(val) => setColumnMapping(prev => ({ ...prev, mart_mrp: val }))}
-                placeholder="-- Select Column (Default: Global Catalog MRP) --"
-              />
-            </div>
+                {/* Brand Name Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, brand_name: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Brand Name
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Brand name of the product</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.brand_name}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, brand_name: val }))}
+                    placeholder="Drop column here or select..."
+                  />
+                </div>
 
-            {/* Live Mapping Preview */}
-            {renderMappingPreview()}
+                {/* Unit / Pack Size Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, product_unit: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Unit / Pack Size
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">e.g. 500g, 1L, 1 packet</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.product_unit}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, product_unit: val }))}
+                    placeholder="Drop column here or select..."
+                  />
+                </div>
 
-            {/* Validation Warnings Alert */}
-            {warnings.length > 0 && (
-              <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
-                <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5 animate-pulse" />
-                <div>
-                  <span className="font-extrabold uppercase tracking-wide text-[10px] block mb-1">Data Mismatch Warnings:</span>
-                  <ul className="list-disc pl-4 space-y-1 text-[11px] font-medium">
-                    {warnings.map((w, idx) => (
-                      <li key={idx}>{w}</li>
-                    ))}
-                  </ul>
+                {/* Stock Quantity Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, stock_quantity: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Stock Quantity
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Physical quantity available (Default: 0)</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.stock_quantity}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, stock_quantity: val }))}
+                    placeholder="Drop column here or select..."
+                  />
+                </div>
+
+                {/* Selling Price Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, mart_price: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Selling Price (₹)
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Your selling price at the mart</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.mart_price}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, mart_price: val }))}
+                    placeholder="Drop column here or select..."
+                  />
+                </div>
+
+                {/* MRP Slot */}
+                <div 
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={(e) => {
+                    e.preventDefault()
+                    const h = e.dataTransfer.getData("text/plain")
+                    if (h) setColumnMapping(prev => ({ ...prev, mart_mrp: h }))
+                  }}
+                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
+                >
+                  <div>
+                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                      Maximum Retail Price (₹)
+                    </label>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Printed price (MRP)</p>
+                  </div>
+                  <CustomSelect
+                    value={columnMapping.mart_mrp}
+                    onChange={(val) => setColumnMapping(prev => ({ ...prev, mart_mrp: val }))}
+                    placeholder="Drop column here or select..."
+                  />
                 </div>
               </div>
-            )}
 
-            <button
-              onClick={runProductMatching}
-              disabled={isMatching || !columnMapping.product_identifier}
-              className="w-full mt-4 py-3 bg-emerald-500 dark:bg-[#00FF66] disabled:bg-gray-700 text-white dark:text-black font-extrabold rounded-xl hover:bg-emerald-600 dark:hover:bg-[#00e65c] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none font-sans text-xs uppercase tracking-wider"
-            >
-              {isMatching ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-t-black border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-                  Matching Products with Catalog...
-                </>
-              ) : (
-                'Process Match & Preview'
-              )}
-            </button>
+              {/* Live Mapping Preview */}
+              {renderMappingPreview()}
+
+              {/* Warnings & Process Button */}
+              <div className="space-y-4">
+                {warnings.length > 0 && (
+                  <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
+                    <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5 animate-pulse" />
+                    <div>
+                      <span className="font-extrabold uppercase tracking-wide text-[10px] block mb-1">Data Mismatch Warnings:</span>
+                      <ul className="list-disc pl-4 space-y-1 text-[11px] font-medium">
+                        {warnings.map((w, idx) => (
+                          <li key={idx}>{w}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+
+                <button
+                  onClick={runProductMatching}
+                  disabled={isMatching || !columnMapping.product_identifier}
+                  className="w-full py-3 bg-emerald-500 dark:bg-[#00FF66] disabled:bg-gray-700 text-white dark:text-black font-extrabold rounded-xl hover:bg-emerald-600 dark:hover:bg-[#00e65c] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none font-sans text-xs uppercase tracking-wider"
+                >
+                  {isMatching ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-t-black border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                      Matching Products with Catalog...
+                    </>
+                  ) : (
+                    'Process Match & Preview'
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
