@@ -843,7 +843,7 @@ const ProductDetail = () => {
                     >
                       <OptimizedImage 
                         src={activeImage || currentProduct?.image_url} 
-                        slug={currentProduct?.slug}
+                        slug={(!activeImage || activeImage === currentProduct?.image_url) ? currentProduct?.slug : undefined}
                         alt={currentProduct?.name}
                         width={600}
                         quality={85}
@@ -898,7 +898,6 @@ const ProductDetail = () => {
                      >
                         <OptimizedImage
                           src={imgUrl}
-                          slug={currentProduct?.slug}
                           alt={`${currentProduct?.name} - View ${index + 1}`}
                           width={150}
                           className="w-full h-full object-contain"
