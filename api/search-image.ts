@@ -64,7 +64,7 @@ async function searchImages(query: string): Promise<ImageSearchResult[]> {
     }
 
     const html = await mainRes.text();
-    const vqdMatch = html.match(/vqd=[\'\"]?([^\'\"]+?)[\'\"]?&/i) || html.match(/vqd\s*[:=]\s*[\'\"]?([^\'\"]+?)[\'\"]?/i);
+    const vqdMatch = html.match(/vqd\s*=\s*['"]([^'"]+)['"]/i) || html.match(/vqd\s*:\s*['"]([^'"]+)['"]/i) || html.match(/vqd\s*[:=]\s*['"]?([0-9\-]+)/i);
     
     if (!vqdMatch) {
       console.warn('[Search-Image] VQD token not found in DuckDuckGo HTML.');
