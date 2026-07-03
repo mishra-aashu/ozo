@@ -69,7 +69,7 @@ def get_mart_missing_image_products(mart_id):
             img_url = cust_img or prod.get("image_url", "")
             
             # Check if missing image (NULL, empty, placeholder, or raw raw.githubusercontent.com path if it doesn't exist, etc.)
-            is_missing = not img_url or "placeholder" in img_url.lower() or img_url.strip() == ""
+            is_missing = not img_url or "placeholder" in img_url.lower() or img_url.strip() == "" or "raw.githubusercontent.com" in img_url
             
             if is_missing:
                 products.append({

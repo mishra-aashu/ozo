@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { getOptimizedImageUrl } from '../utils/imageOptimizer'
-import { ShoppingCart } from 'lucide-react'
+import { ShoppingCart, Package } from 'lucide-react'
 
 export default function OptimizedImage({
   src,
@@ -60,6 +60,10 @@ export default function OptimizedImage({
     setImageLoading(false)
   }
 
+  const isDefaultFallback = fallbackSrc.includes('unsplash.com/photo-1542838132-92c53300491e') || 
+                            fallbackSrc.includes('unsplash.com/photo-1619566636858-adf3ef46400b');
+  const showSvgPlaceholder = (!src && !slug && !imageLoading) || (status === 'fallback' && isDefaultFallback);
+
   return (
     <div className={`relative overflow-hidden ${containerClassName}`} style={style}>
       {/* Loading Shimmer Overlay */}
@@ -69,25 +73,28 @@ export default function OptimizedImage({
         </div>
       )}
       
-      {/* Empty State if no URL provided */}
-      {!src && !imageLoading && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100 dark:bg-white/10">
-          <ShoppingCart className="w-12 h-12 text-gray-300 dark:text-white/10" />
+      {/* Empty State / Neutral SVG Placeholder */}
+      {showSvgPlaceholder ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700/50 p-2 text-center select-none">
+          <Package className="w-8 h-8 text-gray-300 dark:text-zinc-600 mb-1" />
+          <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium px-2 truncate max-w-full">
+            {alt && alt !== 'Product image' ? alt : 'No Image'}
+          </span>
         </div>
-      )}
-
-      {currentSrc && (
-        <img
-          src={currentSrc}
-          alt={alt}
-          onLoad={handleLoad}
-          onError={handleError}
-          className={`${className} transition-opacity duration-300 ${
-            imageLoading ? 'opacity-0' : 'opacity-100'
-          }`}
-          fetchpriority={fetchPriority}
-          {...props}
-        />
+      ) : (
+        currentSrc && (
+          <img
+            src={currentSrc}
+            alt={alt}
+            onLoad={handleLoad}
+            onError={handleError}
+            className={`${className} transition-opacity duration-300 ${
+              imageLoading ? 'opacity-0' : 'opacity-100'
+            }`}
+            fetchpriority={fetchPriority}
+            {...props}
+          />
+        )
       )}
     </div>
   )
