@@ -99,6 +99,7 @@ def progress_worker(mart_id, products):
     
     add_log(f"🚀 Started image search pipeline for {len(products)} products...", "info")
     
+    new_uploads_count = 0
     for idx, prod in enumerate(products):
         # Handle Stop
         if job_state["should_stop"]:
@@ -144,8 +145,12 @@ def progress_worker(mart_id, products):
                         job_state["completed"] += 1
                     add_log(f"✅ Found in cache: '{name}' → {source_url}", "success", thumbnail=source_url, found_name=src_name)
                 else:
+                    if new_uploads_count > 0 and new_uploads_count % 5 == 0:
+                        add_log("⏳ Pacing uploads: Pausing for 8 seconds to prevent ImgBB rate limits...", "info")
+                        time.sleep(8)
                     add_log(f"⬇️ Downloading & Uploading to permanent CDN: '{src_name}'...", "info")
                     imgbb_url = uploader.download_and_upload_to_imgbb(source_url, barcode or prod_id)
+                    new_uploads_count += 1
                     
                     if imgbb_url:
                         # Update Supabase
