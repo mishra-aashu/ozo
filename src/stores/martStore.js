@@ -814,6 +814,7 @@ export const useMartStore = create((set, get) => {
             mart_mrp,
             is_available,
             updated_at,
+            custom_image_url,
             products!inner(
               id,
               name,
@@ -854,7 +855,7 @@ export const useMartStore = create((set, get) => {
           name: item.products.name,
           brand: item.products.brand,
           unit: item.products.unit,
-          image_url: item.products.image_url,
+          image_url: item.custom_image_url || item.products.image_url,
           // override price and mrp with mart-specific data, fallback to global prices
           price: parseFloat(item.mart_price !== null && item.mart_price !== undefined ? item.mart_price : item.products.price),
           mrp: parseFloat(item.mart_mrp !== null && item.mart_mrp !== undefined ? item.mart_mrp : item.products.mrp),

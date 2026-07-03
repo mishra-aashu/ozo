@@ -33,6 +33,24 @@ def upload_to_imgbb(image_bytes, filename="product_image.jpg"):
         print(f"⚠️ Exception uploading to ImgBB: {e}")
     return None
 
+def is_valid_image_bytes(img_bytes):
+    """Verify image magic bytes for JPEG, PNG, GIF, WebP"""
+    if len(img_bytes) < 100:
+        return False
+    # JPEG magic bytes: FF D8
+    if img_bytes.startswith(b'\xff\xd8'):
+        return True
+    # PNG magic bytes: 89 50 4E 47 0D 0A 1A 0A
+    if img_bytes.startswith(b'\x89PNG\r\n\x1a\n'):
+        return True
+    # GIF magic bytes: GIF87a or GIF89a
+    if img_bytes.startswith(b'GIF87a') or img_bytes.startswith(b'GIF89a'):
+        return True
+    # WebP: RIFFxxxxWEBP
+    if img_bytes.startswith(b'RIFF') and b'WEBP' in img_bytes[8:16]:
+        return True
+    return False
+
 def download_and_upload_to_imgbb(source_url, barcode):
     """
     Downloads an image from a source URL and uploads it to ImgBB.
@@ -42,9 +60,19 @@ def download_and_upload_to_imgbb(source_url, barcode):
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     }
     try:
-        response = requests.get(source_url, headers=headers, timeout=15)
+        # Avoid downloading huge files by streaming/checking headers first
+        response = requests.get(source_url, headers=headers, timeout=15, stream=True)
         if response.status_code == 200:
+            content_type = response.headers.get('Content-Type', '').lower()
+            if not content_type.startswith('image/'):
+                print(f"❌ Aborted: content-type '{content_type}' is not an image for URL: {source_url}")
+                return None
+                
             img_bytes = response.content
+            if not is_valid_image_bytes(img_bytes):
+                print(f"❌ Aborted: Image validation (magic bytes check) failed for URL: {source_url}")
+                return None
+                
             # Upload to ImgBB
             imgbb_url = upload_to_imgbb(img_bytes, filename=f"ozo_{barcode}.jpg")
             return imgbb_url
@@ -53,3 +81,4 @@ def download_and_upload_to_imgbb(source_url, barcode):
     except Exception as e:
         print(f"⚠️ Exception downloading source image from {source_url}: {e}")
     return None
+

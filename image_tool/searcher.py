@@ -4,34 +4,61 @@ import urllib.request
 import urllib.parse
 from . import cache
 
+STOP_WORDS = {
+    'pack', '100g', '200g', '500g', '1kg', 'gram', 'grams', 'mrp', 'super', 
+    'premium', 'bottle', 'box', 'packet', 'pcs', 'piece', 'pieces', 'free', 
+    'offer', 'with', 'and', 'for', 'value', 'save', 'size', 'fresh', 'best',
+    'rs', 'off', 'buy', 'get', 'new', 'old', 'pure', 'natural', 'quality'
+}
+
 def clean_words(name):
-    """Extract lowercase keywords of length >= 3 for comparison"""
+    """Extract lowercase keywords of length >= 3 for comparison, filtering stop words"""
     if not name:
         return []
-    words = re.split(r'\W+', name.lower())
-    return [w for w in words if len(w) >= 3]
+    # Replace non-word characters with spaces
+    cleaned = re.sub(r'[^\w\s]', ' ', name.lower())
+    words = cleaned.split()
+    return [w for w in words if len(w) >= 3 and w not in STOP_WORDS]
+
+def is_valid_barcode(barcode):
+    """Validate barcode to prevent queries on placeholders (e.g., '0', '123456', '...')"""
+    if not barcode:
+        return False
+    barcode_str = str(barcode).strip().lower()
+    if barcode_str in ('', '...', '0', '1', '123', '1234', '12345', '123456', 'null', 'none', 'n/a', 'nan'):
+        return False
+    if not barcode_str.isdigit() or len(barcode_str) < 6:
+        return False
+    return True
 
 def verify_name_overlap(name1, name2):
     """
-    Checks if there's any significant keyword overlap between two product names.
+    Checks if there's significant Jaccard similarity keyword overlap between two product names.
     Helps ensure that we don't map the wrong product's image.
     """
     words1 = set(clean_words(name1))
     words2 = set(clean_words(name2))
     
     if not words1 or not words2:
-        return True # Fallback to True if name is empty to avoid blocking
+        return False
         
-    # Check if they share at least one keyword (or two if they are longer lists)
     intersection = words1.intersection(words2)
+    union = words1.union(words2)
     
-    # If one of the names is very short (e.g. "Ghee"), we require it to be in the other name
-    if len(words1) == 1:
-        return list(words1)[0] in words2
-    if len(words2) == 1:
-        return list(words2)[0] in words1
+    if not union:
+        return False
         
-    return len(intersection) >= 1
+    jaccard_similarity = len(intersection) / len(union)
+    
+    # Refine short query rules to prevent false-positives
+    if len(words1) == 1:
+        return len(intersection) >= 1
+    elif len(words1) == 2:
+        return len(intersection) >= 2
+        
+    # Standard threshold: 0.25 similarity
+    return jaccard_similarity >= 0.25 or len(intersection) >= 2
+
 
 def query_open_food_facts(barcode, product_name):
     """
@@ -289,9 +316,10 @@ def resolve_product_image(product_name, barcode):
     6. FetchNBuy.in (SKU verified barcode search fallback)
     """
     barcode = str(barcode).strip() if barcode else ""
+    valid_barcode = is_valid_barcode(barcode)
     
     # --- Layer 1: Cache Check ---
-    if barcode:
+    if valid_barcode:
         exists, cached = cache.check_cache(barcode)
         if exists:
             if cached:
@@ -349,13 +377,13 @@ def resolve_product_image(product_name, barcode):
         }
 
     # --- Layer 4: Open Food Facts (Barcode database fallback) ---
-    if barcode and barcode != "...":
+    if valid_barcode:
         off_res = query_open_food_facts(barcode, product_name)
         if off_res:
             return off_res
             
     # --- Layer 5: Nainji.in (SKU barcode fallback) ---
-    if barcode and barcode != "...":
+    if valid_barcode:
         # Search by barcode directly first
         nainji_res = search_nainji(barcode, barcode, product_name)
         if nainji_res:
@@ -366,7 +394,7 @@ def resolve_product_image(product_name, barcode):
             return nainji_res
 
     # --- Layer 6: FetchNBuy.in (SKU barcode fallback) ---
-    if barcode and barcode != "...":
+    if valid_barcode:
         # Search by barcode directly first
         fnb_res = search_fetchnbuy(barcode, barcode, product_name)
         if fnb_res:
@@ -377,3 +405,6 @@ def resolve_product_image(product_name, barcode):
             return fnb_res
 
     return None
+
+
+

@@ -13,9 +13,25 @@ load_dotenv()
 
 from image_tool.app import app
 
+import socket
+
+def find_available_port(start_port=5000, max_attempts=20):
+    for port in range(start_port, start_port + max_attempts):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(('127.0.0.1', port))
+                return port
+            except OSError:
+                continue
+    return start_port
+
+selected_port = find_available_port(5000)
+
 def open_browser():
     url = os.getenv("OZOMART_PORTAL_URL", "https://ozomart.store/mart")
-    print(f"🌍 Opening OzoMart Portal ({url}) in standalone app mode...")
+    sep = "&" if "?" in url else "?"
+    portal_url = f"{url}{sep}local_port={selected_port}"
+    print(f"🌍 Opening OzoMart Portal ({portal_url}) in standalone app mode...")
     import subprocess
     import shutil
     
@@ -40,18 +56,18 @@ def open_browser():
 
     if chrome_path:
         try:
-            subprocess.Popen([chrome_path, f"--app={url}"])
+            subprocess.Popen([chrome_path, f"--app={portal_url}"])
             return
         except Exception as e:
             print(f"⚠️ Failed to launch Chrome app mode: {e}")
             
     # Fallback to default browser tab
-    webbrowser.open(url)
+    webbrowser.open(portal_url)
 
 if __name__ == "__main__":
     # Autostart browser in a separate thread
     threading.Timer(1.2, open_browser).start()
     
-    print("🚀 Starting OzoMart Local Background Service on http://localhost:5000")
+    print(f"🚀 Starting OzoMart Local Background Service on http://localhost:{selected_port}")
     # Run server without reload, enabling multithreading so long-running SSE streams don't block auth or api status checks
-    app.run(host='0.0.0.0', port=5000, debug=False, threaded=True)
+    app.run(host='0.0.0.0', port=selected_port, debug=False, threaded=True)

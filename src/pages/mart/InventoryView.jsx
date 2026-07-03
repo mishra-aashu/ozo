@@ -21,6 +21,20 @@ import {
   Loader2
 } from 'lucide-react'
 
+const getLocalToolUrl = () => {
+  const urlParams = new URLSearchParams(window.location.search);
+  const paramPort = urlParams.get('local_port');
+  if (paramPort && /^\d+$/.test(paramPort)) {
+    localStorage.setItem('ozo_local_tool_port', paramPort);
+    return `http://localhost:${paramPort}`;
+  }
+  const savedPort = localStorage.getItem('ozo_local_tool_port');
+  if (savedPort && /^\d+$/.test(savedPort)) {
+    return `http://localhost:${savedPort}`;
+  }
+  return 'http://localhost:5000';
+};
+
 const InventoryView = () => {
   const {
     currentMart,
@@ -117,7 +131,7 @@ const InventoryView = () => {
     
     const checkLocalTool = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/status')
+        const res = await fetch(`${getLocalToolUrl()}/api/status`)
         if (res.ok) {
           const data = await res.json()
           setLocalToolState({
@@ -145,12 +159,15 @@ const InventoryView = () => {
   const startLocalPipeline = async () => {
     if (!currentMart || !currentMart.id) return
     try {
-      const res = await fetch('http://localhost:5000/api/start', {
+      const { data: { session } } = await supabase.auth.getSession()
+      const token = session?.access_token
+      const res = await fetch(`${getLocalToolUrl()}/api/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           mart_id: currentMart.id,
-          mart_name: currentMart.name
+          mart_name: currentMart.name,
+          access_token: token
         })
       })
       if (res.ok) {
@@ -166,7 +183,7 @@ const InventoryView = () => {
 
   const pauseLocalPipeline = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/pause', { method: 'POST' })
+      const res = await fetch(`${getLocalToolUrl()}/api/pause`, { method: 'POST' })
       if (res.ok) {
         toast.success('Paused local image finder')
       }
@@ -177,7 +194,7 @@ const InventoryView = () => {
 
   const resumeLocalPipeline = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/resume', { method: 'POST' })
+      const res = await fetch(`${getLocalToolUrl()}/api/resume`, { method: 'POST' })
       if (res.ok) {
         toast.success('Resumed local image finder')
       }
@@ -188,7 +205,7 @@ const InventoryView = () => {
 
   const stopLocalPipeline = async () => {
     try {
-      const res = await fetch('http://localhost:5000/api/stop', { method: 'POST' })
+      const res = await fetch(`${getLocalToolUrl()}/api/stop`, { method: 'POST' })
       if (res.ok) {
         toast.success('Stopping local image finder...')
       }
@@ -222,14 +239,17 @@ const InventoryView = () => {
 
     const handshakeLocalhostTool = async () => {
       try {
-        const res = await fetch('http://localhost:5000/api/config', {
+        const { data: { session } } = await supabase.auth.getSession()
+        const token = session?.access_token
+        const res = await fetch(`${getLocalToolUrl()}/api/config`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
             mart_id: currentMart.id,
-            mart_name: currentMart.name
+            mart_name: currentMart.name,
+            access_token: token
           })
         })
         if (res.ok) {
@@ -1623,7 +1643,7 @@ const InventoryView = () => {
               )}
 
               <a
-                href="http://localhost:5000"
+                href={getLocalToolUrl()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-3.5 py-2.5 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-800 dark:text-white font-bold text-xs rounded-xl transition-all cursor-pointer"
