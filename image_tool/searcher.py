@@ -198,59 +198,61 @@ def search_fetchnbuy(query_str, target_barcode, product_name):
 
 import requests
 
-def search_duckduckgo_images(product_name):
+def search_bigbasket_images(product_name):
     """
-    Layer 3: DuckDuckGo Image Search.
-    Extracts VQD token and queries DDG images API.
-    Returns list of candidate images [{url, thumbnail, title, source}]
+    Layer 3: BigBasket Image Search.
+    Queries BigBasket listing service API for product images.
+    Returns list of candidate images [{imageUrl, thumbnail, title, source}]
     """
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        'accept': '*/*',
+        'accept-language': 'en-GB,en;q=0.9,hi-IN;q=0.8,hi;q=0.7,en-US;q=0.6',
+        'common-client-static-version': '101',
+        'content-type': 'application/json',
+        'dnt': '1',
+        'osmos-enabled': 'true',
+        'sec-ch-ua-mobile': '?1',
+        'sec-ch-ua-platform': '"Android"',
+        'user-agent': 'Mozilla/5.0 (Linux; Android 15; Pixel 9) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/149.0.0.0 Mobile Safari/537.36',
+        'x-caller': 'bigbasket-pwa',
+        'x-channel': 'BB-PWA',
+        'x-entry-context': 'bbnow',
+        'x-entry-context-id': '10',
+        'x-requested-with': 'XMLHttpRequest',
+        'cookie': '_bb_cid=1; _bb_sa_ids=19224; _bb_cda_sa_info=djIuY2RhX3NhLjEwLjE5MjI0; is_integrated_sa=1; _bb_aid="MjkxMzA4NDUzMA=="; _bb_nhid=7427; _bb_hid=7427; _bb_dsid=7427; _bb_dsevid=7427; is_global=1; bb2_enabled=true; ufi=1; _bb_vid=MTMwMDkyNDE2MjYxOTM5MjQ5NA==; bigbasket.com=b623f16c-2c81-4d29-94a2-29f8cdbd834f; isintegratedsa=true; PWA=1'
     }
-    
-    # We search with "product" keyword appended to ensure clean product shots
-    search_query = f"{product_name} product"
-    main_url = f"https://duckduckgo.com/?q={urllib.parse.quote_plus(search_query)}"
-    
+    encoded_q = urllib.parse.quote_plus(product_name)
+    url = f"https://www.bigbasket.com/listing-svc/v2/products?type=ps&slug={encoded_q}&page=1&bucket_id=36"
     try:
-        response = requests.get(main_url, headers=headers, timeout=10)
-        if response.status_code != 200:
-            print(f"⚠️ DuckDuckGo main search page blocked (status {response.status_code})")
-            return []
-            
-        html = response.text
-        vqd_match = re.search(r"vqd\s*=\s*['\"]([^'\"]+)['\"]", html) or re.search(r"vqd\s*:\s*['\"]([^'\"]+)['\"]", html) or re.search(r"vqd\s*[:=]\s*['\"]?([0-9\-]+)", html)
-        if not vqd_match:
-            return []
-            
-        vqd = vqd_match.group(1)
-        api_url = f"https://duckduckgo.com/i.js?o=json&q={urllib.parse.quote_plus(search_query)}&vqd={vqd}&f=,,,"
-        
-        api_response = requests.get(api_url, headers=headers, timeout=10)
-        if api_response.status_code != 200:
-            print(f"⚠️ DuckDuckGo image API query blocked (status {api_response.status_code})")
-            return []
-            
-        data = api_response.json()
-        results = []
-        for item in data.get("results", [])[:10]:
-            img_url = item.get("image")
-            thumb = item.get("thumbnail")
-            title = item.get("title")
-            domain = item.get("source")
-            
-            # Simple check: make sure the domain isn't known for bad placeholder icons
-            if img_url:
-                results.append({
-                    "imageUrl": img_url,
-                    "thumbnail": thumb or img_url,
-                    "title": title or product_name,
-                    "source": domain or "DuckDuckGo"
-                })
-        return results
+        req = urllib.request.Request(url, headers=headers)
+        with urllib.request.urlopen(req, timeout=8) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            tabs = data.get("tabs", [])
+            if not tabs:
+                return []
+            products = tabs[0].get("product_info", {}).get("products", [])
+            results = []
+            for prod in products:
+                images = prod.get("images", [])
+                img_url = None
+                if images:
+                    img_info = images[0]
+                    img_url = img_info.get("xxl") or img_info.get("xl") or img_info.get("l") or img_info.get("m") or img_info.get("s")
+                if img_url:
+                    brand_name = prod.get("brand", {}).get("name", "") if isinstance(prod.get("brand"), dict) else ""
+                    brand_prefix = f"[{brand_name}] " if brand_name else ""
+                    pack_size = prod.get("w", "")
+                    size_suffix = f" ({pack_size})" if pack_size else ""
+                    results.append({
+                        "imageUrl": img_url,
+                        "thumbnail": img_url,
+                        "title": f"{brand_prefix}{prod.get('desc', '')}{size_suffix}",
+                        "source": "BigBasket"
+                    })
+            return results
     except Exception as e:
-        print(f"⚠️ DuckDuckGo image search failed: {e}")
-    return []
+        print(f"⚠️ BigBasket API search failed: {e}")
+        return []
 
 def query_openserp(query_str):
     """
@@ -344,7 +346,25 @@ def resolve_product_image(product_name, barcode):
                     "cached": True
                 }
 
-    # --- Layer 2: OpenSERP Search Engine (Main Web Search) ---
+    # --- Layer 2: BigBasket Image Search (Premium FMCG Engine) ---
+    bb_candidates = search_bigbasket_images(product_name)
+    if bb_candidates:
+        # Check name overlap
+        for cand in bb_candidates:
+            if verify_name_overlap(product_name, cand["title"]):
+                return {
+                    "imageUrl": cand["imageUrl"],
+                    "source": cand["source"],
+                    "found_name": cand["title"]
+                }
+        # Fallback to top candidate if there is at least some reasonable similarity
+        return {
+            "imageUrl": bb_candidates[0]["imageUrl"],
+            "source": bb_candidates[0]["source"],
+            "found_name": bb_candidates[0]["title"]
+        }
+
+    # --- Layer 3: OpenSERP Search Engine (Web Search Fallback) ---
     openserp_query = f"{product_name} product pack"
     openserp_candidates = query_openserp(openserp_query)
     if openserp_candidates:
@@ -363,7 +383,7 @@ def resolve_product_image(product_name, barcode):
             "found_name": openserp_candidates[0]["title"]
         }
 
-    # --- Layer 5: Nainji.in (SKU barcode fallback) ---
+    # --- Layer 4: Nainji.in (SKU barcode fallback) ---
     if valid_barcode:
         # Search by barcode directly first
         nainji_res = search_nainji(barcode, barcode, product_name)
@@ -374,7 +394,7 @@ def resolve_product_image(product_name, barcode):
         if nainji_res:
             return nainji_res
 
-    # --- Layer 6: FetchNBuy.in (SKU barcode fallback) ---
+    # --- Layer 5: FetchNBuy.in (SKU barcode fallback) ---
     if valid_barcode:
         # Search by barcode directly first
         fnb_res = search_fetchnbuy(barcode, barcode, product_name)
