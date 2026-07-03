@@ -60,6 +60,19 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true) => {
       return null
     }
 
+    const isImageMissing = !product.image_url || 
+      product.image_url.includes('raw.githubusercontent.com') || 
+      product.image_url.includes('logo_transparent.png');
+
+    const isAdminOrMart = typeof window !== 'undefined' && 
+      (window.location.pathname.includes('/admin') || 
+       window.location.pathname.includes('/mart') ||
+       window.location.pathname.includes('/product/'));
+
+    if (isImageMissing && !isAdminOrMart) {
+      return null
+    }
+
     const pcaList = product.product_city_availability
     const pca = citySlug && Array.isArray(pcaList)
       ? pcaList[0]
@@ -678,6 +691,17 @@ export const useProductStore = create((set, get) => ({
         
         products = products
           .map(p => {
+            const isImageMissing = !p.image_url || 
+              p.image_url.includes('raw.githubusercontent.com') || 
+              p.image_url.includes('logo_transparent.png');
+
+            const isAdminOrMart = typeof window !== 'undefined' && 
+              (window.location.pathname.includes('/admin') || 
+               window.location.pathname.includes('/mart') ||
+               window.location.pathname.includes('/product/'));
+
+            if (isImageMissing && !isAdminOrMart) return null;
+
             const pca = availMap.get(p.id)
             const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
               ? pca.is_available
@@ -725,6 +749,17 @@ export const useProductStore = create((set, get) => ({
           .filter(Boolean)
       } else {
         products = products.map(product => {
+          const isImageMissing = !product.image_url || 
+            product.image_url.includes('raw.githubusercontent.com') || 
+            product.image_url.includes('logo_transparent.png');
+
+          const isAdminOrMart = typeof window !== 'undefined' && 
+            (window.location.pathname.includes('/admin') || 
+             window.location.pathname.includes('/mart') ||
+             window.location.pathname.includes('/product/'));
+
+          if (isImageMissing && !isAdminOrMart) return null;
+
           const sellingPriceVal = parseFloat(product.price)
           const mrpVal = parseFloat(product.mrp)
           const ozoPriceVal = product.ozo_price !== null && product.ozo_price !== undefined ? parseFloat(product.ozo_price) : null
@@ -740,7 +775,7 @@ export const useProductStore = create((set, get) => ({
               ? Math.round(((mrpVal - displayPriceVal) / mrpVal) * 100)
               : parseFloat(product.discount_percentage || 0),
           }
-        })
+        }).filter(Boolean)
       }
 
       // Sort search results: in-stock first, out-of-stock last

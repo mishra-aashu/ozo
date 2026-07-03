@@ -155,13 +155,26 @@ export function useProductPagination() {
       // Base format: filter inactive categories, parse numerics
       let formatted = (data || [])
         .filter(product => !(product.category && product.category.is_active === false))
-        .map(product => ({
-          ...product,
-          price: parseFloat(product.price),
-          mrp: parseFloat(product.mrp),
-          discount_percentage: parseFloat(product.discount_percentage || 0),
-          randomWeight: currentOffset + Math.random()
-        }));
+        .map(product => {
+          const isImageMissing = !product.image_url || 
+            product.image_url.includes('raw.githubusercontent.com') || 
+            product.image_url.includes('logo_transparent.png');
+
+          const isAdminOrMart = typeof window !== 'undefined' && 
+            (window.location.pathname.includes('/admin') || 
+             window.location.pathname.includes('/mart') ||
+             window.location.pathname.includes('/product/'));
+
+          if (isImageMissing && !isAdminOrMart) return null;
+
+          return {
+            ...product,
+            price: parseFloat(product.price),
+            mrp: parseFloat(product.mrp),
+            discount_percentage: parseFloat(product.discount_percentage || 0),
+            randomWeight: currentOffset + Math.random()
+          };
+        }).filter(Boolean);
 
       // Apply city-level overrides from product_city_availability
       // This ensures city-specific is_available, city_price, city_mrp are respected
