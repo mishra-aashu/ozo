@@ -645,7 +645,7 @@ const ProductDetail = () => {
       "image": [
         currentProduct.image_url,
         ...(Array.isArray(currentProduct.images) ? currentProduct.images : [])
-      ].filter(Boolean),
+      ].filter(img => img && !img.includes('raw.githubusercontent.com') && !img.includes('logo_transparent.png')),
       "description": currentProduct.description || `${currentProduct.name} - high quality grocery item from OZO Mart.`,
       "sku": `OZO-${currentProduct.id}`,
       "mpn": currentProduct.id,
@@ -881,28 +881,31 @@ const ProductDetail = () => {
              </motion.div>
 
              {/* Thumbnail gallery */}
-             {Array.isArray(currentProduct?.images) && currentProduct.images.length > 0 && (
+             {Array.isArray(currentProduct?.images) && 
+              currentProduct.images.filter(img => img && !img.includes('raw.githubusercontent.com') && !img.includes('logo_transparent.png')).length > 0 && (
                <div className="flex gap-4 mt-6 justify-center flex-wrap">
-                 {currentProduct.images.map((imgUrl, index) => (
-                   <button
-                     key={index}
-                     onClick={() => setActiveImage(imgUrl)}
-                     className={`w-20 h-20 rounded-2xl overflow-hidden border-2 bg-white dark:bg-[#111111] p-2 flex items-center justify-center transition-all ${
-                       (activeImage || currentProduct?.image_url) === imgUrl
-                         ? 'border-ozo-red shadow-lg scale-105'
-                         : 'border-transparent opacity-70 hover:opacity-100'
-                     }`}
-                   >
-                      <OptimizedImage
-                        src={imgUrl}
-                        slug={currentProduct?.slug}
-                        alt={`${currentProduct?.name} - View ${index + 1}`}
-                        width={150}
-                        className="w-full h-full object-contain"
-                        containerClassName="w-full h-full"
-                      />
-                   </button>
-                 ))}
+                 {currentProduct.images
+                   .filter(img => img && !img.includes('raw.githubusercontent.com') && !img.includes('logo_transparent.png'))
+                   .map((imgUrl, index) => (
+                     <button
+                       key={index}
+                       onClick={() => setActiveImage(imgUrl)}
+                       className={`w-20 h-20 rounded-2xl overflow-hidden border-2 bg-white dark:bg-[#111111] p-2 flex items-center justify-center transition-all ${
+                         (activeImage || currentProduct?.image_url) === imgUrl
+                           ? 'border-ozo-red shadow-lg scale-105'
+                           : 'border-transparent opacity-70 hover:opacity-100'
+                       }`}
+                     >
+                        <OptimizedImage
+                          src={imgUrl}
+                          slug={currentProduct?.slug}
+                          alt={`${currentProduct?.name} - View ${index + 1}`}
+                          width={150}
+                          className="w-full h-full object-contain"
+                          containerClassName="w-full h-full"
+                        />
+                     </button>
+                   ))}
                </div>
              )}
           </div>
