@@ -60,10 +60,10 @@ def verify_name_overlap(name1, name2):
     return jaccard_similarity >= 0.25 or len(intersection) >= 2
 
 
-def query_open_food_facts(barcode, product_name):
+def get_open_food_facts_name(barcode):
     """
-    Layer 2: Search Open Food Facts API by Barcode.
-    Verifies that the retrieved product name matches.
+    Queries Open Food Facts for the product name/metadata only.
+    No images are fetched from Open Food Facts as they are often low-quality or incorrect.
     """
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
     headers = {
@@ -76,21 +76,8 @@ def query_open_food_facts(barcode, product_name):
             if data.get("status") == 1:
                 product = data.get("product", {})
                 off_name = product.get("product_name") or product.get("product_name_en") or ""
-                
-                # Check for name overlap to make sure it's the correct product
-                if off_name and verify_name_overlap(product_name, off_name):
-                    # Prefer high resolution front image url
-                    img_url = (
-                        product.get("image_front_url") or 
-                        product.get("image_url") or 
-                        product.get("image_front_small_url")
-                    )
-                    if img_url:
-                        return {
-                            "imageUrl": img_url,
-                            "source": "Open Food Facts",
-                            "found_name": off_name
-                        }
+                if off_name:
+                    return off_name.strip()
     except Exception as e:
         pass
     return None
@@ -307,17 +294,31 @@ def query_openserp(query_str):
 
 def resolve_product_image(product_name, barcode):
     """
-    Main resolution engine orchestrating all 6 layers:
+    Main resolution engine orchestrating all layers:
     1. Local cache lookup (always first)
     2. OpenSERP Image Search (If active, premium Chromium multi-engine web search)
     3. DuckDuckGo Image Search (Web search scraper fallback)
-    4. Open Food Facts (Barcode database fallback)
-    5. Nainji.in (SKU verified barcode search fallback)
-    6. FetchNBuy.in (SKU verified barcode search fallback)
+    4. Nainji.in (SKU verified barcode search fallback)
+    5. FetchNBuy.in (SKU verified barcode search fallback)
+
+    Note: Open Food Facts is used only to resolve/enrich the product name
+    if it is missing or generic, but NOT for fetching images because user-uploaded
+    images on Open Food Facts are often low-quality, blurry, or incorrect.
     """
     barcode = str(barcode).strip() if barcode else ""
     valid_barcode = is_valid_barcode(barcode)
     
+    # If the product name is missing, generic, or too short, fetch the real product name
+    # from Open Food Facts so we can perform a highly accurate web search.
+    is_generic = (not product_name or 
+                  product_name.lower().strip() in ('', 'none', 'null', 'product') or 
+                  len(product_name.strip()) < 3)
+    if is_generic and valid_barcode:
+        off_name = get_open_food_facts_name(barcode)
+        if off_name:
+            product_name = off_name
+            print(f"ℹ️ Retrieved product name from Open Food Facts: {product_name}")
+
     # --- Layer 1: Cache Check ---
     if valid_barcode:
         exists, cached = cache.check_cache(barcode)
@@ -375,12 +376,6 @@ def resolve_product_image(product_name, barcode):
             "source": f"Web Search ({candidates[0]['source']})",
             "found_name": candidates[0]["title"]
         }
-
-    # --- Layer 4: Open Food Facts (Barcode database fallback) ---
-    if valid_barcode:
-        off_res = query_open_food_facts(barcode, product_name)
-        if off_res:
-            return off_res
             
     # --- Layer 5: Nainji.in (SKU barcode fallback) ---
     if valid_barcode:
