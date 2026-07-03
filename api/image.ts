@@ -172,8 +172,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       let targetUrl = data?.image_url;
 
-      if (error || !targetUrl) {
-        if (req.query.fallback) {
+      if (error || !targetUrl || targetUrl.includes('raw.githubusercontent.com')) {
+        if (req.query.fallback && !String(req.query.fallback).includes('raw.githubusercontent.com')) {
           const fallbackStr = String(req.query.fallback);
           try {
             const parsedUrl = new URL(fallbackStr);
@@ -231,8 +231,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(200).send(buffer);
     } catch (err) {
       console.error('[Image-Proxy] Error serving product image:', err);
-      res.setHeader('Content-Type', 'image/gif');
-      return res.status(200).send(Buffer.from('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7', 'base64'));
+      return res.status(404).send('Image not found');
     }
   }
 
