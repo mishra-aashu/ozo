@@ -44,26 +44,7 @@ echo -e "${BLUE}⬇️ Installing/updating dependencies from requirements.txt...
 pip install -q --upgrade pip
 pip install -q -r image_tool/requirements.txt
 
-# 5. Check and Start OpenSERP Docker Container
-if command -v docker &> /dev/null; then
-    echo -e "${BLUE}🐳 Checking OpenSERP docker container status...${NC}"
-    if docker ps -a --format '{{.Names}}' | grep -Eq "^openserp$"; then
-        if docker ps --format '{{.Names}}' | grep -Eq "^openserp$"; then
-            echo -e "${GREEN}✅ OpenSERP Docker container is already running.${NC}"
-        else
-            echo -e "${BLUE}🔄 OpenSERP Docker container is stopped. Starting it...${NC}"
-            docker start openserp >/dev/null || echo -e "${RED}⚠️ Failed to start existing OpenSERP container.${NC}"
-            echo -e "${GREEN}✅ OpenSERP Docker container started.${NC}"
-        fi
-    else
-        echo -e "${BLUE}📦 OpenSERP Docker container not found. Initializing...${NC}"
-        echo -e "${BLUE}📥 Pulling image and creating container (this might take a few moments)...${NC}"
-        docker run -d --name openserp --restart unless-stopped --shm-size=2gb -p 7000:7000 karust/openserp:0.8.8 serve -a 0.0.0.0 -p 7000 >/dev/null || echo -e "${RED}⚠️ Failed to run OpenSERP container.${NC}"
-        echo -e "${GREEN}✅ OpenSERP Docker container initialized and running.${NC}"
-    fi
-else
-    echo -e "${ORANGE}⚠️ Docker is not installed or running. OpenSERP queries will fall back to Nainji/FetchNBuy/OFF.${NC}"
-fi
+# 5. OpenSERP runs directly in the Cloud (configured in .env under OPENSERP_URL)
 
 # 6. Start Server
 echo -e "${GREEN}🚀 Launching local background service...${NC}"
