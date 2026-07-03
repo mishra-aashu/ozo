@@ -29,12 +29,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const query = req.query.q ? String(req.query.q).trim() : '';
-  if (!query) {
-    return res.status(400).json({ error: 'Query parameter "q" is required' });
+  const barcode = req.query.barcode ? String(req.query.barcode).trim() : '';
+  if (!query && !barcode) {
+    return res.status(400).json({ error: 'Query parameter "q" or "barcode" is required' });
   }
 
   try {
-    const results = await searchImages(query);
+    const results = await searchImages(query, barcode);
     return res.status(200).json({ results });
   } catch (error: any) {
     console.error('[Search-Image] Search failed:', error);
@@ -49,7 +50,75 @@ interface ImageSearchResult {
   source: string;
 }
 
-async function searchImages(query: string): Promise<ImageSearchResult[]> {
+async function searchImages(query: string, barcode?: string): Promise<ImageSearchResult[]> {
+  const results: ImageSearchResult[] = [];
+  const cleanBarcode = barcode ? barcode.trim() : '';
+  const cleanQuery = query ? query.trim() : '';
+
+  // Determine if either the barcode or the query looks like a barcode
+  const targetBarcode = /^\d{5,14}$/.test(cleanBarcode) 
+    ? cleanBarcode 
+    : (/^\d{5,14}$/.test(cleanQuery) ? cleanQuery : '');
+
+  if (targetBarcode) {
+    console.log(`[Search-Image] Barcode detected: ${targetBarcode}. Executing barcode-first searches.`);
+    
+    // 1. Try BigBasket barcode search (high resolution, clean)
+    try {
+      const bbBarcodeResults = await searchBigBasketImages(targetBarcode);
+      if (bbBarcodeResults.length > 0) {
+        console.log(`[Search-Image] Found ${bbBarcodeResults.length} barcode results on BigBasket.`);
+        results.push(...bbBarcodeResults);
+      }
+    } catch (err) {
+      console.error('[Search-Image] BigBasket barcode search failed:', err);
+    }
+
+    // 2. Try Open Food Facts by barcode directly
+    try {
+      const offBarcodeResults = await getOpenFoodFactsProductByBarcode(targetBarcode);
+      if (offBarcodeResults.length > 0) {
+        console.log(`[Search-Image] Found barcode result on Open Food Facts.`);
+        results.push(...offBarcodeResults);
+      }
+    } catch (err) {
+      console.error('[Search-Image] Open Food Facts barcode search failed:', err);
+    }
+
+    if (results.length > 0) {
+      // Deduplicate results by URL
+      const uniqueResults: ImageSearchResult[] = [];
+      const seenUrls = new Set<string>();
+      for (const r of results) {
+        if (!seenUrls.has(r.url)) {
+          seenUrls.add(r.url);
+          uniqueResults.push(r);
+        }
+      }
+
+      // If we also have a query string that is not the barcode itself, run a name search for fallbacks
+      if (cleanQuery && cleanQuery !== targetBarcode) {
+        const nameResults = await searchImagesByName(cleanQuery);
+        for (const nr of nameResults) {
+          if (!seenUrls.has(nr.url)) {
+            seenUrls.add(nr.url);
+            uniqueResults.push(nr);
+          }
+        }
+      }
+      return uniqueResults;
+    }
+  }
+
+  // Fallback to name search if no barcode results were found
+  if (cleanQuery && cleanQuery !== targetBarcode) {
+    return searchImagesByName(cleanQuery);
+  }
+
+  return [];
+}
+
+async function searchImagesByName(query: string): Promise<ImageSearchResult[]> {
   // 1. Primary: BigBasket Catalog Search (High resolution, clean grocery pack images)
   try {
     console.log(`[Search-Image] Searching BigBasket catalog for: ${query}`);
@@ -74,12 +143,11 @@ async function searchImages(query: string): Promise<ImageSearchResult[]> {
       if (data.results && Array.isArray(data.results) && data.results.length > 0) {
         return data.results.map((item: any) => {
           const imgData = item.image || {};
-          const sourceInfo = item.source || {};
           return {
             url: imgData.url || item.image || '',
             thumbnail: imgData.thumbnail || item.thumbnail || imgData.url || '',
             title: item.title || '',
-            source: sourceInfo.domain || item.engine || 'openserp'
+            source: 'OzoMart'
           };
         });
       }
@@ -147,13 +215,43 @@ async function searchBigBasketImages(query: string): Promise<ImageSearchResult[]
           url: imageUrl,
           thumbnail: imageUrl,
           title: `${brandName}${prod.desc || query}${packSize}`,
-          source: 'BigBasket'
+          source: 'OzoMart'
         });
       }
     }
     return results;
   } catch (err) {
     console.error('[Search-Image] BigBasket API query failed:', err);
+  }
+  return [];
+}
+
+async function getOpenFoodFactsProductByBarcode(barcode: string): Promise<ImageSearchResult[]> {
+  try {
+    const url = `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`;
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'OzoMartImageTool/1.0 (mishra.aashu@gmail.com)' },
+      signal: AbortSignal.timeout(4000)
+    });
+    if (response.ok) {
+      const data = await response.json() as any;
+      if (data.status === 1 && data.product) {
+        const prod = data.product;
+        const imgUrl = prod.image_url || prod.image_front_url || prod.image_small_url;
+        if (imgUrl) {
+          const brandName = prod.brands ? `[${prod.brands}] ` : '';
+          const prodName = prod.product_name || prod.product_name_en || '';
+          return [{
+            url: imgUrl,
+            thumbnail: prod.image_small_url || imgUrl,
+            title: `${brandName}${prodName}`.trim() || `Barcode Product (${barcode})`,
+            source: 'OzoMart'
+          }];
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Search-Image] Open Food Facts barcode query failed:', err);
   }
   return [];
 }
@@ -176,7 +274,7 @@ async function searchOpenFoodFactsImages(query: string): Promise<ImageSearchResu
               url: imgUrl,
               thumbnail: prod.image_small_url || imgUrl,
               title: prod.product_name || query,
-              source: 'Open Food Facts'
+              source: 'OzoMart'
             });
           }
         }
