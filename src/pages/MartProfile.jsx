@@ -165,6 +165,7 @@ const MartProfile = () => {
           mart_price,
           mart_mrp,
           is_available,
+          custom_image_url,
           products!inner(
             id,
             name,
@@ -862,6 +863,7 @@ const MartProfile = () => {
                     {filteredProducts.map(item => {
                       const displayProduct = {
                         ...item.products,
+                        image_url: item.custom_image_url || item.products.image_url,
                         price: item.mart_price ? parseFloat(item.mart_price) : parseFloat(item.products.price),
                         mrp: item.mart_mrp ? parseFloat(item.mart_mrp) : parseFloat(item.products.mrp),
                         quantity_available: item.stock_quantity,

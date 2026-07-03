@@ -45,16 +45,9 @@ pip install -q --upgrade pip
 pip install -q -r image_tool/requirements.txt
 
 # 5. Start Server
-echo -e "${GREEN}🚀 Launching local Flask dashboard on http://localhost:5000...${NC}"
+echo -e "${GREEN}🚀 Launching local background service...${NC}"
 echo -e "${ORANGE}Press Ctrl+C to stop the server.${NC}"
 echo ""
-
-# Attempt to open browser in background (cross-platform)
-if command -v xdg-open &> /dev/null; then
-    (sleep 1.5 && xdg-open "http://localhost:5000" &) 2>/dev/null || true
-elif command -v open &> /dev/null; then
-    (sleep 1.5 && open "http://localhost:5000" &) 2>/dev/null || true
-fi
 
 # Run Flask app with python path configured
 export PYTHONPATH="$SCRIPT_DIR"

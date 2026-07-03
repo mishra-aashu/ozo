@@ -22,7 +22,8 @@ app = Flask(__name__, template_folder=template_dir)
 locked_config = {
     "mart_id": None,
     "mart_name": None,
-    "authenticated": False
+    "authenticated": False,
+    "access_token": None
 }
 
 @app.before_request
@@ -113,6 +114,7 @@ def progress_worker(mart_id, products):
             break
             
         prod_id = prod["id"]
+        inventory_id = prod.get("inventory_id")
         name = prod["name"]
         barcode = prod.get("barcode", "")
         
@@ -133,7 +135,10 @@ def progress_worker(mart_id, products):
                 # For cache hits, we don't need to re-upload to ImgBB
                 if res.get("cached"):
                     # Directly update Supabase just in case it was missing in the db
-                    supabase_client.update_product_image(prod_id, source_url)
+                    if inventory_id:
+                        supabase_client.update_inventory_custom_image(inventory_id, source_url)
+                    else:
+                        supabase_client.update_product_image(prod_id, source_url)
                     with state_lock:
                         job_state["found"] += 1
                         job_state["completed"] += 1
@@ -144,10 +149,15 @@ def progress_worker(mart_id, products):
                     
                     if imgbb_url:
                         # Update Supabase
-                        db_success = supabase_client.update_product_image(prod_id, imgbb_url)
+                        if inventory_id:
+                            db_success = supabase_client.update_inventory_custom_image(inventory_id, imgbb_url)
+                        elif locked_config["authenticated"] and locked_config["mart_id"]:
+                            db_success = supabase_client.update_inventory_custom_image_by_mart_and_product(locked_config["mart_id"], prod_id, imgbb_url)
+                        else:
+                            db_success = supabase_client.update_product_image(prod_id, imgbb_url)
                         if db_success:
                             # Save to local cache
-                            if barcode:
+                            if searcher.is_valid_barcode(barcode):
                                 cache.set_cached_image(barcode, imgbb_url)
                                 
                             with state_lock:
@@ -172,7 +182,7 @@ def progress_worker(mart_id, products):
                     add_log(f"ℹ️ Already checked before (Not Found): '{name}'", "info")
                 else:
                     # Fresh search failed
-                    if barcode:
+                    if searcher.is_valid_barcode(barcode):
                         cache.set_cached_image(barcode, None)
                         
                     with state_lock:
@@ -227,12 +237,16 @@ def api_start():
     data = request.json or {}
     mart_id = data.get("mart_id")
     mart_name = data.get("mart_name", "")
+    access_token = data.get("access_token")
     
     if not mart_id:
         return jsonify({"error": "mart_id is required"}), 400
         
     if locked_config["authenticated"] and str(mart_id) != str(locked_config["mart_id"]):
         return jsonify({"error": "Unauthorized. This tool is locked to another store."}), 403
+        
+    if access_token:
+        locked_config["access_token"] = str(access_token)
         
     with state_lock:
         if job_state["status"] == "running":
@@ -292,6 +306,7 @@ def api_config():
     data = request.json or {}
     mart_id = data.get("mart_id")
     mart_name = data.get("mart_name")
+    access_token = data.get("access_token")
     
     if not mart_id or not mart_name:
         return jsonify({"error": "mart_id and mart_name are required"}), 400
@@ -300,10 +315,16 @@ def api_config():
     locked_config["mart_id"] = str(mart_id)
     locked_config["mart_name"] = str(mart_name)
     locked_config["authenticated"] = True
+    if access_token:
+        locked_config["access_token"] = str(access_token)
     
     return jsonify({
         "success": True,
-        "locked_config": locked_config
+        "locked_config": {
+            "mart_id": locked_config["mart_id"],
+            "mart_name": locked_config["mart_name"],
+            "authenticated": locked_config["authenticated"]
+        }
     })
 
 @app.route('/api/logout', methods=['POST', 'OPTIONS'])
@@ -315,6 +336,7 @@ def api_logout():
     locked_config["mart_id"] = None
     locked_config["mart_name"] = None
     locked_config["authenticated"] = False
+    locked_config["access_token"] = None
     
     return jsonify({
         "success": True
@@ -334,6 +356,7 @@ def api_manual_search():
 def api_manual_select():
     data = request.json or {}
     product_id = data.get("product_id")
+    inventory_id = data.get("inventory_id")
     image_url = data.get("image_url")
     barcode = data.get("barcode", "")
     
@@ -344,9 +367,15 @@ def api_manual_select():
     imgbb_url = uploader.download_and_upload_to_imgbb(image_url, barcode or product_id)
     
     if imgbb_url:
-        success = supabase_client.update_product_image(product_id, imgbb_url)
+        if inventory_id:
+            success = supabase_client.update_inventory_custom_image(inventory_id, imgbb_url)
+        elif locked_config["authenticated"] and locked_config["mart_id"]:
+            success = supabase_client.update_inventory_custom_image_by_mart_and_product(locked_config["mart_id"], product_id, imgbb_url)
+        else:
+            success = supabase_client.update_product_image(product_id, imgbb_url)
+            
         if success:
-            if barcode:
+            if searcher.is_valid_barcode(barcode):
                 cache.set_cached_image(barcode, imgbb_url)
             return jsonify({"success": True, "image_url": imgbb_url})
             
@@ -355,6 +384,7 @@ def api_manual_select():
 @app.route('/api/upload-file', methods=['POST'])
 def api_upload_file():
     product_id = request.form.get("product_id")
+    inventory_id = request.form.get("inventory_id")
     barcode = request.form.get("barcode", "")
     file = request.files.get("image")
     
@@ -366,9 +396,15 @@ def api_upload_file():
         imgbb_url = uploader.upload_to_imgbb(img_bytes, filename=f"manual_{barcode or product_id}.jpg")
         
         if imgbb_url:
-            success = supabase_client.update_product_image(product_id, imgbb_url)
+            if inventory_id:
+                success = supabase_client.update_inventory_custom_image(inventory_id, imgbb_url)
+            elif locked_config["authenticated"] and locked_config["mart_id"]:
+                success = supabase_client.update_inventory_custom_image_by_mart_and_product(locked_config["mart_id"], product_id, imgbb_url)
+            else:
+                success = supabase_client.update_product_image(product_id, imgbb_url)
+                
             if success:
-                if barcode:
+                if searcher.is_valid_barcode(barcode):
                     cache.set_cached_image(barcode, imgbb_url)
                 return jsonify({"success": True, "image_url": imgbb_url})
     except Exception as e:
@@ -403,6 +439,7 @@ def progress_stream():
 
 if __name__ == '__main__':
     from dotenv import load_dotenv
+    import socket
     load_dotenv()
     url = os.getenv("OZOMART_PORTAL_URL", "https://ozomart.store/mart")
     
@@ -410,8 +447,22 @@ if __name__ == '__main__':
     import subprocess
     import shutil
     
+    def find_available_port(start_port=5000, max_attempts=20):
+        for port in range(start_port, start_port + max_attempts):
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                try:
+                    s.bind(('127.0.0.1', port))
+                    return port
+                except OSError:
+                    continue
+        return start_port
+
+    selected_port = find_available_port(5000)
+    
     def open_browser():
-        print(f"🌍 Opening OzoMart Portal ({url}) in standalone app mode...")
+        sep = "&" if "?" in url else "?"
+        portal_url = f"{url}{sep}local_port={selected_port}"
+        print(f"🌍 Opening OzoMart Portal ({portal_url}) in standalone app mode...")
         chrome_path = None
         if sys.platform.startswith('win'):
             paths = [
@@ -432,14 +483,14 @@ if __name__ == '__main__':
 
         if chrome_path:
             try:
-                subprocess.Popen([chrome_path, f"--app={url}"])
+                subprocess.Popen([chrome_path, f"--app={portal_url}"])
                 return
             except Exception:
                 pass
-        webbrowser.open(url)
+        webbrowser.open(portal_url)
 
     if os.environ.get("WERKZEUG_RUN_MAIN") != "true":
         threading.Timer(1.2, open_browser).start()
     
-    print("🚀 Starting OzoMart Local Background Service on http://localhost:5000")
-    app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
+    print(f"🚀 Starting OzoMart Local Background Service on http://localhost:{selected_port}")
+    app.run(host='0.0.0.0', port=selected_port, debug=True, use_reloader=False, threaded=True)

@@ -8,7 +8,6 @@ ENV_PATH = os.path.join(ROOT_DIR, '.env')
 # Default fallback values
 SUPABASE_URL = ""
 SUPABASE_KEY = ""
-SUPABASE_SERVICE_ROLE = ""
 IMGBB_API_KEY = ""
 OPENSERP_URL = ""
 
@@ -32,8 +31,6 @@ if os.path.exists(ENV_PATH):
                     SUPABASE_URL = val
                 elif key == 'VITE_SUPABASE_ANON_KEY':
                     SUPABASE_KEY = val
-                elif key == 'SUPABASE_SERVICE_ROLE_KEY':
-                    SUPABASE_SERVICE_ROLE = val
                 elif key == 'VITE_IMGBB_API_KEY':
                     IMGBB_API_KEY = val
                 elif key == 'OPENSERP_URL':
@@ -46,12 +43,12 @@ if SUPABASE_URL == "/api/proxy" or not SUPABASE_URL:
 # Set default OpenSERP URL if not provided
 OPENSERP_URL = os.environ.get("OPENSERP_URL", OPENSERP_URL or "http://localhost:7000")
 
-# Use Service Role Key by default for bulk image updates (RLS bypass)
-DB_KEY = SUPABASE_SERVICE_ROLE if SUPABASE_SERVICE_ROLE else SUPABASE_KEY
+# Use Anon Key by default for database queries; access_token overrides this in headers.
+DB_KEY = SUPABASE_KEY
 
 print(f"🔧 Loaded Config from Ozo root .env:")
 print(f"   Supabase URL: {SUPABASE_URL}")
-print(f"   Using Service Role: {'Yes' if SUPABASE_SERVICE_ROLE else 'No'}")
 print(f"   ImgBB Key: {'Loaded' if IMGBB_API_KEY else 'Missing'}")
 print(f"   OpenSERP URL: {OPENSERP_URL}")
+
 
