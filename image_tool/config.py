@@ -9,6 +9,7 @@ ENV_PATH = os.path.join(ROOT_DIR, '.env')
 SUPABASE_URL = ""
 SUPABASE_KEY = ""
 IMGBB_API_KEY = ""
+FREEIMAGE_API_KEY = ""
 OPENSERP_URL = ""
 
 
@@ -33,6 +34,8 @@ if os.path.exists(ENV_PATH):
                     SUPABASE_KEY = val
                 elif key == 'VITE_IMGBB_API_KEY':
                     IMGBB_API_KEY = val
+                elif key == 'VITE_FREEIMAGE_API_KEY':
+                    FREEIMAGE_API_KEY = val
                 elif key == 'OPENSERP_URL':
                     OPENSERP_URL = val
 
@@ -49,6 +52,7 @@ DB_KEY = SUPABASE_KEY
 print(f"🔧 Loaded Config from Ozo root .env:")
 print(f"   Supabase URL: {SUPABASE_URL}")
 print(f"   ImgBB Key: {'Loaded' if IMGBB_API_KEY else 'Missing'}")
+print(f"   Freeimage Key: {'Loaded' if FREEIMAGE_API_KEY else 'Missing'}")
 print(f"   OpenSERP URL: {OPENSERP_URL}")
 
 

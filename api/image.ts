@@ -28,42 +28,119 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Handle POST - Image Upload Proxy
   if (req.method === 'POST') {
     const apiKey = process.env.VITE_IMGBB_API_KEY || process.env.IMGBB_API_KEY;
-    if (!apiKey) {
-      return res.status(500).json({ error: 'Server configuration error: missing upload credentials' });
+    const freeimageKey = process.env.VITE_FREEIMAGE_API_KEY || process.env.FREEIMAGE_API_KEY;
+
+    const contentType = req.headers['content-type'] || '';
+    if (!contentType.includes('multipart/form-data')) {
+      return res.status(400).json({ error: 'Invalid Content-Type, must be multipart/form-data' });
     }
 
-    try {
-      const url = `https://api.imgbb.com/1/upload?key=${apiKey}`;
-      const contentType = req.headers['content-type'] || '';
-      if (!contentType.includes('multipart/form-data')) {
-        return res.status(400).json({ error: 'Invalid Content-Type, must be multipart/form-data' });
+    // Read full request body
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) {
+      chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    }
+    const bodyBuffer = Buffer.concat(chunks);
+
+    let uploadSuccess = false;
+    let responseData: any = null;
+
+    // 1. Try ImgBB (Primary)
+    if (apiKey) {
+      try {
+        const url = `https://api.imgbb.com/1/upload?key=${apiKey}`;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'content-type': contentType,
+          },
+          body: bodyBuffer,
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+        if (response.ok) {
+          responseData = await response.json();
+          uploadSuccess = true;
+        } else {
+          console.warn(`[Upload-Proxy] ImgBB upload returned status ${response.status}`);
+        }
+      } catch (err) {
+        console.warn('[Upload-Proxy] Primary ImgBB upload failed:', err);
       }
+    } else {
+      console.warn('[Upload-Proxy] ImgBB API key not configured.');
+    }
 
-      const chunks: Buffer[] = [];
-      for await (const chunk of req) {
-        chunks.push(typeof chunk === 'string' ? Buffer.from(chunk) : chunk);
+    // 2. Try Freeimage.host (Fallback)
+    if (!uploadSuccess && freeimageKey) {
+      console.log('[Upload-Proxy] Attempting fallback to Freeimage.host...');
+      try {
+        const boundaryMatch = contentType.match(/boundary=(.+)$/);
+        let boundary = boundaryMatch ? boundaryMatch[1] : '';
+        boundary = boundary.replace(/['"]/g, ''); // Strip quotes
+        
+        const boundaryStr = `--${boundary}`;
+        const boundaryIndex = bodyBuffer.indexOf(boundaryStr);
+        const imageHeaderIndex = bodyBuffer.indexOf('name="image"');
+        const headersEndIndex = bodyBuffer.indexOf('\r\n\r\n', imageHeaderIndex);
+        
+        if (boundaryIndex !== -1 && imageHeaderIndex !== -1 && headersEndIndex !== -1) {
+          const fileStart = headersEndIndex + 4;
+          const nextBoundaryIndex = bodyBuffer.indexOf(boundaryStr, fileStart);
+          if (nextBoundaryIndex !== -1) {
+            const fileEnd = nextBoundaryIndex - 2;
+            const fileBuffer = bodyBuffer.slice(fileStart, fileEnd);
+            
+            // Upload to Freeimage.host
+            const base64Image = fileBuffer.toString('base64');
+            const payload = new URLSearchParams({
+              key: freeimageKey,
+              action: 'upload',
+              source: base64Image,
+              format: 'json'
+            });
+            
+            const freeimageRes = await fetch('https://freeimage.host/api/1/upload', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+              },
+              body: payload.toString()
+            });
+
+            if (freeimageRes.ok) {
+              const resJson = await freeimageRes.json();
+              if (resJson.image && resJson.image.url) {
+                responseData = {
+                  data: {
+                    url: resJson.image.url
+                  },
+                  success: true,
+                  status: 200
+                };
+                uploadSuccess = true;
+                console.log('[Upload-Proxy] Fallback to Freeimage.host succeeded!');
+              }
+            } else {
+              console.error(`[Upload-Proxy] Freeimage.host upload returned status ${freeimageRes.status}`);
+            }
+          }
+        }
+      } catch (fallbackErr) {
+        console.error('[Upload-Proxy] Fallback to Freeimage.host failed:', fallbackErr);
       }
-      const bodyBuffer = Buffer.concat(chunks);
+    } else if (!uploadSuccess && !freeimageKey) {
+      console.warn('[Upload-Proxy] Primary upload failed and Freeimage.host API key not configured.');
+    }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'content-type': contentType,
-        },
-        body: bodyBuffer,
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      const data = await response.json();
-      return res.status(response.status).json(data);
-    } catch (error: any) {
-      console.error('[Upload-Proxy] Error proxying image:', error);
-      return res.status(500).json({ error: error.message || 'Image upload proxy failed' });
+    if (uploadSuccess && responseData) {
+      return res.status(200).json(responseData);
+    } else {
+      return res.status(500).json({ error: 'All image upload providers failed.' });
     }
   }
 
