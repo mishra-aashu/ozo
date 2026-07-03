@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react'
 import { getOptimizedImageUrl } from '../utils/imageOptimizer'
-import { ShoppingCart, Package } from 'lucide-react'
+import { Package } from 'lucide-react'
+
+// URLs that are blocked by the image proxy (GitHub raw, broken placeholder)
+const isBlockedUrl = (url) =>
+  !url ||
+  url.includes('raw.githubusercontent.com') ||
+  url.includes('logo_transparent.png')
 
 export default function OptimizedImage({
   src,
@@ -24,11 +30,13 @@ export default function OptimizedImage({
   useEffect(() => {
     if (slug) {
       // SEO Friendly Local Domain Image Proxy URL
-      const fallbackParam = src ? `&fallback=${encodeURIComponent(src)}` : '';
-      const localUrl = `/product-images/${slug}.png?w=${width}&q=${quality}${fallbackParam}`;
-      setCurrentSrc(localUrl);
-      setStatus('optimizing');
-      setImageLoading(true);
+      // Only pass fallback if src is a real, non-blocked URL
+      const fallbackParam =
+        src && !isBlockedUrl(src) ? `&fallback=${encodeURIComponent(src)}` : ''
+      const localUrl = `/product-images/${slug}.png?w=${width}&q=${quality}${fallbackParam}`
+      setCurrentSrc(localUrl)
+      setStatus('optimizing')
+      setImageLoading(true)
     } else if (src) {
       const optimizedUrl = getOptimizedImageUrl(src, { width, quality })
       setCurrentSrc(optimizedUrl)
@@ -43,9 +51,15 @@ export default function OptimizedImage({
 
   const handleError = () => {
     if (status === 'optimizing') {
-      // If optimized image fails (e.g. proxy issue), fallback to the original URL
-      setCurrentSrc(src)
-      setStatus('original')
+      // If src is blocked/invalid, skip it and go straight to placeholder
+      if (!src || isBlockedUrl(src)) {
+        setCurrentSrc(fallbackSrc)
+        setStatus('fallback')
+      } else {
+        // Try the original (non-proxied) URL next
+        setCurrentSrc(src)
+        setStatus('original')
+      }
     } else if (status === 'original') {
       // If original URL fails, fallback to the placeholder image
       setCurrentSrc(fallbackSrc)

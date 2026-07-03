@@ -573,7 +573,7 @@ const CategoryProducts = () => {
       initial="hidden"
       animate="visible"
       variants={pageVariants}
-      className="h-[calc(100vh-var(--header-height,60px))] lg:h-auto overflow-hidden lg:overflow-visible flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity]"
+      className="flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity]"
     >
       <SEO
         title={`Buy ${catName} Online | OZO Mart Aurangabad`}
@@ -859,17 +859,18 @@ const CategoryProducts = () => {
         </div>
       </motion.div>
 
-      <div className="flex-1 min-h-0 overflow-hidden lg:overflow-visible container-custom py-2 md:py-6 flex flex-col">
+      <div className="container-custom py-2 md:py-6 flex flex-col">
         {/* Breadcrumb path */}
         <Breadcrumb items={breadcrumbItems} className="hidden md:flex mb-6" />
 
         {/* Main Grid containing filters and products */}
-        <div className="flex-1 min-h-0 flex gap-2 md:gap-8 overflow-hidden lg:overflow-visible">
+        <div className="flex gap-2 md:gap-8">
           {/* Sidebar - Mobile/Tablet Subcategories */}
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-16 xs:w-20 sm:w-24 flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-1 border-r border-gray-100 dark:border-white/5"
+              className="lg:hidden w-[72px] xs:w-[84px] sm:w-[96px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-1 border-r border-gray-100 dark:border-white/5"
+              style={{ maxHeight: 'calc(100vh - var(--header-height, 60px) - 60px)', position: 'sticky', top: 'calc(var(--header-height, 60px) + 8px)' }}
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
@@ -884,9 +885,9 @@ const CategoryProducts = () => {
                   {slug === currentParentInfo.slug && (
                     <div className="absolute right-0 top-2 bottom-2 w-[3px] bg-ozo-red rounded-l-full" />
                   )}
-                  <div className={`w-9 h-9 xs:w-11 xs:h-11 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                  <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                     slug === currentParentInfo.slug
-                      ? 'border-ozo-red shadow-md scale-105'
+                      ? 'border-ozo-red shadow-md'
                       : 'border-gray-100 dark:border-white/5'
                   }`}>
                     {currentParentInfo.image_url ? (
@@ -896,10 +897,10 @@ const CategoryProducts = () => {
                         className="w-full h-full object-contain p-0.5 select-none"
                       />
                     ) : (
-                      <Box size={16} className="text-gray-400 dark:text-gray-500" />
+                      <Box size={15} className="text-gray-400 dark:text-gray-500" />
                     )}
                   </div>
-                  <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 max-w-full break-words select-none">
+                  <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                     All
                   </span>
                 </button>
@@ -923,9 +924,9 @@ const CategoryProducts = () => {
                       {isSelected && (
                         <div className="absolute right-0 top-2 bottom-2 w-[3px] bg-ozo-red rounded-l-full" />
                       )}
-                      <div className={`w-9 h-9 xs:w-11 xs:h-11 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                      <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                         isSelected
-                          ? 'border-ozo-red shadow-md scale-105'
+                          ? 'border-ozo-red shadow-md'
                           : 'border-gray-100 dark:border-white/5'
                       }`}>
                         {sub.image_url ? (
@@ -937,10 +938,10 @@ const CategoryProducts = () => {
                         ) : isEmoji ? (
                           <span className="text-base xs:text-lg">{sub.icon}</span>
                         ) : (
-                          <IconComponent size={16} className="text-gray-400 dark:text-gray-500" />
+                          <IconComponent size={15} className="text-gray-400 dark:text-gray-500" />
                         )}
                       </div>
-                      <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 max-w-full break-words select-none">
+                      <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                         {sub.name}
                       </span>
                     </button>
@@ -1084,7 +1085,7 @@ const CategoryProducts = () => {
           <motion.div 
             ref={productsContainerRef} 
             variants={contentVariants}
-            className="flex-1 min-h-0 overflow-y-auto no-scrollbar pb-24 lg:pb-0 px-1 py-1"
+            className="flex-1 min-w-0 pb-24 lg:pb-6 px-1 py-1"
           >
             {isListingSoon ? (
               <ComingSoonSection category={currentCategory} />

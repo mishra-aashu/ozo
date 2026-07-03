@@ -184,6 +184,13 @@ const customFetch = async (input, init) => {
         headers: decryptedHeaders
       })
     } catch (err) {
+      // AbortError means the request was cancelled by the browser (e.g. navigation
+      // or component unmount) before the body finished streaming — this is benign.
+      // Re-throw so that the Supabase client and React can handle the cancellation
+      // cleanly rather than swallowing the error and hanging.
+      if (err && err.name === 'AbortError') {
+        throw err
+      }
       console.error('[OZO Crypto] Response decryption failed:', err)
     }
   }
