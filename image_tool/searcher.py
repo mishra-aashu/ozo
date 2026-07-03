@@ -219,7 +219,7 @@ def search_duckduckgo_images(product_name):
             return []
             
         html = response.text
-        vqd_match = re.search(r"vqd=['\"]?([^'\"]+?)['\"]?&", html) or re.search(r"vqd\s*[:=]\s*['\"]?([^'\"]+?)['\"]?", html)
+        vqd_match = re.search(r"vqd\s*=\s*['\"]([^'\"]+)['\"]", html) or re.search(r"vqd\s*:\s*['\"]([^'\"]+)['\"]", html) or re.search(r"vqd\s*[:=]\s*['\"]?([0-9\-]+)", html)
         if not vqd_match:
             return []
             
