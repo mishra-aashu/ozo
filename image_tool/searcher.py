@@ -363,26 +363,6 @@ def resolve_product_image(product_name, barcode):
             "found_name": openserp_candidates[0]["title"]
         }
 
-    # --- Layer 3: DuckDuckGo Images (Main Scraper Fallback) ---
-    # Since this is a search-engine fallback, we return multiple candidate images
-    # so the local dashboard can choose the best one, or automatically pick the top one.
-    candidates = search_duckduckgo_images(product_name)
-    if candidates:
-        # Check if any candidate has a name overlap
-        for cand in candidates:
-            if verify_name_overlap(product_name, cand["title"]):
-                return {
-                    "imageUrl": cand["imageUrl"],
-                    "source": f"Web Search ({cand['source']})",
-                    "found_name": cand["title"]
-                }
-        # Fallback to the top candidate if no overlap matches strictly but we have results
-        return {
-            "imageUrl": candidates[0]["imageUrl"],
-            "source": f"Web Search ({candidates[0]['source']})",
-            "found_name": candidates[0]["title"]
-        }
-            
     # --- Layer 5: Nainji.in (SKU barcode fallback) ---
     if valid_barcode:
         # Search by barcode directly first
