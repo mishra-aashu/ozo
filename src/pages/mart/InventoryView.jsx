@@ -798,6 +798,12 @@ const InventoryView = () => {
         return
       }
 
+      if (qtyIndex === -1) {
+        toast.error('Please select a column for Stock Quantity')
+        setIsMatching(false)
+        return
+      }
+
       const cleanNumber = (val) => {
         if (val === undefined || val === null || val.toString().trim() === '') return null
         const cleaned = val.toString().trim()
@@ -1574,14 +1580,15 @@ const InventoryView = () => {
                 >
                   <div>
                     <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Stock Quantity
+                      Stock Quantity <span className="text-[#FF3366]">*</span>
                     </label>
-                    <p className="text-[10px] text-gray-500 mt-0.5">Physical quantity available (Default: 0)</p>
+                    <p className="text-[10px] text-gray-500 mt-0.5">Physical quantity available in stock</p>
                   </div>
                   <CustomSelect
                     value={columnMapping.stock_quantity}
                     onChange={(val) => setColumnMapping(prev => ({ ...prev, stock_quantity: val }))}
                     placeholder="Drop column here or select..."
+                    isRequired={true}
                   />
                 </div>
 
