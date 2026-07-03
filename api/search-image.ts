@@ -1,5 +1,59 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import { checkRateLimit, setRateLimitHeaders } from './_ratelimit.js';
+import fs from 'fs';
+import path from 'path';
+
+function parseCSVLine(line: string): string[] {
+  const result: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const char = line[i];
+    if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result.map(s => s.trim().replace(/^"(.*)"$/, '$1').replace(/""/g, '"'));
+}
+
+function lookupLocalBarcode(barcode: string): { name: string; brand: string } | null {
+  try {
+    const csvPath = path.join(process.cwd(), 'barcode file.csv');
+    if (!fs.existsSync(csvPath)) {
+      console.warn(`[Search-Image] Local barcode CSV not found at ${csvPath}`);
+      return null;
+    }
+    const content = fs.readFileSync(csvPath, 'utf8');
+    const lines = content.split('\n');
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      const cols = line.split(',');
+      if (cols.length > 0) {
+        const rowBarcode = cols[0].trim();
+        if (rowBarcode === barcode) {
+          const parsedRow = parseCSVLine(line);
+          if (parsedRow.length > 5) {
+            const name = parsedRow[4]?.trim() || '';
+            const brand = parsedRow[5]?.trim() || '';
+            if (name || brand) {
+              return { name, brand };
+            }
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('[Search-Image] Local barcode CSV lookup failed:', err);
+  }
+  return null;
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS setup
@@ -63,41 +117,93 @@ async function searchImages(query: string, barcode?: string): Promise<ImageSearc
   if (targetBarcode) {
     console.log(`[Search-Image] Barcode detected: ${targetBarcode}. Executing barcode-first searches.`);
     
-    // 1. Try BigBasket barcode search (high resolution, clean)
+    let barcodeNameQuery = '';
+    let offBarcodeResults: ImageSearchResult[] = [];
+
+    // 1. First, check local CSV database for the barcode
+    const localMatch = lookupLocalBarcode(targetBarcode);
+    if (localMatch) {
+      const { name, brand } = localMatch;
+      barcodeNameQuery = brand ? `${brand} ${name}` : name;
+      console.log(`[Search-Image] Resolved barcode ${targetBarcode} from local CSV to: "${barcodeNameQuery}"`);
+    } else {
+      // 2. Fallback: Resolve product name from Open Food Facts using the barcode
+      try {
+        const offUrl = `https://world.openfoodfacts.org/api/v0/product/${targetBarcode}.json`;
+        const response = await fetch(offUrl, {
+          headers: { 'User-Agent': 'OzoMartImageTool/1.0 (mishra.aashu@gmail.com)' },
+          signal: AbortSignal.timeout(4000)
+        });
+        if (response.ok) {
+          const data = await response.json() as any;
+          if (data.status === 1 && data.product) {
+            const prod = data.product;
+            const imgUrl = prod.image_url || prod.image_front_url || prod.image_small_url;
+            const brandName = prod.brands ? prod.brands.split(',')[0].trim() : '';
+            const prodName = prod.product_name || prod.product_name_en || '';
+            
+            if (brandName || prodName) {
+              barcodeNameQuery = `${brandName} ${prodName}`.trim();
+              console.log(`[Search-Image] Resolved barcode ${targetBarcode} from Open Food Facts to name query: "${barcodeNameQuery}"`);
+            }
+            
+            if (imgUrl) {
+              offBarcodeResults.push({
+                url: imgUrl,
+                thumbnail: prod.image_small_url || imgUrl,
+                title: `${brandName ? `[${brandName}] ` : ''}${prodName}`.trim() || `Barcode Product (${targetBarcode})`,
+                source: 'OzoMart'
+              });
+            }
+          }
+        }
+      } catch (err) {
+        console.error('[Search-Image] Open Food Facts barcode lookup failed:', err);
+      }
+    }
+
+    // 3. Query BigBasket with the barcode directly (some barcodes are indexed directly by BigBasket)
+    let bbBarcodeResults: ImageSearchResult[] = [];
     try {
-      const bbBarcodeResults = await searchBigBasketImages(targetBarcode);
+      bbBarcodeResults = await searchBigBasketImages(targetBarcode);
       if (bbBarcodeResults.length > 0) {
-        console.log(`[Search-Image] Found ${bbBarcodeResults.length} barcode results on BigBasket.`);
-        results.push(...bbBarcodeResults);
+        console.log(`[Search-Image] Found ${bbBarcodeResults.length} barcode results directly on BigBasket.`);
       }
     } catch (err) {
-      console.error('[Search-Image] BigBasket barcode search failed:', err);
+      console.error('[Search-Image] BigBasket direct barcode search failed:', err);
     }
 
-    // 2. Try Open Food Facts by barcode directly
-    try {
-      const offBarcodeResults = await getOpenFoodFactsProductByBarcode(targetBarcode);
-      if (offBarcodeResults.length > 0) {
-        console.log(`[Search-Image] Found barcode result on Open Food Facts.`);
-        results.push(...offBarcodeResults);
+    // 4. Query BigBasket using the resolved name (from local CSV or Open Food Facts)
+    let bbResolvedNameResults: ImageSearchResult[] = [];
+    if (barcodeNameQuery) {
+      try {
+        console.log(`[Search-Image] Searching BigBasket with resolved barcode name: "${barcodeNameQuery}"`);
+        bbResolvedNameResults = await searchBigBasketImages(barcodeNameQuery);
+        if (bbResolvedNameResults.length > 0) {
+          console.log(`[Search-Image] Found ${bbResolvedNameResults.length} results on BigBasket using resolved barcode name.`);
+        }
+      } catch (err) {
+        console.error('[Search-Image] BigBasket search by resolved barcode name failed:', err);
       }
-    } catch (err) {
-      console.error('[Search-Image] Open Food Facts barcode search failed:', err);
     }
 
-    if (results.length > 0) {
+    // Combine barcode results: Prioritize BigBasket results over Open Food Facts
+    const barcodeCombined = [...bbBarcodeResults, ...bbResolvedNameResults, ...offBarcodeResults];
+
+    if (barcodeCombined.length > 0) {
       // Deduplicate results by URL
       const uniqueResults: ImageSearchResult[] = [];
       const seenUrls = new Set<string>();
-      for (const r of results) {
+      for (const r of barcodeCombined) {
         if (!seenUrls.has(r.url)) {
           seenUrls.add(r.url);
           uniqueResults.push(r);
         }
       }
 
-      // If we also have a query string that is not the barcode itself, run a name search for fallbacks
-      if (cleanQuery && cleanQuery !== targetBarcode) {
+      // If we also have a custom user search query that differs from the barcode and resolved name, run name search for additional choices
+      const resolvedQueryLower = barcodeNameQuery.toLowerCase();
+      if (cleanQuery && cleanQuery !== targetBarcode && cleanQuery.toLowerCase() !== resolvedQueryLower) {
         const nameResults = await searchImagesByName(cleanQuery);
         for (const nr of nameResults) {
           if (!seenUrls.has(nr.url)) {
