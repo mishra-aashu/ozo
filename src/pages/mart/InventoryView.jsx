@@ -939,6 +939,13 @@ const InventoryView = () => {
       setCsvRawRows([])
       setPreviewRows([])
       setImportStep('upload')
+      
+      // Auto-trigger local image helper tool if online
+      if (localToolState.online) {
+        setTimeout(() => {
+          startLocalPipeline()
+        }, 800)
+      }
     }
   }
 
