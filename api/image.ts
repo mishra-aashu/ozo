@@ -172,24 +172,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       let targetUrl = data?.image_url;
 
-      if (error || !targetUrl || targetUrl.includes('raw.githubusercontent.com')) {
-        if (req.query.fallback && !String(req.query.fallback).includes('raw.githubusercontent.com')) {
+      if (error || !targetUrl || targetUrl.includes('raw.githubusercontent.com') || targetUrl.includes('logo_transparent.png')) {
+        if (req.query.fallback && !String(req.query.fallback).includes('raw.githubusercontent.com') && !String(req.query.fallback).includes('logo_transparent.png')) {
           const fallbackStr = String(req.query.fallback);
           try {
             const parsedUrl = new URL(fallbackStr);
-            const allowedCDNs = ['ozomart.store', 'wsrv.nl', 'supabase.co'];
+            const allowedCDNs = ['ozomart.store', 'wsrv.nl', 'supabase.co', 'i.ibb.co', 'freeimage.host', 'unsplash.com'];
             const isAllowedDomain = allowedCDNs.some(d => parsedUrl.hostname === d || parsedUrl.hostname.endsWith('.' + d));
             if (isAllowedDomain) {
               targetUrl = fallbackStr;
             } else {
-              targetUrl = 'https://ozomart.store/images/logo_transparent.png';
+              res.setHeader('Content-Type', 'text/plain');
+              return res.status(404).send('Image not found or broken');
             }
           } catch {
-            targetUrl = 'https://ozomart.store/images/logo_transparent.png';
+            res.setHeader('Content-Type', 'text/plain');
+            return res.status(404).send('Image not found or broken');
           }
         } else {
-          // Fallback placeholder image (OZO Mart's public logo)
-          targetUrl = 'https://ozomart.store/images/logo_transparent.png';
+          res.setHeader('Content-Type', 'text/plain');
+          return res.status(404).send('Image not found or broken');
         }
       }
 
