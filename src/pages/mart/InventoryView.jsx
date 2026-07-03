@@ -129,6 +129,31 @@ const InventoryView = () => {
   useEffect(() => {
     let intervalId
     
+    const detectLocalPort = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramPort = urlParams.get('local_port');
+      if (paramPort && /^\d+$/.test(paramPort)) {
+        localStorage.setItem('ozo_local_tool_port', paramPort);
+        return;
+      }
+      
+      const ports = [5000, 5001, 5002, 5003, 5004, 5005, 5006, 5007, 5008, 5009];
+      for (const port of ports) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 350);
+          const res = await fetch(`http://localhost:${port}/api/status`, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (res.ok) {
+            localStorage.setItem('ozo_local_tool_port', port.toString());
+            break;
+          }
+        } catch (e) {
+          // ignore
+        }
+      }
+    };
+
     const checkLocalTool = async () => {
       try {
         const res = await fetch(`${getLocalToolUrl()}/api/status`)
@@ -150,8 +175,13 @@ const InventoryView = () => {
       }
     }
 
-    checkLocalTool()
-    intervalId = setInterval(checkLocalTool, 3000)
+    const runInit = async () => {
+      await detectLocalPort()
+      await checkLocalTool()
+      intervalId = setInterval(checkLocalTool, 3000)
+    }
+
+    runInit()
 
     return () => clearInterval(intervalId)
   }, [])
