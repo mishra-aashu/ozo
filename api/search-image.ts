@@ -50,8 +50,39 @@ interface ImageSearchResult {
 }
 
 async function searchImages(query: string): Promise<ImageSearchResult[]> {
+  // 1. Try OpenSERP first if OPENSERP_URL is configured
+  const openSerpUrl = process.env.OPENSERP_URL;
+  if (openSerpUrl) {
+    try {
+      console.log(`[Search-Image] Trying OpenSERP at ${openSerpUrl} for query: ${query}`);
+      const url = `${openSerpUrl}/mega/image?text=${encodeURIComponent(query)}&engines=google,bing,duck&limit=24`;
+      const response = await fetch(url, {
+        signal: AbortSignal.timeout(5000)
+      });
+      if (response.ok) {
+        const data = await response.json();
+        if (data.results && Array.isArray(data.results)) {
+          return data.results.map((item: any) => {
+            const imgData = item.image || {};
+            const sourceInfo = item.source || {};
+            return {
+              url: imgData.url || item.image || '',
+              thumbnail: imgData.thumbnail || item.thumbnail || imgData.url || '',
+              title: item.title || '',
+              source: sourceInfo.domain || item.engine || 'openserp'
+            };
+          });
+        }
+      } else {
+        console.warn(`[Search-Image] OpenSERP returned status ${response.status}`);
+      }
+    } catch (err) {
+      console.error('[Search-Image] OpenSERP request failed, falling back to DuckDuckGo:', err);
+    }
+  }
+
   try {
-    // 1. Fetch DuckDuckGo Main Page to Extract VQD Token
+    // 2. Legacy Fallback: Fetch DuckDuckGo Main Page to Extract VQD Token
     const mainUrl = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
     const mainRes = await fetch(mainUrl, {
       headers: {
@@ -73,7 +104,7 @@ async function searchImages(query: string): Promise<ImageSearchResult[]> {
 
     const vqd = vqdMatch[1];
 
-    // 2. Fetch Images using DuckDuckGo JSON Endpoint
+    // 3. Fetch Images using DuckDuckGo JSON Endpoint
     const imgUrl = `https://duckduckgo.com/i.js?o=json&q=${encodeURIComponent(query)}&vqd=${vqd}&f=,,,`;
     const imgRes = await fetch(imgUrl, {
       headers: {
@@ -99,7 +130,7 @@ async function searchImages(query: string): Promise<ImageSearchResult[]> {
     }));
 
   } catch (err) {
-    console.error('[Search-Image] DuckDuckGo search failed:', err);
+    console.error('[Search-Image] DuckDuckGo fallback search failed:', err);
     return [];
   }
 }
