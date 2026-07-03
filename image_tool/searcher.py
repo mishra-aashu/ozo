@@ -196,9 +196,11 @@ def search_fetchnbuy(query_str, target_barcode, product_name):
         pass
     return None
 
+import requests
+
 def search_duckduckgo_images(product_name):
     """
-    Layer 5: DuckDuckGo Image Search.
+    Layer 3: DuckDuckGo Image Search.
     Extracts VQD token and queries DDG images API.
     Returns list of candidate images [{url, thumbnail, title, source}]
     """
@@ -211,10 +213,12 @@ def search_duckduckgo_images(product_name):
     main_url = f"https://duckduckgo.com/?q={urllib.parse.quote_plus(search_query)}"
     
     try:
-        req = urllib.request.Request(main_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as response:
-            html = response.read().decode('utf-8')
+        response = requests.get(main_url, headers=headers, timeout=10)
+        if response.status_code != 200:
+            print(f"⚠️ DuckDuckGo main search page blocked (status {response.status_code})")
+            return []
             
+        html = response.text
         vqd_match = re.search(r"vqd=['\"]?([^'\"]+?)['\"]?&", html) or re.search(r"vqd\s*[:=]\s*['\"]?([^'\"]+?)['\"]?", html)
         if not vqd_match:
             return []
@@ -222,10 +226,12 @@ def search_duckduckgo_images(product_name):
         vqd = vqd_match.group(1)
         api_url = f"https://duckduckgo.com/i.js?o=json&q={urllib.parse.quote_plus(search_query)}&vqd={vqd}&f=,,,"
         
-        req_api = urllib.request.Request(api_url, headers=headers)
-        with urllib.request.urlopen(req_api, timeout=10) as response:
-            data = json.loads(response.read().decode('utf-8'))
+        api_response = requests.get(api_url, headers=headers, timeout=10)
+        if api_response.status_code != 200:
+            print(f"⚠️ DuckDuckGo image API query blocked (status {api_response.status_code})")
+            return []
             
+        data = api_response.json()
         results = []
         for item in data.get("results", [])[:10]:
             img_url = item.get("image")
