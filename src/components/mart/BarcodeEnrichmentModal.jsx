@@ -189,8 +189,6 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         if (error) throw error
       }
 
-      if (error) throw error
-
       // Proceed to Step 2 (Photo Mode Selection Screen)
       setStep(2)
       setMode('select')
@@ -417,7 +415,8 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
       const { data: sessionData, error: sessionErr } = await supabase
         .from('capture_sessions')
         .insert({
-          barcode: barcode,
+          barcode: barcode || null,
+          product_id: product?.id || null,
           mart_id: operatorMart.id,
           status: 'waiting'
         })

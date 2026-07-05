@@ -402,7 +402,7 @@ WHERE id = '${editingProduct.id}';`
         .select(`
           *,
           category:categories ( id, name, slug ),
-          mart:marts ( id, name ),
+          mart:marts!mart_id ( id, name ),
           enriched_mart:marts!enriched_by_mart_id ( id, name )
         `, { count: 'exact' })
 

@@ -102,11 +102,17 @@ export default function PhoneCapture() {
         }
 
         // Fetch associated product details
-        const { data: prodData } = await supabase
+        let productQuery = supabase
           .from('products')
           .select('name, brand, unit')
-          .eq('barcode', sessData.barcode)
-          .maybeSingle()
+
+        if (sessData.product_id) {
+          productQuery = productQuery.eq('id', sessData.product_id)
+        } else {
+          productQuery = productQuery.eq('barcode', sessData.barcode)
+        }
+
+        const { data: prodData } = await productQuery.maybeSingle()
 
         if (prodData) {
           setProduct(prodData)
@@ -190,9 +196,10 @@ export default function PhoneCapture() {
       setSyncing(true)
       const res = await fetch(dataUrl)
       const blob = await res.blob()
-      const file = new File([blob], `${session.barcode}_${stepIndex}.jpg`, { type: 'image/jpeg' })
+      const fileIdentifier = session.barcode || session.product_id || 'nobarcode'
+      const file = new File([blob], `${fileIdentifier}_${stepIndex}.jpg`, { type: 'image/jpeg' })
 
-      const uploadRes = await uploadCatalogImage(file, session.barcode, stepIndex)
+      const uploadRes = await uploadCatalogImage(file, fileIdentifier, stepIndex)
       if (uploadRes.error) {
         throw new Error(uploadRes.error.message || uploadRes.error)
       }
@@ -309,8 +316,9 @@ export default function PhoneCapture() {
           setUploadProgress(`Uploading photo ${i + 1} of 3...`)
           const res = await fetch(photos[i])
           const blob = await res.blob()
-          const file = new File([blob], `${session.barcode}_${i}.jpg`, { type: 'image/jpeg' })
-          const uploadRes = await uploadCatalogImage(file, session.barcode, i)
+          const fileIdentifier = session.barcode || session.product_id || 'nobarcode'
+          const file = new File([blob], `${fileIdentifier}_${i}.jpg`, { type: 'image/jpeg' })
+          const uploadRes = await uploadCatalogImage(file, fileIdentifier, i)
           if (uploadRes.error) throw new Error(uploadRes.error)
           finalUrls[i] = uploadRes.url
         }
