@@ -14,7 +14,11 @@ import {
   ChevronRight,
   Check,
   RefreshCw,
-  Clock
+  Clock,
+  Info,
+  Tag,
+  Package,
+  Layers
 } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import { uploadCatalogImage } from '../../lib/supabase'
@@ -40,7 +44,25 @@ const WEBCAM_STEPS = [
 ]
 
 export default function BarcodeEnrichmentModal({ barcode, product, onClose, onComplete }) {
-  // 'select' | 'webcam' | 'phone_qr'
+  // Wizard Step: 1 = Product Info Form, 2 = Photo Capture Flow
+  const [step, setStep] = useState(1)
+
+  // Step 1 Form States
+  const [editedProduct, setEditedProduct] = useState({
+    name: product?.name || '',
+    category_id: product?.category_id || '',
+    brand: product?.brand || '',
+    unit: product?.unit || '1 unit',
+    price: product?.price || '',
+    mrp: product?.mrp || '',
+    stock_quantity: product?.stock_quantity !== undefined ? product?.stock_quantity : ''
+  })
+  
+  const [categoriesList, setCategoriesList] = useState([])
+  const [loadingCategories, setLoadingCategories] = useState(false)
+  const [savingInfo, setSavingInfo] = useState(false)
+
+  // Step 2 Capture Mode states: 'select' | 'webcam' | 'phone_qr'
   const [mode, setMode] = useState('select')
   
   // State for Webcam Capture
@@ -63,6 +85,91 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
   const sessionSubscriptionRef = useRef(null)
+
+  // ==========================================
+  // FETCH CATEGORIES
+  // ==========================================
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        setLoadingCategories(true)
+        const { data, error } = await supabase
+          .from('categories')
+          .select('id, name')
+          .order('name')
+        if (error) throw error
+        if (data) {
+          setCategoriesList(data)
+          // Prefill category if empty
+          if (!editedProduct.category_id && data.length > 0) {
+            setEditedProduct(prev => ({ ...prev, category_id: data[0].id }))
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load categories:', err)
+      } finally {
+        setLoadingCategories(false)
+      }
+    }
+    loadCategories()
+  }, [])
+
+  // ==========================================
+  // SAVE FORM INFO & PROCEED TO PHOTO STEP
+  // ==========================================
+  const handleNextToPhoto = async () => {
+    if (!editedProduct.name.trim()) {
+      toast.error('Product Name is required')
+      return
+    }
+    if (!editedProduct.category_id) {
+      toast.error('Category is required')
+      return
+    }
+    if (!editedProduct.price || parseFloat(editedProduct.price) <= 0) {
+      toast.error('Valid Price is required')
+      return
+    }
+
+    try {
+      setSavingInfo(true)
+      
+      const baseSlug = editedProduct.name.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '')
+      const fallbackSlug = `${baseSlug}-${Date.now()}`
+
+      const payload = {
+        name: editedProduct.name.trim(),
+        slug: product?.slug || fallbackSlug,
+        category_id: editedProduct.category_id,
+        brand: editedProduct.brand.trim() || null,
+        unit: editedProduct.unit.trim() || '1 unit',
+        price: parseFloat(editedProduct.price) || 0,
+        mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
+        barcode: barcode,
+        is_available: true,
+        enrichment_status: product?.image_url ? 'merchant_upload' : 'pending_photo',
+        enrichment_source: product?.image_url ? 'merchant_upload' : 'placeholder'
+      }
+
+      // Upsert into master products table using barcode unique constraint
+      const { error } = await supabase
+        .from('products')
+        .upsert(payload, { onConflict: 'barcode' })
+
+      if (error) throw error
+
+      // Proceed to Step 2 (Photo Mode Selection Screen)
+      setStep(2)
+      setMode('select')
+    } catch (err) {
+      console.error('Error saving product info:', err)
+      toast.error('Failed to save product details: ' + err.message)
+    } finally {
+      setSavingInfo(false)
+    }
+  }
 
   // ==========================================
   // WEBCAM CAPTURE LOGIC
@@ -184,30 +291,35 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         uploadedUrls.push(uploadRes.url)
       }
 
-      setWebcamProgress('Saving to product catalog...')
+      setWebcamProgress('Saving catalog image references...')
 
-      // Update database product entry
-      const primaryUrl = uploadedUrls[0]
-      const { error: dbError } = await supabase
+      // Save all updated details + images to DB
+      const primaryUrl = uploadedUrls[0] || null
+      const { data: updatedProduct, error: dbError } = await supabase
         .from('products')
         .update({
+          name: editedProduct.name.trim(),
+          category_id: editedProduct.category_id,
+          brand: editedProduct.brand.trim() || null,
+          unit: editedProduct.unit.trim() || '1 unit',
+          price: parseFloat(editedProduct.price) || 0,
+          mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
           image_url: primaryUrl,
           images: uploadedUrls,
           enrichment_status: 'merchant_upload',
           enrichment_source: 'merchant_webcam'
         })
         .eq('barcode', barcode)
+        .select()
+        .single()
 
       if (dbError) throw dbError
 
       toast.success('Product catalog enriched successfully via Webcam!')
       if (onComplete) {
         onComplete({
-          ...product,
-          image_url: primaryUrl,
-          images: uploadedUrls,
-          enrichment_status: 'merchant_upload',
-          enrichment_source: 'merchant_webcam'
+          ...updatedProduct,
+          stock_quantity: parseInt(editedProduct.stock_quantity) || 0
         })
       }
     } catch (err) {
@@ -227,7 +339,6 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
     try {
       setCreatingSession(true)
       
-      // Get current mart operator's mart ID
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Operator authentication session lost.')
 
@@ -258,7 +369,6 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
       const newSessionId = sessionData.session_id
       setSessionId(newSessionId)
       
-      // Construct QR code URL
       const appUrl = window.location.origin
       const captureUrl = `${appUrl}/capture/${newSessionId}`
       setQrUrl(captureUrl)
@@ -276,7 +386,6 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   }
 
   const subscribeToSessionUpdates = (sessId) => {
-    // Unsubscribe from any previous
     if (sessionSubscriptionRef.current) {
       supabase.removeChannel(sessionSubscriptionRef.current)
     }
@@ -302,22 +411,30 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
           }
 
           if (newStatus === 'completed' && photos && photos.length > 0) {
-            // Save updates to products table using the photos captured on phone
             try {
               const primaryUrl = photos[0]
-              const { error: dbError } = await supabase
+              
+              // Save details + images to DB
+              const { data: updatedProduct, error: dbError } = await supabase
                 .from('products')
                 .update({
+                  name: editedProduct.name.trim(),
+                  category_id: editedProduct.category_id,
+                  brand: editedProduct.brand.trim() || null,
+                  unit: editedProduct.unit.trim() || '1 unit',
+                  price: parseFloat(editedProduct.price) || 0,
+                  mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
                   image_url: primaryUrl,
                   images: photos,
                   enrichment_status: 'merchant_upload',
                   enrichment_source: 'merchant_phone'
                 })
                 .eq('barcode', barcode)
+                .select()
+                .single()
 
               if (dbError) throw dbError
 
-              // Play sound chime if available
               try {
                 const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-84.wav')
                 audio.play()
@@ -325,14 +442,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
               toast.success('Product catalog enriched successfully via Phone!')
               
-              // Call complete callback
               if (onComplete) {
                 onComplete({
-                  ...product,
-                  image_url: primaryUrl,
-                  images: photos,
-                  enrichment_status: 'merchant_upload',
-                  enrichment_source: 'merchant_phone'
+                  ...updatedProduct,
+                  stock_quantity: parseInt(editedProduct.stock_quantity) || 0
                 })
               }
             } catch (saveErr) {
@@ -365,7 +478,6 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
     return () => clearInterval(timer)
   }, [mode, timeLeft])
 
-  // Cleanup subscriptions on unmount
   useEffect(() => {
     return () => {
       if (sessionSubscriptionRef.current) {
@@ -390,40 +502,198 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         {/* Modal Header */}
         <div className="flex items-center justify-between p-5 border-b border-slate-900 bg-slate-950/50">
           <div className="flex items-center gap-3">
-            {mode !== 'select' && (
+            {step === 2 && (
               <button 
                 onClick={() => {
-                  stopCamera()
-                  setMode('select')
+                  if (mode !== 'select') {
+                    stopCamera()
+                    setMode('select')
+                  } else {
+                    setStep(1)
+                  }
                 }}
-                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-gray-400 hover:text-white transition-colors"
+                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-gray-400 hover:text-white transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
             <div>
               <h3 className="font-bold text-white text-base">
-                {mode === 'select' && 'Select Capture Method'}
-                {mode === 'webcam' && 'Laptop Webcam Capture'}
-                {mode === 'phone_qr' && 'Phone Capture Loop'}
+                {step === 1 && 'Step 1: Product Details'}
+                {step === 2 && mode === 'select' && 'Step 2: Select Photo Method'}
+                {step === 2 && mode === 'webcam' && 'Webcam Photo Capture'}
+                {step === 2 && mode === 'phone_qr' && 'Phone Camera QR Sync'}
               </h3>
               <p className="text-xs text-gray-500 truncate max-w-[280px]">
-                {product?.name || `Barcode: ${barcode}`}
+                {editedProduct.name || `Barcode: ${barcode}`}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-gray-400 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-850 text-gray-400 hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4.5 h-4.5" />
           </button>
         </div>
 
         {/* ==========================================
-            SCREEN 1: CHOOSE METHOD SCREEN
+            STEP 1: PRODUCT INFO DETAILS FORM
            ========================================== */}
-        {mode === 'select' && (
+        {step === 1 && (
+          <div className="p-6 space-y-5">
+            <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+                <Layers className="w-5 h-5" />
+              </div>
+              <div>
+                <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-0.5">master catalog registration</h4>
+                <p className="text-xs text-gray-400 leading-relaxed">
+                  Provide catalog details, pricing, and category mapping. This information will be saved directly to the Master Catalog.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              {/* Product Name */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Product Name *</label>
+                <input
+                  type="text"
+                  value={editedProduct.name}
+                  onChange={(e) => setEditedProduct({ ...editedProduct, name: e.target.value })}
+                  className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                  placeholder="e.g. Coca Cola 2.25 L"
+                  required
+                />
+              </div>
+
+              {/* Category */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Category *</label>
+                {loadingCategories ? (
+                  <div className="flex items-center gap-2 text-xs text-gray-500">
+                    <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
+                    Loading categories...
+                  </div>
+                ) : (
+                  <select
+                    value={editedProduct.category_id}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, category_id: e.target.value })}
+                    className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all cursor-pointer font-medium"
+                  >
+                    <option value="" disabled>Select Category</option>
+                    {categoriesList.map((cat) => (
+                      <option key={cat.id} value={cat.id}>
+                        {cat.name}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              {/* Brand & Unit (Side by Side) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Brand Name</label>
+                  <input
+                    type="text"
+                    value={editedProduct.brand}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, brand: e.target.value })}
+                    className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    placeholder="e.g. Coca-Cola"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Product Unit</label>
+                  <input
+                    type="text"
+                    value={editedProduct.unit}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, unit: e.target.value })}
+                    className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    placeholder="e.g. 1 unit, 500g, 1L"
+                  />
+                </div>
+              </div>
+
+              {/* Price & MRP (Side by Side) */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Mart Price (₹) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editedProduct.price}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, price: e.target.value })}
+                    className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Mart MRP (₹) *</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    value={editedProduct.mrp}
+                    onChange={(e) => setEditedProduct({ ...editedProduct, mrp: e.target.value })}
+                    className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Stock Quantity */}
+              <div>
+                <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Stock Quantity *</label>
+                <input
+                  type="number"
+                  value={editedProduct.stock_quantity}
+                  onChange={(e) => setEditedProduct({ ...editedProduct, stock_quantity: e.target.value })}
+                  className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                  placeholder="0"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Step 1 Footer */}
+            <div className="border-t border-slate-900 pt-4 flex justify-between items-center mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 border border-slate-800 bg-transparent hover:bg-slate-900 text-xs font-bold text-gray-400 hover:text-white rounded-xl transition-all cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={handleNextToPhoto}
+                disabled={savingInfo}
+                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-indigo-600/15 disabled:opacity-50"
+              >
+                {savingInfo ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Saving Details...
+                  </>
+                ) : (
+                  <>
+                    Next: Add Photos
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ==========================================
+            STEP 2: OPTION CHOOSE METHOD SCREEN
+           ========================================== */}
+        {step === 2 && mode === 'select' && (
           <div className="p-6">
             <div className="mb-6 p-4 rounded-2xl bg-slate-900/40 border border-slate-850 flex gap-3.5">
               <div className="w-10 h-10 rounded-xl bg-orange-950/20 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">
@@ -441,7 +711,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               {/* Option A: Laptop Webcam */}
               <button
                 onClick={() => setMode('webcam')}
-                className="flex flex-col items-center justify-center p-6 bg-slate-900/30 hover:bg-slate-900/70 border border-slate-850 hover:border-slate-700 rounded-2xl text-center group transition-all duration-300 active:scale-[0.98]"
+                className="flex flex-col items-center justify-center p-6 bg-[#12121e]/40 hover:bg-[#12121e]/80 border border-slate-850 hover:border-slate-700 rounded-2xl text-center group transition-all duration-300 active:scale-[0.98] cursor-pointer"
               >
                 <div className="w-12 h-12 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <Camera className="w-6 h-6" />
@@ -456,7 +726,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               <button
                 onClick={startPhoneCaptureSession}
                 disabled={creatingSession}
-                className="flex flex-col items-center justify-center p-6 bg-slate-900/30 hover:bg-slate-900/70 border border-slate-850 hover:border-slate-700 rounded-2xl text-center group transition-all duration-300 active:scale-[0.98] disabled:opacity-50"
+                className="flex flex-col items-center justify-center p-6 bg-[#12121e]/40 hover:bg-[#12121e]/80 border border-slate-850 hover:border-slate-700 rounded-2xl text-center group transition-all duration-300 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
               >
                 <div className="w-12 h-12 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   {creatingSession ? (
@@ -475,9 +745,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         )}
 
         {/* ==========================================
-            SCREEN 2: WEBCAM CAPTURE SCREEN
+            STEP 2: WEBCAM CAPTURE SCREEN
            ========================================== */}
-        {mode === 'webcam' && (
+        {step === 2 && mode === 'webcam' && (
           <div className="p-6">
             <div className="mb-4 flex items-center justify-between">
               <span className="text-xs font-black uppercase tracking-widest text-[#00FF66]">
@@ -541,9 +811,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
             {/* Bottom step preview slots */}
             <div className="grid grid-cols-3 gap-2 mt-4">
-              {WEBCAM_STEPS.map((step, idx) => (
+              {WEBCAM_STEPS.map((stepInfo, idx) => (
                 <div 
-                  key={step.key} 
+                  key={stepInfo.key} 
                   className={`p-2 rounded-xl border text-center transition-all ${
                     webcamStep === idx 
                       ? 'bg-slate-900/60 border-emerald-500/50' 
@@ -553,7 +823,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   }`}
                 >
                   <div className="text-[10px] font-black uppercase tracking-wider mb-0.5">
-                    {step.key}
+                    {stepInfo.key}
                   </div>
                   <div className="flex items-center justify-center h-4">
                     {webcamPhotos[idx] ? (
@@ -572,7 +842,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 type="button"
                 onClick={handleWebcamPrev}
                 disabled={webcamStep === 0}
-                className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-all"
+                className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-all cursor-pointer"
               >
                 Back
               </button>
@@ -594,7 +864,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     <button
                       onClick={capturePhoto}
                       disabled={!isCameraActive}
-                      className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all active:scale-[0.97]"
+                      className="bg-emerald-500 hover:bg-emerald-600 disabled:opacity-50 text-slate-950 text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all active:scale-[0.97] cursor-pointer"
                     >
                       <Camera className="w-4 h-4" />
                       Capture
@@ -604,7 +874,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   <>
                     <button
                       onClick={retakePhoto}
-                      className="bg-slate-900 hover:bg-slate-800 text-gray-350 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-850 flex items-center gap-2"
+                      className="bg-slate-900 hover:bg-slate-800 text-gray-355 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-850 flex items-center gap-2 cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       Retake
@@ -613,14 +883,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     {webcamStep === 2 ? (
                       <button
                         onClick={handleWebcamSave}
-                        className="bg-gradient-to-r from-emerald-500 to-[#00FF66] text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-500/10 flex items-center gap-2"
+                        className="bg-gradient-to-r from-emerald-500 to-[#00FF66] text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-500/10 flex items-center gap-2 cursor-pointer"
                       >
                         Save Images
                       </button>
                     ) : (
                       <button
                         onClick={handleWebcamNext}
-                        className="bg-emerald-505 hover:bg-emerald-500 text-slate-950 text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2"
+                        className="bg-emerald-505 hover:bg-emerald-500 text-slate-950 text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
                       >
                         Next Step
                         <ChevronRight className="w-4 h-4" />
@@ -634,9 +904,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         )}
 
         {/* ==========================================
-            SCREEN 3: PHONE QR SCAN SCREEN
+            STEP 2: PHONE QR SCAN SCREEN
            ========================================== */}
-        {mode === 'phone_qr' && (
+        {step === 2 && mode === 'phone_qr' && (
           <div className="p-6 flex flex-col items-center">
             
             {/* Countdown / Session Status indicator */}
@@ -667,7 +937,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 <p className="text-xs text-gray-500 mb-4">The 5-minute capture window has closed.</p>
                 <button
                   onClick={startPhoneCaptureSession}
-                  className="bg-slate-900 hover:bg-slate-800 text-xs font-bold px-4 py-2 rounded-xl text-white transition-all"
+                  className="bg-slate-900 hover:bg-slate-800 text-xs font-bold px-4 py-2 rounded-xl text-white transition-all cursor-pointer"
                 >
                   Regenerate QR Code
                 </button>

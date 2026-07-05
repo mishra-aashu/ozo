@@ -15,8 +15,10 @@ import {
   X,
   Loader2,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Camera
 } from 'lucide-react'
+import BarcodeEnrichmentModal from '../../components/mart/BarcodeEnrichmentModal'
 
 const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [], getColumnSamples = () => [] }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -125,6 +127,7 @@ export default function BulkImportWizard({
   const [previewRows, setPreviewRows] = useState([])
   const [isMatching, setIsMatching] = useState(false)
   const [dragActive, setDragActive] = useState(false)
+  const [photoModalData, setPhotoModalData] = useState(null)
 
   const parseCSV = (text) => {
     const results = Papa.parse(text, {
@@ -545,13 +548,17 @@ export default function BulkImportWizard({
 
   const executeBulkImport = async () => {
     try {
-      const getFallbackCategoryId = () => {
-        if (categories.length === 0) return null
-        const otherCat = categories.find(c => {
-          const n = c.name.toLowerCase()
-          return n.includes('other') || n.includes('general') || n.includes('grocery') || n.includes('pack')
+      const unenrichedRows = previewRows.filter(
+        r => r.status === 'not_found' && r.name && r.name.trim() !== ''
+      )
+
+      if (unenrichedRows.length > 0) {
+        // Automatically open the enrichment modal for the first product that needs photos/metadata!
+        setPhotoModalData(unenrichedRows[0])
+        toast(`Please add details and photos for "${unenrichedRows[0].name}"`, {
+          icon: 'ℹ️'
         })
-        return otherCat ? otherCat.id : categories[0].id
+        return
       }
 
       const matchedRows = previewRows.filter(r => r.status === 'matched').map(r => ({
@@ -562,67 +569,8 @@ export default function BulkImportWizard({
         is_available: r.stock_quantity > 0
       }))
 
-      const notFoundRowsWithNames = previewRows.filter(r => r.status === 'not_found' && r.name && r.name.trim() !== '')
-      
-      let createdRows = []
-      if (notFoundRowsWithNames.length > 0) {
-        const catId = getFallbackCategoryId()
-        const newProductsPayload = notFoundRowsWithNames.map(r => {
-          const baseSlug = r.name.toLowerCase().trim()
-            .replace(/[^a-z0-9]+/g, '-')
-            .replace(/(^-|-$)+/g, '')
-          const slug = `${baseSlug}-${Date.now()}-${Math.floor(Math.random() * 1000)}`
-          
-          return {
-            name: r.name.trim(),
-            slug,
-            brand: r.brand?.trim() || null,
-            unit: r.unit?.trim() || '1 unit',
-            category_id: catId,
-            mart_id: currentMart?.id || null,
-            price: r.mart_price || 0,
-            mrp: r.mart_mrp || r.mart_price || 0,
-            barcode: r.identifier?.trim() || null,
-            is_available: true,
-            enrichment_status: r.identifier?.trim() ? 'pending_photo' : 'enriched',
-            enrichment_source: r.identifier?.trim() ? 'placeholder' : 'imported'
-          }
-        })
-
-        toast.loading(`Creating ${newProductsPayload.length} new custom products...`, { id: 'import-loading' })
-        const { data: createdProducts, error: productsError } = await supabase
-          .from('products')
-          .insert(newProductsPayload)
-          .select()
-
-        if (productsError) {
-          toast.dismiss('import-loading')
-          throw productsError
-        }
-
-        toast.dismiss('import-loading')
-
-        if (createdProducts && createdProducts.length > 0) {
-          createdRows = createdProducts.map(p => {
-            const matchingRow = notFoundRowsWithNames.find(r => 
-              (r.identifier && p.barcode && r.identifier.trim() === p.barcode.trim()) || 
-              (r.name.trim().toLowerCase() === p.name.trim().toLowerCase())
-            )
-            return {
-              product_id: p.id,
-              stock_quantity: matchingRow ? matchingRow.stock_quantity : 0,
-              mart_price: matchingRow ? matchingRow.mart_price : p.price,
-              mart_mrp: matchingRow ? matchingRow.mart_mrp : p.mrp,
-              is_available: matchingRow ? matchingRow.stock_quantity > 0 : true
-            }
-          })
-        }
-      }
-
-      const allRowsToImport = [...matchedRows, ...createdRows]
-
-      if (allRowsToImport.length === 0) {
-        toast.error('No matched or new products to import')
+      if (matchedRows.length === 0) {
+        toast.error('No products to import')
         return
       }
 
@@ -1120,6 +1068,8 @@ export default function BulkImportWizard({
   const renderPreviewStep = () => {
     const matchedCount = previewRows.filter(r => r.status === 'matched').length
     const unmatchedCount = previewRows.filter(r => r.status === 'not_found').length
+    const createdCount = previewRows.filter(r => r.status === 'not_found' && r.name && r.name.trim() !== '').length
+    const totalImportCount = matchedCount + createdCount
     const matchRate = previewRows.length > 0 ? (matchedCount / previewRows.length) * 100 : 0
     const hasUnmappedName = previewRows.some(r => r.status !== 'matched' && (!r.name || r.name.trim() === ''))
 
@@ -1258,9 +1208,24 @@ export default function BulkImportWizard({
                       {r.status === 'matched' ? (
                         <div className="flex items-center gap-3">
                           {r.product.image_url ? (
-                            <img src={r.product.image_url} alt={r.product.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-[#1c1c28]" />
+                            <div className="relative group w-8 h-8 shrink-0">
+                              <img src={r.product.image_url} alt={r.product.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-[#1c1c28] border border-gray-200 dark:border-white/5" />
+                              <button
+                                onClick={() => setPhotoModalData(r)}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity cursor-pointer"
+                                title="Change photo via Phone"
+                              >
+                                <Camera className="w-3.5 h-3.5 text-white" />
+                              </button>
+                            </div>
                           ) : (
-                            <div className="w-8 h-8 bg-gray-200 dark:bg-[#1c1c28] rounded flex items-center justify-center text-xs">No Img</div>
+                            <button
+                              onClick={() => setPhotoModalData(r)}
+                              className="w-8 h-8 bg-gray-105 dark:bg-[#1c1c28] hover:bg-emerald-500/10 hover:text-emerald-500 rounded flex items-center justify-center text-xs transition-colors cursor-pointer border border-dashed border-gray-300 dark:border-[#2d2d3f] group shrink-0"
+                              title="Capture photo via Phone"
+                            >
+                              <Camera className="w-4 h-4 text-gray-400 group-hover:text-emerald-500" />
+                            </button>
                           )}
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
@@ -1276,10 +1241,36 @@ export default function BulkImportWizard({
                         </div>
                       ) : r.name && r.name.trim() !== '' ? (
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-blue-500/10 rounded flex items-center justify-center text-xs font-bold text-blue-500 border border-blue-500/20">New</div>
+                          {r.image_url ? (
+                            <div className="relative group w-8 h-8 shrink-0">
+                              <img src={r.image_url} alt={r.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-[#1c1c28] border border-gray-200 dark:border-white/5" />
+                              <button
+                                onClick={() => setPhotoModalData(r)}
+                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity cursor-pointer"
+                                title="Change photo via Phone"
+                              >
+                                <Camera className="w-3.5 h-3.5 text-white" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setPhotoModalData(r)}
+                              className="w-8 h-8 bg-blue-500/5 hover:bg-blue-500/15 rounded flex items-center justify-center text-xs transition-colors cursor-pointer border border-dashed border-blue-500/25 group shrink-0"
+                              title="Capture photo via Phone"
+                            >
+                              <Camera className="w-4 h-4 text-blue-400 group-hover:text-blue-500" />
+                            </button>
+                          )}
                           <div>
                             <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500">Unit: {r.unit || '1 unit'} | Brand: {r.brand || 'Ozo Choice'}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1.5 flex-wrap">
+                              <span>Unit: {r.unit || '1 unit'} | Brand: {r.brand || 'Ozo Choice'}</span>
+                              {r.image_url && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] text-[9px] font-black uppercase tracking-wider border border-emerald-500/20">
+                                  ✓ Photo Attached
+                                </span>
+                              )}
+                            </p>
                           </div>
                         </div>
                       ) : (
@@ -1288,12 +1279,13 @@ export default function BulkImportWizard({
                             <Info className="w-4 h-4" />
                             <span>No catalog match found</span>
                           </div>
-                          <span className="text-[10px] text-gray-500 dark:text-gray-500 leading-normal">
+                          <span className="text-[10px] text-gray-550 dark:text-gray-500 leading-normal">
                             Map the <strong className="text-emerald-500">Product Name</strong> column to auto-create this product.
                           </span>
                         </div>
                       )}
                     </td>
+
                     <td className="p-4 text-sm font-extrabold font-mono text-gray-800 dark:text-gray-300">{r.stock_quantity}</td>
                     <td className="p-4 text-sm">
                       {r.mart_price !== null ? (
@@ -1342,11 +1334,11 @@ export default function BulkImportWizard({
 
             <button
               onClick={executeBulkImport}
-              disabled={matchedCount === 0}
+              disabled={totalImportCount === 0}
               className="px-6 py-2.5 bg-emerald-500 dark:bg-[#00FF66] disabled:bg-gray-700 text-white dark:text-black font-extrabold text-xs rounded-xl hover:bg-emerald-600 dark:hover:bg-[#00e65c] transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none"
             >
               <Check className="w-4 h-4" />
-              Confirm Import ({matchedCount} products)
+              Confirm Import ({totalImportCount} products)
             </button>
           </div>
         </div>
@@ -1359,6 +1351,49 @@ export default function BulkImportWizard({
       {importStep === 'upload' && renderUploaderStep()}
       {importStep === 'mapping' && renderMappingStep()}
       {importStep === 'preview' && renderPreviewStep()}
+
+      {photoModalData && (
+        <BarcodeEnrichmentModal
+          barcode={photoModalData.identifier}
+          product={
+            photoModalData.product || {
+              name: photoModalData.name,
+              barcode: photoModalData.identifier,
+              brand: photoModalData.brand || '',
+              unit: photoModalData.unit || '1 unit',
+              price: photoModalData.mart_price || '',
+              mrp: photoModalData.mart_mrp || '',
+              stock_quantity: photoModalData.stock_quantity !== undefined ? photoModalData.stock_quantity : ''
+            }
+          }
+          onClose={() => setPhotoModalData(null)}
+          onComplete={(enrichedProd) => {
+            setPreviewRows(prev => prev.map(row => {
+              if (row.identifier === photoModalData.identifier) {
+                return {
+                  ...row,
+                  name: enrichedProd.name,
+                  brand: enrichedProd.brand,
+                  unit: enrichedProd.unit,
+                  mart_price: enrichedProd.price,
+                  mart_mrp: enrichedProd.mrp,
+                  stock_quantity: enrichedProd.stock_quantity !== undefined ? enrichedProd.stock_quantity : row.stock_quantity,
+                  image_url: enrichedProd.image_url,
+                  images: enrichedProd.images,
+                  product: enrichedProd,
+                  status: 'matched'
+                }
+              }
+              return row
+            }))
+            setPhotoModalData(null)
+          }}
+        />
+      )}
+
+
     </div>
   )
+
+
 }
