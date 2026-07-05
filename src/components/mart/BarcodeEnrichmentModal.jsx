@@ -12,13 +12,15 @@ import {
   QrCode,
   ArrowLeft,
   ChevronRight,
+  ChevronDown,
   Check,
   RefreshCw,
   Clock,
   Info,
   Tag,
   Package,
-  Layers
+  Layers,
+  Search
 } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import { uploadCatalogImage } from '../../lib/supabase'
@@ -62,6 +64,11 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [savingInfo, setSavingInfo] = useState(false)
 
+  // Searchable Category Dropdown States
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [categorySearchQuery, setCategorySearchQuery] = useState('')
+  const dropdownRef = useRef(null)
+
   // Step 2 Capture Mode states: 'select' | 'webcam' | 'phone_qr'
   const [mode, setMode] = useState('select')
   
@@ -85,6 +92,11 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const canvasRef = useRef(null)
   const streamRef = useRef(null)
   const sessionSubscriptionRef = useRef(null)
+
+  const selectedCategoryName = categoriesList.find(cat => cat.id === editedProduct.category_id)?.name || ''
+  const filteredCategories = categoriesList.filter(cat =>
+    cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())
+  )
 
   // ==========================================
   // FETCH CATEGORIES
@@ -112,6 +124,17 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
       }
     }
     loadCategories()
+  }, [])
+
+  // Handle click outside searchable category dropdown to close it
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
   // ==========================================
@@ -577,18 +600,69 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     Loading categories...
                   </div>
                 ) : (
-                  <select
-                    value={editedProduct.category_id}
-                    onChange={(e) => setEditedProduct({ ...editedProduct, category_id: e.target.value })}
-                    className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all cursor-pointer font-medium"
-                  >
-                    <option value="" disabled>Select Category</option>
-                    {categoriesList.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="relative" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="w-full bg-[#12121a] border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all flex items-center justify-between cursor-pointer font-medium text-left"
+                    >
+                      <span className={selectedCategoryName ? "text-white" : "text-gray-500"}>
+                        {selectedCategoryName || "Select Category"}
+                      </span>
+                      <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute z-50 w-full mt-1.5 bg-[#12121a] border border-slate-800 rounded-xl shadow-2xl p-2 space-y-2 max-h-60 overflow-hidden flex flex-col animate-fade-in">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Search category..."
+                            value={categorySearchQuery}
+                            onChange={(e) => setCategorySearchQuery(e.target.value)}
+                            className="w-full bg-[#08080c] border border-slate-800/80 focus:border-indigo-500/30 rounded-lg pl-8 pr-8 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/10"
+                            autoFocus
+                          />
+                          <Search className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                          {categorySearchQuery && (
+                            <button
+                              type="button"
+                              onClick={() => setCategorySearchQuery("")}
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          )}
+                        </div>
+
+                        <div className="overflow-y-auto max-h-40 space-y-0.5 pr-1 no-scrollbar">
+                          {filteredCategories.length === 0 ? (
+                            <div className="text-gray-500 text-xs py-3 text-center">No categories found</div>
+                          ) : (
+                            filteredCategories.map((cat) => (
+                              <button
+                                key={cat.id}
+                                type="button"
+                                onClick={() => {
+                                  setEditedProduct({ ...editedProduct, category_id: cat.id })
+                                  setIsDropdownOpen(false)
+                                  setCategorySearchQuery("")
+                                }}
+                                className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all duration-150 flex items-center justify-between ${
+                                  editedProduct.category_id === cat.id
+                                    ? 'bg-indigo-600 text-white font-bold'
+                                    : 'text-gray-300 hover:bg-slate-900/60 hover:text-white'
+                                }`}
+                              >
+                                <span>{cat.name}</span>
+                                {editedProduct.category_id === cat.id && <Check className="w-3.5 h-3.5 text-white" />}
+                              </button>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
