@@ -329,21 +329,32 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         uploadedUrls.push(uploadRes.url)
       }
 
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) throw new Error('Operator authentication session lost.')
+
+      const { data: operatorMart, error: martErr } = await supabase
+        .from('marts')
+        .select('id')
+        .eq('owner_id', user.id)
+        .maybeSingle()
+
+      if (martErr) throw martErr
+
       setWebcamProgress('Saving catalog image references...')
 
-      // Save all updated details + images to DB
-      const primaryUrl = uploadedUrls[0] || null
+      // Save all updated details + images to pending verification columns
       const { data: updatedProduct, error: dbError } = await supabase
         .from('products')
         .update({
-          name: editedProduct.name.trim(),
+          verification_status: 'pending',
+          pending_name: editedProduct.name.trim(),
+          pending_brand: editedProduct.brand.trim() || null,
+          pending_images: uploadedUrls,
+          enriched_by_mart_id: operatorMart?.id || null,
           category_id: editedProduct.category_id,
-          brand: editedProduct.brand.trim() || null,
           unit: editedProduct.unit.trim() || '1 unit',
           price: parseFloat(editedProduct.price) || 0,
           mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
-          image_url: primaryUrl,
-          images: uploadedUrls,
           enrichment_status: 'merchant_upload',
           enrichment_source: 'merchant_webcam'
         })
@@ -452,18 +463,19 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             try {
               const primaryUrl = photos[0]
               
-              // Save details + images to DB
+              // Save details + images to pending verification columns
               const { data: updatedProduct, error: dbError } = await supabase
                 .from('products')
                 .update({
-                  name: editedProduct.name.trim(),
+                  verification_status: 'pending',
+                  pending_name: editedProduct.name.trim(),
+                  pending_brand: editedProduct.brand.trim() || null,
+                  pending_images: photos,
+                  enriched_by_mart_id: operatorMart.id,
                   category_id: editedProduct.category_id,
-                  brand: editedProduct.brand.trim() || null,
                   unit: editedProduct.unit.trim() || '1 unit',
                   price: parseFloat(editedProduct.price) || 0,
                   mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
-                  image_url: primaryUrl,
-                  images: photos,
                   enrichment_status: 'merchant_upload',
                   enrichment_source: 'merchant_phone'
                 })
