@@ -274,6 +274,11 @@ export const useAuthStore = create(
                   console.warn('Failed to clear location on SIGNED_OUT:', err)
                 }
                 localStorage.removeItem('ozo-auth-token')
+              } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+                set({
+                  user: session.user,
+                  isAuthenticated: true,
+                })
               }
             }
           )
@@ -366,7 +371,7 @@ export const useAuthStore = create(
       },
 
       // Sign out
-      signOut: async () => {
+      signOut: async (reason = '') => {
         try {
           // Unlink from OneSignal push notification service
           oneSignalLogout()
@@ -388,32 +393,35 @@ export const useAuthStore = create(
           }
 
           // Clear other persisted user stores dynamically to prevent circular dependencies
-          try {
-            const { useCartStore } = await import('./cartStore')
-            await useCartStore.getState().clearCart()
-          } catch (err) {
-            console.warn('Failed to clear cart on signOut:', err)
-          }
+          // BUT preserve them if the session expired (so the user doesn't lose their cart/wishlist!)
+          if (reason !== 'session_expired') {
+            try {
+              const { useCartStore } = await import('./cartStore')
+              await useCartStore.getState().clearCart()
+            } catch (err) {
+              console.warn('Failed to clear cart on signOut:', err)
+            }
 
-          try {
-            const { useWishlistStore } = await import('./wishlistStore')
-            await useWishlistStore.getState().clearWishlist()
-          } catch (err) {
-            console.warn('Failed to clear wishlist on signOut:', err)
-          }
+            try {
+              const { useWishlistStore } = await import('./wishlistStore')
+              await useWishlistStore.getState().clearWishlist()
+            } catch (err) {
+              console.warn('Failed to clear wishlist on signOut:', err)
+            }
 
-          try {
-            const { useNotificationStore } = await import('./notificationStore')
-            useNotificationStore.setState({ notifications: [] })
-          } catch (err) {
-            console.warn('Failed to clear notifications on signOut:', err)
-          }
+            try {
+              const { useNotificationStore } = await import('./notificationStore')
+              useNotificationStore.setState({ notifications: [] })
+            } catch (err) {
+              console.warn('Failed to clear notifications on signOut:', err)
+            }
 
-          try {
-            const { useOrderStore } = await import('./orderStore')
-            useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
-          } catch (err) {
-            console.warn('Failed to clear orders on signOut:', err)
+            try {
+              const { useOrderStore } = await import('./orderStore')
+              useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
+            } catch (err) {
+              console.warn('Failed to clear orders on signOut:', err)
+            }
           }
 
           // 2. Manually clear Supabase local storage key to guarantee session is deleted from the root
@@ -424,8 +432,12 @@ export const useAuthStore = create(
             console.warn('Supabase remote sign out failed in background:', apiError)
           })
 
-          // 4. Show success toast immediately
-          toast.success('Signed out successfully')
+          // 4. Show toast
+          if (reason === 'session_expired') {
+            toast.error('Your session has expired. Please sign in again.')
+          } else {
+            toast.success('Signed out successfully')
+          }
           return { success: true }
         } catch (error) {
           console.error('Sign out error:', error)
@@ -444,25 +456,31 @@ export const useAuthStore = create(
             console.warn('Failed to clear location on fallback signOut:', err)
           }
 
-          // Fallback stores clear
-          try {
-            const { useCartStore } = await import('./cartStore')
-            useCartStore.getState().clearCart()
-          } catch (err) {}
-          try {
-            const { useWishlistStore } = await import('./wishlistStore')
-            useWishlistStore.getState().clearWishlist()
-          } catch (err) {}
-          try {
-            const { useNotificationStore } = await import('./notificationStore')
-            useNotificationStore.setState({ notifications: [] })
-          } catch (err) {}
-          try {
-            const { useOrderStore } = await import('./orderStore')
-            useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
-          } catch (err) {}
+          // Fallback stores clear (if not session expiration)
+          if (reason !== 'session_expired') {
+            try {
+              const { useCartStore } = await import('./cartStore')
+              useCartStore.getState().clearCart()
+            } catch (err) {}
+            try {
+              const { useWishlistStore } = await import('./wishlistStore')
+              useWishlistStore.getState().clearWishlist()
+            } catch (err) {}
+            try {
+              const { useNotificationStore } = await import('./notificationStore')
+              useNotificationStore.setState({ notifications: [] })
+            } catch (err) {}
+            try {
+              const { useOrderStore } = await import('./orderStore')
+              useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
+            } catch (err) {}
+          }
 
-          toast.success('Signed out successfully')
+          if (reason === 'session_expired') {
+            toast.error('Your session has expired. Please sign in again.')
+          } else {
+            toast.success('Signed out successfully')
+          }
           return { success: true }
         }
       },
