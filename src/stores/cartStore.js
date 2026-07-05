@@ -22,6 +22,11 @@ const LOW_MARGIN_CATEGORY_SLUGS = new Set([
   'atta',           // future-proof
 ])
 
+// UUID v4 pattern check — used to guard DB operations so that fallback/mock
+// product IDs like 'summer-fallback-2' or 'deal-1' never reach PostgREST
+// (which expects a real UUID and rejects anything else with a 400).
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const isValidUUID = (id) => typeof id === 'string' && UUID_RE.test(id)
 
 const roundTo2Decimals = (num) => Math.round((num + Number.EPSILON) * 100) / 100
 
@@ -411,8 +416,10 @@ export const useCartStore = create(
             return
           }
 
-          // Merge guest cart items if any exist
-          const guestItems = get().items.filter(item => item.id && item.id.toString().startsWith('temp-'))
+          // Merge guest cart items if any exist (skip mock/fallback product IDs)
+          const guestItems = get().items.filter(item =>
+            item.id && item.id.toString().startsWith('temp-') && isValidUUID(item.productId)
+          )
           if (guestItems.length > 0) {
             set({ isLoading: true })
             const upsertPayload = guestItems.map(item => ({
@@ -582,6 +589,11 @@ export const useCartStore = create(
             return get().updateQuantity(existingItem.id, existingItem.quantity + quantity)
           }
 
+          // Mock/fallback products (non-UUID IDs like 'summer-fallback-2') are
+          // display-only placeholders. They cannot be persisted to the cart_items
+          // table because product_id is a UUID FK. Treat them as local-only.
+          const isMockProduct = !isValidUUID(product.id)
+
           const tempId = `temp-${Date.now()}`
           const newItem = {
             id: tempId,
@@ -606,6 +618,11 @@ export const useCartStore = create(
 
           if (showToast) {
             toast.success('Added to cart')
+          }
+
+          // Skip DB insert for mock/fallback products — local state only
+          if (isMockProduct) {
+            return { success: true }
           }
 
           // Perform network request in background
@@ -683,7 +700,8 @@ export const useCartStore = create(
           get().calculateTotals()
 
           const user = useAuthStore.getState().user
-          if (!user) return { success: true }
+          // Skip DB sync for guests or mock products with non-UUID IDs
+          if (!user || !isValidUUID(item.productId)) return { success: true }
 
           // Perform network request in background
           const updateQuery = cartItemId.toString().startsWith('temp-')
@@ -747,7 +765,8 @@ export const useCartStore = create(
           toast.success('Removed from cart')
 
           const user = useAuthStore.getState().user
-          if (!user) return { success: true }
+          // Skip DB sync for guests or mock products with non-UUID IDs
+          if (!user || !isValidUUID(item.productId)) return { success: true }
 
           // Perform network request in background
           const deleteQuery = cartItemId.toString().startsWith('temp-')
