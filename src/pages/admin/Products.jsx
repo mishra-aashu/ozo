@@ -400,7 +400,8 @@ WHERE id = '${editingProduct.id}';`
         .from('products')
         .select(`
           *,
-          category:categories ( id, name, slug )
+          category:categories ( id, name, slug ),
+          mart:marts ( id, name )
         `, { count: 'exact' })
 
       // Search Filter

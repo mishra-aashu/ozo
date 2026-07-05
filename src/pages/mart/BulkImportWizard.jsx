@@ -104,7 +104,7 @@ export default function BulkImportWizard({
   fetchInventory,
   onClose
 }) {
-  const { importInventoryRows } = useMartStore()
+  const { importInventoryRows, currentMart } = useMartStore()
 
   // State local to BulkImportWizard
   const [importStep, setImportStep] = useState('upload') // 'upload', 'mapping', 'preview'
@@ -579,6 +579,7 @@ export default function BulkImportWizard({
             brand: r.brand?.trim() || null,
             unit: r.unit?.trim() || '1 unit',
             category_id: catId,
+            mart_id: currentMart?.id || null,
             price: r.mart_price || 0,
             mrp: r.mart_mrp || r.mart_price || 0,
             barcode: r.identifier?.trim() || null,
