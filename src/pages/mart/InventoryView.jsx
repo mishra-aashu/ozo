@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import { useMartStore } from '../../stores/martStore'
 import { supabase } from '../../lib/supabase'
 import Papa from 'papaparse'
@@ -63,6 +63,8 @@ const InventoryView = () => {
   const [tempStock, setTempStock] = useState('')
   const [hoveredImage, setHoveredImage] = useState(null)
   const [showLowStockOnly, setShowLowStockOnly] = useState(false)
+  const [selectedCategoryId, setSelectedCategoryId] = useState('')
+  const [availabilityFilter, setAvailabilityFilter] = useState('all') // 'all' | 'in_stock' | 'out_of_stock'
 
   // Photo enrichment capture states
   const [enrichmentProduct, setEnrichmentProduct] = useState(null)
@@ -391,6 +393,10 @@ const InventoryView = () => {
     return () => clearTimeout(delayDebounce)
   }, [catalogSearch, selectedCatalogProduct])
 
+  const refreshInventory = useCallback(() => {
+    fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly, selectedCategoryId, availabilityFilter)
+  }, [currentPage, debouncedSearchQuery, showLowStockOnly, selectedCategoryId, availabilityFilter, fetchInventory])
+
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -400,12 +406,17 @@ const InventoryView = () => {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
+  // Reset page to 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [selectedCategoryId, availabilityFilter, showLowStockOnly])
+
   // Fetch inventory
   useEffect(() => {
     if (currentMart) {
-      fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly)
+      refreshInventory()
     }
-  }, [currentMart, currentPage, debouncedSearchQuery, showLowStockOnly, fetchInventory])
+  }, [currentMart, refreshInventory])
 
   const handlePriceSave = async (id) => {
     await updatePrice(id, tempPrice)
@@ -462,7 +473,7 @@ const InventoryView = () => {
       setCatalogForm({ stock_quantity: '0', mart_price: '', mart_mrp: '' })
       
       // Refresh inventory
-      fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly)
+      refreshInventory()
     } catch (err) {
       console.error('Failed to add catalog product:', err)
       toast.error('Failed to add product: ' + err.message)
@@ -570,7 +581,7 @@ const InventoryView = () => {
         mart_mrp: ''
       })
       
-      fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly)
+      refreshInventory()
 
       if (shouldOpenCapture) {
         setEnrichmentProduct(createdProduct)
@@ -853,6 +864,57 @@ const InventoryView = () => {
       ) : (
         /* Inventory Table Container */
         <div className="flex-1 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181827] rounded-2xl overflow-hidden flex flex-col">
+          {/* Filters Bar */}
+          <div className="px-6 py-3.5 border-b border-gray-200 dark:border-[#181827] bg-gray-50/50 dark:bg-[#0e0e1a]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400 font-sans">Filters</span>
+              {(selectedCategoryId || availabilityFilter !== 'all') && (
+                <button
+                  onClick={() => {
+                    setSelectedCategoryId('')
+                    setAvailabilityFilter('all')
+                  }}
+                  className="text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 dark:hover:text-rose-300 transition-colors flex items-center gap-1 bg-rose-500/10 px-2.5 py-1 rounded-lg border border-rose-500/20"
+                >
+                  Reset
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto">
+              {/* Category Select */}
+              <div className="relative w-full sm:w-48">
+                <select
+                  value={selectedCategoryId}
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
+                  className="w-full appearance-none bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-2 pl-3 pr-9 text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors font-sans cursor-pointer"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none w-3.5 h-3.5" />
+              </div>
+
+              {/* Status Select */}
+              <div className="relative w-full sm:w-40">
+                <select
+                  value={availabilityFilter}
+                  onChange={(e) => setAvailabilityFilter(e.target.value)}
+                  className="w-full appearance-none bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-2 pl-3 pr-9 text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors font-sans cursor-pointer"
+                >
+                  <option value="all">All Statuses</option>
+                  <option value="in_stock">In Stock</option>
+                  <option value="out_of_stock">Out of Stock</option>
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none w-3.5 h-3.5" />
+              </div>
+            </div>
+          </div>
+
           <div className="flex-1 overflow-x-auto overflow-y-auto">
             {isLoadingInventory ? (
               <div className="h-64 flex flex-col items-center justify-center gap-3">
@@ -1704,7 +1766,7 @@ const InventoryView = () => {
           onComplete={(updatedProduct) => {
             setIsEnrichmentModalOpen(false)
             setEnrichmentProduct(null)
-            fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly)
+            refreshInventory()
           }}
         />
       )}
