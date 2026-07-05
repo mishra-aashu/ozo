@@ -1180,10 +1180,6 @@ const InventoryView = () => {
                       <td className="p-4 text-center">
                         <button
                           onClick={() => {
-                            if (!product.barcode) {
-                              toast.error('This product does not have a barcode. Cannot enrich.')
-                              return
-                            }
                             setEnrichmentProduct(product)
                             setIsEnrichmentModalOpen(true)
                           }}

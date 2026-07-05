@@ -170,16 +170,24 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         unit: editedProduct.unit.trim() || '1 unit',
         price: parseFloat(editedProduct.price) || 0,
         mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
-        barcode: barcode,
+        barcode: barcode || product?.barcode || null,
         is_available: true,
         enrichment_status: product?.image_url ? 'merchant_upload' : 'pending_photo',
         enrichment_source: product?.image_url ? 'merchant_upload' : 'placeholder'
       }
 
-      // Upsert into master products table using barcode unique constraint
-      const { error } = await supabase
-        .from('products')
-        .upsert(payload, { onConflict: 'barcode' })
+      if (product?.id) {
+        const { error } = await supabase
+          .from('products')
+          .update(payload)
+          .eq('id', product.id)
+        if (error) throw error
+      } else {
+        const { error } = await supabase
+          .from('products')
+          .upsert(payload, { onConflict: 'barcode' })
+        if (error) throw error
+      }
 
       if (error) throw error
 
@@ -319,9 +327,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
         const res = await fetch(photoDataUrl)
         const blob = await res.blob()
-        const file = new File([blob], `${barcode}_${i}.jpg`, { type: 'image/jpeg' })
+        const fileIdentifier = barcode || product?.id || 'nobarcode'
+        const file = new File([blob], `${fileIdentifier}_${i}.jpg`, { type: 'image/jpeg' })
 
-        const uploadRes = await uploadCatalogImage(file, barcode, i)
+        const uploadRes = await uploadCatalogImage(file, fileIdentifier, i)
         
         if (uploadRes.error) {
           throw new Error(uploadRes.error.message || uploadRes.error)
@@ -342,6 +351,8 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
       setWebcamProgress('Saving catalog image references...')
 
+      const matchQuery = product?.id ? { id: product.id } : { barcode: barcode }
+
       // Save all updated details + images to pending verification columns
       const { data: updatedProduct, error: dbError } = await supabase
         .from('products')
@@ -358,7 +369,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
           enrichment_status: 'merchant_upload',
           enrichment_source: 'merchant_webcam'
         })
-        .eq('barcode', barcode)
+        .match(matchQuery)
         .select()
         .single()
 
