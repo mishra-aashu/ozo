@@ -13,7 +13,9 @@ import {
   AlertTriangle,
   ChevronDown,
   X,
-  Loader2
+  Loader2,
+  CheckCircle,
+  AlertCircle
 } from 'lucide-react'
 
 const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [], getColumnSamples = () => [] }) => {
@@ -30,10 +32,20 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full flex items-center justify-between bg-gray-50 dark:bg-[#12121e] border border-gray-250 dark:border-[#1e1e2f] rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-gray-200 hover:border-emerald-500 dark:hover:border-[#00FF66] focus:outline-none transition-all duration-200 cursor-pointer text-left font-medium"
+        className={`w-full flex items-center justify-between border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200 cursor-pointer text-left font-semibold ${
+          value
+            ? 'bg-emerald-500/[0.04] dark:bg-[#00FF66]/[0.02] border-emerald-500/30 dark:border-[#00FF66]/20 text-emerald-700 dark:text-[#00FF66]'
+            : isRequired
+              ? 'bg-amber-500/[0.03] dark:bg-amber-500/[0.015] border-amber-500/30 dark:border-amber-500/20 text-amber-700 dark:text-amber-400'
+              : 'bg-gray-50 dark:bg-[#12121e] border-gray-250 dark:border-[#1e1e2f] text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'
+        }`}
       >
-        <span className="truncate">{getLabel()}</span>
-        <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-gray-550 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+        <span className="truncate flex items-center gap-2">
+          {value && <CheckCircle className="w-3.5 h-3.5 shrink-0 text-emerald-500 dark:text-[#00FF66]" />}
+          {!value && isRequired && <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-500 animate-pulse" />}
+          {getLabel()}
+        </span>
+        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-emerald-555 dark:text-[#00FF66]' : 'text-gray-400'}`} />
       </button>
 
       {isOpen && (
@@ -49,7 +61,7 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
                 }}
                 className="w-full text-left px-4 py-2.5 text-xs text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1a2c] hover:text-gray-700 dark:hover:text-white transition-colors cursor-pointer"
               >
-                {placeholder}
+                Clear mapping
               </button>
             )}
             {csvHeaders.map((h) => {
@@ -948,182 +960,119 @@ export default function BulkImportWizard({
             {/* Right side: Mapping target slots */}
             <div className="lg:col-span-8 space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Product Identifier Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, product_identifier: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Product Identifier <span className="text-[#FF3366]">*</span>
-                    </label>
-                    <p className="text-[10px] text-gray-550 mt-0.5">Used for matching products (Barcode / SKU / Slug)</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.product_identifier}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, product_identifier: val }))}
-                    placeholder="Drop column here or select..."
-                    isRequired={true}
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
+                {[
+                  {
+                    key: 'product_identifier',
+                    label: 'Product Identifier',
+                    isRequired: true,
+                    desc: 'Used for matching products (Barcode / SKU / Slug)'
+                  },
+                  {
+                    key: 'product_name',
+                    label: 'Product Name',
+                    isRequired: false,
+                    desc: 'Name of the product (for fallback lookup)'
+                  },
+                  {
+                    key: 'brand_name',
+                    label: 'Brand Name',
+                    isRequired: false,
+                    desc: 'Brand name if custom products created'
+                  },
+                  {
+                    key: 'product_unit',
+                    label: 'Unit Measure',
+                    isRequired: false,
+                    desc: 'Measurement (e.g. 100g, 1L, Pack of 2)'
+                  },
+                  {
+                    key: 'stock_quantity',
+                    label: 'Stock Quantity',
+                    isRequired: true,
+                    desc: 'Available stock to set'
+                  },
+                  {
+                    key: 'mart_price',
+                    label: 'Mart Price (₹)',
+                    isRequired: false,
+                    desc: 'Your selling price at the mart'
+                  },
+                  {
+                    key: 'mart_mrp',
+                    label: 'Maximum Retail Price (₹)',
+                    isRequired: false,
+                    desc: 'Printed price (MRP)'
+                  }
+                ].map((slot) => {
+                  const val = columnMapping[slot.key]
+                  const isMapped = !!val
+                  
+                  return (
+                    <div 
+                      key={slot.key}
+                      onDragOver={(e) => e.preventDefault()}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        const h = e.dataTransfer.getData("text/plain")
+                        if (h) setColumnMapping(prev => ({ ...prev, [slot.key]: h }))
+                      }}
+                      className={`rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all duration-300 relative overflow-hidden ${
+                        isMapped 
+                          ? 'bg-emerald-500/[0.02] dark:bg-[#00FF66]/[0.01] border border-emerald-550/30 dark:border-[#00FF66]/20 shadow-sm'
+                          : slot.isRequired
+                            ? 'bg-amber-500/[0.01] dark:bg-amber-500/[0.005] border border-dashed border-amber-500/40 dark:border-amber-500/25 shadow-sm shadow-amber-500/[0.01]'
+                            : 'bg-white dark:bg-[#0e0e18]/40 border border-dashed border-gray-255 dark:border-[#1e1e2f] hover:border-gray-300 dark:hover:border-gray-700'
+                      }`}
+                    >
+                      {/* Top indicator line for mapped fields */}
+                      {isMapped && (
+                        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-[#00FF66]" />
+                      )}
+                      
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
+                              {slot.label}
+                            </label>
+                            {slot.isRequired && <span className="text-[#FF3366] font-bold text-xs">*</span>}
+                          </div>
+                          <p className="text-[10px] text-gray-550 mt-0.5 leading-relaxed">{slot.desc}</p>
+                        </div>
 
-                {/* Product Name Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, product_name: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Product Name (Optional)
-                    </label>
-                    <p className="text-[10px] text-gray-550 mt-0.5">Name of the product (for fallback lookup)</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.product_name}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, product_name: val }))}
-                    placeholder="Drop column here or select..."
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
+                        {/* Status badges */}
+                        {isMapped ? (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-[#00FF66] border border-emerald-500/25">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#00FF66]" />
+                            Mapped
+                          </span>
+                        ) : slot.isRequired ? (
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-[9px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 border border-amber-500/20 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
+                            Required
+                          </span>
+                        ) : (
+                          <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#1a1a2b] text-[9px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5">
+                            Optional
+                          </span>
+                        )}
+                      </div>
 
-                {/* Brand Name Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, brand_name: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Brand Name (Optional)
-                    </label>
-                    <p className="text-[10px] text-gray-550 mt-0.5">Brand name if custom products created</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.brand_name}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, brand_name: val }))}
-                    placeholder="Drop column here or select..."
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
-
-                {/* Product Unit Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, product_unit: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Unit Measure (Optional)
-                    </label>
-                    <p className="text-[10px] text-gray-555 mt-0.5">Measurement (e.g. 100g, 1L, Pack of 2)</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.product_unit}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, product_unit: val }))}
-                    placeholder="Drop column here or select..."
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
-
-                {/* Stock Quantity Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, stock_quantity: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Stock Quantity <span className="text-[#FF3366]">*</span>
-                    </label>
-                    <p className="text-[10px] text-gray-550 mt-0.5">Available stock to set</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.stock_quantity}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, stock_quantity: val }))}
-                    placeholder="Drop column here or select..."
-                    isRequired={true}
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
-
-                {/* Mart Price Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, mart_price: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Mart Price (₹) (Optional)
-                    </label>
-                    <p className="text-[10px] text-gray-500 mt-0.5">Your selling price at the mart</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.mart_price}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, mart_price: val }))}
-                    placeholder="Drop column here or select..."
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
-
-                {/* MRP Slot */}
-                <div 
-                  onDragOver={(e) => e.preventDefault()}
-                  onDrop={(e) => {
-                    e.preventDefault()
-                    const h = e.dataTransfer.getData("text/plain")
-                    if (h) setColumnMapping(prev => ({ ...prev, mart_mrp: h }))
-                  }}
-                  className="bg-white dark:bg-[#0e0e18] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-4 flex flex-col justify-between gap-3 hover:border-emerald-500/50 transition-colors"
-                >
-                  <div>
-                    <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
-                      Maximum Retail Price (₹)
-                    </label>
-                    <p className="text-[10px] text-gray-555 mt-0.5">Printed price (MRP)</p>
-                  </div>
-                  <CustomSelect
-                    value={columnMapping.mart_mrp}
-                    onChange={(val) => setColumnMapping(prev => ({ ...prev, mart_mrp: val }))}
-                    placeholder="Drop column here or select..."
-                    csvHeaders={csvHeaders}
-                    getColumnSamples={getColumnSamples}
-                  />
-                </div>
+                      <CustomSelect
+                        value={val}
+                        onChange={(newVal) => setColumnMapping(prev => ({ ...prev, [slot.key]: newVal }))}
+                        placeholder={
+                          slot.isRequired 
+                            ? "⚠️ Select or Drop required column..."
+                            : "Drop column here or select (Optional)..."
+                        }
+                        isRequired={slot.isRequired}
+                        csvHeaders={csvHeaders}
+                        getColumnSamples={getColumnSamples}
+                      />
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Live Mapping Preview */}
