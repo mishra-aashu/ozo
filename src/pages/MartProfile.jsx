@@ -261,9 +261,6 @@ const MartProfile = () => {
         guarantees: martData.guarantees || []
       })
 
-      // Store active mart ID to ensure correct checkout routing
-      localStorage.setItem('active_mart_id', martData.id)
-
       // Fetch distinct categories in a separate light query
       const { data: catData, error: catError } = await supabase
         .from('mart_inventory')
