@@ -170,7 +170,7 @@ const customFetch = async (input, init) => {
       window.localStorage.removeItem('ozo-auth-storage');
       import('../stores/authStore')
         .then((m) => {
-          m.useAuthStore.getState().signOut().catch(() => {})
+          m.useAuthStore.getState().signOut('session_expired').catch(() => {})
         })
         .catch((e) => {
           console.warn('Failed to dynamically sign out on invalid session:', e)
