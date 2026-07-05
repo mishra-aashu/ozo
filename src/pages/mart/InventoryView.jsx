@@ -123,7 +123,7 @@ const InventoryView = () => {
     lockedConfig: null
   })
 
-  const isImportMode = showUploader || (inventoryTotalCount === 0 && !isLoadingInventory && searchQuery === '' && !hasClosedUploader)
+  const isImportMode = showUploader || (inventoryTotalCount === 0 && !showLowStockOnly && !isLoadingInventory && searchQuery === '' && !hasClosedUploader)
 
   const selectedCategoryName = categories.find(cat => cat.id === newProductForm.category_id)?.name || ''
   const filteredCategories = categories.filter(cat =>
@@ -760,7 +760,6 @@ const InventoryView = () => {
 
   return (
     <div className="flex-1 flex flex-col p-4 lg:p-8 overflow-hidden bg-gray-50 dark:bg-[#070709] pb-16 lg:pb-8">
-      {!isImportMode && renderLocalToolWidget()}
       {/* Control Bar */}
       {!isImportMode && (
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
