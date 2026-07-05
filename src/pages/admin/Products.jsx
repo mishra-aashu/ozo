@@ -171,7 +171,8 @@ const Products = () => {
   const pageSize = 10
 
   // Stats states
-  const [stats, setStats] = useState({ total: 0, oos: 0 })
+  const [stats, setStats] = useState({ total: 0, oos: 0, pending: 0 })
+  const [activeViewTab, setActiveViewTab] = useState('all') // 'all' | 'verification'
 
   // Form State
   const [formData, setFormData] = useState({
@@ -401,8 +402,14 @@ WHERE id = '${editingProduct.id}';`
         .select(`
           *,
           category:categories ( id, name, slug ),
-          mart:marts ( id, name )
+          mart:marts ( id, name ),
+          enriched_mart:marts!enriched_by_mart_id ( id, name )
         `, { count: 'exact' })
+
+      // Verification Status Filter
+      if (activeViewTab === 'verification') {
+        query = query.eq('verification_status', 'pending')
+      }
 
       // Search Filter
       if (debouncedSearchQuery) {
@@ -485,9 +492,16 @@ WHERE id = '${editingProduct.id}';`
         .eq('is_available', false)
         .limit(0)
 
+      const { count: pendingAll } = await supabaseAdmin
+        .from('products')
+        .select('*', { count: 'exact' })
+        .eq('verification_status', 'pending')
+        .limit(0)
+
       setStats({
         total: totalAll ?? count ?? 0,
-        oos: oos ?? 0
+        oos: oos ?? 0,
+        pending: pendingAll ?? 0
       })
     } catch (err) {
       console.error('Failed to load products list:', err)
@@ -524,7 +538,7 @@ WHERE id = '${editingProduct.id}';`
     if (categories.length > 0) {
       fetchProducts()
     }
-  }, [currentPage, debouncedSearchQuery, selectedCategory, selectedMart, stockFilter, sortBy, priceMin, priceMax, hasImageFilter])
+  }, [currentPage, debouncedSearchQuery, selectedCategory, selectedMart, stockFilter, sortBy, priceMin, priceMax, hasImageFilter, activeViewTab])
 
   const loadOptimizerData = async () => {
     setOptimizerData(prev => ({ ...prev, loading: true }))
@@ -1080,6 +1094,63 @@ WHERE id = '${editingProduct.id}';`
     }
   }
 
+  // Approve product details and images
+  const handleApproveProduct = async (product) => {
+    try {
+      setUpdatingProductId(product.id)
+      const { error } = await supabaseAdmin
+        .from('products')
+        .update({
+          name: product.pending_name || product.name,
+          brand: product.pending_brand || product.brand,
+          images: product.pending_images || product.images,
+          image_url: product.pending_images?.[0] || product.image_url,
+          verification_status: 'approved',
+          pending_name: null,
+          pending_brand: null,
+          pending_images: null,
+          enriched_by_mart_id: null
+        })
+        .eq('id', product.id)
+
+      if (error) throw error
+      toast.success('Changes approved successfully!')
+      fetchProducts()
+    } catch (err) {
+      console.error('Approve failed:', err)
+      toast.error('Approve failed: ' + err.message)
+    } finally {
+      setUpdatingProductId(null)
+    }
+  }
+
+  // Reject proposed details and images
+  const handleRejectProduct = async (product) => {
+    if (!window.confirm('Are you sure you want to REJECT the new proposed details and photos?')) return
+    try {
+      setUpdatingProductId(product.id)
+      const { error } = await supabaseAdmin
+        .from('products')
+        .update({
+          verification_status: 'rejected',
+          pending_name: null,
+          pending_brand: null,
+          pending_images: null,
+          enriched_by_mart_id: null
+        })
+        .eq('id', product.id)
+
+      if (error) throw error
+      toast.success('Changes rejected and cleared!')
+      fetchProducts()
+    } catch (err) {
+      console.error('Reject failed:', err)
+      toast.error('Reject failed: ' + err.message)
+    } finally {
+      setUpdatingProductId(null)
+    }
+  }
+
   // Filter and Search logic (now handled on the server side)
   const filteredProducts = products
 
@@ -1162,8 +1233,15 @@ WHERE id = '${editingProduct.id}';`
 
 
       {/* Quick Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="p-5 bg-white dark:bg-[#1a1a1a] rounded-2xl border border-gray-100 dark:border-white/5 shadow-sm">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        <div 
+          onClick={() => setActiveViewTab('all')}
+          className={`p-5 rounded-2xl border transition-all shadow-sm cursor-pointer hover:scale-[1.01] ${
+            activeViewTab === 'all' 
+              ? 'bg-purple-50/50 dark:bg-purple-950/20 border-purple-500/35 ring-1 ring-purple-500/20' 
+              : 'bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-white/5'
+          }`}
+        >
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold text-gray-400 uppercase">Total Items</span>
             <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-900/20 text-purple-600">
@@ -1201,6 +1279,30 @@ WHERE id = '${editingProduct.id}';`
             </div>
           </div>
           <p className="text-2xl font-black mt-2 text-blue-600">{uniqueMartsCount}</p>
+        </div>
+
+        <div 
+          onClick={() => setActiveViewTab(activeViewTab === 'verification' ? 'all' : 'verification')}
+          className={`p-5 rounded-2xl border transition-all shadow-sm cursor-pointer hover:scale-[1.01] ${
+            activeViewTab === 'verification' 
+              ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-500/35 ring-1 ring-amber-500/20' 
+              : 'bg-white dark:bg-[#1a1a1a] border-gray-100 dark:border-white/5'
+          }`}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-gray-400 uppercase">Verification Queue</span>
+            <div className={`p-2 rounded-xl text-amber-600 ${stats.pending > 0 ? 'bg-amber-100 dark:bg-amber-900/40 animate-pulse' : 'bg-amber-50 dark:bg-amber-900/20'}`}>
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <p className="text-2xl font-black text-amber-600">{stats.pending || 0}</p>
+            {stats.pending > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-bounce">
+                NEW
+              </span>
+            )}
+          </div>
         </div>
       </div>
 
@@ -1426,18 +1528,136 @@ WHERE id = '${editingProduct.id}';`
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Product Info</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Mart / Dukan</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">MRP</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Selling Price</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[180px] min-w-[180px]">OZO Price</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Stock Status</th>
-                  <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Action</th>
+                  {activeViewTab === 'verification' ? (
+                    <>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Product Info</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Proposed Changes</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Captured Images (1:Front, 2:Back, 3:Barcode)</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Enriched By</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Review Action</th>
+                    </>
+                  ) : (
+                    <>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Product Info</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Mart / Dukan</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">MRP</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Selling Price</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[180px] min-w-[180px]">OZO Price</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Stock Status</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Action</th>
+                    </>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                 {filteredProducts.map((product) => {
+                  if (activeViewTab === 'verification') {
+                    const hasNameChanged = product.name !== product.pending_name
+                    const hasBrandChanged = product.brand !== product.pending_brand
+                    const imagesList = product.pending_images || []
+
+                    return (
+                      <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
+                        {/* Product Info (Current) */}
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200/50 dark:border-white/10 shrink-0">
+                              {product.image_url ? (
+                                <img
+                                  src={product.image_url}
+                                  alt={product.name}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                <ImageIcon className="w-5 h-5 text-gray-400" />
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-bold text-gray-905 dark:text-white text-sm">{product.name || 'Untitled Product'}</div>
+                              <div className="text-xs text-gray-400 mt-0.5">{product.brand || 'No Brand'} • {product.barcode}</div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Proposed changes comparison */}
+                        <td className="p-4">
+                          <div className="space-y-1">
+                            <div>
+                              <span className="text-[10px] uppercase font-bold text-gray-400">Name:</span>
+                              <div className={`text-sm font-bold ${hasNameChanged ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg w-fit' : 'text-gray-600 dark:text-gray-450'}`}>
+                                {product.pending_name || 'No Name'}
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-[10px] uppercase font-bold text-gray-400">Brand:</span>
+                              <div className={`text-xs ${hasBrandChanged ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg w-fit' : 'text-gray-600 dark:text-gray-450'}`}>
+                                {product.pending_brand || 'No Brand'}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Images preview (Front, Back, Barcode) */}
+                        <td className="p-4">
+                          <div className="flex items-center gap-2">
+                            {imagesList.map((url, idx) => {
+                              const labels = ['Front', 'Back', 'Barcode']
+                              return (
+                                <div key={idx} className="relative group cursor-zoom-in">
+                                  <img
+                                    src={url}
+                                    alt={`Pending ${labels[idx]}`}
+                                    className="w-14 h-14 object-cover rounded-lg border border-gray-200 dark:border-white/10 transition-transform group-hover:scale-105"
+                                    onClick={() => window.open(url, '_blank')}
+                                  />
+                                  <span className="absolute bottom-0 left-0 right-0 text-[8px] font-black text-center text-white bg-black/60 py-0.5 rounded-b-lg">
+                                    {labels[idx] || `Photo ${idx + 1}`}
+                                  </span>
+                                </div>
+                              )
+                            })}
+                            {imagesList.length === 0 && (
+                              <span className="text-xs text-gray-400 italic">No images uploaded</span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Originating Mart info */}
+                        <td className="p-4">
+                          <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
+                            <Store className="w-4 h-4 text-gray-400" />
+                            <div>
+                              <div className="text-sm font-bold text-gray-900 dark:text-white">{product.enriched_mart?.name || product.mart?.name || 'Unknown Mart'}</div>
+                              <div className="text-[10px] text-gray-400 uppercase">Mart Enriched</div>
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Review Actions */}
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleRejectProduct(product)}
+                              className="p-2 text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors border border-red-200 dark:border-red-900/40"
+                              title="Reject Changes"
+                            >
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleApproveProduct(product)}
+                              className="flex items-center gap-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 animate-pulse"
+                              title="Approve Changes"
+                            >
+                              <CheckCircle2 className="w-4 h-4" />
+                              Approve
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    )
+                  }
+
                   const tempPrice = editedPrices[product.id]
                   const currentOzoPriceStr = product.ozo_price !== null && product.ozo_price !== undefined ? product.ozo_price.toString() : ''
                   const hasPriceChanged = tempPrice !== undefined && tempPrice !== currentOzoPriceStr
@@ -1539,17 +1759,17 @@ WHERE id = '${editingProduct.id}';`
                               value={tempPrice !== undefined ? tempPrice : (product.ozo_price !== null && product.ozo_price !== undefined ? product.ozo_price : '')}
                               onChange={(e) => handlePriceChangeLocal(product.id, e.target.value)}
                               onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  e.preventDefault()
-                                  handleSavePrice(product)
-                                } else if (e.key === 'Escape') {
-                                  e.preventDefault()
-                                  setEditedPrices(prev => {
-                                    const copy = { ...prev }
-                                    delete copy[product.id]
-                                    return copy
-                                  })
-                                }
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault()
+                                    handleSavePrice(product)
+                                  } else if (e.key === 'Escape') {
+                                    e.preventDefault()
+                                    setEditedPrices(prev => {
+                                      const copy = { ...prev }
+                                      delete copy[product.id]
+                                      return copy
+                                    })
+                                  }
                               }}
                               disabled={isUpdating}
                               className={`w-24 pl-6 pr-1.5 py-1.5 text-sm font-bold border rounded-lg bg-transparent focus:outline-none focus:ring-1 focus:ring-ozo-red ${
@@ -1710,7 +1930,7 @@ WHERE id = '${editingProduct.id}';`
                             href={`/product/${product.slug}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-650 hover:text-gray-950 dark:text-gray-300 dark:hover:text-white rounded-xl transition-all flex items-center justify-center flex-shrink-0"
+                            className="w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-650 hover:text-gray-955 dark:text-gray-300 dark:hover:text-white rounded-xl transition-all flex items-center justify-center flex-shrink-0"
                             title="View product page"
                           >
                             <Eye className="w-4.5 h-4.5" />
