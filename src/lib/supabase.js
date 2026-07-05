@@ -572,16 +572,22 @@ export const uploadToImgbb = async (file, customName = null) => {
   }
 }
 
-// Parallel Image Uploader (Primary freehost + Backup Supabase Storage)
+// Parallel Image Uploader (Primary ImageKit + Backup Supabase Storage)
 export const uploadCatalogImage = async (file, barcode, imageIndex) => {
   try {
     const ext = (file instanceof File && file.name) ? file.name.split('.').pop() : 'jpg';
-    const customName = `catalog-${barcode}-${imageIndex}`;
-    
-    // 1. Primary upload to ImgBB / Freeimage.host
-    const primaryPromise = uploadToImgbb(file, customName);
-    
-    // 2. Backup upload to Supabase Storage in parallel
+    const fileName = `${barcode}_${imageIndex}.${ext}`;
+
+    // 1. Fetch ImageKit Authentication Parameters from Supabase Edge Function
+    const authPromise = (async () => {
+      const { data, error: authError } = await supabase.functions.invoke('imagekit-auth');
+      if (authError || !data) {
+        throw authError || new Error('No authentication details returned from Edge Function');
+      }
+      return data;
+    })();
+
+    // 2. Backup upload to Supabase Storage in parallel (start immediately)
     const supabasePath = `merchant-photos/${barcode}/${imageIndex}.${ext}`;
     const backupPromise = supabase.storage
       .from('mart-assets')
@@ -590,44 +596,66 @@ export const uploadCatalogImage = async (file, barcode, imageIndex) => {
         upsert: true
       });
 
-    // Wait for both in parallel
-    const [primaryResult, backupResult] = await Promise.allSettled([
-      primaryPromise,
-      backupPromise
-    ]);
+    // Wait for ImageKit auth to resolve
+    let authData = null;
+    try {
+      authData = await authPromise;
+    } catch (authErr) {
+      console.error('[Upload] ImageKit authentication failed:', authErr);
+    }
 
     let primaryUrl = null;
+    let imagekitData = null;
+
+    if (authData) {
+      const { signature, expire, token } = authData;
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('fileName', fileName);
+      formData.append('publicKey', import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || 'public_e6aAVXZkPBwJl0S...');
+      formData.append('signature', signature);
+      formData.append('expire', expire.toString());
+      formData.append('token', token);
+      formData.append('folder', '/ozomart-products');
+
+      try {
+        const imagekitRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+          method: 'POST',
+          body: formData
+        });
+        if (imagekitRes.ok) {
+          imagekitData = await imagekitRes.json();
+          primaryUrl = imagekitData.url;
+        } else {
+          const errText = await imagekitRes.text();
+          console.error('[Upload] ImageKit upload error response:', errText);
+        }
+      } catch (uploadErr) {
+        console.error('[Upload] ImageKit fetch error:', uploadErr);
+      }
+    }
+
+    // Await backup upload results
     let backupUrl = null;
-    let error = null;
-
-    if (primaryResult.status === 'fulfilled' && primaryResult.value && primaryResult.value.url) {
-      primaryUrl = primaryResult.value.url;
-    } else {
-      const errReason = primaryResult.status === 'rejected' 
-        ? primaryResult.reason 
-        : ((primaryResult.value && primaryResult.value.error) || 'Primary upload failed');
-      console.error('[Upload] Primary upload failed:', errReason);
-      error = errReason;
+    try {
+      const backupResult = await backupPromise;
+      if (backupResult && !backupResult.error) {
+        const { data } = supabase.storage
+          .from('mart-assets')
+          .getPublicUrl(supabasePath);
+        backupUrl = data?.publicUrl;
+      } else {
+        console.warn('[Upload] Backup upload to Supabase failed:', backupResult?.error);
+      }
+    } catch (backupErr) {
+      console.warn('[Upload] Backup upload promise rejected:', backupErr);
     }
 
-    if (backupResult.status === 'fulfilled' && backupResult.value && !backupResult.value.error) {
-      const { data } = supabase.storage
-        .from('mart-assets')
-        .getPublicUrl(supabasePath);
-      backupUrl = data?.publicUrl;
-    } else {
-      const errReason = backupResult.status === 'rejected' 
-        ? backupResult.reason 
-        : ((backupResult.value && backupResult.value.error) || 'Backup upload failed');
-      console.warn('[Upload] Backup upload to Supabase failed:', errReason);
-    }
-
-    // Return the result
     return {
-      url: primaryUrl || backupUrl, // Fallback to backup if primary failed
+      url: primaryUrl || backupUrl,
       primaryUrl,
       backupUrl,
-      error: (primaryUrl || backupUrl) ? null : (error || 'Both upload providers failed')
+      error: (primaryUrl || backupUrl) ? null : 'Both primary CDN and backup storage failed'
     };
   } catch (err) {
     console.error('[Upload] Parallel upload system error:', err);
