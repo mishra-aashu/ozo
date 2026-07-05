@@ -53,6 +53,16 @@ const ImageUpload = ({
     }
   }, [stream])
 
+  // Synchronize stream to video element when camera is open and stream is loaded
+  useEffect(() => {
+    if (showCamera && stream && videoRef.current) {
+      videoRef.current.srcObject = stream
+      videoRef.current.play().catch(err => {
+        console.error('Error playing upload video stream:', err)
+      })
+    }
+  }, [showCamera, stream])
+
   const startCamera = async (currentFacingMode = facingMode) => {
     // Stop any existing stream before starting a new one
     if (stream) {
@@ -61,19 +71,26 @@ const ImageUpload = ({
     setStream(null)
     setCameraError('')
     try {
-      const constraints = {
-        video: {
-          facingMode: currentFacingMode,
-          width: { ideal: 1280 },
-          height: { ideal: 960 }
-        },
-        audio: false
+      let newStream
+      try {
+        const constraints = {
+          video: {
+            facingMode: { ideal: currentFacingMode },
+            width: { ideal: 1280 },
+            height: { ideal: 960 }
+          },
+          audio: false
+        }
+        newStream = await navigator.mediaDevices.getUserMedia(constraints)
+      } catch (firstErr) {
+        console.warn('Failed with facingMode constraint, trying default video...', firstErr)
+        newStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        })
       }
-      const newStream = await navigator.mediaDevices.getUserMedia(constraints)
+      
       setStream(newStream)
-      if (videoRef.current) {
-        videoRef.current.srcObject = newStream
-      }
 
       // Check if there are multiple video devices
       const devices = await navigator.mediaDevices.enumerateDevices()

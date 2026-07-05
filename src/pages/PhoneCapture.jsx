@@ -113,19 +113,24 @@ export default function PhoneCapture() {
       if (streamRef.current) {
         stopCamera()
       }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { 
-          facingMode: 'environment',
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
-        },
-        audio: false
-      })
-      streamRef.current = stream
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream
-        videoRef.current.play()
+      let stream
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { 
+            facingMode: { ideal: 'environment' },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        })
+      } catch (firstErr) {
+        console.warn('Failed with environment constraint, trying default video...', firstErr)
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false
+        })
       }
+      streamRef.current = stream
       setIsCameraActive(true)
     } catch (err) {
       console.error('Camera access error:', err)
@@ -142,6 +147,16 @@ export default function PhoneCapture() {
     }
     setIsCameraActive(false)
   }
+
+  // Synchronize stream to video element when active
+  useEffect(() => {
+    if (isCameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current
+      videoRef.current.play().catch(err => {
+        console.error('Error playing phone video stream:', err)
+      })
+    }
+  }, [isCameraActive])
 
   // Auto-start camera when step changes and session is active
   useEffect(() => {
