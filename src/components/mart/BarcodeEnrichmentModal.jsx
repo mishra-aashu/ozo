@@ -982,21 +982,33 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
            ========================================== */}
         {step === 2 && mode === 'phone_qr' && (
           <div className="p-6 flex flex-col items-center">
+            {/* Inline Scanner Line Animation Styles */}
+            <style>{`
+              @keyframes qr-scan-pulse {
+                0%, 100% { top: 6%; opacity: 0.2; }
+                50% { top: 94%; opacity: 1; }
+              }
+              .qr-scanner-line {
+                animation: qr-scan-pulse 2.2s ease-in-out infinite;
+              }
+            `}</style>
             
             {/* Countdown / Session Status indicator */}
-            <div className="w-full flex justify-between items-center mb-5 bg-slate-900/30 border border-slate-850 p-3 rounded-2xl">
+            <div className="w-full flex justify-between items-center mb-5 bg-amber-500/5 border border-amber-500/10 p-3 rounded-2xl">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-orange-400" />
-                <span className="text-xs font-bold text-gray-400">QR Session Expiry</span>
+                <Clock className="w-4 h-4 text-amber-550" />
+                <span className="text-xs font-bold text-amber-500/80">QR Session Expiry</span>
               </div>
-              <span className="text-xs font-mono font-black text-orange-400">
+              <span className="text-xs font-mono font-black text-amber-400 bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-500/15">
                 {formatTime(timeLeft)}
               </span>
             </div>
 
             {/* QR Code Container */}
             {sessionStatus !== 'expired' ? (
-              <div className="relative p-5 bg-white rounded-3xl shadow-xl flex flex-col items-center justify-center max-w-[220px] mx-auto mb-5 border border-slate-200">
+              <div className="relative p-5 bg-white rounded-3xl shadow-[0_0_30px_rgba(99,102,241,0.15)] flex flex-col items-center justify-center max-w-[220px] mx-auto mb-5 border border-indigo-500/20 overflow-hidden">
+                {/* Neon scan line */}
+                <div className="absolute inset-x-4 h-0.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_8px_#6366f1] qr-scanner-line pointer-events-none" />
                 <QRCode 
                   value={qrUrl} 
                   size={180}
@@ -1021,58 +1033,73 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             {/* Instructions */}
             <div className="text-center max-w-sm mb-6">
               <h4 className="font-bold text-white text-sm mb-1">Scan with Phone Camera</h4>
-              <p className="text-xs text-gray-500 leading-relaxed">
+              <p className="text-xs text-gray-400 leading-relaxed">
                 Scan the QR code to open the HD capture portal on your phone. Stream will sync automatically.
               </p>
             </div>
 
             {/* Live Status indicator */}
-            <div className="w-full border-t border-slate-900 pt-5 mt-2">
+            <div className="w-full border-t border-slate-900/60 pt-5 mt-2">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-gray-500 font-bold">Live Stream Status</span>
-                <span className="text-xs text-gray-400 flex items-center gap-1.5 font-bold">
+                <span className="text-xs text-gray-400 font-bold">Live Stream Status</span>
+                <span className="text-xs flex items-center gap-1.5 font-bold">
                   {sessionStatus === 'waiting' && (
-                    <>
-                      <span className="w-2.5 h-2.5 bg-indigo-500 rounded-full animate-ping" />
+                    <span className="text-indigo-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
                       Waiting for scan...
-                    </>
+                    </span>
                   )}
                   {sessionStatus === 'uploading' && (
-                    <>
-                      <span className="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-pulse" />
+                    <span className="text-amber-455 flex items-center gap-1.5">
+                      <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                       Receiving photos...
-                    </>
+                    </span>
                   )}
                   {sessionStatus === 'completed' && (
-                    <>
-                      <span className="w-2.5 h-2.5 bg-emerald-500 rounded-full" />
+                    <span className="text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
                       Perfect! Saving...
-                    </>
+                    </span>
                   )}
                 </span>
               </div>
 
               {/* Captured photos indicator */}
-              <div className="grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-3 gap-3">
                 {[0, 1, 2].map((idx) => {
                   const hasPhoto = phonePhotos[idx]
+                  const labels = ["Front View", "Back View", "Barcode Label"]
+                  const icons = [
+                    <Package className="w-4 h-4 text-indigo-400/40" />,
+                    <Layers className="w-4 h-4 text-indigo-400/40" />,
+                    <Tag className="w-4 h-4 text-indigo-400/40" />
+                  ]
+                  
                   return (
                     <div 
                       key={idx} 
-                      className={`h-14 rounded-xl border flex flex-col items-center justify-center transition-all overflow-hidden ${
+                      className={`h-16 rounded-xl border flex flex-col items-center justify-center transition-all overflow-hidden relative ${
                         hasPhoto 
-                          ? 'border-emerald-500/30 bg-emerald-950/10' 
-                          : 'border-slate-850 bg-slate-900/10'
+                          ? 'border-emerald-500/40 bg-emerald-950/10' 
+                          : 'border-slate-800/80 bg-slate-950/20'
                       }`}
                     >
                       {hasPhoto ? (
-                        <img 
-                          src={hasPhoto} 
-                          alt={`Step ${idx + 1}`} 
-                          className="w-full h-full object-cover"
-                        />
+                        <div className="relative w-full h-full animate-fade-in">
+                          <img 
+                            src={hasPhoto} 
+                            alt={labels[idx]} 
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute top-1 right-1 bg-emerald-500 text-slate-950 p-0.5 rounded-full shadow-md">
+                            <Check className="w-2.5 h-2.5 font-black" />
+                          </div>
+                        </div>
                       ) : (
-                        <Smartphone className="w-4 h-4 text-gray-700" />
+                        <div className="flex flex-col items-center gap-1">
+                          {icons[idx]}
+                          <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider">{labels[idx].split(' ')[0]}</span>
+                        </div>
                       )}
                     </div>
                   )
