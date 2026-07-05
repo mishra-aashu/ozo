@@ -16,6 +16,9 @@ import {
   AlertTriangle,
   ArrowLeft
 } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
+import BarcodeEnrichmentModal from '../../components/mart/BarcodeEnrichmentModal'
+import toast from 'react-hot-toast'
 
 const MartDashboard = () => {
   const { profile } = useAuthStore()
@@ -102,6 +105,89 @@ const MartDashboard = () => {
       document.documentElement.scrollTop = 0
     }
   }, [currentView])
+
+  // Scanner Keyboard Listener for Catalog Enrichment
+  const [scannedBarcode, setScannedBarcode] = useState(null)
+  const [scannedProduct, setScannedProduct] = useState(null)
+  const [isEnrichmentModalOpen, setIsEnrichmentModalOpen] = useState(false)
+
+  useEffect(() => {
+    if (!isMartOperator) return
+
+    let barcodeBuffer = ''
+    let lastKeyTime = 0
+
+    const handleKeyDown = async (e) => {
+      const target = e.target
+      if (
+        target.tagName === 'INPUT' || 
+        target.tagName === 'TEXTAREA' || 
+        target.isContentEditable
+      ) {
+        return
+      }
+
+      // Ignore modifier keys to prevent interception of keyboard shortcuts
+      if (e.metaKey || e.ctrlKey || e.altKey) {
+        return
+      }
+
+      const currentTime = Date.now()
+
+      // Reset buffer if delay between keystrokes is too long (> 80ms)
+      if (barcodeBuffer.length > 0 && currentTime - lastKeyTime > 80) {
+        barcodeBuffer = ''
+      }
+
+      lastKeyTime = currentTime
+
+      if (e.key === 'Enter') {
+        const cleanBarcode = barcodeBuffer.trim()
+        if (cleanBarcode.length >= 8) {
+          e.preventDefault()
+          e.stopPropagation()
+          
+          const loadingToast = toast.loading(`Checking scanned barcode: ${cleanBarcode}...`)
+          try {
+            const { data: product, error } = await supabase
+              .from('products')
+              .select('*')
+              .eq('barcode', cleanBarcode)
+              .maybeSingle()
+
+            if (error) throw error
+
+            if (product) {
+              if (product.enrichment_status === 'pending_photo') {
+                toast.success(`Found product requiring photo enrichment: ${product.name}`, { id: loadingToast, icon: '📸' })
+                setScannedBarcode(cleanBarcode)
+                setScannedProduct(product)
+                setIsEnrichmentModalOpen(true)
+              } else {
+                toast(`Product: ${product.name} (Status: ${product.enrichment_status})`, { id: loadingToast, icon: '📦' })
+              }
+            } else {
+              toast.error(`Barcode ${cleanBarcode} is not registered in the catalog.`, { id: loadingToast })
+            }
+          } catch (err) {
+            console.error('Failed to lookup barcode:', err)
+            toast.error('Failed to check barcode status', { id: loadingToast })
+          }
+        }
+        barcodeBuffer = ''
+        return
+      }
+
+      if (e.key.length === 1) {
+        barcodeBuffer += e.key
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown, true)
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown, true)
+    }
+  }, [isMartOperator])
 
   if (isLoadingApplication && !isMartOperator) {
     return (
@@ -412,6 +498,24 @@ const MartDashboard = () => {
           <span className="text-[10px] font-bold">Profile</span>
         </button>
       </nav>
+
+      {isEnrichmentModalOpen && scannedBarcode && (
+        <BarcodeEnrichmentModal
+          barcode={scannedBarcode}
+          product={scannedProduct}
+          onClose={() => {
+            setIsEnrichmentModalOpen(false)
+            setScannedBarcode(null)
+            setScannedProduct(null)
+          }}
+          onComplete={(updatedProduct) => {
+            setIsEnrichmentModalOpen(false)
+            setScannedBarcode(null)
+            setScannedProduct(null)
+            fetchInventory()
+          }}
+        />
+      )}
     </div>
   )
 }

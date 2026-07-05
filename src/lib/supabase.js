@@ -572,6 +572,70 @@ export const uploadToImgbb = async (file, customName = null) => {
   }
 }
 
+// Parallel Image Uploader (Primary freehost + Backup Supabase Storage)
+export const uploadCatalogImage = async (file, barcode, imageIndex) => {
+  try {
+    const ext = (file instanceof File && file.name) ? file.name.split('.').pop() : 'jpg';
+    const customName = `catalog-${barcode}-${imageIndex}`;
+    
+    // 1. Primary upload to ImgBB / Freeimage.host
+    const primaryPromise = uploadToImgbb(file, customName);
+    
+    // 2. Backup upload to Supabase Storage in parallel
+    const supabasePath = `merchant-photos/${barcode}/${imageIndex}.${ext}`;
+    const backupPromise = supabase.storage
+      .from('mart-assets')
+      .upload(supabasePath, file, {
+        cacheControl: '3600',
+        upsert: true
+      });
+
+    // Wait for both in parallel
+    const [primaryResult, backupResult] = await Promise.allSettled([
+      primaryPromise,
+      backupPromise
+    ]);
+
+    let primaryUrl = null;
+    let backupUrl = null;
+    let error = null;
+
+    if (primaryResult.status === 'fulfilled' && primaryResult.value && primaryResult.value.url) {
+      primaryUrl = primaryResult.value.url;
+    } else {
+      const errReason = primaryResult.status === 'rejected' 
+        ? primaryResult.reason 
+        : ((primaryResult.value && primaryResult.value.error) || 'Primary upload failed');
+      console.error('[Upload] Primary upload failed:', errReason);
+      error = errReason;
+    }
+
+    if (backupResult.status === 'fulfilled' && backupResult.value && !backupResult.value.error) {
+      const { data } = supabase.storage
+        .from('mart-assets')
+        .getPublicUrl(supabasePath);
+      backupUrl = data?.publicUrl;
+    } else {
+      const errReason = backupResult.status === 'rejected' 
+        ? backupResult.reason 
+        : ((backupResult.value && backupResult.value.error) || 'Backup upload failed');
+      console.warn('[Upload] Backup upload to Supabase failed:', errReason);
+    }
+
+    // Return the result
+    return {
+      url: primaryUrl || backupUrl, // Fallback to backup if primary failed
+      primaryUrl,
+      backupUrl,
+      error: (primaryUrl || backupUrl) ? null : (error || 'Both upload providers failed')
+    };
+  } catch (err) {
+    console.error('[Upload] Parallel upload system error:', err);
+    return { url: null, primaryUrl: null, backupUrl: null, error: err };
+  }
+}
+
+
 // =============================================
 // FILE SECURITY HELPERS (Prevent Zip / Renamed Upload DDoS Attacks)
 // =============================================
