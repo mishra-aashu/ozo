@@ -780,7 +780,7 @@ export const useMartStore = create((set, get) => {
     },
 
     // Fetch Mart inventory (products) with server-side pagination & search
-    fetchInventory: async (page = 1, pageSize = 20, search = '', lowStockOnly = false) => {
+    fetchInventory: async (page = 1, pageSize = 20, search = '', lowStockOnly = false, categoryId = '', availabilityStatus = 'all') => {
       const { currentMart } = get()
       if (!currentMart) return
 
@@ -799,6 +799,15 @@ export const useMartStore = create((set, get) => {
         if (search) {
           countQuery = countQuery.or(`name.ilike.%${search}%,brand.ilike.%${search}%,barcode.ilike.%${search}%`, { foreignTable: 'products' })
         }
+        if (categoryId) {
+          countQuery = countQuery.eq('products.category_id', categoryId)
+        }
+        if (availabilityStatus === 'in_stock') {
+          countQuery = countQuery.eq('is_available', true)
+        } else if (availabilityStatus === 'out_of_stock') {
+          countQuery = countQuery.eq('is_available', false)
+        }
+
         const { count, error: countError } = await countQuery
         if (countError) throw countError
 
@@ -825,7 +834,8 @@ export const useMartStore = create((set, get) => {
               mrp,
               price,
               blinkit_product_id,
-              barcode
+              barcode,
+              category_id
             )
           `)
           .eq('mart_id', currentMart.id)
@@ -835,6 +845,14 @@ export const useMartStore = create((set, get) => {
         }
         if (search) {
           query = query.or(`name.ilike.%${search}%,brand.ilike.%${search}%,barcode.ilike.%${search}%`, { foreignTable: 'products' })
+        }
+        if (categoryId) {
+          query = query.eq('products.category_id', categoryId)
+        }
+        if (availabilityStatus === 'in_stock') {
+          query = query.eq('is_available', true)
+        } else if (availabilityStatus === 'out_of_stock') {
+          query = query.eq('is_available', false)
         }
 
         // Order by products.name
