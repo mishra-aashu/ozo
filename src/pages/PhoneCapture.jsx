@@ -41,6 +41,8 @@ export default function PhoneCapture() {
   const [sessionError, setSessionError] = useState(null)
 
   const [photos, setPhotos] = useState([null, null, null])
+  const [uploadedUrls, setUploadedUrls] = useState([null, null, null])
+  const [syncing, setSyncing] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
   const [isCameraActive, setIsCameraActive] = useState(false)
   const [cameraError, setCameraError] = useState(null)
@@ -82,6 +84,22 @@ export default function PhoneCapture() {
         }
 
         setSession(sessData)
+        if (sessData.photos) {
+          setUploadedUrls(sessData.photos)
+          const loadedPhotos = [null, null, null]
+          sessData.photos.forEach((url, i) => {
+            if (url) loadedPhotos[i] = url
+          })
+          setPhotos(loadedPhotos)
+        }
+
+        // Mark session as joined so the desktop operator knows phone is connected
+        if (sessData.status === 'waiting') {
+          await supabase
+            .from('capture_sessions')
+            .update({ status: 'joined' })
+            .eq('session_id', sessionId)
+        }
 
         // Fetch associated product details
         const { data: prodData } = await supabase
@@ -166,6 +184,42 @@ export default function PhoneCapture() {
     return () => stopCamera()
   }, [activeStep, session, completed, loading, sessionError])
 
+  // Helper to upload single photo instantly
+  const uploadCapturedPhoto = async (dataUrl, stepIndex) => {
+    try {
+      setSyncing(true)
+      const res = await fetch(dataUrl)
+      const blob = await res.blob()
+      const file = new File([blob], `${session.barcode}_${stepIndex}.jpg`, { type: 'image/jpeg' })
+
+      const uploadRes = await uploadCatalogImage(file, session.barcode, stepIndex)
+      if (uploadRes.error) {
+        throw new Error(uploadRes.error.message || uploadRes.error)
+      }
+
+      const newUrls = [...uploadedUrls]
+      newUrls[stepIndex] = uploadRes.url
+      setUploadedUrls(newUrls)
+
+      // Update capture_session in database
+      const { error: syncErr } = await supabase
+        .from('capture_sessions')
+        .update({
+          photos: newUrls,
+          status: 'uploading'
+        })
+        .eq('session_id', sessionId)
+
+      if (syncErr) throw syncErr
+      toast.success(`${STEPS[stepIndex].title.split('. ')[1]} synced to laptop!`)
+    } catch (err) {
+      console.error('[PhoneCapture] Real-time photo sync failed:', err)
+      toast.error('Sync failed: ' + err.message)
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   // 4. Capture Frame
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return
@@ -184,6 +238,9 @@ export default function PhoneCapture() {
     newPhotos[activeStep] = dataUrl
     setPhotos(newPhotos)
     stopCamera()
+
+    // Sync immediately
+    uploadCapturedPhoto(dataUrl, activeStep)
   }
 
   // 5. File Upload Fallback
@@ -198,16 +255,38 @@ export default function PhoneCapture() {
       newPhotos[activeStep] = dataUrl
       setPhotos(newPhotos)
       stopCamera()
+
+      // Sync immediately
+      uploadCapturedPhoto(dataUrl, activeStep)
     }
     reader.readAsDataURL(file)
   }
 
   // 6. Reset step photo
-  const retakePhoto = () => {
-    const newPhotos = [...photos]
-    newPhotos[activeStep] = null
-    setPhotos(newPhotos)
-    startCamera()
+  const retakePhoto = async () => {
+    try {
+      setSyncing(true)
+      const newPhotos = [...photos]
+      newPhotos[activeStep] = null
+      setPhotos(newPhotos)
+
+      const newUrls = [...uploadedUrls]
+      newUrls[activeStep] = null
+      setUploadedUrls(newUrls)
+
+      // Sync cleared array to DB
+      await supabase
+        .from('capture_sessions')
+        .update({
+          photos: newUrls
+        })
+        .eq('session_id', sessionId)
+    } catch (err) {
+      console.error('[PhoneCapture] Retake sync failed:', err)
+    } finally {
+      setSyncing(false)
+      startCamera()
+    }
   }
 
   // 7. Proceed or Trigger Upload Sequence
@@ -217,36 +296,33 @@ export default function PhoneCapture() {
       return
     }
 
-    // Finished capturing all 3 -> Upload
+    // Finished capturing all 3 -> Complete session
     setUploading(true)
-    setUploadProgress('Preparing upload...')
-    const uploadedUrls = []
+    setUploadProgress('Completing session...')
 
     try {
+      const finalUrls = [...uploadedUrls]
+
+      // Fallback: If any photo was captured but failed to sync earlier, upload it now
       for (let i = 0; i < 3; i++) {
-        const photoDataUrl = photos[i]
-        if (!photoDataUrl) continue
-
-        setUploadProgress(`Uploading photo ${i + 1} of 3...`)
-
-        const res = await fetch(photoDataUrl)
-        const blob = await res.blob()
-        const file = new File([blob], `${session.barcode}_${i}.jpg`, { type: 'image/jpeg' })
-
-        const uploadRes = await uploadCatalogImage(file, session.barcode, i)
-        if (uploadRes.error) {
-          throw new Error(uploadRes.error.message || uploadRes.error)
+        if (!finalUrls[i] && photos[i]) {
+          setUploadProgress(`Uploading photo ${i + 1} of 3...`)
+          const res = await fetch(photos[i])
+          const blob = await res.blob()
+          const file = new File([blob], `${session.barcode}_${i}.jpg`, { type: 'image/jpeg' })
+          const uploadRes = await uploadCatalogImage(file, session.barcode, i)
+          if (uploadRes.error) throw new Error(uploadRes.error)
+          finalUrls[i] = uploadRes.url
         }
-        uploadedUrls.push(uploadRes.url)
       }
 
-      setUploadProgress('Completing session...')
+      setUploadProgress('Finalizing sync session...')
 
       // Update capture_session to let the laptop know we are done
       const { error: sessionUpdateErr } = await supabase
         .from('capture_sessions')
         .update({
-          photos: uploadedUrls,
+          photos: finalUrls,
           status: 'completed'
         })
         .eq('session_id', sessionId)
@@ -256,7 +332,7 @@ export default function PhoneCapture() {
       setCompleted(true)
       toast.success('All photos uploaded successfully!')
     } catch (err) {
-      console.error('[PhoneCapture] Upload failed:', err)
+      console.error('[PhoneCapture] Upload completion failed:', err)
       toast.error(`Upload failed: ${err.message || 'Unknown error'}`)
     } finally {
       setUploading(false)
@@ -380,9 +456,17 @@ export default function PhoneCapture() {
             </div>
           )}
 
+          {/* Syncing Overlay */}
+          {syncing && (
+            <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 z-10 animate-fade-in">
+              <Loader2 className="w-8 h-8 text-emerald-400 animate-spin mb-2" />
+              <p className="text-xs font-bold text-emerald-400 animate-pulse">Syncing photo to laptop...</p>
+            </div>
+          )}
+
           {/* Uploading Overlay */}
           {uploading && (
-            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+            <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 z-20">
               <Loader2 className="w-10 h-10 text-ozo-red animate-spin mb-4" />
               <p className="text-sm font-bold text-white">{uploadProgress}</p>
             </div>
@@ -424,13 +508,18 @@ export default function PhoneCapture() {
           {!photos[activeStep] ? (
             <>
               {/* File upload fallback link */}
-              <label className="flex-1 bg-slate-900 hover:bg-slate-850 active:scale-95 border border-slate-800 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm cursor-pointer transition-all">
+              <label 
+                className={`flex-1 bg-slate-900 hover:bg-slate-850 active:scale-95 border border-slate-800 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm cursor-pointer transition-all ${
+                  syncing ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
+                }`}
+              >
                 <Upload className="w-4 h-4 text-gray-400" />
                 Upload Image
                 <input 
                   type="file" 
                   accept="image/*" 
                   onChange={handleFileChange} 
+                  disabled={syncing}
                   className="hidden" 
                 />
               </label>
@@ -438,7 +527,7 @@ export default function PhoneCapture() {
               {/* Shutter capture button */}
               <button 
                 onClick={capturePhoto}
-                disabled={!isCameraActive}
+                disabled={!isCameraActive || syncing}
                 className="w-14 h-14 rounded-full bg-white text-slate-950 flex items-center justify-center shadow-lg shadow-white/20 active:scale-90 disabled:opacity-50 disabled:scale-100 transition-all"
               >
                 <Camera className="w-6 h-6" />
@@ -449,7 +538,8 @@ export default function PhoneCapture() {
               {/* Retake button */}
               <button 
                 onClick={retakePhoto}
-                className="flex-1 bg-slate-900 hover:bg-slate-850 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm border border-slate-800 transition-all active:scale-95"
+                disabled={syncing}
+                className="flex-1 bg-slate-900 hover:bg-slate-850 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm border border-slate-800 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <RotateCcw className="w-4 h-4 text-gray-400" />
                 Retake
@@ -458,10 +548,20 @@ export default function PhoneCapture() {
               {/* Next/Save button */}
               <button 
                 onClick={handleNext}
-                className="flex-1 bg-gradient-to-r from-ozo-red to-orange-500 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-black text-sm text-white transition-all active:scale-95 shadow-lg shadow-ozo-red/20"
+                disabled={syncing}
+                className="flex-1 bg-gradient-to-r from-ozo-red to-orange-500 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-black text-sm text-white transition-all active:scale-95 shadow-lg shadow-ozo-red/20 disabled:opacity-55 disabled:cursor-not-allowed"
               >
-                {activeStep === 2 ? 'Upload Photos' : 'Next Step'}
-                <ChevronRight className="w-4 h-4" />
+                {syncing ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin text-white" />
+                    Syncing...
+                  </>
+                ) : (
+                  <>
+                    {activeStep === 2 ? 'Complete & Save' : 'Next Step'}
+                    <ChevronRight className="w-4 h-4" />
+                  </>
+                )}
               </button>
             </>
           )}

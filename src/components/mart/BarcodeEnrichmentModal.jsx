@@ -1023,18 +1023,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             </div>
 
             {/* QR Code Container */}
-            {sessionStatus !== 'expired' ? (
-              <div className="relative p-5 bg-white rounded-3xl shadow-[0_0_30px_rgba(99,102,241,0.15)] flex flex-col items-center justify-center max-w-[220px] mx-auto mb-5 border border-indigo-500/20 overflow-hidden">
-                {/* Neon scan line */}
-                <div className="absolute inset-x-4 h-0.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_8px_#6366f1] qr-scanner-line pointer-events-none" />
-                <QRCode 
-                  value={qrUrl} 
-                  size={180}
-                  style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
-                  viewBox={`0 0 256 256`}
-                />
-              </div>
-            ) : (
+            {sessionStatus === 'expired' ? (
               <div className="p-6 bg-red-950/20 border border-red-500/20 text-center rounded-2xl mb-5 w-full">
                 <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
                 <h4 className="font-bold text-sm text-red-400 mb-1">Session Expired</h4>
@@ -1046,13 +1035,45 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   Regenerate QR Code
                 </button>
               </div>
+            ) : (sessionStatus === 'joined' || sessionStatus === 'uploading') ? (
+              <div className="w-full max-w-[280px] p-6 bg-emerald-500/5 border border-emerald-500/20 rounded-3xl text-center mb-5 flex flex-col items-center justify-center space-y-4 min-h-[220px] shadow-[0_0_30px_rgba(16,185,129,0.08)]">
+                <div className="w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-2xl flex items-center justify-center text-emerald-400 relative">
+                  <span className="absolute inset-0 rounded-2xl bg-emerald-500/20 animate-ping opacity-75" />
+                  <Smartphone className="w-8 h-8" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-white text-sm">Phone Connected</h4>
+                  <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                    Capture session is active. Take photos on your phone and watch them sync live.
+                  </p>
+                </div>
+                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/40 px-3 py-1 rounded-full border border-emerald-500/15 animate-pulse">
+                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                  Live Syncing
+                </div>
+              </div>
+            ) : (
+              <div className="relative p-5 bg-white rounded-3xl shadow-[0_0_30px_rgba(99,102,241,0.15)] flex flex-col items-center justify-center max-w-[220px] mx-auto mb-5 border border-indigo-500/20 overflow-hidden">
+                {/* Neon scan line */}
+                <div className="absolute inset-x-4 h-0.5 bg-gradient-to-r from-transparent via-indigo-500 to-transparent shadow-[0_0_8px_#6366f1] qr-scanner-line pointer-events-none" />
+                <QRCode 
+                  value={qrUrl} 
+                  size={180}
+                  style={{ height: 'auto', maxWidth: '100%', width: '100%' }}
+                  viewBox={`0 0 256 256`}
+                />
+              </div>
             )}
 
             {/* Instructions */}
             <div className="text-center max-w-sm mb-6">
-              <h4 className="font-bold text-white text-sm mb-1">Scan with Phone Camera</h4>
+              <h4 className="font-bold text-white text-sm mb-1">
+                {(sessionStatus === 'joined' || sessionStatus === 'uploading') ? 'Live Catalog Capture' : 'Scan with Phone Camera'}
+              </h4>
               <p className="text-xs text-gray-400 leading-relaxed">
-                Scan the QR code to open the HD capture portal on your phone. Stream will sync automatically.
+                {(sessionStatus === 'joined' || sessionStatus === 'uploading') 
+                  ? 'Keep this window open. As you press capture on your phone, images appear here instantly.'
+                  : 'Scan the QR code to open the HD capture portal on your phone. Stream will sync automatically.'}
               </p>
             </div>
 
@@ -1067,10 +1088,16 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                       Waiting for scan...
                     </span>
                   )}
+                  {sessionStatus === 'joined' && (
+                    <span className="text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />
+                      Phone Connected
+                    </span>
+                  )}
                   {sessionStatus === 'uploading' && (
                     <span className="text-amber-455 flex items-center gap-1.5">
                       <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-                      Receiving photos...
+                      Syncing photos...
                     </span>
                   )}
                   {sessionStatus === 'completed' && (
