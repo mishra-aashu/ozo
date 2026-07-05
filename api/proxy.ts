@@ -170,7 +170,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'prefer',
       'x-client-info',
       'accept',
-      'x-original-content-type'
+      'x-original-content-type',
+      'user-agent',
+      'x-forwarded-for'
     ];
 
     headersToForward.forEach(header => {
@@ -179,6 +181,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         proxyHeaders.set(header, Array.isArray(value) ? value.join(', ') : value);
       }
     });
+
+    // Explicit fallback for client IP forwarding to prevent GoTrue token recycling triggers
+    if (!proxyHeaders.has('x-forwarded-for')) {
+      const ip = req.headers['x-forwarded-for'] || req.socket?.remoteAddress;
+      if (ip) {
+        proxyHeaders.set('x-forwarded-for', Array.isArray(ip) ? ip.join(', ') : ip);
+      }
+    }
 
     const isHead = req.method === "HEAD";
     const fetchOptions: RequestInit = {
