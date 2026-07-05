@@ -1019,7 +1019,9 @@ const InventoryView = () => {
             price: r.mart_price || 0,
             mrp: r.mart_mrp || r.mart_price || 0,
             barcode: r.identifier?.trim() || null,
-            is_available: true
+            is_available: true,
+            enrichment_status: r.identifier?.trim() ? 'pending_photo' : 'enriched',
+            enrichment_source: r.identifier?.trim() ? 'placeholder' : 'imported'
           }
         })
 

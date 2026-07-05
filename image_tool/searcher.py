@@ -15,8 +15,11 @@ def clean_words(name):
     """Extract lowercase keywords of length >= 3 for comparison, filtering stop words"""
     if not name:
         return []
-    # Replace non-word characters with spaces
-    cleaned = re.sub(r'[^\w\s]', ' ', name.lower())
+    # Split digits and alphabets so "1gulabari" becomes "1 gulabari"
+    name = name.lower()
+    name = re.sub(r'(\d+)([a-zA-Z]+)', r'\1 \2', name)
+    name = re.sub(r'([a-zA-Z]+)(\d+)', r'\1 \2', name)
+    cleaned = re.sub(r'[^\w\s]', ' ', name)
     words = cleaned.split()
     return [w for w in words if len(w) >= 3 and w not in STOP_WORDS]
 
@@ -257,7 +260,7 @@ def search_bigbasket_images(product_name):
 def query_openserp(query_str):
     """
     Queries self-hosted OpenSERP server if available.
-    Tries mega endpoint first, falls back to bing/google endpoints.
+    Tries Bing endpoint first (to avoid Google rate limits), then mega, then google.
     """
     from . import config
     if not config.OPENSERP_URL:
@@ -265,17 +268,17 @@ def query_openserp(query_str):
         
     encoded_query = urllib.parse.quote_plus(query_str)
     
-    # Try mega first, fallback to bing/google
+    # Try bing first since google gets 429 rate limited, then mega, then google
     endpoints = [
-        f"{config.OPENSERP_URL}/mega/image?text={encoded_query}&engines=google,bing,duck&limit=10",
         f"{config.OPENSERP_URL}/bing/image?text={encoded_query}&limit=10",
+        f"{config.OPENSERP_URL}/mega/image?text={encoded_query}&engines=google,bing,duck&limit=10",
         f"{config.OPENSERP_URL}/google/image?text={encoded_query}&limit=10",
     ]
     
     for url in endpoints:
         try:
             req = urllib.request.Request(url)
-            with urllib.request.urlopen(req, timeout=3) as response:
+            with urllib.request.urlopen(req, timeout=8) as response:
                 data = json.loads(response.read().decode('utf-8'))
                 results = []
                 for item in data.get("results", []):
@@ -302,32 +305,18 @@ def query_openserp(query_str):
 
 def resolve_product_image(product_name, barcode):
     """
-    Main resolution engine orchestrating all layers:
+    Main resolution engine:
     1. Local cache lookup (always first)
-    2. OpenSERP Image Search (If active, premium Chromium multi-engine web search)
-    3. DuckDuckGo Image Search (Web search scraper fallback)
-    4. Nainji.in (SKU verified barcode search fallback)
-    5. FetchNBuy.in (SKU verified barcode search fallback)
-
-    Note: Open Food Facts is used only to resolve/enrich the product name
-    if it is missing or generic, but NOT for fetching images because user-uploaded
-    images on Open Food Facts are often low-quality, blurry, or incorrect.
+    2. OpenSERP direct barcode query (highest confidence, maps directly without strict name matching)
+    3. OpenSERP name query (with name matching validation)
+    
+    Note: All other engines (BigBasket, Nainji, FetchNBuy, Open Food Facts) are bypassed
+    per instructions to search only via local cache and OpenSERP.
     """
     barcode = str(barcode).strip() if barcode else ""
     valid_barcode = is_valid_barcode(barcode)
     
-    # If the product name is missing, generic, or too short, fetch the real product name
-    # from Open Food Facts so we can perform a highly accurate web search.
-    is_generic = (not product_name or 
-                  product_name.lower().strip() in ('', 'none', 'null', 'product') or 
-                  len(product_name.strip()) < 3)
-    if is_generic and valid_barcode:
-        off_name = get_open_food_facts_name(barcode)
-        if off_name:
-            product_name = off_name
-            print(f"ℹ️ Retrieved product name from Open Food Facts: {product_name}")
-
-    # --- Layer 1: Cache Check ---
+    # --- Layer 1: Cache Check (Locally) ---
     if valid_barcode:
         exists, cached = cache.check_cache(barcode)
         if exists:
@@ -346,66 +335,58 @@ def resolve_product_image(product_name, barcode):
                     "cached": True
                 }
 
-    # --- Layer 2: BigBasket Image Search (Premium FMCG Engine) ---
-    bb_candidates = search_bigbasket_images(product_name)
-    if bb_candidates:
-        # Check name overlap
-        for cand in bb_candidates:
-            if verify_name_overlap(product_name, cand["title"]):
-                return {
-                    "imageUrl": cand["imageUrl"],
-                    "source": cand["source"],
-                    "found_name": cand["title"]
-                }
-        # Fallback to top candidate if there is at least some reasonable similarity
-        return {
-            "imageUrl": bb_candidates[0]["imageUrl"],
-            "source": bb_candidates[0]["source"],
-            "found_name": bb_candidates[0]["title"]
-        }
-
-    # --- Layer 3: OpenSERP Search Engine (Web Search Fallback) ---
-    openserp_query = f"{product_name} product pack"
-    openserp_candidates = query_openserp(openserp_query)
-    if openserp_candidates:
-        # Check name overlap
-        for cand in openserp_candidates:
-            if verify_name_overlap(product_name, cand["title"]):
-                return {
-                    "imageUrl": cand["imageUrl"],
-                    "source": cand["source"],
-                    "found_name": cand["title"]
-                }
-        # Fallback to the top candidate if no overlap matches strictly but we have results
-        return {
-            "imageUrl": openserp_candidates[0]["imageUrl"],
-            "source": openserp_candidates[0]["source"],
-            "found_name": openserp_candidates[0]["title"]
-        }
-
-    # --- Layer 4: Nainji.in (SKU barcode fallback) ---
+    # --- Layer 2: OpenSERP Direct Barcode Search (Mapping directly with safety checks) ---
     if valid_barcode:
-        # Search by barcode directly first
-        nainji_res = search_nainji(barcode, barcode, product_name)
-        if nainji_res:
-            return nainji_res
-        # Search by product name, but verify barcode
-        nainji_res = search_nainji(product_name, barcode, product_name)
-        if nainji_res:
-            return nainji_res
+        print(f"🔍 OpenSERP querying barcode directly: {barcode}")
+        openserp_candidates = query_openserp(barcode)
+        matched_candidate = None
+        if openserp_candidates:
+            if product_name:
+                for cand in openserp_candidates:
+                    if verify_name_overlap(product_name, cand["title"]):
+                        matched_candidate = cand
+                        break
+            else:
+                matched_candidate = openserp_candidates[0]
+                
+        if matched_candidate:
+            print(f"✅ OpenSERP Barcode Match: {barcode} -> {matched_candidate['imageUrl']}")
+            return {
+                "imageUrl": matched_candidate["imageUrl"],
+                "source": matched_candidate["source"],
+                "found_name": matched_candidate["title"]
+            }
 
-    # --- Layer 5: FetchNBuy.in (SKU barcode fallback) ---
-    if valid_barcode:
-        # Search by barcode directly first
-        fnb_res = search_fetchnbuy(barcode, barcode, product_name)
-        if fnb_res:
-            return fnb_res
-        # Search by product name, but verify barcode
-        fnb_res = search_fetchnbuy(product_name, barcode, product_name)
-        if fnb_res:
-            return fnb_res
+    # --- Layer 3: OpenSERP Product Name Search ---
+    if product_name:
+        openserp_query = f"{product_name} product pack"
+        print(f"🔍 OpenSERP querying product name: '{product_name}'")
+        openserp_candidates = query_openserp(openserp_query)
+        if openserp_candidates:
+            # Check name overlap
+            for cand in openserp_candidates:
+                if verify_name_overlap(product_name, cand["title"]):
+                    return {
+                        "imageUrl": cand["imageUrl"],
+                        "source": cand["source"],
+                        "found_name": cand["title"]
+                    }
+            # Fallback to the top candidate if no overlap matches strictly but we have results
+            return {
+                "imageUrl": openserp_candidates[0]["imageUrl"],
+                "source": openserp_candidates[0]["source"],
+                "found_name": openserp_candidates[0]["title"]
+            }
 
     return None
+
+def search_duckduckgo_images(query):
+    """
+    Manual search fallback routed through OpenSERP to respect local-only/OpenSERP-only search constraints.
+    """
+    return query_openserp(query)
+
+
 
 
 
