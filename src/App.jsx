@@ -98,6 +98,7 @@ const Settings = lazyWithRetry(() => import('./pages/Settings'))
 const Developer = lazyWithRetry(() => import('./pages/Developer'))
 const Referral = lazyWithRetry(() => import('./pages/Referral'))
 const MartProfile = lazyWithRetry(() => import('./pages/MartProfile'))
+const PhoneCapture = lazyWithRetry(() => import('./pages/PhoneCapture'))
 
 
 // Lazy loaded Admin Pages
@@ -429,6 +430,7 @@ function App() {
             <Route path="developer" element={<Developer />} />
             <Route path="founder" element={<Developer />} />
             <Route path="mart/:slug" element={<MartProfile />} />
+            <Route path="capture/:sessionId" element={<PhoneCapture />} />
 
             {/* Auth Route */}
             <Route
