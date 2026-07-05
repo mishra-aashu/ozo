@@ -1139,7 +1139,7 @@ const InventoryView = () => {
                 /* Select From Catalog Form */
                 <form onSubmit={handleAddCatalogProduct} className="space-y-4">
                   <div className="relative">
-                    <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                    <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                       Search Global Catalog
                     </label>
                     <div className="relative">
@@ -1217,7 +1217,7 @@ const InventoryView = () => {
                   {/* Pricing and Stock Inputs */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Stock Quantity <span className="text-[#FF3366]">*</span>
                       </label>
                       <input
@@ -1225,12 +1225,22 @@ const InventoryView = () => {
                         min="0"
                         value={catalogForm.stock_quantity}
                         onChange={(e) => setCatalogForm(prev => ({ ...prev, stock_quantity: e.target.value }))}
+                        onFocus={(e) => {
+                          if (catalogForm.stock_quantity === '0') {
+                            setCatalogForm(prev => ({ ...prev, stock_quantity: '' }))
+                          }
+                        }}
+                        onBlur={(e) => {
+                          if (catalogForm.stock_quantity === '') {
+                            setCatalogForm(prev => ({ ...prev, stock_quantity: '0' }))
+                          }
+                        }}
                         className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
                         required
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Mart Price (₹)
                       </label>
                       <input
@@ -1244,7 +1254,7 @@ const InventoryView = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Mart MRP (₹)
                       </label>
                       <input
@@ -1282,7 +1292,7 @@ const InventoryView = () => {
                 <form onSubmit={handleAddCustomProduct} className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Product Name <span className="text-[#FF3366]">*</span>
                       </label>
                       <input
@@ -1295,7 +1305,7 @@ const InventoryView = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Brand Name
                       </label>
                       <input
@@ -1310,7 +1320,7 @@ const InventoryView = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Unit / Size <span className="text-[#FF3366]">*</span>
                       </label>
                       <input
@@ -1323,7 +1333,7 @@ const InventoryView = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Category <span className="text-[#FF3366]">*</span>
                       </label>
                       {isLoadingCategories ? (
@@ -1400,7 +1410,7 @@ const InventoryView = () => {
                       )}
                     </div>
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Barcode / SKU
                       </label>
                       <input
@@ -1415,7 +1425,7 @@ const InventoryView = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Global Catalog Base Price (₹) <span className="text-[#FF3366]">*</span>
                       </label>
                       <input
@@ -1430,7 +1440,7 @@ const InventoryView = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                         Global Catalog Base MRP (₹) <span className="text-[#FF3366]">*</span>
                       </label>
                       <input
@@ -1450,7 +1460,7 @@ const InventoryView = () => {
                     <span className="text-[10px] font-black text-gray-400 uppercase tracking-wider block mb-3">Mart Specific Details</span>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
-                        <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                           Your Stock Quantity <span className="text-[#FF3366]">*</span>
                         </label>
                         <input
@@ -1458,12 +1468,22 @@ const InventoryView = () => {
                           min="0"
                           value={newProductForm.stock_quantity}
                           onChange={(e) => setNewProductForm(prev => ({ ...prev, stock_quantity: e.target.value }))}
+                          onFocus={(e) => {
+                            if (newProductForm.stock_quantity === '0') {
+                              setNewProductForm(prev => ({ ...prev, stock_quantity: '' }))
+                            }
+                          }}
+                          onBlur={(e) => {
+                            if (newProductForm.stock_quantity === '') {
+                              setNewProductForm(prev => ({ ...prev, stock_quantity: '0' }))
+                            }
+                          }}
                           className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
                           required
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                           Your Selling Price (₹)
                         </label>
                         <input
@@ -1477,7 +1497,7 @@ const InventoryView = () => {
                         />
                       </div>
                       <div>
-                        <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
+                        <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
                           Your MRP (₹)
                         </label>
                         <input
@@ -1495,7 +1515,7 @@ const InventoryView = () => {
 
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                      <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider">
+                      <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider">
                         Product Image URL
                       </label>
                       <button
