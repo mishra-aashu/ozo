@@ -70,6 +70,7 @@ const InventoryView = () => {
 
   // Bulk CSV Import State
   const [showUploader, setShowUploader] = useState(false)
+  const [hasClosedUploader, setHasClosedUploader] = useState(false)
 
   // Single Product Add State
   const [showSingleProductModal, setShowSingleProductModal] = useState(false)
@@ -122,7 +123,7 @@ const InventoryView = () => {
     lockedConfig: null
   })
 
-  const isImportMode = showUploader || (inventoryTotalCount === 0 && !isLoadingInventory && searchQuery === '')
+  const isImportMode = showUploader || (inventoryTotalCount === 0 && !isLoadingInventory && searchQuery === '' && !hasClosedUploader)
 
   const selectedCategoryName = categories.find(cat => cat.id === newProductForm.category_id)?.name || ''
   const filteredCategories = categories.filter(cat =>
@@ -800,7 +801,7 @@ const InventoryView = () => {
             <button
               onClick={() => {
                 setShowUploader(true)
-                setImportStep('upload')
+                setHasClosedUploader(false)
               }}
               className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-600 dark:text-[#00FF66] hover:text-emerald-700 dark:hover:text-[#00e65c] transition-colors bg-emerald-50 dark:bg-[#00FF66]/10 px-4 py-2.5 rounded-xl border border-emerald-100 dark:border-[#00FF66]/20 cursor-pointer font-sans w-full sm:w-auto"
             >
@@ -845,7 +846,10 @@ const InventoryView = () => {
           localToolState={localToolState}
           startLocalPipeline={startLocalPipeline}
           fetchInventory={fetchInventory}
-          onClose={() => setShowUploader(false)}
+          onClose={() => {
+            setShowUploader(false)
+            setHasClosedUploader(true)
+          }}
         />
       ) : (
         /* Inventory Table Container */
