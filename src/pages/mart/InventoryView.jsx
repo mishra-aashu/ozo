@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useMartStore } from '../../stores/martStore'
 import { supabase } from '../../lib/supabase'
 import Papa from 'papaparse'
@@ -104,6 +104,11 @@ const InventoryView = () => {
   const [isSearchingImages, setIsSearchingImages] = useState(false)
   const [showImageSearchGrid, setShowImageSearchGrid] = useState(false)
 
+  // Searchable Category Dropdown States
+  const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const [categorySearchQuery, setCategorySearchQuery] = useState('')
+  const categoryDropdownRef = useRef(null)
+
   // Dynamic download URL state for Localhost Image Tool
   const [downloadUrl, setDownloadUrl] = useState('')
 
@@ -118,6 +123,11 @@ const InventoryView = () => {
   })
 
   const isImportMode = showUploader || (inventoryTotalCount === 0 && !isLoadingInventory && searchQuery === '')
+
+  const selectedCategoryName = categories.find(cat => cat.id === newProductForm.category_id)?.name || ''
+  const filteredCategories = categories.filter(cat =>
+    cat.name.toLowerCase().includes(categorySearchQuery.toLowerCase())
+  )
 
   // Poll Localhost Image Tool status
   useEffect(() => {
@@ -312,15 +322,28 @@ const InventoryView = () => {
     }
   }
 
-  // Clear image search when modal closes
+  // Clear image search and category dropdown when modal closes
   useEffect(() => {
     if (!showSingleProductModal) {
       setImageSearchQuery('')
       setImageSearchResults([])
       setIsSearchingImages(false)
       setShowImageSearchGrid(false)
+      setIsCategoryDropdownOpen(false)
+      setCategorySearchQuery('')
     }
   }, [showSingleProductModal])
+
+  // Click outside category dropdown to close it
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (categoryDropdownRef.current && !categoryDropdownRef.current.contains(event.target)) {
+        setIsCategoryDropdownOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   // Fetch categories
   useEffect(() => {
@@ -1303,19 +1326,78 @@ const InventoryView = () => {
                       <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
                         Category <span className="text-[#FF3366]">*</span>
                       </label>
-                      <select
-                        value={newProductForm.category_id}
-                        onChange={(e) => setNewProductForm(prev => ({ ...prev, category_id: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-950 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
-                        required
-                      >
-                        <option value="">{isLoadingCategories ? 'Loading categories...' : '-- Choose Category --'}</option>
-                        {categories.map((cat) => (
-                          <option key={cat.id} value={cat.id}>
-                            {cat.name}
-                          </option>
-                        ))}
-                      </select>
+                      {isLoadingCategories ? (
+                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5">
+                          <Loader2 className="w-4 h-4 animate-spin text-emerald-500 dark:text-[#00FF66]" />
+                          <span>Loading categories...</span>
+                        </div>
+                      ) : (
+                        <div className="relative" ref={categoryDropdownRef}>
+                          <button
+                            type="button"
+                            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
+                            className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] focus:border-emerald-500 dark:focus:border-[#00FF66] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all flex items-center justify-between cursor-pointer font-medium text-left"
+                          >
+                            <span className={selectedCategoryName ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}>
+                              {selectedCategoryName || "-- Choose Category --"}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-gray-400 dark:text-gray-555 transition-transform duration-200 ${isCategoryDropdownOpen ? 'rotate-180' : ''}`} />
+                          </button>
+
+                          {isCategoryDropdownOpen && (
+                            <div className="absolute z-[100] w-full mt-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
+                              <div className="relative">
+                                <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
+                                <input
+                                  type="text"
+                                  placeholder="Search category..."
+                                  value={categorySearchQuery}
+                                  onChange={(e) => setCategorySearchQuery(e.target.value)}
+                                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e30] focus:border-emerald-500 dark:focus:border-[#00FF66] rounded-lg pl-9 pr-8 py-2 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
+                                  autoFocus
+                                />
+                                {categorySearchQuery && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setCategorySearchQuery("")}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
+                                  >
+                                    <X className="w-3 h-3" />
+                                  </button>
+                                )}
+                              </div>
+
+                              <div className="overflow-y-auto max-h-40 space-y-1 pr-1 scrollbar-thin scrollbar-thumb-gray-200 dark:scrollbar-thumb-white/10">
+                                {filteredCategories.length === 0 ? (
+                                  <div className="text-gray-400 dark:text-gray-500 text-xs py-3 text-center">No categories found</div>
+                                ) : (
+                                  filteredCategories.map((cat) => (
+                                    <button
+                                      key={cat.id}
+                                      type="button"
+                                      onClick={() => {
+                                        setNewProductForm(prev => ({ ...prev, category_id: cat.id }))
+                                        setIsCategoryDropdownOpen(false)
+                                        setCategorySearchQuery("")
+                                      }}
+                                      className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all duration-150 flex items-center justify-between ${
+                                        newProductForm.category_id === cat.id
+                                          ? 'bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black font-extrabold'
+                                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-950 dark:hover:text-white'
+                                      }`}
+                                    >
+                                      <span>{cat.name}</span>
+                                      {newProductForm.category_id === cat.id && (
+                                        <Check className="w-3.5 h-3.5 text-white dark:text-black font-extrabold" />
+                                      )}
+                                    </button>
+                                  ))
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div>
                       <label className="block text-xs font-extrabold text-gray-700 dark:text-gray-400 uppercase tracking-wider mb-2">
