@@ -522,7 +522,6 @@ const Checkout = () => {
         const landmarkPart = landmarkVal.trim() ? `, Near ${landmarkVal.trim()}` : ''
         const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || 'Aurangabad'}, Bihar, India`
         const googleMapsUrl = activeAddr?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullTextAddress)}`
-        const activeMartId = localStorage.getItem('active_mart_id')
 
         const orderData = {
           addressId: selectedAddress,
@@ -545,7 +544,9 @@ const Checkout = () => {
           landmark: landmarkVal,
           deliveryCity: activeAddr?.city || 'Aurangabad',
           googleMapsUrl,
-          martId: activeMartId || null,
+          latitude: activeAddr?.latitude ? parseFloat(activeAddr.latitude) : null,
+          longitude: activeAddr?.longitude ? parseFloat(activeAddr.longitude) : null,
+          martId: null,
           distance: distance || null
         }
 
@@ -657,7 +658,6 @@ const Checkout = () => {
       const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || 'Aurangabad'}, Bihar, India`
       const googleMapsUrl = activeAddr?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullTextAddress)}`
 
-      const activeMartId = localStorage.getItem('active_mart_id')
       const orderData = {
         addressId: selectedAddress,
         subtotal: orderTotals.subtotal,
@@ -681,7 +681,9 @@ const Checkout = () => {
         landmark: landmarkVal,
         deliveryCity: activeAddr?.city || 'Aurangabad',
         googleMapsUrl,
-        martId: activeMartId || null,
+        latitude: activeAddr?.latitude ? parseFloat(activeAddr.latitude) : null,
+        longitude: activeAddr?.longitude ? parseFloat(activeAddr.longitude) : null,
+        martId: null,
         distance: distance || null
       }
 

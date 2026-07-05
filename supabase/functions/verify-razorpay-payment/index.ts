@@ -113,12 +113,32 @@ async function calculateExpectedAmount(
   }
 
   // 4. Fetch mart overrides OR city overrides
+  let resolvedMartId = martId
+  if (!resolvedMartId && address) {
+    const lat = parseFloat(address.latitude)
+    const lng = parseFloat(address.longitude)
+    if (!isNaN(lat) && !isNaN(lng)) {
+      const rpcItems = cartItems.map((item: any) => ({
+        product_id: item.product_id,
+        quantity: item.quantity
+      }))
+      const { data: optMartId, error: optMartError } = await supabaseAdmin.rpc('find_optimal_mart', {
+        p_latitude: lat,
+        p_longitude: lng,
+        p_items: rpcItems
+      })
+      if (!optMartError && optMartId) {
+        resolvedMartId = optMartId
+      }
+    }
+  }
+
   let martOverrides: any[] = []
-  if (martId && productIds.length > 0) {
+  if (resolvedMartId && productIds.length > 0) {
     const { data: miData, error: miError } = await supabaseAdmin
       .from('mart_inventory')
       .select('product_id, mart_price, customer_price, stock_quantity, is_available')
-      .eq('mart_id', martId)
+      .eq('mart_id', resolvedMartId)
       .in('product_id', productIds)
     if (!miError && miData) {
       martOverrides = miData
@@ -126,7 +146,7 @@ async function calculateExpectedAmount(
   }
 
   let cityOverrides: any[] = []
-  if (!martId && citySlug) {
+  if (!resolvedMartId && citySlug) {
     const { data: pcaData, error: pcaError } = await supabaseAdmin
       .from('product_city_availability')
       .select('product_id, is_available, city_price, city_mrp, city_ozo_price')
@@ -189,9 +209,9 @@ async function calculateExpectedAmount(
     if (!isAvailable) {
       throw new Error(`Product "${product.name || 'Selected item'}" is currently unavailable.`);
     }
-    if (product.quantity_available !== null && product.quantity_available !== undefined) {
-      if (item.quantity > product.quantity_available) {
-        throw new Error(`Only ${product.quantity_available} units of "${product.name || 'Selected item'}" are available.`);
+    if (stockQuantity !== null && stockQuantity !== undefined) {
+      if (item.quantity > stockQuantity) {
+        throw new Error(`Only ${stockQuantity} units of "${product.name || 'Selected item'}" are available.`);
       }
     }
     if (product.max_order_qty !== null && product.max_order_qty !== undefined) {
