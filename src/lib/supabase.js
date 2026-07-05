@@ -159,12 +159,22 @@ const customFetch = async (input, init) => {
 
   const response = await fetch(input, newInit)
 
-  // Auto-clear invalid/expired sessions if Supabase Auth rejects the token with 403 Forbidden
-  if (response.status === 403 && url.includes('/auth/v1/user')) {
-    console.warn('[OZO Auth] Got 403 Forbidden from Supabase Auth. Clearing invalid session storage.');
+  // Auto-clear invalid/expired sessions if Supabase Auth rejects the token or refresh token fails
+  const isInvalidSession = (response.status === 403 && url.includes('/auth/v1/user')) || 
+                          (response.status === 400 && url.includes('/auth/v1/token') && url.includes('refresh_token'))
+
+  if (isInvalidSession) {
+    console.warn('[OZO Auth] Got session invalidation from Supabase Auth. Clearing invalid session storage.');
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('ozo-auth-token');
       window.localStorage.removeItem('ozo-auth-storage');
+      import('../stores/authStore')
+        .then((m) => {
+          m.useAuthStore.getState().signOut().catch(() => {})
+        })
+        .catch((e) => {
+          console.warn('Failed to dynamically sign out on invalid session:', e)
+        })
     }
   }
 
