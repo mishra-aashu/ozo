@@ -1348,6 +1348,16 @@ export default function BulkImportWizard({
 
   return (
     <div className="flex-1 flex flex-col min-h-0 bg-[#f9fafb] dark:bg-[#07070a] rounded-3xl p-6 border border-gray-200 dark:border-[#13131f] relative overflow-hidden font-sans">
+      {importStep === 'upload' && onClose && (
+        <button
+          onClick={onClose}
+          className="absolute left-6 top-6 p-2.5 bg-white hover:bg-gray-100 dark:bg-[#12121a] dark:hover:bg-[#1e1e2f] border border-gray-200 dark:border-[#1e1e2f] rounded-xl text-gray-550 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm group z-50 text-[10px] font-bold uppercase tracking-wider"
+          title="Back to Inventory"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5 text-gray-450 dark:text-gray-450 group-hover:text-gray-900 dark:group-hover:text-white" />
+          <span>Back</span>
+        </button>
+      )}
       {importStep === 'upload' && renderUploaderStep()}
       {importStep === 'mapping' && renderMappingStep()}
       {importStep === 'preview' && renderPreviewStep()}
