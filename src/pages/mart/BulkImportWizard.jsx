@@ -422,12 +422,25 @@ export default function BulkImportWizard({
         const iden = r.identifier.toString().trim()
         const key = iden.toLowerCase()
 
-        let matched = barcodeMap.get(key) || 
-                      blinkitIdMap.get(key) || 
-                      slugMap.get(key) || 
-                      uuidMap.get(key) || 
-                      nameMap.get(key) || 
-                      null
+        let matched = null
+        let matchType = null
+
+        if (barcodeMap.has(key)) {
+          matched = barcodeMap.get(key)
+          matchType = 'Barcode'
+        } else if (blinkitIdMap.has(key)) {
+          matched = blinkitIdMap.get(key)
+          matchType = 'Blinkit ID'
+        } else if (slugMap.has(key)) {
+          matched = slugMap.get(key)
+          matchType = 'Slug'
+        } else if (uuidMap.has(key)) {
+          matched = uuidMap.get(key)
+          matchType = 'Database ID'
+        } else if (nameMap.has(key)) {
+          matched = nameMap.get(key)
+          matchType = 'Exact Name'
+        }
 
         if (!matched && iden.length >= 4) {
           const isNumeric = /^\d+$/.test(iden)
@@ -442,6 +455,10 @@ export default function BulkImportWizard({
             if (barcode.includes(iden) || blinkitId.includes(iden)) return true
             return false
           }) || null
+
+          if (matched) {
+            matchType = 'Partial Code Match'
+          }
         }
 
         if (!matched && r.name && r.name.length >= 3) {
@@ -450,6 +467,10 @@ export default function BulkImportWizard({
             const catalogName = p.name?.toLowerCase() || ''
             return catalogName.includes(cleanName) || cleanName.includes(catalogName)
           }) || null
+
+          if (matched) {
+            matchType = 'Similar Name Match'
+          }
         }
 
         return {
@@ -458,7 +479,11 @@ export default function BulkImportWizard({
           stock_quantity: r.stock_quantity,
           mart_price: r.mart_price,
           mart_mrp: r.mart_mrp,
+          name: r.name,
+          brand: r.brand,
+          unit: r.unit,
           product: matched,
+          matchType: matchType,
           status: matched ? 'matched' : 'not_found'
         }
       })
@@ -1178,15 +1203,64 @@ export default function BulkImportWizard({
         </div>
 
         {matchRate < 10 && previewRows.length > 0 && (
-          <div className="mb-4 bg-red-50 dark:bg-red-950/20 border border-red-500/20 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-red-800 dark:text-red-300">
-            <AlertTriangle className="w-5 h-5 shrink-0 text-red-500 mt-0.5 animate-pulse" />
-            <div>
-              <span className="font-extrabold uppercase tracking-wide text-[10px] block mb-1">⚠️ Mapping Issue Detected (Low Match Rate)</span>
-              <p className="font-medium text-[11px]">
-                Almost no products matched the global catalog (Match Rate: <strong>{matchRate.toFixed(1)}%</strong>). 
-                You likely selected the wrong <strong>Product Identifier</strong> or <strong>Stock Quantity</strong> column. 
-                Please click <strong>"Back to Mapping"</strong> and verify your selection (e.g. choose the column containing full barcodes or slugs).
-              </p>
+          <div className="mb-6 bg-red-500/5 dark:bg-[#FF3366]/5 border border-red-500/15 dark:border-[#FF3366]/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 dark:bg-[#FF3366]" />
+            <div className="flex gap-4">
+              <div className="p-2 bg-red-500/10 dark:bg-[#FF3366]/10 rounded-xl text-red-500 dark:text-[#FF3366] shrink-0 self-start">
+                <AlertTriangle className="w-5 h-5 animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-extrabold text-red-800 dark:text-red-300 tracking-wide uppercase flex items-center gap-2 mb-1.5">
+                  Mapping Check: Low Catalog Match Rate ({matchRate.toFixed(1)}%)
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400 mb-4 leading-relaxed font-medium">
+                  We couldn't automatically find these products in Ozo's global catalog. Here is how you can quickly fix this:
+                </p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                  {/* Left Column: Diagnostics */}
+                  <div className="space-y-3 bg-gray-50/50 dark:bg-black/25 rounded-xl p-3.5 border border-gray-150 dark:border-white/5">
+                    <span className="font-extrabold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
+                      Possible Causes
+                    </span>
+                    <div className="space-y-2">
+                      <div className="flex gap-2 text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                        <span className="text-red-500 font-bold">•</span>
+                        <span>
+                          <strong>Wrong Column Mapped:</strong> The column selected for "Product Identifier" might not contain actual barcodes or slugs.
+                        </span>
+                      </div>
+                      <div className="flex gap-2 text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-medium">
+                        <span className="text-red-500 font-bold">•</span>
+                        <span>
+                          <strong>Missing Product Names:</strong> Without mapping a "Product Name", unmatched items cannot be automatically created and will be skipped.
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Actions */}
+                  <div className="space-y-3 bg-gray-50/50 dark:bg-black/25 rounded-xl p-3.5 border border-gray-150 dark:border-white/5">
+                    <span className="font-extrabold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
+                      Recommended Solutions
+                    </span>
+                    <div className="space-y-2.5">
+                      <div className="flex items-start gap-2">
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] font-black text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20 shrink-0 mt-0.5">STEP 1</span>
+                        <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-semibold">
+                          Click <strong className="text-emerald-600 dark:text-[#00FF66] cursor-pointer hover:underline" onClick={() => setImportStep('mapping')}>Back to Mapping</strong>.
+                        </p>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] font-black text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20 shrink-0 mt-0.5">STEP 2</span>
+                        <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-semibold">
+                          Ensure "Product Identifier" is mapped to the barcode column and "Product Name" is mapped.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}
@@ -1219,14 +1293,34 @@ export default function BulkImportWizard({
                             <div className="w-8 h-8 bg-gray-200 dark:bg-[#1c1c28] rounded flex items-center justify-center text-xs">No Img</div>
                           )}
                           <div>
-                            <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.product.name}</p>
-                            <p className="text-xs text-gray-555">Unit: {r.product.unit} | Brand: {r.product.brand || 'Ozo Choice'}</p>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.product.name}</p>
+                              {r.matchType && (
+                                <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20 text-[9px] font-extrabold uppercase rounded tracking-wider">
+                                  Matched by {r.matchType}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">Unit: {r.product.unit} | Brand: {r.product.brand || 'Ozo Choice'}</p>
+                          </div>
+                        </div>
+                      ) : r.name && r.name.trim() !== '' ? (
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-blue-500/10 rounded flex items-center justify-center text-xs font-bold text-blue-500 border border-blue-500/20">New</div>
+                          <div>
+                            <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.name}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-500">Unit: {r.unit || '1 unit'} | Brand: {r.brand || 'Ozo Choice'}</p>
                           </div>
                         </div>
                       ) : (
-                        <div className="flex items-center gap-2 text-amber-500 font-semibold text-sm">
-                          <Info className="w-4 h-4" />
-                          <span>No catalog match found</span>
+                        <div className="flex flex-col gap-0.5">
+                          <div className="flex items-center gap-2 text-amber-500 font-semibold text-sm">
+                            <Info className="w-4 h-4" />
+                            <span>No catalog match found</span>
+                          </div>
+                          <span className="text-[10px] text-gray-500 dark:text-gray-500 leading-normal">
+                            Map the <strong className="text-emerald-500">Product Name</strong> column to auto-create this product.
+                          </span>
                         </div>
                       )}
                     </td>
@@ -1248,10 +1342,17 @@ export default function BulkImportWizard({
                         <span className="px-3 py-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 rounded-full border border-emerald-500/20">
                           Ready to Import
                         </span>
-                      ) : (
-                        <span className="px-3 py-1 text-xs font-bold text-amber-500 bg-amber-500/10 rounded-full border border-amber-500/20">
-                          Skipped
+                      ) : r.name && r.name.trim() !== '' ? (
+                        <span className="px-3 py-1 text-xs font-bold text-blue-500 bg-blue-500/10 rounded-full border border-blue-500/20">
+                          Will Create Product
                         </span>
+                      ) : (
+                        <div className="flex flex-col gap-0.5">
+                          <span className="px-3 py-1 text-xs font-bold text-amber-500 bg-amber-500/10 rounded-full border border-amber-500/20 text-center w-max">
+                            Skipped
+                          </span>
+                          <span className="text-[10px] text-gray-500 dark:text-gray-500 italic">No Name Column Mapped</span>
+                        </div>
                       )}
                     </td>
                   </tr>
