@@ -26,7 +26,7 @@ CREATE POLICY "Allow update of capture sessions" ON public.capture_sessions
         (SELECT public.is_admin()) OR 
         (SELECT public.is_mart_operator()) OR
         ((SELECT auth.uid()) IN (SELECT owner_id FROM public.marts WHERE id = mart_id)) OR
-        (expires_at > now() AND status = 'pending')
+        (expires_at > now() AND (status = 'pending' OR status = 'waiting'))
     )
     WITH CHECK (
         (SELECT public.is_admin()) OR 
@@ -34,3 +34,7 @@ CREATE POLICY "Allow update of capture sessions" ON public.capture_sessions
         ((SELECT auth.uid()) IN (SELECT owner_id FROM public.marts WHERE id = mart_id)) OR
         (status = 'completed')
     );
+
+-- Enable Realtime for capture_sessions to sync state automatically
+alter publication supabase_realtime add table public.capture_sessions;
+

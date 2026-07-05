@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import Papa from 'papaparse'
 import toast from 'react-hot-toast'
 import BulkImportWizard from './BulkImportWizard'
+import BarcodeEnrichmentModal from '../../components/mart/BarcodeEnrichmentModal'
 import {
   Search,
   Upload,
@@ -19,7 +20,8 @@ import {
   Plus,
   X,
   Image,
-  Loader2
+  Loader2,
+  Camera
 } from 'lucide-react'
 
 const getLocalToolUrl = () => {
@@ -61,6 +63,10 @@ const InventoryView = () => {
   const [tempStock, setTempStock] = useState('')
   const [hoveredImage, setHoveredImage] = useState(null)
   const [showLowStockOnly, setShowLowStockOnly] = useState(false)
+
+  // Photo enrichment capture states
+  const [enrichmentProduct, setEnrichmentProduct] = useState(null)
+  const [isEnrichmentModalOpen, setIsEnrichmentModalOpen] = useState(false)
 
   // Bulk CSV Import State
   const [showUploader, setShowUploader] = useState(false)
@@ -522,6 +528,10 @@ const InventoryView = () => {
 
       toast.success('Custom product created and added successfully!')
       setShowSingleProductModal(false)
+
+      const createdBarcode = createdProduct?.barcode
+      const shouldOpenCapture = !newProductForm.image_url && createdBarcode
+
       setNewProductForm({
         name: '',
         brand: '',
@@ -537,6 +547,11 @@ const InventoryView = () => {
       })
       
       fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly)
+
+      if (shouldOpenCapture) {
+        setEnrichmentProduct(createdProduct)
+        setIsEnrichmentModalOpen(true)
+      }
     } catch (err) {
       console.error('Failed to create custom product:', err)
       toast.error('Failed to create product: ' + err.message)
@@ -834,6 +849,7 @@ const InventoryView = () => {
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">MRP (₹)</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Stock Qty</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400 text-center">Status</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400 text-center">Capture</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-[#181827]">
@@ -991,6 +1007,24 @@ const InventoryView = () => {
                           }`}
                         >
                           {product.is_available ? 'In Stock' : 'Out of Stock'}
+                        </button>
+                      </td>
+
+                      {/* Photo Capture */}
+                      <td className="p-4 text-center">
+                        <button
+                          onClick={() => {
+                            if (!product.barcode) {
+                              toast.error('This product does not have a barcode. Cannot enrich.')
+                              return
+                            }
+                            setEnrichmentProduct(product)
+                            setIsEnrichmentModalOpen(true)
+                          }}
+                          className="p-2 bg-gray-50 hover:bg-gray-100 dark:bg-[#161624] dark:hover:bg-[#252538] rounded-xl text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-[#00FF66] border border-gray-200 dark:border-[#2d2d3e]/30 transition-all flex items-center justify-center mx-auto cursor-pointer"
+                          title="Capture photo using phone or webcam"
+                        >
+                          <Camera className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>
@@ -1422,6 +1456,10 @@ const InventoryView = () => {
                         className="flex-1 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
                       />
                     </div>
+                    <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1 select-none">
+                      <Camera className="w-3.5 h-3.5 text-emerald-500 dark:text-[#00FF66]" />
+                      <span>Leave empty to capture images using phone/webcam camera immediately after creation.</span>
+                    </p>
 
                     {showImageSearchGrid && (
                       <div className="mt-3 p-4 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl space-y-3">
@@ -1548,6 +1586,22 @@ const InventoryView = () => {
             className="w-full h-full object-contain rounded-xl bg-gray-50 dark:bg-[#0c0c14]"
           />
         </div>
+      )}
+
+      {isEnrichmentModalOpen && enrichmentProduct && (
+        <BarcodeEnrichmentModal
+          barcode={enrichmentProduct.barcode}
+          product={enrichmentProduct}
+          onClose={() => {
+            setIsEnrichmentModalOpen(false)
+            setEnrichmentProduct(null)
+          }}
+          onComplete={(updatedProduct) => {
+            setIsEnrichmentModalOpen(false)
+            setEnrichmentProduct(null)
+            fetchInventory(currentPage, 20, debouncedSearchQuery, showLowStockOnly)
+          }}
+        />
       )}
     </div>
   )
