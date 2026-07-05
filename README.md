@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shopping-cart.svg" width="32" height="32" /> OZO - Lightning Fast Grocery Delivery App
+# <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shopping-cart.svg" width="32" height="32" /> OZO - Hyper-Local Instant Grocery Delivery Platform
 
 <div align="center">
   <img src="https://img.shields.io/badge/React-18.2.0-61DAFB?style=for-the-badge&logo=react&logoColor=white" alt="React" />
@@ -6,91 +6,49 @@
   <img src="https://img.shields.io/badge/Supabase-2.39.0-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
   <img src="https://img.shields.io/badge/TailwindCSS-3.4.0-06B6D4?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="TailwindCSS" />
   <img src="https://img.shields.io/badge/Zustand-4.4.7-orange?style=for-the-badge" alt="Zustand" />
+  <img src="https://img.shields.io/badge/Flask-3.0-blue?style=for-the-badge&logo=flask&logoColor=white" alt="Flask" />
 </div>
 
 <div align="center">
-  <h3><img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/rocket.svg" width="24" height="24" /> India's Lightning-Fast Grocery Delivery Application - 30-Minute Delivery Guaranteed</h3>
-  <p>Built with <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/heart.svg" width="16" height="16" /> using React, Supabase, and modern performance-optimized web architectures</p>
+  <h3><img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/rocket.svg" width="24" height="24" /> India's Lightning-Fast Grocery Delivery Ecosystem — 10 to 30 Minute Delivery</h3>
+  <p>Built using React, Supabase Realtime DB, Vercel Serverless APIs, and a custom Local Catalog Image Enrichment Engine.</p>
 </div>
 
 ---
 
 ## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/sparkles.svg" width="24" height="24" /> Project Overview
 
-OZO is a hyper-local grocery delivery platform designed for high concurrency, microsecond synchronization, and robust security. Drawing inspiration from industry leaders like Zepto and Instamart, OZO implements a full-fledged ecosystem supporting four distinct user roles, automated delivery payouts, geofenced address serviceability checks, serverless API optimizations, and custom database-level security rules.
+OZO is a hyper-local, high-concurrency grocery delivery ecosystem designed for microsecond synchronization, robust database-level security rules (RLS), and custom catalog-building utilities. Drawing inspiration from leaders like Zepto and Instamart, OZO implements a full-fledged platform supporting four distinct roles, automated rider payouts, geofenced address serviceability checks, automated price indexers, and a server-side crawler layout renderer for maximized SEO performance.
 
 ---
 
 ## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/users.svg" width="24" height="24" /> Multi-Role Platform Ecosystem
 
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shopping-bag.svg" width="20" height="20" /> Customer Interface
-- **30-Minute Magic**: Rapid delivery window processing optimized by distance calculations.
-- **Multilingual Support**: Fully localized in English, Hindi, Tamil, Telugu, and Kannada with instant translation toggling.
-- **Dynamic Address geofencing**: Leaflet-based interactive map picker checking delivery range against active merchant warehouses.
-- **Cart & Wishlist Systems**: Real-time quantity controls, coupon eligibility, and catalog caching.
-- **Payment Verification**: Razorpay integration backed by secure serverless verification rules.
-- **Live Notifications**: Toast notifications and alert sounds triggered by database changes.
+### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shopping-bag.svg" width="20" height="20" /> 1. Customer Experience
+* **Instant Delivery Windows**: Rapid delivery estimation optimized by distance calculations.
+* **Multilingual Localization**: Instant client-side localization toggles supporting English, Hindi, Tamil, Telugu, and Kannada.
+* **Geofenced Address Map Picker**: Leaflet-based map pin selector checking delivery range against active store coordinates (Haversine calculations).
+* **Cart & Wishlist Engine**: Client-side Zustand stores with real-time stock sync, platform fees, and promotional coupon rules.
+* **Dual-Payment Gateways**: Razorpay and Cashfree SDK integrations backed by secure Edge Function payment verification.
+* **Referral & Delivery Credits**: Referral sharing pipeline granting free delivery credits to users with a minimum order limit.
 
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/store.svg" width="20" height="20" /> Merchant / Mart Partner Dashboard
-- **Onboarding Pipeline**: Seamless application submission for local grocery merchants.
-- **Live Orders Checklist**: Order incoming feed with item checklists, prep time status updates, and audio chimes.
-- **Inventory Control**: Instantly mark products in/out of stock and modify prices live.
-- **Real-time Synchronization**: Supabase Postgres channel subscriptions ensuring zero delay on incoming orders.
+### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/store.svg" width="20" height="20" /> 2. Mart / Merchant Operator Dashboard
+* **Self-Onboarding Pipeline**: Document validation and warehouse geolocation registration flow.
+* **Live Orders Checklist**: Auto-updating order feed with interactive checkable items, preparing timer, and auditory chime notifications.
+* **Dynamic Margins & Markup Control**: Automatically calculates user pricing based on customizable profit-margin rules (by product, category, or brand).
+* **Instant Inventory Toggles**: Mark products in/out of stock or update quantities directly with instant client reflection.
 
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/truck.svg" width="20" height="20" /> Delivery Captain Terminal
-- **Rider Onboarding**: Document upload (Aadhar, Driver's License, Selfie) with secure image uploads.
-- **Active Radar Feed**: Map-based listing of packed orders waiting for pickup.
-- **Distance-Based Payouts**: Automated calculation of earnings using the Haversine formula based on warehouse-to-customer distance.
-- **Duty Toggle**: Quick online/offline status updates modifying dispatch radar availability.
-- **Location Simulation**: GPS coordinates update system simulating driver paths in real-time.
+### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/truck.svg" width="20" height="20" /> 3. Delivery Captain Terminal
+* **Rider Application Verification**: File upload validation (Aadhar, Driver's License, Selfie) with client-side magic number byte headers check to block malicious archives or fake extensions.
+* **Active Radar Feed**: Map-based radar showing packed orders awaiting pickup in the rider's immediate zone.
+* **Distance-Based Payouts**: Automated calculation of earnings using the Haversine formula based on warehouse-to-customer coordinate distance.
+* **Rider Route Simulator**: In-app GPS simulator allowing testing of coordinates updates along real routes.
 
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shield-check.svg" width="20" height="20" /> Admin Control Center
-- **Analytics & Insights**: Performance statistics, revenue tracking, and active order counts.
-- **System Catalogs**: Full GUI management for products, categories, cities, and promotional coupons.
-- **Application Verification**: Panel to review and verify merchant and captain onboarding requests.
-- **Interactive SQL Console**: Direct query execution dashboard for administrative database management.
-- **SEO & Sitelinks Control**: Visual dashboard for monitoring indexing requests and sitemap generations.
-
----
-
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/server.svg" width="24" height="24" /> Technical Architecture
-
-```
-                                  +-----------------------+
-                                  |    Customer Page /    |
-                                  |    Admin Dashboard /  |
-                                  |  Captain Terminal    |
-                                  +-----------+-----------+
-                                              |
-                     +------------------------+------------------------+
-                     | (REST / Auth)                                   | (Realtime WSS)
-                     v                                                 v
-        +------------+------------+                       +------------+------------+
-        |     Cloudflare Proxy    |                       |      Direct Supabase    |
-        +------------+------------+                       +------------+------------+
-                     |                                                 |
-                     +------------------------+------------------------+
-                                              |
-                                              v
-                                  +-----------------------+
-                                  |   Supabase Database   |
-                                  +-----------------------+
-```
-
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/activity.svg" width="20" height="20" /> Dual-URL Client Configuration
-To prevent latency bottlenecks and protect key functions, OZO uses a dual-URL architecture:
-1. **REST API & Authentication (`VITE_SUPABASE_URL`)**: Requests are routed through a Cloudflare Proxy to handle rate-limiting and shield against DDoS.
-2. **Real-time WebSockets (`VITE_SUPABASE_DIRECT_URL`)**: Subscriptions bypass the proxy and establish a direct connection to Supabase WebSockets. This prevents proxy timeouts during long-lived connections.
-
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/file-warning.svg" width="20" height="20" /> Upload Security & Validation
-Image uploads are protected against DDoS and malicious file attachments (e.g. zip bomb files or renamed extensions):
-- **Magic Number Verification**: Files are evaluated by reading binary headers (`Uint8Array`) on the client before upload.
-- **Allowed Formats**: White-listed to PNG (`89504E47`), JPEG (`FFD8FF`), WEBP (`52494646`), and PDF (`25504446`). All compressed archive formats are blocked.
-
-### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/key-round.svg" width="20" height="20" /> Session Limit Trigger
-To secure user accounts, a database trigger restricts the number of concurrent active sessions:
-- **Maximum Sessions**: Enforced on the database level.
-- **Revocation**: Automatically terminates older active tokens on new logins, keeping authentication scopes clean.
+### <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/shield-check.svg" width="20" height="20" /> 4. Admin Control Panel
+* **Live Revenue Analytics**: Advanced tracking of active orders, GMV, and mart profit vs. admin margins.
+* **System Catalogs Manager**: Direct UI management for products, categories, coupons, and operating cities.
+* **SQL Query Console**: Interactive browser console for administrative query execution directly on Supabase.
+* **SEO & Sitelinks Control**: Visual dashboard for monitoring indexing requests, search engine crawlers, and sitemaps.
 
 ---
 
@@ -98,188 +56,199 @@ To secure user accounts, a database trigger restricts the number of concurrent a
 
 ```
 ozo-grocery-app/
-├── api/                   # Serverless Functions (Vercel)
-│   ├── _supabase.ts       # Backend Supabase client
-│   ├── geocode.ts         # Coordinates-to-address geocoding api
-│   ├── index-product.ts   # Product indexing API
-│   ├── indexnow-key.ts    # Verification key endpoint for search engines
-│   ├── render-seo.ts      # Server-side crawler layout renderer
-│   └── sitemap-static.ts  # Sitemap generation scripts
-├── src/                   # React Frontend App
-│   ├── assets/            # CSS, images, and visual components
-│   ├── components/        # Reusable components
-│   │   ├── admin/         # Admin bulk controls & settings components
+├── api/                       # Serverless Functions (Vercel)
+│   ├── cron/                  # Scheduled Serverless Cron Jobs
+│   │   └── order-manager.ts   # Stuck/expired order manager
+│   ├── _ratelimit.ts          # API-level rate-limiting helper
+│   ├── _supabase.ts           # Vercel-side Supabase client
+│   ├── geocode.ts             # Coordinates reverse geocoding API
+│   ├── image.ts               # Dynamic ImageKit URL proxy & signer
+│   ├── index-product.ts       # Product crawl & search indexing API
+│   ├── indexnow-key.ts        # Search engine IndexNow verification keys
+│   ├── mandi-sync.ts          # Daily mandi fresh vegetable & fruits price synchronization
+│   ├── proxy.ts               # Cloudflare proxy controller to bypass client limitations
+│   ├── render-seo.ts          # Server-side HTML renderer for crawlers/spiders
+│   ├── search-image.ts        # Image resolver crawl backend
+│   └── sitemap.ts             # Dynamic XML sitemap generator (City, Product, Static)
+├── image_tool/                # OzoMartImageTool Local Desktop Assistant (Flask)
+│   ├── app.py                 # Flask server exposing catalog crawler endpoints
+│   ├── cache.py               # Local positive/negative barcode search caching
+│   ├── config.py              # Port and credentials registry
+│   ├── requirements.txt       # Python environment dependencies
+│   ├── searcher.py            # Image crawling resolver (JioMart, DuckDuckGo, Amazon)
+│   ├── supabase_client.py     # Local DB sync client
+│   ├── templates/             # Local desktop dashboard layout HTML
+│   └── uploader.py            # Downloader & ImgBB/ImageKit CDN uploader
+├── src/                       # React Frontend Application
+│   ├── assets/                # CSS templates, images, and visual elements
+│   ├── components/            # Reusable UI components
+│   │   ├── admin/             # Admin widgets, tables, indicators
+│   │   ├── mart/              # Mart checklists, importing layouts
 │   │   ├── AddressForm.jsx
+│   │   ├── CashfreeShield.jsx
 │   │   ├── LocationPicker.jsx
 │   │   ├── OzoSplashScreen.jsx
-│   │   └── RazorpayShield.jsx
-│   ├── layouts/           # Page structural layouts
-│   │   ├── AdminLayout.jsx
-│   │   ├── CaptainLayout.jsx
-│   │   └── MainLayout.jsx
-│   ├── lib/               # Lib modules & API wrappers
+│   │   ├── RazorpayShield.jsx
+│   │   └── SEO.jsx            # Dynamic meta tags manager
+│   ├── layouts/               # Page layouts (Admin, Captain, Main)
+│   ├── lib/                   # Integrations & client wrappers
+│   │   ├── addressHelpers.js
 │   │   ├── geocoding.js
-│   │   └── supabase.js    # Dual-URL client & storage managers
-│   ├── pages/             # Route views
-│   │   ├── admin/         # Admin CRUD, settings, and SQL views
-│   │   ├── captain/       # Captain onboarding, dashboard, & radar
-│   │   ├── mart/          # Mart onboarding and live checklist
+│   │   └── supabase.js        # Dual-URL client configuration
+│   ├── pages/                 # Routing views
+│   │   ├── admin/             # Admin console views
+│   │   ├── captain/           # Captain onboarding and active radar
+│   │   ├── mart/              # Mart dashboard, profiles, bulk imports
+│   │   ├── Checkout.jsx
 │   │   ├── Home.jsx
-│   │   ├── ProductDetail.jsx
-│   │   └── Checkout.jsx
-│   ├── stores/            # Zustand global state stores
-│   │   ├── authStore.js
-│   │   ├── captainStore.js
-│   │   ├── cartStore.js
-│   │   ├── languageStore.js
-│   │   ├── locationStore.js
-│   │   ├── martStore.js
-│   │   └── themeStore.js
-│   └── App.jsx            # Routing and initialization logic
-├── supabase/              # Database scripts and Edge functions
-│   ├── functions/         # Supabase Edge Functions (Deno runtime)
+│   │   ├── PhoneCapture.jsx   # QR-code mobile webcam capture flow
+│   │   └── ProductDetail.jsx
+│   ├── stores/                # Zustand global state stores
+│   └── utils/                 # Utilities (Image optimization, OneSignal setup)
+├── supabase/                  # Database Schema, Functions & Migrations
+│   ├── functions/             # Deno Edge Functions
+│   │   ├── cashfree-payment/
+│   │   ├── imagekit-auth/
 │   │   ├── send-push-notification/
 │   │   └── verify-razorpay-payment/
-│   └── migrations/        # SQL migration files
-├── index.html             # Client entry layout
-├── package.json           # Dependencies and scripts
-└── vite.config.js         # Build configuration
+│   └── migrations/            # Versioned SQL schema changes
+├── index.html                 # Main Entrypoint Template
+├── package.json               # Node Dependencies and Scripts
+├── tailwind.config.js         # Tailwind layout configuration
+└── vite.config.js             # Bundler build configuration
 ```
 
 ---
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/wrench.svg" width="24" height="24" /> Tech Stack
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/cpu.svg" width="24" height="24" /> Core Technical Systems
 
-### Frontend & UI
-- **React 18 & Vite 6**: Fast bundling, hot module replacement, and optimal compilation.
-- **React Router DOM v6**: Client-side routing with route guards.
-- **TailwindCSS**: Responsive, dark-mode adaptive styling framework.
-- **Zustand**: Lightweight, decoupled state management.
-- **Framer Motion**: Smooth transitions, loading animations, and gesture-driven actions.
-- **React Leaflet**: OpenStreetMap maps integration.
-- **Swiper**: Mobile-touch sliders.
+### 1. Catalog Image Enrichment Pipeline
+To ensure high-quality product images without tedious manual entry, OZO employs a dual-channel Catalog Enrichment Engine:
 
-### Backend Services
-- **Supabase**: PostgreSQL database, JWT session management, realtime websocket listeners, and bucket storage.
-- **Edge Functions**: Payment verification and push notification triggers.
-- **ImgBB API**: Secure asset hosting.
+* **Mobile QR-Code Webcam Link (`PhoneCapture.jsx`)**:
+  Desktop operators who do not have high-quality webcams can generate an ephemeral QR-code session. Scanning this code on a mobile device establishes a real-time WebSocket connection to the capture session in Supabase. The operator can use their mobile camera to snap:
+  1. **Front View** (Name/Brand)
+  2. **Back View** (Ingredients/Label)
+  3. **MRP & Barcode Block**
+  
+  The images bypass the client disk, analyze binary headers to confirm format safety, upload directly to the CDN, and trigger real-time updates on the desktop operator's screen via Supabase Realtime channels.
+
+* **Local Image Search Assistant (`OzoMartImageTool`)**:
+  A local Python desktop application running Flask that automates barcode image enrichment. It takes files of missing images, scrapes search engines (DuckDuckGo, Amazon, JioMart), handles request pacing to prevent rate limits, downloads, uploads to the ImgBB CDN, and updates the database catalog.
+
+### 2. Intelligent Database-Level Security & Triggers
+OZO enforces security and consistency directly inside PostgreSQL:
+* **Session Limit Trigger**: Restricts concurrent active logins. Logs in a new device automatically drop and revoke older tokens at the database level.
+* **Proximity Routing Rules**: Haversine distance calculations check order routing coordinates against merchant locations to assign deliveries dynamically.
+* **Mart Margin Rules Trigger**: Calculates target selling prices by applying brand- or category-specific markup percentages to merchant base prices:
+  $$\text{Customer Price} = \text{Mart Price} \times \left(1 + \frac{\text{Margin Percentage}}{100}\right)$$
+  Enforces minimum markups in INR.
+* **Catalog Synchronization Triggers**: Automatically updates products availability status and total stock counts based on real-time changes inside the `mart_inventory` tables.
+
+### 3. Serverless API and Advanced SEO Optimization (Vercel)
+* **SEO User-Agent Rewrite Proxy**: Incoming request headers are analyzed at the routing edge. Web crawlers (Googlebot, Bingbot, Yandex) are transparently redirected to `api/render-seo.ts` which serves static, server-side pre-rendered HTML layouts containing precise JSON-LD structured schema metadata. Real users receive the standard single-page app (SPA).
+* **Mandi Synchronization**: A daily cron job (`api/mandi-sync.ts`) runs at 5 AM, crawling local market rates and adjusting base prices for vegetables and fresh farm items.
+* **IndexNow Support**: Auto-submits newly added products or price updates to search engines using the IndexNow API with secure key verification.
 
 ---
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/settings.svg" width="24" height="24" /> Local Setup & Configuration
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/wrench.svg" width="24" height="24" /> Local Setup & Configuration
 
-### Prerequisites
-- Node.js 18+ and npm
-- Supabase account (free tier works)
-- ImgBB Developer API key
+### 1. Prerequisites
+* **Node.js** v18+ and `npm`
+* **Python 3.10+** (if running the local catalog enrichment tools)
+* A **Supabase** Project
+* **ImgBB API Key** or **ImageKit CDN** credentials
 
-### 1. Repository Setup
-```bash
-git clone https://github.com/mishra-aashu/Ozo.git
-cd Ozo
-npm install
-```
-
-### 2. Environment Configuration
+### 2. Environment Variables Configuration
 Create a `.env` file in the root directory:
 ```env
-# Dual URL Configuration
-VITE_SUPABASE_URL=https://your-cloudflare-proxy-domain.com
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_jwt_key
+# Supabase Connectivity
+VITE_SUPABASE_URL=/api/proxy
+VITE_SUPABASE_ANON_KEY=your_supabase_anonymous_key
 VITE_SUPABASE_DIRECT_URL=https://your-project.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_admin_service_role_key
 
-# Third-Party Credentials
-VITE_IMGBB_API_KEY=your_imgbb_key
-VITE_RAZORPAY_KEY_ID=your_razorpay_key
+# Encryption & Security
+VITE_CRYPTO_SECRET=YourSecretEncryptionKeyHere
+WEBHOOK_SECRET=YourWebhookSecretVerifyToken
+MANDI_SYNC_SECRET=Bearer YourMandiSyncToken
+CRON_SECRET=YourCronSecureSecretToken
 
-# Optional Dev Flags
-VITE_ENABLE_MOCK_PAYMENT=true
+# Third-Party Integrations
+VITE_IMGBB_API_KEY=your_imgbb_api_key
+VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
+VITE_CASHFREE_APP_ID=your_cashfree_app_id
+VITE_CASHFREE_MODE=sandbox    # sandbox or production
+VITE_ONESIGNAL_APP_ID=your_onesignal_app_id
+ONESIGNAL_REST_API_KEY=your_onesignal_rest_api_key
+
+# ImageKit CDN Settings
+VITE_IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
+VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_endpoint
+IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
 ```
 
-### 3. Database Execution
-- Log into your Supabase Dashboard.
-- Open the SQL Editor.
-- Apply the migrations from the `supabase/migrations/` folder in order.
-- Set up the notification table and indexes using the schema defined in `schema.sql`.
-
-### 4. Running the Development Server
+### 3. Frontend Installation & Running
 ```bash
+# Clone the repository
+git clone https://github.com/mishra-aashu/Ozo.git
+cd Ozo
+
+# Install dependencies
+npm install
+
+# Start Vite local development server
 npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
----
+### 4. Running the Local Image Tool (Flask Service)
+The `OzoMartImageTool` runs locally to scan database products with missing images and scrape matching catalog details:
+```bash
+# Setup virtual environment (optional but recommended)
+python3 -m venv .venv
+source .venv/bin/activate
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg" width="24" height="24" /> Database Migrations & Schemas
+# Install requirements
+pip install -r image_tool/requirements.txt
 
-OZO uses database constraints and Row-Level Security (RLS) to secure client data:
-- **`20260608180000_inventory_stock_rules.sql`**: Trigger-based rules that adjust availability based on stock counts.
-- **`20260610220000_order_pukka_addresses.sql`**: Restricts order placements to verified geofenced coordinate pins.
-- **`20260611020000_session_limit_trigger.sql`**: Automatically drops old session tokens if a user logs in on a new device.
-- **`20260611050000_captains_and_orders_security.sql`**: Ensures captain profiles and locations are visible only to active customers and administrators.
-
----
-
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/layout.svg" width="24" height="24" /> Customization & Fine-Tuning
-
-### Changing Geofence Bounds
-Edit `src/stores/locationStore.js` and modify `checkDeliveryZoneStatus`:
-```javascript
-let centerLat = 24.745736; // Warehouse latitude
-let centerLng = 84.390014; // Warehouse longitude
-let maxRadius = 2.5;       // Service radius limit in KM
+# Start the Flask helper service
+python3 run_image_tool.py
 ```
-
-### Modifying Rider Base Payouts
-Update the database `rider_configurations` table or modify the fallback constants in `src/stores/captainStore.js`:
-```javascript
-const riderConfig = {
-  base_payout: 20,            // Flat rate per order
-  distance_bonus_per_km: 5    // Distance multiplier
-}
-```
-
-### Localizing Translations
-Add new language nodes in `src/stores/languageStore.js`:
-```javascript
-export const LANGUAGES = [
-  ...
-  { code: 'fr', label: 'French (Français)' }
-]
-```
+This starts a service on `http://localhost:5000` (or next free port) and automatically hooks into your OzoMart Admin Portal layout.
 
 ---
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/phone.svg" width="24" height="24" /> Troubleshooting
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg" width="24" height="24" /> Database Migration Execution
+Apply the versioned migration scripts located under `supabase/migrations/` in chronological order to prepare your Supabase instance:
 
-### Real-time Connections Failing
-- **Problem**: WebSocket connection times out.
-- **Solution**: Ensure `VITE_SUPABASE_DIRECT_URL` points directly to your `supabase.co` URL rather than your proxy domain, as proxies often terminate long-lived WebSocket connections.
+1. **Tables & RLS Setup**: Run standard table definitions and apply core RLS policies.
+2. **Session Limiters**: Run `20260611020000_session_limit_trigger.sql` to activate device count limits.
+3. **Smart Pricing Triggers**: Run `20260705150000_mart_specific_margin_pricing.sql` and `20260705170000_margin_rule_sync_triggers.sql` to enable dynamic markups.
+4. **Catalog Enrichment**: Apply `20260705185000_allow_webcam_phone_enrichment_sources.sql` and `20260705185500_add_product_id_to_capture_sessions.sql` to support QR-linked mobile photo captures.
 
-### Image Uploads Denied
-- **Problem**: Onboarding files fail to upload with "Invalid file content".
-- **Solution**: Ensure files are not zipped. The application verifies file headers. Check that the images are valid PNG, JPG, or WEBP formats.
+---
 
-### Admin Dashboard Blank
-- **Problem**: Navigating to `/admin` results in access denied or a blank screen.
-- **Solution**: In the Supabase SQL editor, change your user's role:
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/help-circle.svg" width="24" height="24" /> Troubleshooting & Support
+
+### WebSocket Timeout / Realtime Disconnects
+* **Symptom**: Order checklists or PhoneCapture steps do not update instantly.
+* **Fix**: Ensure that `VITE_SUPABASE_DIRECT_URL` is pointing directly to your `*.supabase.co` endpoint. WebSockets will fail if routed through a caching CDN or Cloudflare proxy that terminates long-lived TCP connections.
+
+### "Invalid File Format" during Captures
+* **Symptom**: Onboarding documents or mobile webcam captures fail during upload.
+* **Fix**: OZO reads the initial bytes of files (magic numbers) to ensure they are valid images (`PNG`, `JPG`, `WEBP`) or `PDF`. Ensure you are not uploading compressed ZIPs or renamed files.
+
+### Access Denied to Dashboard
+* **Symptom**: Trying to access `/admin` or `/mart` redirects you back to the home page.
+* **Fix**: Assign the proper role to your user in the Supabase SQL Console:
   ```sql
-  UPDATE public.users SET role = 'admin' WHERE email = 'your-email@domain.com';
+  UPDATE public.users SET role = 'admin' WHERE email = 'your-email@example.com';
   ```
 
 ---
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/milestone.svg" width="24" height="24" /> Roadmap
-
-- [ ] React Native Mobile Apps for Customers & Captains
-- [ ] Direct GPS integration for Captain tracking
-- [ ] Webhook-based push notifications via OneSignal
-- [ ] AI-driven product recommendations based on search terms
-- [ ] Dark mode support for admin dashboard tables
-
----
-
 <div align="center">
-  <h3>Made with <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/heart.svg" width="20" height="20" /> by OZO Team</h3>
-  <p>Star the repository on GitHub to show your support</p>
+  <h3>Made with <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/heart.svg" width="20" height="20" /> by the OZO Team</h3>
 </div>
