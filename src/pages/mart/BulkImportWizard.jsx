@@ -32,7 +32,7 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full flex items-center justify-between border rounded-xl px-4 py-3 text-sm focus:outline-none transition-all duration-200 cursor-pointer text-left font-semibold ${
+        className={`w-full flex items-center justify-between border rounded-xl px-4 py-3 text-sm focus:outline-none cursor-pointer text-left font-semibold ${
           value
             ? 'bg-emerald-500/[0.04] dark:bg-[#00FF66]/[0.02] border-emerald-500/30 dark:border-[#00FF66]/20 text-emerald-700 dark:text-[#00FF66]'
             : isRequired
@@ -42,16 +42,16 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
       >
         <span className="truncate flex items-center gap-2">
           {value && <CheckCircle className="w-3.5 h-3.5 shrink-0 text-emerald-500 dark:text-[#00FF66]" />}
-          {!value && isRequired && <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-500 animate-pulse" />}
+          {!value && isRequired && <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-500" />}
           {getLabel()}
         </span>
-        <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-emerald-555 dark:text-[#00FF66]' : 'text-gray-400'}`} />
+        <ChevronDown className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-emerald-555 dark:text-[#00FF66]' : 'text-gray-400'}`} />
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-hide py-1.5 animate-in fade-in slide-in-from-top-2 duration-150">
+          <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-hide py-1.5">
             {!isRequired && (
               <button
                 type="button"
@@ -403,7 +403,7 @@ export default function BulkImportWizard({
 
       let allCatalogProducts = []
       let from = 0
-      const limit = 2000
+      const limit = 1000
       while (true) {
         const { data, error } = await supabase
           .from('products')
@@ -1016,7 +1016,7 @@ export default function BulkImportWizard({
                         const h = e.dataTransfer.getData("text/plain")
                         if (h) setColumnMapping(prev => ({ ...prev, [slot.key]: h }))
                       }}
-                      className={`rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all duration-300 relative overflow-hidden ${
+                      className={`rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all duration-300 relative ${
                         isMapped 
                           ? 'bg-emerald-500/[0.02] dark:bg-[#00FF66]/[0.01] border border-emerald-550/30 dark:border-[#00FF66]/20 shadow-sm'
                           : slot.isRequired
@@ -1026,7 +1026,7 @@ export default function BulkImportWizard({
                     >
                       {/* Top indicator line for mapped fields */}
                       {isMapped && (
-                        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-emerald-500 to-[#00FF66]" />
+                        <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-emerald-500 to-[#00FF66]" />
                       )}
                       
                       <div className="flex items-start justify-between gap-2">
@@ -1120,6 +1120,7 @@ export default function BulkImportWizard({
     const matchedCount = previewRows.filter(r => r.status === 'matched').length
     const unmatchedCount = previewRows.filter(r => r.status === 'not_found').length
     const matchRate = previewRows.length > 0 ? (matchedCount / previewRows.length) * 100 : 0
+    const hasUnmappedName = previewRows.some(r => r.status !== 'matched' && (!r.name || r.name.trim() === ''))
 
     return (
       <div className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden py-2 w-full">
@@ -1151,7 +1152,7 @@ export default function BulkImportWizard({
           </div>
         </div>
 
-        {matchRate < 10 && previewRows.length > 0 && (
+        {((matchRate < 10 && hasUnmappedName) || !columnMapping.product_name || !columnMapping.product_identifier) && previewRows.length > 0 && (
           <div className="mb-6 bg-red-500/5 dark:bg-[#FF3366]/5 border border-red-500/15 dark:border-[#FF3366]/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 dark:bg-[#FF3366]" />
             <div className="flex gap-4">
@@ -1209,6 +1210,25 @@ export default function BulkImportWizard({
                     </div>
                   </div>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!hasUnmappedName && previewRows.some(r => r.status !== 'matched') && (
+          <div className="mb-6 bg-blue-500/5 border border-blue-500/15 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-blue-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 dark:bg-blue-400" />
+            <div className="flex gap-4">
+              <div className="p-2 bg-blue-500/10 dark:bg-blue-400/10 rounded-xl text-blue-550 dark:text-blue-400 shrink-0 self-start">
+                <Info className="w-5 h-5" />
+              </div>
+              <div className="flex-1">
+                <h4 className="text-sm font-extrabold text-blue-850 dark:text-blue-300 tracking-wide uppercase flex items-center gap-2 mb-1.5">
+                  New Catalog Products Detected ({previewRows.filter(r => r.status !== 'matched').length} Products)
+                </h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-semibold">
+                  These products were not found in the global catalog. Since you mapped the <strong>Product Name</strong> column, they will be automatically created as new custom products in your store.
+                </p>
               </div>
             </div>
           </div>
