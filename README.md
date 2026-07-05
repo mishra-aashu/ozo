@@ -160,36 +160,7 @@ OZO enforces security and consistency directly inside PostgreSQL:
 * A **Supabase** Project
 * **ImgBB API Key** or **ImageKit CDN** credentials
 
-### 2. Environment Variables Configuration
-Create a `.env` file in the root directory:
-```env
-# Supabase Connectivity
-VITE_SUPABASE_URL=/api/proxy
-VITE_SUPABASE_ANON_KEY=your_supabase_anonymous_key
-VITE_SUPABASE_DIRECT_URL=https://your-project.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=your_supabase_admin_service_role_key
-
-# Encryption & Security
-VITE_CRYPTO_SECRET=YourSecretEncryptionKeyHere
-WEBHOOK_SECRET=YourWebhookSecretVerifyToken
-MANDI_SYNC_SECRET=Bearer YourMandiSyncToken
-CRON_SECRET=YourCronSecureSecretToken
-
-# Third-Party Integrations
-VITE_IMGBB_API_KEY=your_imgbb_api_key
-VITE_RAZORPAY_KEY_ID=your_razorpay_key_id
-VITE_CASHFREE_APP_ID=your_cashfree_app_id
-VITE_CASHFREE_MODE=sandbox    # sandbox or production
-VITE_ONESIGNAL_APP_ID=your_onesignal_app_id
-ONESIGNAL_REST_API_KEY=your_onesignal_rest_api_key
-
-# ImageKit CDN Settings
-VITE_IMAGEKIT_PUBLIC_KEY=your_imagekit_public_key
-VITE_IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_endpoint
-IMAGEKIT_PRIVATE_KEY=your_imagekit_private_key
-```
-
-### 3. Frontend Installation & Running
+### 2. Frontend Installation & Running
 ```bash
 # Clone the repository
 git clone https://github.com/mishra-aashu/Ozo.git
@@ -203,7 +174,7 @@ npm run dev
 ```
 Open `http://localhost:5173` in your browser.
 
-### 4. Running the Local Image Tool (Flask Service)
+### 3. Running the Local Image Tool (Flask Service)
 The `OzoMartImageTool` runs locally to scan database products with missing images and scrape matching catalog details:
 ```bash
 # Setup virtual environment (optional but recommended)
