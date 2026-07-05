@@ -782,52 +782,55 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         {/* ==========================================
             STEP 2: OPTION CHOOSE METHOD SCREEN
            ========================================== */}
-        {step === 2 && mode === 'select' && (
+         {step === 2 && mode === 'select' && (
           <div className="p-6">
-            <div className="mb-6 p-4 rounded-2xl bg-slate-900/40 border border-slate-850 flex gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-orange-950/20 border border-orange-500/20 flex items-center justify-center text-orange-400 shrink-0">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-black uppercase tracking-wider text-orange-400 mb-0.5">Photo Enrichment Required</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">
-                  This product has no catalog image. Capture or upload 3 view angles to activate it in the customer store.
-                </p>
-              </div>
+            <div className="mb-6 p-4 rounded-2xl bg-slate-900/40 border border-slate-850">
+              <h4 className="text-xs font-black uppercase tracking-wider text-orange-400 mb-1">Photo Enrichment Required</h4>
+              <p className="text-xs text-gray-450 leading-relaxed">
+                This product has no catalog image. Capture or upload 3 view angles to activate it in the customer store.
+              </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-3">
               {/* Option A: Laptop Webcam */}
               <button
                 onClick={() => setMode('webcam')}
-                className="flex flex-col items-center justify-center p-6 bg-[#12121e]/40 hover:bg-[#12121e]/80 border border-slate-850 hover:border-slate-700 rounded-2xl text-center group transition-all duration-300 active:scale-[0.98] cursor-pointer"
+                className="w-full p-4 bg-[#12121e]/40 hover:bg-[#12121e]/85 border border-slate-850 hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] cursor-pointer text-left flex items-center justify-between group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-emerald-950/20 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  <Camera className="w-6 h-6" />
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-white text-sm">Use Laptop Webcam</h5>
+                    <p className="text-xs text-gray-500 mt-0.5">Take photos instantly using your laptop's built-in webcam</p>
+                  </div>
                 </div>
-                <h5 className="font-bold text-white text-sm mb-1">Laptop Webcam</h5>
-                <p className="text-xs text-gray-500 max-w-[160px] leading-relaxed">
-                  Take photos instantly using your laptop’s built-in webcam.
-                </p>
+                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </button>
 
               {/* Option B: Mobile via QR */}
               <button
                 onClick={startPhoneCaptureSession}
                 disabled={creatingSession}
-                className="flex flex-col items-center justify-center p-6 bg-[#12121e]/40 hover:bg-[#12121e]/80 border border-slate-850 hover:border-slate-700 rounded-2xl text-center group transition-all duration-300 active:scale-[0.98] disabled:opacity-50 cursor-pointer"
+                className="w-full p-4 bg-[#12121e]/40 hover:bg-[#12121e]/85 border border-slate-850 hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] disabled:opacity-50 cursor-pointer text-left flex items-center justify-between group"
               >
-                <div className="w-12 h-12 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
-                  {creatingSession ? (
-                    <Loader2 className="w-6 h-6 animate-spin" />
-                  ) : (
-                    <QrCode className="w-6 h-6" />
-                  )}
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+                    {creatingSession ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <Smartphone className="w-5 h-5" />
+                    )}
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-white text-sm">
+                      {creatingSession ? 'Creating sync session...' : 'Use Mobile Phone Camera'}
+                    </h5>
+                    <p className="text-xs text-gray-500 mt-0.5">Scan QR code to capture HD photos from your phone camera</p>
+                  </div>
                 </div>
-                <h5 className="font-bold text-white text-sm mb-1">Mobile QR Code</h5>
-                <p className="text-xs text-gray-500 max-w-[160px] leading-relaxed">
-                  Scan QR code to capture HD photos from your phone camera.
-                </p>
+                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
               </button>
             </div>
           </div>
