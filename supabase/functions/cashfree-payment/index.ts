@@ -14,7 +14,8 @@ async function calculateExpectedAmount(
   supabaseAdmin: any,
   userId: string,
   addressId?: string,
-  couponCode?: string
+  couponCode?: string,
+  martId?: string
 ): Promise<{ subtotal: number, deliveryFee: number, discountAmount: number, platformFee: number, total: number }> {
 
   // 1. Fetch address first if addressId is provided (needed for city-specific pricing and delivery fee)
@@ -74,9 +75,21 @@ async function calculateExpectedAmount(
   if (productsError) throw new Error(`Products retrieval failed: ${productsError.message}`)
   if (!products || products.length === 0) throw new Error('Failed to retrieve product details')
 
-  // 4. Fetch city specific availability and pricing overrides
+  // 4. Fetch mart overrides OR city overrides
+  let martOverrides: any[] = []
+  if (martId && productIds.length > 0) {
+    const { data: miData, error: miError } = await supabaseAdmin
+      .from('mart_inventory')
+      .select('product_id, mart_price, customer_price, stock_quantity, is_available')
+      .eq('mart_id', martId)
+      .in('product_id', productIds)
+    if (!miError && miData) {
+      martOverrides = miData
+    }
+  }
+
   let cityOverrides: any[] = []
-  if (citySlug) {
+  if (!martId && citySlug) {
     const { data: pcaData, error: pcaError } = await supabaseAdmin
       .from('product_city_availability')
       .select('product_id, is_available, city_price, city_mrp, city_ozo_price')
@@ -87,20 +100,37 @@ async function calculateExpectedAmount(
     }
   }
 
-  // 5. Compute subtotal with city overrides
+  // 5. Compute subtotal with overrides
   let subtotal = 0
   for (const item of cartItems) {
     const product = products.find((p: any) => p.id === item.product_id)
     if (!product) throw new Error(`Product not found in database.`)
 
     // Resolve overrides
+    const martOverride = martOverrides.find((m: any) => m.product_id === product.id)
     const override = cityOverrides.find((o: any) => o.product_id === product.id)
     
     let isAvailable = product.is_available
     let originalMartPrice = parseFloat(product.price || 0)
     let baseOzoPrice = product.ozo_price !== null && product.ozo_price !== undefined ? parseFloat(product.ozo_price) : null
+    let stockQuantity = product.quantity_available
 
-    if (override) {
+    if (martOverride) {
+      if (martOverride.is_available !== null && martOverride.is_available !== undefined) {
+        isAvailable = martOverride.is_available && martOverride.stock_quantity > 0
+      } else {
+        isAvailable = isAvailable && martOverride.stock_quantity > 0
+      }
+      stockQuantity = martOverride.stock_quantity
+      
+      // Prioritize customer_price, fallback to mart_price * 1.10 markup
+      if (martOverride.customer_price !== null && martOverride.customer_price !== undefined && parseFloat(martOverride.customer_price) > 0) {
+        originalMartPrice = parseFloat(martOverride.customer_price)
+      } else {
+        originalMartPrice = parseFloat(martOverride.mart_price) * 1.10
+      }
+      baseOzoPrice = null // No ozo price override for mart specific prices
+    } else if (override) {
       if (override.is_available !== null && override.is_available !== undefined) {
         isAvailable = override.is_available
       }
@@ -118,9 +148,9 @@ async function calculateExpectedAmount(
     }
 
     if (!isAvailable) throw new Error(`Product "${product.name}" is currently unavailable.`)
-    if (product.quantity_available !== null && product.quantity_available !== undefined) {
-      if (item.quantity > product.quantity_available)
-        throw new Error(`Only ${product.quantity_available} units of "${product.name}" are available.`)
+    if (stockQuantity !== null && stockQuantity !== undefined) {
+      if (item.quantity > stockQuantity)
+        throw new Error(`Only ${stockQuantity} units of "${product.name}" are available.`)
     }
     if (product.max_order_qty !== null && item.quantity > product.max_order_qty)
       throw new Error(`Maximum order qty for "${product.name}" is ${product.max_order_qty}.`)
@@ -338,7 +368,7 @@ Deno.serve(async (req: Request) => {
     }
 
     const body = await req.json()
-    const { action, addressId, couponCode, cfOrderId } = body
+    const { action, addressId, couponCode, cfOrderId, martId } = body
 
     // All actions (except verify) require addressId
     if (action !== 'verify_cashfree_payment' && !addressId) {
@@ -367,7 +397,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'calculate_totals') {
       let calc
       try {
-        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode)
+        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
       } catch (e: any) {
         return new Response(
           JSON.stringify({ success: false, error: e.message }),
@@ -417,7 +447,7 @@ Deno.serve(async (req: Request) => {
 
       let calc
       try {
-        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode)
+        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
       } catch (e: any) {
         return new Response(
           JSON.stringify({ success: false, error: e.message }),
@@ -553,7 +583,7 @@ Deno.serve(async (req: Request) => {
       // Server-side amount verification
       let calc
       try {
-        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode)
+        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
       } catch (e: any) {
         return new Response(
           JSON.stringify({ verified: false, error: e.message }),
