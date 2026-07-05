@@ -76,12 +76,32 @@ async function calculateExpectedAmount(
   if (!products || products.length === 0) throw new Error('Failed to retrieve product details')
 
   // 4. Fetch mart overrides OR city overrides
+  let resolvedMartId = martId
+  if (!resolvedMartId && address) {
+    const lat = parseFloat(address.latitude)
+    const lng = parseFloat(address.longitude)
+    if (!isNaN(lat) && !isNaN(lng)) {
+      const rpcItems = cartItems.map((item: any) => ({
+        product_id: item.product_id,
+        quantity: item.quantity
+      }))
+      const { data: optMartId, error: optMartError } = await supabaseAdmin.rpc('find_optimal_mart', {
+        p_latitude: lat,
+        p_longitude: lng,
+        p_items: rpcItems
+      })
+      if (!optMartError && optMartId) {
+        resolvedMartId = optMartId
+      }
+    }
+  }
+
   let martOverrides: any[] = []
-  if (martId && productIds.length > 0) {
+  if (resolvedMartId && productIds.length > 0) {
     const { data: miData, error: miError } = await supabaseAdmin
       .from('mart_inventory')
       .select('product_id, mart_price, customer_price, stock_quantity, is_available')
-      .eq('mart_id', martId)
+      .eq('mart_id', resolvedMartId)
       .in('product_id', productIds)
     if (!miError && miData) {
       martOverrides = miData
@@ -89,7 +109,7 @@ async function calculateExpectedAmount(
   }
 
   let cityOverrides: any[] = []
-  if (!martId && citySlug) {
+  if (!resolvedMartId && citySlug) {
     const { data: pcaData, error: pcaError } = await supabaseAdmin
       .from('product_city_availability')
       .select('product_id, is_available, city_price, city_mrp, city_ozo_price')
