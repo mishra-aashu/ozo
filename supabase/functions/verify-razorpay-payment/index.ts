@@ -268,10 +268,12 @@ async function calculateExpectedAmount(
   let calculatedDistanceCharge = 0
   let isOutsideZone = false
 
+  let platformConfig: any = null;
+
   if (address) {
       const { data: settings, error: settingsError } = await supabaseAdmin
         .from('app_settings')
-        .select('*')
+        .select('*');
 
       if (settingsError || !settings) {
         throw new Error(`Failed to load app settings from database: ${settingsError?.message || 'No settings found'}`);
@@ -281,8 +283,10 @@ async function calculateExpectedAmount(
       const geofenceConfigSetting = settings.find((s: any) => s.key === 'geofence_config');
       const platformConfigSetting = settings.find((s: any) => s.key === 'platform_config');
 
-      const platformConfig = {
+      platformConfig = {
         platform_fee: 0,
+        charity_enabled: true,
+        charity_amount: 10,
         ...(platformConfigSetting?.value || {})
       };
       platformFee = parseFloat(platformConfig.platform_fee) || 0;
@@ -415,14 +419,23 @@ async function calculateExpectedAmount(
       }
     }
 
-  const total = subtotal + deliveryFee + platformFee + (charityDonation || 0) - discountAmount
+  let charityDonationFinal = 0;
+  if (charityDonation && charityDonation > 0) {
+    const isCharityEnabled = platformConfig ? !!platformConfig.charity_enabled : true;
+    const allowedCharityAmount = platformConfig ? (parseFloat(platformConfig.charity_amount) || 10) : charityDonation;
+    if (isCharityEnabled) {
+      charityDonationFinal = allowedCharityAmount;
+    }
+  }
+
+  const total = subtotal + deliveryFee + platformFee + charityDonationFinal - discountAmount;
   return {
     subtotal,
     deliveryFee,
     discountAmount,
     platformFee,
     total: Math.max(0, total)
-  }
+  };
 }
 
 Deno.serve(async (req: Request) => {
