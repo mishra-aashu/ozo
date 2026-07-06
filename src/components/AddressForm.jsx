@@ -321,11 +321,11 @@ export default function AddressForm({
     });
   }, [localities])
 
-  // Filter landmarks relative to current selected locality
+  // Filter landmarks strictly relative to current selected locality ID
   const filteredLandmarks = React.useMemo(() => {
-    const list = currentLocality 
-      ? landmarks.filter(lm => lm.locality_id === currentLocality.id)
-      : landmarks // Fallback to all landmarks if no locality matches yet
+    if (!currentLocality) return []
+
+    const list = landmarks.filter(lm => lm.locality_id === currentLocality.id)
     
     return list.map(lm => {
       const parentLoc = localities.find(l => l.id === lm.locality_id)
@@ -340,13 +340,13 @@ export default function AddressForm({
     })
   }, [landmarks, currentLocality, localities])
 
-  // Filter galis / apartments relative to current selected locality
+  // Filter galis / apartments strictly relative to current selected locality ID
   const filteredGalis = React.useMemo(() => {
-    const list = currentLocality
-      ? galis.filter(g => g.locality_id === currentLocality.id)
-      : galis // Fallback to all galis if no locality matches yet
-      
-    return list.map(g => {
+    if (!currentLocality) return []
+
+    // Get galis mapped to this locality
+    const matchedGalis = galis.filter(g => g.locality_id === currentLocality.id)
+    const galiOptions = matchedGalis.map(g => {
       const parentLoc = localities.find(l => l.id === g.locality_id)
       const isBikeOnly = g.vehicle_restriction === 'bike_only'
       return {
@@ -362,7 +362,26 @@ export default function AddressForm({
         isBikeOnly
       }
     })
-  }, [galis, currentLocality, localities])
+
+    // Get landmarks mapped to this locality to also display in the Gali dropdown
+    const matchedLandmarks = landmarks.filter(lm => lm.locality_id === currentLocality.id)
+    const landmarkOptions = matchedLandmarks.map(lm => {
+      const parentLoc = localities.find(l => l.id === lm.locality_id)
+      return {
+        id: lm.id,
+        name: lm.name,
+        name_hi: lm.name_hi,
+        latitude: lm.latitude,
+        longitude: lm.longitude,
+        subtitle: `Landmark • ${parentLoc ? parentLoc.name : 'Aurangabad'}`,
+        vehicle_restriction: 'all',
+        isBikeOnly: false
+      }
+    })
+
+    // Return combined list (galis first, then landmarks)
+    return [...galiOptions, ...landmarkOptions]
+  }, [galis, landmarks, currentLocality, localities])
 
   const housePlaceholder = React.useMemo(() => {
     const isSinhaCollege = 
