@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation } from 'lucide-react'
+import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike } from 'lucide-react'
 import { findCityByPincode, findMatchingActiveCity, checkDeliveryZoneStatus, checkPincodeServiceable, useLocationStore } from '../stores/locationStore'
 import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
@@ -144,8 +144,9 @@ function SearchableSelect({
                   opt.isCore ? 'bg-amber-500/[0.02] dark:bg-amber-500/[0.03]' : ''
                 }`}
               >
-                <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 font-sans">
-                  {opt.isCore && <span className="text-amber-500 font-extrabold text-sm shrink-0">★</span>}
+                <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 font-sans font-medium">
+                  {opt.isCore && <Star size={12} className="text-amber-500 fill-amber-500 shrink-0" />}
+                  {opt.isBikeOnly && <Bike size={12} className="text-amber-500 shrink-0" />}
                   <span className={opt.isCore ? 'text-amber-600 dark:text-amber-400' : ''}>{opt.name}</span>
                   {opt.name_hi && (
                     <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal">
@@ -375,7 +376,7 @@ export default function AddressForm({
         name_hi: loc.name_hi,
         latitude: loc.latitude,
         longitude: loc.longitude,
-        subtitle: isCore ? `⭐ Primary Area • ${loc.pincode || '824101'}` : `Area/Mohalla • ${loc.pincode || '824101'}`,
+        subtitle: isCore ? `Primary Area • ${loc.pincode || '824101'}` : `Area/Mohalla • ${loc.pincode || '824101'}`,
         isCore,
         priority
       };
@@ -428,7 +429,7 @@ export default function AddressForm({
         latitude: g.latitude,
         longitude: g.longitude,
         subtitle: isBikeOnly 
-          ? `🛵 Bike Only • Street/Apartment • ${parentLoc ? parentLoc.name : 'Aurangabad'}`
+          ? `Bike Only • Street/Apartment • ${parentLoc ? parentLoc.name : 'Aurangabad'}`
           : `Street/Apartment • ${parentLoc ? parentLoc.name : 'Aurangabad'}`,
         vehicle_restriction: g.vehicle_restriction || 'all',
         isBikeOnly
@@ -744,7 +745,7 @@ export default function AddressForm({
               <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
             </span>
             <label className="text-[11px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              ⚡ Smart Setup Shortcut
+              Smart Setup Shortcut
             </label>
           </div>
           <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wide">
@@ -1044,7 +1045,7 @@ export default function AddressForm({
               <span>Delivery Notes / Instructions (Optional)</span>
               {currentGali && currentGali.vehicle_restriction === 'bike_only' && (
                 <span className="text-[10px] bg-amber-500/15 dark:bg-amber-500/25 text-amber-600 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
-                  🛵 Bike Only Lane
+                  <Bike size={11} className="shrink-0" /> Bike Only Lane
                 </span>
               )}
             </label>
@@ -1057,8 +1058,8 @@ export default function AddressForm({
                 : "e.g. Ring bell, leave at gate, or call on arrival..."}
             />
             {currentGali && currentGali.vehicle_restriction === 'bike_only' && (
-              <p className="text-[11px] text-amber-600 dark:text-amber-400/90 font-bold mt-1.5 flex items-center gap-1 animate-pulse">
-                <span>ℹ️</span>
+              <p className="text-[11px] text-amber-600 dark:text-amber-400/90 font-bold mt-1.5 flex items-center gap-1.5">
+                <Info size={12} className="shrink-0" />
                 <span>Note: This street is narrow; delivery will be completed via bike.</span>
               </p>
             )}
