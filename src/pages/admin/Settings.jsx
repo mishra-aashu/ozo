@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   Settings,
@@ -33,82 +33,66 @@ import {
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import { useCartStore } from '../../stores/cartStore'
-import { MapContainer, TileLayer, Marker, Circle, useMap, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import { useLocationStore } from '../../stores/locationStore'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
-const storeMarkerIcon = typeof window !== 'undefined' ? L.divIcon({
-  html: `
-    <div class="relative flex flex-col items-center">
-      <div class="absolute w-8 h-8 bg-amber-500/25 rounded-full animate-ping -bottom-4"></div>
-      <div class="absolute w-2.5 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
-      <div class="relative w-9 h-9 flex items-center justify-center">
-        <div class="absolute w-9 h-9 bg-gradient-to-tr from-amber-500 to-yellow-400 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
-        <div class="relative z-10 w-3 h-3 bg-white rounded-full shadow-inner flex items-center justify-center">
-          <div class="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
-        </div>
-      </div>
-    </div>
-  `,
-  className: 'custom-store-pin',
-  iconSize: [36, 40],
-  iconAnchor: [18, 40],
-}) : null;
-
-const warehouseMarkerIcon = typeof window !== 'undefined' ? L.divIcon({
-  html: `
-    <div class="relative flex flex-col items-center">
-      <div class="absolute w-8 h-8 bg-emerald-500/25 rounded-full animate-ping -bottom-4"></div>
-      <div class="absolute w-2.5 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
-      <div class="relative w-9 h-9 flex items-center justify-center">
-        <div class="absolute w-9 h-9 bg-gradient-to-tr from-emerald-500 to-teal-450 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
-        <div class="relative z-10 w-3 h-3 bg-white rounded-full shadow-inner flex items-center justify-center">
-          <div class="w-1.5 h-1.5 bg-emerald-650 rounded-full"></div>
-        </div>
-      </div>
-    </div>
-  `,
-  className: 'custom-warehouse-pin',
-  iconSize: [36, 40],
-  iconAnchor: [18, 40],
-}) : null;
-
-const MapEvents = ({ 
-  setWarehouseCoordinates, 
-  setStoreCoordinates, 
-  isPlacingWarehouse, 
-  setIsPlacingWarehouse, 
-  isPlacingStore, 
-  setIsPlacingStore 
-}) => {
-  useMapEvents({
-    click(e) {
-      if (isPlacingWarehouse) {
-        setWarehouseCoordinates(e.latlng.lat, e.latlng.lng);
-        setIsPlacingWarehouse(false);
-      } else if (isPlacingStore) {
-        setStoreCoordinates(e.latlng.lat, e.latlng.lng);
-        setIsPlacingStore(false);
-      }
+const streetStyle = {
+  version: 8,
+  sources: {
+    'raster-tiles': {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors'
     }
-  });
-  return null;
-};
-
-const MapRecenter = ({ center }) => {
-  const map = useMap();
-  useEffect(() => {
-    const currentCenter = map.getCenter();
-    const latDiff = Math.abs(currentCenter.lat - center[0]);
-    const lngDiff = Math.abs(currentCenter.lng - center[1]);
-    if (latDiff > 0.001 || lngDiff > 0.001) {
-      map.panTo(center);
+  },
+  layers: [
+    {
+      id: 'simple-tiles',
+      type: 'raster',
+      source: 'raster-tiles',
+      minzoom: 0,
+      maxzoom: 19
     }
-  }, [center, map]);
-  return null;
-};
+  ]
+}
+
+const createGeoJSONCircle = (center, radiusInKm, points = 64) => {
+  const [lng, lat] = center
+  const km = radiusInKm
+  const ret = []
+  const distanceX = km / (111.32 * Math.cos((lat * Math.PI) / 180))
+  const distanceY = km / 110.574
+
+  let theta, x, y
+  for (let i = 0; i < points; i++) {
+    theta = (i / points) * (2 * Math.PI)
+    x = distanceX * Math.cos(theta)
+    y = distanceY * Math.sin(theta)
+    ret.push([lng + x, lat + y])
+  }
+  ret.push(ret[0]) // close the polygon
+
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [ret]
+    }
+  }
+}
 
 const AdminSettings = () => {
+  const fetchHierarchicalData = useLocationStore(state => state.fetchHierarchicalData)
+  const localities = useLocationStore(state => state.localities || [])
+  const landmarks = useLocationStore(state => state.landmarks || [])
+  const galis = useLocationStore(state => state.galis || [])
+
+  const [showLocalities, setShowLocalities] = useState(true)
+  const [showLandmarks, setShowLandmarks] = useState(true)
+  const [showGalis, setShowGalis] = useState(true)
+
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [logs, setLogs] = useState([])
@@ -217,6 +201,474 @@ const AdminSettings = () => {
   const [searching, setSearching] = useState(false)
   const [isPlacingWarehouse, setIsPlacingWarehouse] = useState(false)
   const [isPlacingStore, setIsPlacingStore] = useState(false)
+  const [mapLoaded, setMapLoaded] = useState(false)
+
+  // MapLibre configuration refs and effects
+  const settingsMapContainerRef = useRef(null)
+  const settingsMapRef = useRef(null)
+  const warehouseMarkerRef = useRef(null)
+  const storeMarkerRef = useRef(null)
+  const localitiesMarkersRef = useRef([])
+  const landmarksMarkersRef = useRef([])
+  const galisMarkersRef = useRef([])
+
+  const isPlacingWarehouseRef = useRef(isPlacingWarehouse)
+  const isPlacingStoreRef = useRef(isPlacingStore)
+
+  useEffect(() => {
+    isPlacingWarehouseRef.current = isPlacingWarehouse
+  }, [isPlacingWarehouse])
+
+  useEffect(() => {
+    isPlacingStoreRef.current = isPlacingStore
+  }, [isPlacingStore])
+
+  // Initialize Settings Map
+  useEffect(() => {
+    if (loading) return
+    if (!settingsMapContainerRef.current) return
+    if (settingsMapRef.current) return // Already initialized
+
+    const initialLat = geofenceConfig.warehouse_lat || 24.754622
+    const initialLng = geofenceConfig.warehouse_lng || 84.375011
+
+    const map = new maplibregl.Map({
+      container: settingsMapContainerRef.current,
+      style: streetStyle,
+      center: [initialLng, initialLat],
+      zoom: 14,
+      attributionControl: false
+    })
+
+    settingsMapRef.current = map
+
+    map.on('load', () => {
+      setMapLoaded(true)
+    })
+
+    map.on('click', (e) => {
+      const { lat, lng } = e.lngLat
+      const fixedLat = parseFloat(lat.toFixed(6))
+      const fixedLng = parseFloat(lng.toFixed(6))
+
+      if (isPlacingWarehouseRef.current) {
+        setGeofenceConfig(prev => ({
+          ...prev,
+          warehouse_lat: fixedLat,
+          warehouse_lng: fixedLng
+        }))
+        setIsPlacingWarehouse(false)
+        toast.success("Warehouse position updated!")
+      } else if (isPlacingStoreRef.current) {
+        setDeliveryConfig(prev => ({
+          ...prev,
+          store_lat: fixedLat,
+          store_lng: fixedLng
+        }))
+        setIsPlacingStore(false)
+        toast.success("Delivery center position updated!")
+      }
+    })
+
+    return () => {
+      if (settingsMapRef.current) {
+        settingsMapRef.current.remove()
+        settingsMapRef.current = null
+      }
+      setMapLoaded(false)
+    }
+  }, [loading])
+
+  // Sync Warehouse marker
+  useEffect(() => {
+    if (!settingsMapRef.current) return
+    const map = settingsMapRef.current
+    const lat = geofenceConfig.warehouse_lat || 24.754622
+    const lng = geofenceConfig.warehouse_lng || 84.375011
+
+    if (warehouseMarkerRef.current) {
+      warehouseMarkerRef.current.setLngLat([lng, lat])
+    } else {
+      const el = document.createElement('div')
+      el.className = 'custom-warehouse-pin cursor-pointer'
+      el.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="absolute w-8 h-8 bg-emerald-500/25 rounded-full animate-ping -bottom-4"></div>
+          <div class="absolute w-2.5 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
+          <div class="relative w-9 h-9 flex items-center justify-center">
+            <div class="absolute w-9 h-9 bg-gradient-to-tr from-emerald-500 to-teal-450 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
+            <div class="relative z-10 w-3 h-3 bg-white rounded-full shadow-inner flex items-center justify-center">
+              <div class="w-1.5 h-1.5 bg-emerald-600 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      `
+      warehouseMarkerRef.current = new maplibregl.Marker({ element: el, draggable: true, anchor: 'bottom' })
+        .setLngLat([lng, lat])
+        .addTo(map)
+
+      warehouseMarkerRef.current.on('dragend', () => {
+        const lngLat = warehouseMarkerRef.current.getLngLat()
+        const fixedLat = parseFloat(lngLat.lat.toFixed(6))
+        const fixedLng = parseFloat(lngLat.lng.toFixed(6))
+        setGeofenceConfig(prev => ({
+          ...prev,
+          warehouse_lat: fixedLat,
+          warehouse_lng: fixedLng
+        }))
+        toast.success("Warehouse position updated!")
+      })
+    }
+  }, [geofenceConfig.warehouse_lat, geofenceConfig.warehouse_lng, mapLoaded])
+
+  // Sync Store marker
+  useEffect(() => {
+    if (!settingsMapRef.current) return
+    const map = settingsMapRef.current
+    const lat = deliveryConfig.store_lat || 24.752871
+    const lng = deliveryConfig.store_lng || 84.3738
+
+    if (storeMarkerRef.current) {
+      storeMarkerRef.current.setLngLat([lng, lat])
+    } else {
+      const el = document.createElement('div')
+      el.className = 'custom-store-pin cursor-pointer'
+      el.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="absolute w-8 h-8 bg-amber-500/25 rounded-full animate-ping -bottom-4"></div>
+          <div class="absolute w-2.5 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
+          <div class="relative w-9 h-9 flex items-center justify-center">
+            <div class="absolute w-9 h-9 bg-gradient-to-tr from-amber-500 to-yellow-400 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
+            <div class="relative z-10 w-3 h-3 bg-white rounded-full shadow-inner flex items-center justify-center">
+              <div class="w-1.5 h-1.5 bg-amber-600 rounded-full"></div>
+            </div>
+          </div>
+        </div>
+      `
+      storeMarkerRef.current = new maplibregl.Marker({ element: el, draggable: true, anchor: 'bottom' })
+        .setLngLat([lng, lat])
+        .addTo(map)
+
+      storeMarkerRef.current.on('dragend', () => {
+        const lngLat = storeMarkerRef.current.getLngLat()
+        const fixedLat = parseFloat(lngLat.lat.toFixed(6))
+        const fixedLng = parseFloat(lngLat.lng.toFixed(6))
+        setDeliveryConfig(prev => ({
+          ...prev,
+          store_lat: fixedLat,
+          store_lng: fixedLng
+        }))
+        toast.success("Store delivery center position updated!")
+      })
+    }
+  }, [deliveryConfig.store_lat, deliveryConfig.store_lng, mapLoaded])
+
+  // Sync Store geofence circle
+  useEffect(() => {
+    if (!mapLoaded || !settingsMapRef.current) return
+    const map = settingsMapRef.current
+    const lat = deliveryConfig.store_lat || 24.752871
+    const lng = deliveryConfig.store_lng || 84.3738
+    const radius = geofenceConfig.max_radius_km || 1.5
+
+    const setupCircle = () => {
+      if (map.getSource('store-geofence')) {
+        if (map.getLayer('store-geofence-fill')) map.removeLayer('store-geofence-fill')
+        if (map.getLayer('store-geofence-stroke')) map.removeLayer('store-geofence-stroke')
+        map.removeSource('store-geofence')
+      }
+
+      map.addSource('store-geofence', {
+        type: 'geojson',
+        data: createGeoJSONCircle([lng, lat], radius)
+      })
+
+      map.addLayer({
+        id: 'store-geofence-fill',
+        type: 'fill',
+        source: 'store-geofence',
+        layout: {},
+        paint: {
+          'fill-color': '#eab308',
+          'fill-opacity': 0.05
+        }
+      })
+
+      map.addLayer({
+        id: 'store-geofence-stroke',
+        type: 'line',
+        source: 'store-geofence',
+        layout: {},
+        paint: {
+          'line-color': '#eab308',
+          'line-width': 2,
+          'line-dasharray': [3, 3]
+        }
+      })
+    }
+
+    setupCircle()
+  }, [deliveryConfig.store_lat, deliveryConfig.store_lng, geofenceConfig.max_radius_km, mapLoaded])
+
+  // Sync Localities markers
+  useEffect(() => {
+    if (!mapLoaded || !settingsMapRef.current) return
+    const map = settingsMapRef.current
+
+    // Clear previous
+    localitiesMarkersRef.current.forEach(({ marker, circle }) => {
+      marker.remove()
+      if (circle) {
+        if (map.getLayer(circle.layerFillId)) map.removeLayer(circle.layerFillId)
+        if (map.getLayer(circle.layerStrokeId)) map.removeLayer(circle.layerStrokeId)
+        if (map.getSource(circle.sourceId)) map.removeSource(circle.sourceId)
+      }
+    })
+    localitiesMarkersRef.current = []
+
+    const setupLocalities = () => {
+      if (showLocalities && localities) {
+        localities.forEach((loc, idx) => {
+          if (!loc.latitude || !loc.longitude) return
+          const lat = parseFloat(loc.latitude)
+          const lng = parseFloat(loc.longitude)
+          const radiusM = loc.radius ? parseFloat(loc.radius) : 400
+
+          const el = document.createElement('div')
+          el.className = 'custom-locality-pin cursor-pointer'
+          el.innerHTML = `
+            <div class="relative flex flex-col items-center">
+              <div class="relative w-7 h-7 flex items-center justify-center">
+                <div class="absolute w-7 h-7 bg-blue-500 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-md transform rotate-[135deg]"></div>
+                <div class="relative z-10 w-2 h-2 bg-white rounded-full shadow-inner"></div>
+              </div>
+            </div>
+          `
+
+          const popupHTML = `
+            <div class="text-xs p-1 min-w-[150px] text-gray-850 dark:text-gray-200">
+              <div class="font-bold text-blue-600 dark:text-blue-400">${loc.name}</div>
+              <div class="text-gray-500 text-[10px]">${loc.name_hi || ''}</div>
+              <div class="mt-1 border-t pt-1 space-y-0.5 text-[10px] text-gray-600 dark:text-gray-400">
+                <div><strong>Pincode:</strong> ${loc.pincode}</div>
+                <div><strong>Snapping Radius:</strong> ${radiusM}m</div>
+                <div><strong>Speed Factor:</strong> ${loc.rider_speed_multiplier || '1.0'}x</div>
+                <div><strong>Primary:</strong> ${loc.is_primary ? 'Yes' : 'No'}</div>
+              </div>
+            </div>
+          `
+          const popup = new maplibregl.Popup({ offset: [0, -12] }).setHTML(popupHTML)
+
+          const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(map)
+
+          const sourceId = `locality-circle-source-${loc.id}-${idx}`
+          const layerFillId = `locality-circle-fill-${loc.id}-${idx}`
+          const layerStrokeId = `locality-circle-stroke-${loc.id}-${idx}`
+
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: createGeoJSONCircle([lng, lat], radiusM / 1000)
+          })
+
+          map.addLayer({
+            id: layerFillId,
+            type: 'fill',
+            source: sourceId,
+            layout: {},
+            paint: {
+              'fill-color': '#3b82f6',
+              'fill-opacity': 0.03
+            }
+          })
+
+          map.addLayer({
+            id: layerStrokeId,
+            type: 'line',
+            source: sourceId,
+            layout: {},
+            paint: {
+              'line-color': '#3b82f6',
+              'line-width': 1,
+              'line-dasharray': [3, 3]
+            }
+          })
+
+          localitiesMarkersRef.current.push({
+            marker,
+            circle: { sourceId, layerFillId, layerStrokeId }
+          })
+        })
+      }
+    }
+
+    setupLocalities()
+  }, [showLocalities, localities, mapLoaded])
+
+  // Sync Landmarks markers
+  useEffect(() => {
+    if (!mapLoaded || !settingsMapRef.current) return
+    const map = settingsMapRef.current
+
+    landmarksMarkersRef.current.forEach(marker => marker.remove())
+    landmarksMarkersRef.current = []
+
+    const setupLandmarks = () => {
+      if (showLandmarks && landmarks) {
+        landmarks.forEach((lm) => {
+          if (!lm.latitude || !lm.longitude) return
+          const lat = parseFloat(lm.latitude)
+          const lng = parseFloat(lm.longitude)
+          const parentLoc = localities.find(l => l.id === lm.locality_id)
+
+          const el = document.createElement('div')
+          el.className = 'custom-landmark-pin cursor-pointer'
+          el.innerHTML = `
+            <div class="relative flex flex-col items-center">
+              <div class="relative w-6 h-6 flex items-center justify-center animate-fade-in">
+                <div class="absolute w-6 h-6 bg-rose-500 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-md transform rotate-[135deg]"></div>
+                <div class="relative z-10 w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
+              </div>
+            </div>
+          `
+
+          const popupHTML = `
+            <div class="text-xs p-1 min-w-[150px] text-gray-805 dark:text-gray-200">
+              <div class="font-bold text-rose-600 dark:text-rose-400">${lm.name}</div>
+              <div class="text-gray-500 text-[10px]">${lm.name_hi || ''}</div>
+              <div class="mt-1 border-t pt-1 space-y-0.5 text-[10px] text-gray-600 dark:text-gray-400">
+                <div><strong>Type:</strong> Landmark</div>
+                <div><strong>Area:</strong> ${parentLoc ? parentLoc.name : 'Unknown'}</div>
+              </div>
+            </div>
+          `
+          const popup = new maplibregl.Popup({ offset: [0, -10] }).setHTML(popupHTML)
+
+          const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(map)
+
+          landmarksMarkersRef.current.push(marker)
+        })
+      }
+    }
+
+    setupLandmarks()
+  }, [showLandmarks, landmarks, localities, mapLoaded])
+
+  // Sync Galis markers
+  useEffect(() => {
+    if (!mapLoaded || !settingsMapRef.current) return
+    const map = settingsMapRef.current
+
+    galisMarkersRef.current.forEach(({ marker, circle }) => {
+      marker.remove()
+      if (circle) {
+        if (map.getLayer(circle.layerFillId)) map.removeLayer(circle.layerFillId)
+        if (map.getLayer(circle.layerStrokeId)) map.removeLayer(circle.layerStrokeId)
+        if (map.getSource(circle.sourceId)) map.removeSource(circle.sourceId)
+      }
+    })
+    galisMarkersRef.current = []
+
+    const setupGalis = () => {
+      if (showGalis && galis) {
+        galis.forEach((g, idx) => {
+          if (!g.latitude || !g.longitude) return
+          const lat = parseFloat(g.latitude)
+          const lng = parseFloat(g.longitude)
+          const radiusM = g.radius ? parseFloat(g.radius) : 150
+          const parentLoc = localities.find(l => l.id === g.locality_id)
+
+          const el = document.createElement('div')
+          el.className = 'custom-gali-pin cursor-pointer'
+          el.innerHTML = `
+            <div class="relative flex flex-col items-center">
+              <div class="relative w-6 h-6 flex items-center justify-center animate-fade-in">
+                <div class="absolute w-6 h-6 bg-purple-500 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-md transform rotate-[135deg]"></div>
+                <div class="relative z-10 w-1.5 h-1.5 bg-white rounded-full shadow-inner"></div>
+              </div>
+            </div>
+          `
+
+          const popupHTML = `
+            <div class="text-xs p-1 min-w-[150px] text-gray-810 dark:text-gray-200">
+              <div class="font-bold text-purple-600 dark:text-purple-400">${g.name}</div>
+              <div class="text-gray-500 text-[10px]">${g.name_hi || ''}</div>
+              <div class="mt-1 border-t pt-1 space-y-0.5 text-[10px] text-gray-600 dark:text-gray-400">
+                <div><strong>Type:</strong> ${g.type || 'Street/Gali'}</div>
+                <div><strong>Area:</strong> ${parentLoc ? parentLoc.name : 'Unknown'}</div>
+                <div><strong>Radius:</strong> ${radiusM}m</div>
+                <div><strong>Restriction:</strong> ${g.vehicle_restriction || 'None'}</div>
+                <div><strong>Speed Factor:</strong> ${g.rider_speed_multiplier || '1.0'}x</div>
+              </div>
+            </div>
+          `
+          const popup = new maplibregl.Popup({ offset: [0, -10] }).setHTML(popupHTML)
+
+          const marker = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(map)
+
+          const sourceId = `gali-circle-source-${g.id}-${idx}`
+          const layerFillId = `gali-circle-fill-${g.id}-${idx}`
+          const layerStrokeId = `gali-circle-stroke-${g.id}-${idx}`
+
+          map.addSource(sourceId, {
+            type: 'geojson',
+            data: createGeoJSONCircle([lng, lat], radiusM / 1000)
+          })
+
+          map.addLayer({
+            id: layerFillId,
+            type: 'fill',
+            source: sourceId,
+            layout: {},
+            paint: {
+              'fill-color': '#a855f7',
+              'fill-opacity': 0.03
+            }
+          })
+
+          map.addLayer({
+            id: layerStrokeId,
+            type: 'line',
+            source: sourceId,
+            layout: {},
+            paint: {
+              'line-color': '#a855f7',
+              'line-width': 1,
+              'line-dasharray': [2, 2]
+            }
+          })
+
+          galisMarkersRef.current.push({
+            marker,
+            circle: { sourceId, layerFillId, layerStrokeId }
+          })
+        })
+      }
+    }
+
+    setupGalis()
+  }, [showGalis, galis, localities, mapLoaded])
+
+  // Recenter Map on Warehouse/Store location when config is loaded
+  useEffect(() => {
+    if (!settingsMapRef.current) return
+    const map = settingsMapRef.current
+    const lat = geofenceConfig.warehouse_lat || 24.754622
+    const lng = geofenceConfig.warehouse_lng || 84.375011
+
+    const center = map.getCenter()
+    if (Math.abs(center.lat - lat) > 0.001 || Math.abs(center.lng - lng) > 0.001) {
+      map.panTo([lng, lat])
+    }
+  }, [geofenceConfig.warehouse_lat, geofenceConfig.warehouse_lng, mapLoaded])
 
   // Custom Push States
   const [customPushTitle, setCustomPushTitle] = useState('')
@@ -717,6 +1169,7 @@ const AdminSettings = () => {
   useEffect(() => {
     fetchSettings()
     fetchVegetableProducts()
+    fetchHierarchicalData()
   }, [])
 
   const handleSave = async (e) => {
@@ -1843,7 +2296,7 @@ const AdminSettings = () => {
                     <div className="flex items-center justify-between gap-4">
                       <div className="flex-1">
                         <p className="text-sm font-bold text-gray-800 dark:text-white font-display">Hide Interactive Maps</p>
-                        <p className="text-[10px] text-gray-400">Toggle ON to hide Leaflet map pickers, geocoding maps, and boundary visualization for users. The app will fall back to simpler address forms.</p>
+                        <p className="text-[10px] text-gray-400">Toggle ON to hide MapLibre map pickers, geocoding maps, and boundary visualization for users. The app will fall back to simpler address forms.</p>
                       </div>
                       <div className="flex items-center gap-3 flex-shrink-0">
                         <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all ${
@@ -2329,109 +2782,27 @@ const AdminSettings = () => {
                       <span>Click map to place Green Warehouse Marker</span>
                     </div>
                   )}
-                  {isPlacingStore && (
-                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[1000] bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-xs px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 border border-white/20 animate-bounce">
-                      <MapPin className="w-4 h-4 text-white animate-pulse" />
-                      <span>Click map to place Yellow Store Marker</span>
-                    </div>
-                  )}
-                  <MapContainer
-                    center={[geofenceConfig.warehouse_lat || 24.754622, geofenceConfig.warehouse_lng || 84.375011]}
-                    zoom={14}
-                    className="w-full h-full"
-                    style={{ cursor: (isPlacingWarehouse || isPlacingStore) ? 'crosshair' : 'grab' }}
-                    zoomControl={true}
-                  >
-                    <TileLayer
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    />
-                    <Circle
-                      center={[deliveryConfig.store_lat || 24.754622, deliveryConfig.store_lng || 84.375011]}
-                      radius={(geofenceConfig.max_radius_km || 1.5) * 1000}
-                      pathOptions={{
-                        color: '#eab308',
-                        fillColor: '#eab308',
-                        fillOpacity: 0.1,
-                        weight: 2,
-                        dashArray: '5, 5'
-                      }}
-                    />
-                    
-                    {/* Warehouse Marker (Green Pin) */}
-                    <Marker
-                      position={[geofenceConfig.warehouse_lat || 24.754622, geofenceConfig.warehouse_lng || 84.375011]}
-                      icon={warehouseMarkerIcon}
-                      draggable={true}
-                      eventHandlers={{
-                        dragend(e) {
-                          const marker = e.target;
-                          if (marker) {
-                            const { lat, lng } = marker.getLatLng();
-                            const fixedLat = parseFloat(lat.toFixed(6));
-                            const fixedLng = parseFloat(lng.toFixed(6));
-                            setGeofenceConfig(prev => ({
-                              ...prev,
-                              warehouse_lat: fixedLat,
-                              warehouse_lng: fixedLng
-                            }));
-                            toast.success("Warehouse position updated!");
-                          }
-                        }
-                      }}
-                    />
+                  {/* Layer Control Overlay */}
+                  <div className="absolute bottom-4 left-4 z-[1000] bg-white dark:bg-zinc-900/95 backdrop-blur-md p-3 rounded-xl border border-gray-200 dark:border-white/10 shadow-lg text-[11px] font-medium space-y-1.5 text-gray-700 dark:text-gray-300">
+                    <div className="font-bold mb-1 text-gray-800 dark:text-white uppercase tracking-wider text-[9px]">Map Layers</div>
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900 dark:hover:text-white">
+                      <input type="checkbox" checked={showLocalities} onChange={() => setShowLocalities(!showLocalities)} className="rounded border-gray-300 dark:border-zinc-700 text-blue-500 focus:ring-blue-500 h-3.5 w-3.5" />
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500"></span>
+                      <span>Localities ({localities.length})</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900 dark:hover:text-white">
+                      <input type="checkbox" checked={showLandmarks} onChange={() => setShowLandmarks(!showLandmarks)} className="rounded border-gray-300 dark:border-zinc-700 text-rose-500 focus:ring-rose-500 h-3.5 w-3.5" />
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                      <span>Landmarks ({landmarks.length})</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer hover:text-gray-900 dark:hover:text-white">
+                      <input type="checkbox" checked={showGalis} onChange={() => setShowGalis(!showGalis)} className="rounded border-gray-300 dark:border-zinc-700 text-purple-500 focus:ring-purple-500 h-3.5 w-3.5" />
+                      <span className="inline-block w-2.5 h-2.5 rounded-full bg-purple-500"></span>
+                      <span>Streets/Galis ({galis.length})</span>
+                    </label>
+                  </div>
 
-                    {/* Store Delivery Center Marker (Yellow Pin) */}
-                    <Marker
-                      position={[deliveryConfig.store_lat || 24.754622, deliveryConfig.store_lng || 84.375011]}
-                      icon={storeMarkerIcon}
-                      draggable={true}
-                      eventHandlers={{
-                        dragend(e) {
-                          const marker = e.target;
-                          if (marker) {
-                            const { lat, lng } = marker.getLatLng();
-                            const fixedLat = parseFloat(lat.toFixed(6));
-                            const fixedLng = parseFloat(lng.toFixed(6));
-                            setDeliveryConfig(prev => ({
-                              ...prev,
-                              store_lat: fixedLat,
-                              store_lng: fixedLng
-                            }));
-                            toast.success("Store delivery center position updated!");
-                          }
-                        }
-                      }}
-                    />
-
-                    <MapEvents 
-                      setWarehouseCoordinates={(lat, lng) => {
-                        const fixedLat = parseFloat(lat.toFixed(6))
-                        const fixedLng = parseFloat(lng.toFixed(6))
-                        setGeofenceConfig(prev => ({
-                          ...prev,
-                          warehouse_lat: fixedLat,
-                          warehouse_lng: fixedLng
-                        }));
-                        toast.success("Warehouse position updated!");
-                      }}
-                      setStoreCoordinates={(lat, lng) => {
-                        const fixedLat = parseFloat(lat.toFixed(6))
-                        const fixedLng = parseFloat(lng.toFixed(6))
-                        setDeliveryConfig(prev => ({
-                          ...prev,
-                          store_lat: fixedLat,
-                          store_lng: fixedLng
-                        }));
-                        toast.success("Delivery center position updated!");
-                      }}
-                      isPlacingWarehouse={isPlacingWarehouse}
-                      setIsPlacingWarehouse={setIsPlacingWarehouse}
-                      isPlacingStore={isPlacingStore}
-                      setIsPlacingStore={setIsPlacingStore}
-                    />
-                    <MapRecenter center={[geofenceConfig.warehouse_lat || 24.754622, geofenceConfig.warehouse_lng || 84.375011]} />
-                  </MapContainer>
+                  <div ref={settingsMapContainerRef} className="absolute inset-0" style={{ cursor: (isPlacingWarehouse || isPlacingStore) ? 'crosshair' : 'grab' }} />
                 </div>
               </div>
             </motion.div>

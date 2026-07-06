@@ -34,10 +34,8 @@ import OptimizedImage from '../components/OptimizedImage'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 
-// Leaflet imports for Live Tracking Map
-import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 
 const getGoogleMapsUrl = (address, order) => {
   if (order && order.latitude && order.longitude) {
@@ -57,34 +55,8 @@ const getGoogleMapsUrl = (address, order) => {
   const addressString = addressParts.join(', ');
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressString)}`;
 };
-// Map controller to adjust bounds dynamically to fit both customer and captain
-const TrackingMapController = ({ captainCoords, customerCoords }) => {
-  const map = useMap()
 
-  useEffect(() => {
-    if (!map) return
-
-    map.invalidateSize()
-
-    const bounds = []
-    if (customerCoords && customerCoords[0] && customerCoords[1]) {
-      bounds.push(customerCoords)
-    }
-    if (captainCoords && captainCoords[0] && captainCoords[1]) {
-      bounds.push(captainCoords)
-    }
-
-    if (bounds.length === 1) {
-      map.setView(bounds[0], 16, { animate: true })
-    } else if (bounds.length > 1) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 16, animate: true })
-    }
-  }, [map, captainCoords, customerCoords])
-
-  return null
-}
-
-// Live tracking map card component for customers
+// Live tracking map card component for customers using MapLibre GL JS
 const OrderTrackingMap = ({ order }) => {
   const customerLat = order?.latitude ? parseFloat(order.latitude) : null
   const customerLng = order?.longitude ? parseFloat(order.longitude) : null
@@ -92,57 +64,182 @@ const OrderTrackingMap = ({ order }) => {
   const captainLat = order?.rider?.current_lat ? parseFloat(order.rider.current_lat) : null
   const captainLng = order?.rider?.current_long ? parseFloat(order.rider.current_long) : null
 
+  const mapContainerRef = useRef(null)
+  const mapRef = useRef(null)
+  const customerMarkerRef = useRef(null)
+  const captainMarkerRef = useRef(null)
+
+  const streetStyle = useMemo(() => ({
+    version: 8,
+    sources: {
+      'raster-tiles': {
+        type: 'raster',
+        tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
+        tileSize: 256,
+        attribution: '&copy; OpenStreetMap contributors'
+      }
+    },
+    layers: [
+      {
+        id: 'simple-tiles',
+        type: 'raster',
+        source: 'raster-tiles',
+        minzoom: 0,
+        maxzoom: 19
+      }
+    ]
+  }), [])
+
+  const hasRiderCoords = captainLat && captainLng
+
+  // Initialize Map
+  useEffect(() => {
+    if (!customerLat || !customerLng || !mapContainerRef.current) return
+
+    if (mapRef.current) {
+      mapRef.current.remove()
+      mapRef.current = null
+      customerMarkerRef.current = null
+      captainMarkerRef.current = null
+    }
+
+    const centerLng = hasRiderCoords ? (customerLng + captainLng) / 2 : customerLng
+    const centerLat = hasRiderCoords ? (customerLat + captainLat) / 2 : customerLat
+
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: streetStyle,
+      center: [centerLng, centerLat],
+      zoom: 14,
+      attributionControl: false
+    })
+
+    mapRef.current = map
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [customerLat, customerLng])
+
+  // Update Markers and Polyline
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !customerLat || !customerLng) return
+
+    // Setup / update Customer marker
+    if (!customerMarkerRef.current) {
+      const el = document.createElement('div')
+      el.className = 'customer-home-pin'
+      el.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="absolute w-8 h-8 bg-[#E23744]/25 rounded-full animate-pulse -bottom-4"></div>
+          <div class="relative w-10 h-10 rounded-full border-2 border-[#E23744] bg-white shadow-lg overflow-hidden flex items-center justify-center">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E23744" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-ozo-red"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#E23744] -mt-0.5"></div>
+        </div>
+      `
+      customerMarkerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([customerLng, customerLat])
+        .addTo(map)
+    } else {
+      customerMarkerRef.current.setLngLat([customerLng, customerLat])
+    }
+
+    // Setup / update Captain marker and Polyline route path
+    const drawRouteAndCaptain = () => {
+      if (hasRiderCoords) {
+        if (!captainMarkerRef.current) {
+          const selfieUrl = order?.rider?.selfie_url
+          const initials = order?.rider?.full_name?.split(' ').map(n => n[0]).join('') || 'C'
+          const el = document.createElement('div')
+          el.className = 'captain-live-pin'
+          el.innerHTML = `
+            <div class="relative flex flex-col items-center">
+              <div class="absolute w-8 h-8 bg-emerald-500/25 rounded-full animate-ping -bottom-4"></div>
+              <div class="relative w-10 h-10 rounded-full border-2 border-emerald-500 bg-white shadow-lg overflow-hidden flex items-center justify-center">
+                ${selfieUrl 
+                  ? `<img src="${selfieUrl}" class="w-full h-full object-cover" />` 
+                  : `<span class="text-xs font-black text-emerald-600">${initials}</span>`
+                }
+              </div>
+              <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-emerald-500 -mt-0.5"></div>
+            </div>
+          `
+          captainMarkerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+            .setLngLat([captainLng, captainLat])
+            .addTo(map)
+        } else {
+          captainMarkerRef.current.setLngLat([captainLng, captainLat])
+        }
+
+        // Draw Polyline route between captain and customer
+        if (map.getSource('route')) {
+          map.removeLayer('route-line')
+          map.removeSource('route')
+        }
+
+        map.addSource('route', {
+          type: 'geojson',
+          data: {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'LineString',
+              coordinates: [
+                [captainLng, captainLat],
+                [customerLng, customerLat]
+              ]
+            }
+          }
+        })
+
+        map.addLayer({
+          id: 'route-line',
+          type: 'line',
+          source: 'route',
+          layout: {
+            'line-join': 'round',
+            'line-cap': 'round'
+          },
+          paint: {
+            'line-color': '#10B981',
+            'line-width': 3,
+            'line-dasharray': [2, 2]
+          }
+        })
+
+        // Adjust bounds to fit both points
+        const bounds = new maplibregl.LngLatBounds()
+        bounds.extend([customerLng, customerLat])
+        bounds.extend([captainLng, captainLat])
+        map.fitBounds(bounds, { padding: 50, maxZoom: 16 })
+      } else {
+        // Just fit customer
+        map.panTo([customerLng, customerLat])
+        if (captainMarkerRef.current) {
+          captainMarkerRef.current.remove()
+          captainMarkerRef.current = null
+        }
+        if (map.getLayer('route-line')) map.removeLayer('route-line')
+        if (map.getSource('route')) map.removeSource('route')
+      }
+    }
+
+    if (map.isStyleLoaded()) {
+      drawRouteAndCaptain()
+    } else {
+      map.once('style.load', drawRouteAndCaptain)
+    }
+
+  }, [customerLat, customerLng, captainLat, captainLng, hasRiderCoords])
+
   if (!customerLat || !customerLng) {
     return null
   }
-
-  const customerIcon = useMemo(() => L.divIcon({
-    html: `
-      <div class="relative flex flex-col items-center">
-        <div class="absolute w-8 h-8 bg-[#E23744]/25 rounded-full animate-pulse -bottom-4"></div>
-        <div class="relative w-10 h-10 rounded-full border-2 border-[#E23744] bg-white shadow-lg overflow-hidden flex items-center justify-center">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E23744" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-ozo-red"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        </div>
-        <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#E23744] -mt-0.5"></div>
-      </div>
-    `,
-    className: 'customer-home-pin',
-    iconSize: [40, 48],
-    iconAnchor: [20, 48]
-  }), [])
-
-  const captainIcon = useMemo(() => {
-    if (!captainLat || !captainLng) return null
-    const selfieUrl = order?.rider?.selfie_url
-    const initials = order?.rider?.full_name?.split(' ').map(n => n[0]).join('') || 'C'
-
-    return L.divIcon({
-      html: `
-        <div class="relative flex flex-col items-center">
-          <div class="absolute w-8 h-8 bg-emerald-500/25 rounded-full animate-ping -bottom-4"></div>
-          <div class="relative w-10 h-10 rounded-full border-2 border-emerald-500 bg-white shadow-lg overflow-hidden flex items-center justify-center">
-            ${selfieUrl 
-              ? `<img src="${selfieUrl}" class="w-full h-full object-cover" />` 
-              : `<span class="text-xs font-black text-emerald-600">${initials}</span>`
-            }
-          </div>
-          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-emerald-500 -mt-0.5"></div>
-        </div>
-      `,
-      className: 'captain-live-pin',
-      iconSize: [40, 48],
-      iconAnchor: [20, 48]
-    })
-  }, [captainLat, captainLng, order?.rider?.selfie_url, order?.rider?.full_name])
-
-  const centerPosition = useMemo(() => {
-    if (captainLat && captainLng) {
-      return [(customerLat + captainLat) / 2, (customerLng + captainLng) / 2]
-    }
-    return [customerLat, customerLng]
-  }, [customerLat, customerLng, captainLat, captainLng])
-
-  const hasRiderCoords = captainLat && captainLng
 
   return (
     <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-sm border border-gray-100 dark:border-white/5 space-y-6">
@@ -167,37 +264,7 @@ const OrderTrackingMap = ({ order }) => {
       </div>
 
       <div className="w-full h-[350px] rounded-3xl overflow-hidden border border-gray-100 dark:border-white/5 relative bg-gray-50 dark:bg-zinc-900 z-10">
-        <MapContainer
-          center={centerPosition}
-          zoom={14}
-          style={{ width: '100%', height: '100%' }}
-          zoomControl={false}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          />
-          
-          <Marker position={[customerLat, customerLng]} icon={customerIcon} />
-          
-          {hasRiderCoords && (
-            <>
-              <Marker position={[captainLat, captainLng]} icon={captainIcon} />
-              <Polyline 
-                positions={[[captainLat, captainLng], [customerLat, customerLng]]} 
-                color="#10B981" 
-                weight={3} 
-                dashArray="6, 8" 
-                opacity={0.8}
-              />
-            </>
-          )}
-
-          <TrackingMapController 
-            captainCoords={hasRiderCoords ? [captainLat, captainLng] : null} 
-            customerCoords={[customerLat, customerLng]} 
-          />
-        </MapContainer>
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
       </div>
     </div>
   )
