@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { MapContainer, TileLayer, Marker, CircleMarker, Tooltip, Polygon, Circle, useMap, useMapEvents, GeoJSON } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { Search, Navigation, MapPin, Loader2, Layers, Route, Home } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { checkDeliveryZoneStatus, useLocationStore } from '../stores/locationStore'
@@ -9,46 +8,6 @@ import { reverseGeocode, findNearestStreet } from '../lib/geocoding'
 import toast from 'react-hot-toast'
 import { useCartStore } from '../stores/cartStore'
 import { GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
-
-// Custom Pulse Marker Icon (OZO Red Theme Style)
-const ozoMarker = L.divIcon({
-  html: `
-    <div class="relative flex flex-col items-center">
-      <!-- Glowing active pulse at the anchor point -->
-      <div class="absolute w-6 h-6 bg-[#E23744]/25 rounded-full animate-ping -bottom-3"></div>
-      
-      <!-- Inner target shadow -->
-      <div class="absolute w-2 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
-      
-      <!-- Sleek Teardrop Pin -->
-      <div class="relative w-8 h-8 flex items-center justify-center">
-        <!-- Rotated square to form the pin bottom point -->
-        <div class="absolute w-8 h-8 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
-        
-        <!-- Premium white center core -->
-        <div class="relative z-10 w-2.5 h-2.5 bg-white rounded-full shadow-inner"></div>
-      </div>
-    </div>
-  `,
-  className: 'custom-ozo-pin',
-  iconSize: [32, 36],
-  iconAnchor: [16, 36],
-})
-
-// Custom Serviceable Street Marker (Clean vector SVG dot)
-const serviceableStreetMarker = L.divIcon({
-  html: `
-    <div class="flex items-center justify-center h-full w-full">
-      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-sm">
-        <circle cx="6" cy="6" r="4.5" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5"/>
-        <circle cx="6" cy="6" r="5.25" stroke="#10B981" stroke-width="0.75" stroke-opacity="0.3"/>
-      </svg>
-    </div>
-  `,
-  className: 'custom-serviceable-pin',
-  iconSize: [14, 14],
-  iconAnchor: [7, 7],
-})
 
 const isLatLngInDeliveryZone = (lat, lng, config) => {
   return checkDeliveryZoneStatus(lat, lng, { geofenceConfig: config })
@@ -76,171 +35,119 @@ const getLevenshteinDistance = (a, b) => {
   return tmp[a.length][b.length]
 }
 
+const isInsideBounds = (bounds, lat, lng) => {
+  if (!bounds) return true
+  if (typeof bounds.contains === 'function') {
+    return bounds.contains([lng, lat])
+  }
+  return true
+}
 
-// Sub-component: ONLY re-centers map when position changes AFTER mount
-// Uses a ref to skip the very first mount (so we don't fight the initial center)
-const MapController = ({ position, setPosition, onLocationSelect, serviceableStreets, setZoomLevel, setMapBounds, geofenceConfig }) => {
-  const map = useMap()
-  const isMounted = useRef(false)
+const createGeoJSONCircle = (center, radiusInKm, points = 64) => {
+  const [lng, lat] = center
+  const km = radiusInKm
+  const ret = []
+  const distanceX = km / (111.32 * Math.cos((lat * Math.PI) / 180))
+  const distanceY = km / 110.574
 
-  // Initialize bounds on mount / center change
-  useEffect(() => {
-    setMapBounds(map.getBounds())
-  }, [map, setMapBounds])
+  let theta, x, y
+  for (let i = 0; i < points; i++) {
+    theta = (i / points) * (2 * Math.PI)
+    x = distanceX * Math.cos(theta)
+    y = distanceY * Math.sin(theta)
+    ret.push([lng + x, lat + y])
+  }
+  ret.push(ret[0]) // close the polygon
 
-  useEffect(() => {
-    // Call invalidateSize at multiple intervals to cover page transitions & modal animations
-    map.invalidateSize()
-    const t1 = setTimeout(() => map.invalidateSize(), 100)
-    const t2 = setTimeout(() => map.invalidateSize(), 350)
-    const t3 = setTimeout(() => map.invalidateSize(), 700)
-    const t4 = setTimeout(() => map.invalidateSize(), 1200)
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); clearTimeout(t4) }
-  }, [map])
-
-  useEffect(() => {
-    if (!isMounted.current) {
-      // Skip first render — map is already centered at the correct GPS point
-      isMounted.current = true
-      // Also invalidate size here
-      map.invalidateSize()
-      return
-    }
-    if (position) {
-      map.flyTo(position, 16, { animate: true, duration: 1.2 })
-    }
-  }, [position, map])
-
-  useMapEvents({
-    click(e) {
-      const { lat, lng } = e.latlng
-      if (!isLatLngInDeliveryZone(lat, lng, geofenceConfig)) {
-        toast.error("Pinned location is outside Ozo's delivery zone.", { id: 'outside-zone-toast' })
-        return
-      }
-      setPosition([lat, lng])
-      triggerSelect(lat, lng)
-    },
-    zoomend() {
-      setZoomLevel(map.getZoom())
-      setMapBounds(map.getBounds())
-    },
-    moveend() {
-      setMapBounds(map.getBounds())
-    }
-  })
-
-  const triggerSelect = async (lat, lng) => {
-    if (onLocationSelect) {
-      const result = await reverseGeocode(lat, lng, serviceableStreets)
-      onLocationSelect({
-        lat,
-        lng,
-        displayName: result.displayName,
-        addressDetails: result.addressDetails,
-        nearestStreet: result.nearestStreet
-      })
+  return {
+    type: 'Feature',
+    geometry: {
+      type: 'Polygon',
+      coordinates: [ret]
     }
   }
-
-  return null
 }
 
 const LOCATIONIQ_KEY = import.meta.env.VITE_LOCATIONIQ_KEY || '';
 
-const getTileUrls = () => {
-  const urls = [];
-  // LocationIQ streets tile — has full labels, no {s} subdomain needed
-  if (LOCATIONIQ_KEY && LOCATIONIQ_KEY !== 'YOUR_FREE_KEY_HERE' && !LOCATIONIQ_KEY.includes('YOUR_')) {
-    urls.push(`https://tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`);
-  }
-  // OSM standard — always has labels
-  urls.push('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
-  // Carto Voyager — labels version (no {r} retina, plain URL)
-  urls.push('https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png');
-  return urls;
-};
-
-const TILE_URLS = getTileUrls();
-
-// Street overlay component using optimized GeoJSON with lazy load
-const StreetOverlay = ({ mapBounds }) => {
-  const [geoJsonData, setGeoJsonData] = useState(null)
-
-  useEffect(() => {
-    let isMounted = true
-    import('../data/aurangabad_streets.json').then((module) => {
-      if (isMounted) {
-        setGeoJsonData(module.default || module)
-      }
-    })
-    return () => {
-      isMounted = false
+const streetStyle = {
+  version: 8,
+  sources: {
+    'raster-tiles': {
+      type: 'raster',
+      tiles: [
+        LOCATIONIQ_KEY && LOCATIONIQ_KEY !== 'YOUR_FREE_KEY_HERE' && !LOCATIONIQ_KEY.includes('YOUR_')
+          ? `https://tiles.locationiq.com/v3/streets/r/{z}/{x}/{y}.png?key=${LOCATIONIQ_KEY}`
+          : 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'
+      ],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors'
     }
-  }, [])
-
-  const streetStyle = (feature) => {
-    const type = feature.properties.highway
-    return {
-      color: type === 'primary' || type === 'secondary' ? '#E23744' : '#3B82F6',
-      weight: type === 'primary' ? 4.5 : type === 'secondary' ? 3.5 : 2,
-      opacity: 0.65
+  },
+  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  layers: [
+    {
+      id: 'simple-tiles',
+      type: 'raster',
+      source: 'raster-tiles',
+      minzoom: 0,
+      maxzoom: 19
     }
-  }
-
-  const onEachStreet = (feature, layer) => {
-    const nameEn = feature.properties.name || ''
-    const nameHi = feature.properties['name:hi'] || ''
-    if (!nameEn && !nameHi) return
-
-    const displayLabel = nameHi && nameEn 
-      ? `${nameHi} (${nameEn})` 
-      : nameHi || nameEn
-
-    layer.bindTooltip(displayLabel, {
-      sticky: true,
-      className: 'street-map-label'
-    })
-  }
-
-  // Filter features to only those inside map bounds to optimize mobile rendering performance
-  const filteredGeoJson = useMemo(() => {
-    if (!geoJsonData) return null
-    if (!mapBounds) return geoJsonData
-    
-    const features = geoJsonData.features.filter((feature) => {
-      const geomType = feature.geometry?.type
-      if (geomType === 'LineString') {
-        const coords = feature.geometry.coordinates
-        if (!Array.isArray(coords)) return false
-        return coords.some(([lng, lat]) => mapBounds.contains([lat, lng]))
-      } else if (geomType === 'MultiLineString') {
-        const coords = feature.geometry.coordinates
-        if (!Array.isArray(coords)) return false
-        return coords.some((line) => 
-          Array.isArray(line) && line.some(([lng, lat]) => mapBounds.contains([lat, lng]))
-        )
-      }
-      return false
-    })
-    
-    return {
-      ...geoJsonData,
-      features
-    }
-  }, [geoJsonData, mapBounds])
-
-  if (!filteredGeoJson || filteredGeoJson.features.length === 0) return null
-
-  return (
-    <GeoJSON 
-      key={`streets-${filteredGeoJson.features.length}`}
-      data={filteredGeoJson} 
-      style={streetStyle} 
-      onEachFeature={onEachStreet} 
-    />
-  )
+  ]
 }
+
+const satelliteStyle = {
+  version: 8,
+  sources: {
+    'satellite-tiles': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256,
+      attribution: 'Tiles &copy; Esri &mdash; Source: Esri'
+    },
+    'transportation-tiles': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256
+    },
+    'boundaries-tiles': {
+      type: 'raster',
+      tiles: [
+        'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'
+      ],
+      tileSize: 256
+    }
+  },
+  glyphs: 'https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf',
+  layers: [
+    {
+      id: 'satellite-layer',
+      type: 'raster',
+      source: 'satellite-tiles',
+      minzoom: 0,
+      maxzoom: 19
+    },
+    {
+      id: 'transportation-layer',
+      type: 'raster',
+      source: 'transportation-tiles',
+      minzoom: 0,
+      maxzoom: 19
+    },
+    {
+      id: 'boundaries-layer',
+      type: 'raster',
+      source: 'boundaries-tiles',
+      minzoom: 0,
+      maxzoom: 19
+    }
+  ]
+}
+
 
 const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" }) => {
   const nearestCity = useLocationStore((state) => state.nearestCity)
@@ -308,7 +215,12 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
     }
     return null
   })
-  const [tileUrlIdx, setTileUrlIdx] = useState(0)
+  const mapContainerRef = useRef(null)
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+  const serviceableMarkersRef = useRef([])
+  const geoJsonDataRef = useRef(null)
+  
   const [isLocating, setIsLocating] = useState(false)
   const [locationError, setLocationError] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
@@ -735,6 +647,284 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
       })
     }
   }
+
+  // MapLibre Layer Setup Function
+  const setupMapLayers = (map) => {
+    if (!map) return
+
+    // 1. Setup Geofence
+    if (map.getSource('geofence')) {
+      if (map.getLayer('geofence-fill')) map.removeLayer('geofence-fill')
+      if (map.getLayer('geofence-stroke')) map.removeLayer('geofence-stroke')
+      map.removeSource('geofence')
+    }
+
+    map.addSource('geofence', {
+      type: 'geojson',
+      data: createGeoJSONCircle([centerLng, centerLat], maxRadius)
+    })
+
+    map.addLayer({
+      id: 'geofence-fill',
+      type: 'fill',
+      source: 'geofence',
+      layout: {},
+      paint: {
+        'fill-color': '#E23744',
+        'fill-opacity': 0.12
+      }
+    })
+
+    map.addLayer({
+      id: 'geofence-stroke',
+      type: 'line',
+      source: 'geofence',
+      layout: {},
+      paint: {
+        'line-color': '#E23744',
+        'line-width': 3,
+        'line-dasharray': [2, 2]
+      }
+    })
+
+    // 2. Setup Streets if loaded
+    if (geoJsonDataRef.current) {
+      if (map.getSource('streets-geojson')) {
+        if (map.getLayer('streets-layer')) map.removeLayer('streets-layer')
+        map.removeSource('streets-geojson')
+      }
+
+      map.addSource('streets-geojson', {
+        type: 'geojson',
+        data: geoJsonDataRef.current
+      })
+
+      map.addLayer({
+        id: 'streets-layer',
+        type: 'line',
+        source: 'streets-geojson',
+        layout: {
+          'line-join': 'round',
+          'line-cap': 'round',
+          'visibility': zoomLevel > 14 ? 'visible' : 'none'
+        },
+        paint: {
+          'line-color': [
+            'case',
+            ['in', ['get', 'highway'], ['literal', ['primary', 'secondary']]],
+            '#E23744',
+            '#3B82F6'
+          ],
+          'line-width': [
+            'case',
+            ['==', ['get', 'highway'], 'primary'],
+            4.5,
+            ['==', ['get', 'highway'], 'secondary'],
+            3.5,
+            2
+          ],
+          'line-opacity': 0.65
+        }
+      })
+    }
+  }
+
+  // 1. Load street network GeoJSON dynamically
+  useEffect(() => {
+    import('../data/aurangabad_streets.json').then((module) => {
+      const data = module.default || module
+      geoJsonDataRef.current = data
+      if (mapRef.current && mapRef.current.isStyleLoaded()) {
+        setupMapLayers(mapRef.current)
+      }
+    })
+  }, [])
+
+  // 2. Initialize Map when position is resolved
+  useEffect(() => {
+    if (!position || !mapContainerRef.current || mapRef.current) return
+
+    const [lat, lng] = position
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: isSatellite ? satelliteStyle : streetStyle,
+      center: [lng, lat],
+      zoom: 16,
+      minZoom: 12,
+      maxZoom: 19,
+      maxBounds: [
+        [centerLng - 0.15, centerLat - 0.15],
+        [centerLng + 0.15, centerLat + 0.15]
+      ],
+      attributionControl: false
+    })
+
+    mapRef.current = map
+
+    map.on('load', () => {
+      setMapBounds(map.getBounds())
+      setZoomLevel(Math.round(map.getZoom()))
+      setupMapLayers(map)
+    })
+
+    map.on('moveend', () => {
+      setMapBounds(map.getBounds())
+    })
+
+    map.on('zoomend', () => {
+      setZoomLevel(Math.round(map.getZoom()))
+      setMapBounds(map.getBounds())
+    })
+
+    map.on('click', async (e) => {
+      const { lat, lng } = e.lngLat
+      if (!isLatLngInDeliveryZone(lat, lng, geofenceConfig)) {
+        toast.error("Pinned location is outside Ozo's delivery zone.", { id: 'outside-zone-toast' })
+        return
+      }
+      setPosition([lat, lng])
+      if (onLocationSelect) {
+        const result = await reverseGeocode(lat, lng, serviceableStreets)
+        onLocationSelect({
+          lat,
+          lng,
+          displayName: result.displayName,
+          addressDetails: result.addressDetails,
+          nearestStreet: result.nearestStreet
+        })
+      }
+    })
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+      }
+    }
+  }, [position === null])
+
+  // 3. Update style on satellite toggle
+  useEffect(() => {
+    if (mapRef.current) {
+      const map = mapRef.current
+      map.setStyle(isSatellite ? satelliteStyle : streetStyle)
+      
+      const onStyleLoad = () => {
+        setupMapLayers(map)
+      }
+      map.on('style.load', onStyleLoad)
+      return () => {
+        map.off('style.load', onStyleLoad)
+      }
+    }
+  }, [isSatellite])
+
+  // 4. Update street layer visibility when zoomLevel changes
+  useEffect(() => {
+    if (mapRef.current) {
+      const map = mapRef.current
+      if (map.getLayer('streets-layer')) {
+        map.setLayoutProperty('streets-layer', 'visibility', zoomLevel > 14 ? 'visible' : 'none')
+      }
+    }
+  }, [zoomLevel])
+
+  // 5. Sync main position marker and fly to position if changed externally
+  useEffect(() => {
+    if (!mapRef.current || !position) return
+
+    const map = mapRef.current
+    const [lat, lng] = position
+
+    const center = map.getCenter()
+    if (Math.abs(center.lat - lat) > 0.0001 || Math.abs(center.lng - lng) > 0.0001) {
+      map.flyTo({
+        center: [lng, lat],
+        zoom: 16,
+        duration: 1200,
+        essential: true
+      })
+    }
+
+    if (markerRef.current) {
+      markerRef.current.setLngLat([lng, lat])
+    } else {
+      const el = document.createElement('div')
+      el.className = 'custom-ozo-pin'
+      el.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="absolute w-6 h-6 bg-[#E23744]/25 rounded-full animate-ping -bottom-3"></div>
+          <div class="absolute w-2 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
+          <div class="relative w-8 h-8 flex items-center justify-center">
+            <div class="absolute w-8 h-8 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
+            <div class="relative z-10 w-2.5 h-2.5 bg-white rounded-full shadow-inner"></div>
+          </div>
+        </div>
+      `
+      markerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([lng, lat])
+        .addTo(map)
+    }
+  }, [position])
+
+  // 6. Sync serviceable street markers from database based on map bounds and zoom level
+  useEffect(() => {
+    if (!mapRef.current) return
+
+    const map = mapRef.current
+
+    serviceableMarkersRef.current.forEach(m => m.remove())
+    serviceableMarkersRef.current = []
+
+    if (serviceableStreets && mapBounds) {
+      serviceableStreets
+        .filter((st) => {
+          if (!st.latitude || !st.longitude) return false
+          const lat = parseFloat(st.latitude)
+          const lng = parseFloat(st.longitude)
+          return isInsideBounds(mapBounds, lat, lng)
+        })
+        .forEach((st) => {
+          const lat = parseFloat(st.latitude)
+          const lng = parseFloat(st.longitude)
+
+          const el = document.createElement('div')
+          el.className = 'custom-serviceable-pin cursor-pointer'
+          el.innerHTML = `
+            <div class="flex items-center justify-center h-full w-full">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" class="drop-shadow-sm">
+                <circle cx="6" cy="6" r="4.5" fill="#10B981" stroke="#FFFFFF" stroke-width="1.5"/>
+                <circle cx="6" cy="6" r="5.25" stroke="#10B981" stroke-width="0.75" stroke-opacity="0.3"/>
+              </svg>
+            </div>
+          `
+
+          const label = st.name_hi ? `${st.name} (${st.name_hi})` : st.name
+          const popup = new maplibregl.Popup({
+            offset: [0, -6],
+            closeButton: false,
+            closeOnClick: false
+          }).setHTML(`<div class="custom-map-label text-[10px] font-bold px-1.5 py-0.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded shadow-md text-gray-800 dark:text-gray-200">${label}</div>`)
+
+          const marker = new maplibregl.Marker({ element: el })
+            .setLngLat([lng, lat])
+            .setPopup(popup)
+            .addTo(map)
+
+          if (zoomLevel >= 17) {
+            popup.addTo(map)
+          }
+
+          el.addEventListener('click', (e) => {
+            e.stopPropagation()
+            handleSelectServiceableStreet(st)
+          })
+
+          serviceableMarkersRef.current.push(marker)
+        })
+    }
+  }, [serviceableStreets, mapBounds, zoomLevel])
+
 
   return (
     <div className={`w-full ${className} rounded-3xl overflow-hidden border border-gray-200 dark:border-zinc-800 relative shadow-2xl bg-gray-100 dark:bg-zinc-900 flex flex-col ${isSatellite ? 'satellite-active' : ''}`}>
@@ -1176,113 +1366,10 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
         </div>
       )}
 
-      {/* Leaflet Map — only rendered AFTER position is resolved */}
+      {/* MapLibre Map Container */}
       {position && (
-        <div style={{ width: '100%', height: '420px', flexShrink: 0 }}>
-          <MapContainer
-            center={position}
-            zoom={16}
-            minZoom={12}
-            maxZoom={19}
-            maxBounds={mapMaxBounds}
-            maxBoundsViscosity={1.0}
-            className=""
-            style={{ width: '100%', height: '100%' }}
-            zoomControl={false}
-            attributionControl={false}
-          >
-            {isSatellite ? (
-              <>
-                <TileLayer
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                  maxZoom={19}
-                  attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-                />
-                <TileLayer
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Transportation/MapServer/tile/{z}/{y}/{x}"
-                  maxZoom={19}
-                  pane="shadowPane"
-                />
-                <TileLayer
-                  url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}"
-                  maxZoom={19}
-                  pane="overlayPane"
-                />
-              </>
-            ) : (
-              <TileLayer
-                key={TILE_URLS[tileUrlIdx] || 'default-osm'}
-                attribution='&copy; <a href="https://locationiq.com">LocationIQ</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                url={TILE_URLS[tileUrlIdx] || 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'}
-                maxZoom={20}
-                eventHandlers={{
-                  tileerror: () => {
-                    setTileUrlIdx(prev => {
-                      if (prev < TILE_URLS.length - 1) {
-                        return prev + 1
-                      }
-                      return prev
-                    })
-                  }
-                }}
-              />
-            )}
-
-            {/* 🔥 OZO ACTIVE GEOFENCE CIRCLE */}
-            <Circle 
-              center={[centerLat, centerLng]}
-              radius={maxRadius * 1000} 
-              pathOptions={{
-                color: '#E23744',
-                fillColor: '#E23744',
-                fillOpacity: 0.12,
-                weight: 3,
-                dashArray: '6, 6',
-              }} 
-            />
-
-            {/* 🛣️ STREET NAME OVERLAY LAYER */}
-            {zoomLevel > 14 && <StreetOverlay mapBounds={mapBounds} />}
-
-            {/* 🟢 SERVICEABLE STREETS FROM DATABASE (FILTERED BY VIEWPORT BOUNDS) */}
-            {mapBounds && serviceableStreets
-              .filter((st) => {
-                if (!st.latitude || !st.longitude) return false
-                const lat = parseFloat(st.latitude)
-                const lng = parseFloat(st.longitude)
-                return mapBounds.contains([lat, lng])
-              })
-              .map((st) => {
-                const lat = parseFloat(st.latitude)
-                const lng = parseFloat(st.longitude)
-                return (
-                  <Marker
-                    key={st.id}
-                    position={[lat, lng]}
-                    icon={serviceableStreetMarker}
-                    eventHandlers={{
-                      click: () => handleSelectServiceableStreet(st)
-                    }}
-                  >
-                    <Tooltip direction="top" offset={[0, -6]} opacity={1} permanent={zoomLevel >= 17} className="custom-map-label">
-                      <span>{st.name_hi ? `${st.name} (${st.name_hi})` : st.name}</span>
-                    </Tooltip>
-                  </Marker>
-                )
-              })}
-
-            <Marker position={position} icon={ozoMarker} />
-            
-            <MapController 
-              position={position} 
-              setPosition={setPosition} 
-              onLocationSelect={onLocationSelect} 
-              serviceableStreets={serviceableStreets} 
-              setZoomLevel={setZoomLevel}
-              setMapBounds={setMapBounds}
-              geofenceConfig={geofenceConfig}
-            />
-          </MapContainer>
+        <div style={{ width: '100%', height: '420px', flexShrink: 0 }} className="relative">
+          <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
         </div>
       )}
 

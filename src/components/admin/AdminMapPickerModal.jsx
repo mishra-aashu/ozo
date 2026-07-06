@@ -1,53 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet'
-import L from 'leaflet'
-import 'leaflet/dist/leaflet.css'
+import maplibregl from 'maplibre-gl'
+import 'maplibre-gl/dist/maplibre-gl.css'
 import { Search, MapPin, X, Loader2, Compass } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 
-// Custom marker icon to prevent Leaflet image asset path issues in production
-const adminPinIcon = L.divIcon({
-  html: `
-    <div class="relative flex flex-col items-center">
-      <div class="absolute w-6 h-6 bg-blue-500/20 rounded-full animate-ping -bottom-3"></div>
-      <div class="absolute w-2 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
-      <div class="relative w-8 h-8 flex items-center justify-center">
-        <div class="absolute w-8 h-8 bg-gradient-to-tr from-blue-600 to-indigo-400 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
-        <div class="relative z-10 w-2.5 h-2.5 bg-white rounded-full shadow-inner"></div>
-      </div>
-    </div>
-  `,
-  className: 'custom-admin-pin',
-  iconSize: [32, 36],
-  iconAnchor: [16, 36],
-})
-
-// Sub-component to control map events and programmatically re-center/pan
-const MapController = ({ position, setPosition }) => {
-  const map = useMap()
-
-  // Pan to position when changed externally (e.g. through search)
-  useEffect(() => {
-    if (position) {
-      map.panTo(position)
+const streetStyle = {
+  version: 8,
+  sources: {
+    'raster-tiles': {
+      type: 'raster',
+      tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '&copy; OpenStreetMap contributors'
     }
-  }, [position, map])
-
-  // Invalidate map size on load to ensure Leaflet renders correctly inside a modal/drawer
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      map.invalidateSize()
-    }, 100)
-    return () => clearTimeout(timer)
-  }, [map])
-
-  useMapEvents({
-    click(e) {
-      setPosition([e.latlng.lat, e.latlng.lng])
+  },
+  layers: [
+    {
+      id: 'simple-tiles',
+      type: 'raster',
+      source: 'raster-tiles',
+      minzoom: 0,
+      maxzoom: 19
     }
-  })
-
-  return null
+  ]
 }
 
 const AdminMapPickerModal = ({ isOpen, onClose, initialLat, initialLng, onSelect }) => {
@@ -62,6 +37,10 @@ const AdminMapPickerModal = ({ isOpen, onClose, initialLat, initialLng, onSelect
   const [currentAddress, setCurrentAddress] = useState('')
   const [isLoadingAddress, setIsLoadingAddress] = useState(false)
 
+  const mapContainerRef = useRef(null)
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+
   // Initialize position when modal opens
   useEffect(() => {
     if (isOpen) {
@@ -70,7 +49,6 @@ const AdminMapPickerModal = ({ isOpen, onClose, initialLat, initialLng, onSelect
       if (!isNaN(lat) && !isNaN(lng)) {
         setPosition([lat, lng])
       } else {
-        // Try getting user's current location or use default
         setPosition([defaultLat, defaultLng])
       }
       setSearchQuery('')
@@ -78,6 +56,76 @@ const AdminMapPickerModal = ({ isOpen, onClose, initialLat, initialLng, onSelect
       setCurrentAddress('')
     }
   }, [isOpen, initialLat, initialLng])
+
+  // Initialize MapLibre Map
+  useEffect(() => {
+    if (!isOpen || !mapContainerRef.current) return
+
+    // Clean up if exists
+    if (mapRef.current) {
+      mapRef.current.remove()
+      mapRef.current = null
+      markerRef.current = null
+    }
+
+    const [lat, lng] = position
+    const map = new maplibregl.Map({
+      container: mapContainerRef.current,
+      style: streetStyle,
+      center: [lng, lat],
+      zoom: 15,
+      attributionControl: false
+    })
+
+    mapRef.current = map
+
+    map.on('click', (e) => {
+      const { lat, lng } = e.lngLat
+      setPosition([lat, lng])
+    })
+
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove()
+        mapRef.current = null
+        markerRef.current = null
+      }
+    }
+  }, [isOpen])
+
+  // Sync marker and center when position changes
+  useEffect(() => {
+    if (!mapRef.current) return
+    const map = mapRef.current
+    const [lat, lng] = position
+
+    // Move center
+    const center = map.getCenter()
+    if (Math.abs(center.lat - lat) > 0.0001 || Math.abs(center.lng - lng) > 0.0001) {
+      map.panTo([lng, lat])
+    }
+
+    // Set marker
+    if (markerRef.current) {
+      markerRef.current.setLngLat([lng, lat])
+    } else {
+      const el = document.createElement('div')
+      el.className = 'custom-admin-pin'
+      el.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="absolute w-6 h-6 bg-blue-500/20 rounded-full animate-ping -bottom-3"></div>
+          <div class="absolute w-2 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
+          <div class="relative w-8 h-8 flex items-center justify-center">
+            <div class="absolute w-8 h-8 bg-gradient-to-tr from-blue-600 to-indigo-400 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
+            <div class="relative z-10 w-2.5 h-2.5 bg-white rounded-full shadow-inner"></div>
+          </div>
+        </div>
+      `
+      markerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })
+        .setLngLat([lng, lat])
+        .addTo(map)
+    }
+  }, [position, isOpen])
 
   // Fetch address representation of selected coordinates (reverse geocoding)
   useEffect(() => {
@@ -258,20 +306,8 @@ const AdminMapPickerModal = ({ isOpen, onClose, initialLat, initialLng, onSelect
               </div>
 
               {/* Map Container */}
-              <div className="w-full h-full z-10">
-                <MapContainer
-                  center={position}
-                  zoom={15}
-                  style={{ width: '100%', height: '100%' }}
-                  zoomControl={false}
-                >
-                  <TileLayer
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                  />
-                  <Marker position={position} icon={adminPinIcon} />
-                  <MapController position={position} setPosition={setPosition} />
-                </MapContainer>
+              <div className="w-full h-full z-10 relative">
+                <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
               </div>
 
               {/* GPS Target Floating Button */}
