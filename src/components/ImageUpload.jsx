@@ -468,12 +468,12 @@ const ImageUpload = ({
 
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-        <div className="relative w-full max-w-md bg-[#0c0c14] border border-white/10 rounded-[2rem] p-6 shadow-2xl space-y-6 overflow-hidden flex flex-col">
+        <div className="relative w-full max-w-md bg-slate-900 border border-white/10 rounded-[2rem] p-6 shadow-2xl space-y-6 overflow-hidden flex flex-col">
           
           {/* Modal Header */}
           <div className="flex items-center justify-between border-b border-white/5 pb-4">
             <div className="flex items-center gap-2.5 text-white">
-              <Camera className="w-5 h-5 text-emerald-500 dark:text-[#00FF66]" />
+              <Camera className="w-5 h-5 text-emerald-500 dark:text-blue-500" />
               <span className="text-sm font-black uppercase tracking-wider">Live Camera Capture</span>
             </div>
             <button
@@ -539,7 +539,7 @@ const ImageUpload = ({
                 <button
                   type="button"
                   onClick={confirmPhoto}
-                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-[#00FF66] to-[#00CC52] text-black rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-[#00FF66]/10"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-700 text-black rounded-2xl text-xs font-black uppercase tracking-wider transition-all active:scale-95 shadow-md shadow-blue-500/10"
                 >
                   <Check className="w-4 h-4 stroke-[3]" /> Confirm
                 </button>

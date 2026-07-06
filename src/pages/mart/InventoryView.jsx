@@ -621,7 +621,7 @@ const InventoryView = () => {
                 <div className="h-12 w-12 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center text-blue-500 dark:text-blue-400">
                   <Download className="h-5 w-5 animate-bounce" />
                 </div>
-                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-gray-400 rounded-full border-2 border-white dark:border-[#070709]" />
+                <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-gray-400 rounded-full border-2 border-white dark:border-slate-950" />
               </div>
               
               <div>
@@ -668,26 +668,26 @@ const InventoryView = () => {
     const percent = total > 0 ? Math.round((processed / total) * 100) : 0
 
     return (
-      <div className="mb-6 bg-gradient-to-r from-emerald-950/10 to-teal-950/10 dark:from-emerald-950/30 dark:to-teal-950/30 border border-emerald-500/20 dark:border-[#00FF66]/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-emerald-500/5">
+      <div className="mb-6 bg-gradient-to-r from-blue-950/10 to-teal-950/10 dark:from-blue-950/30 dark:to-teal-950/30 border border-blue-500/20 dark:border-blue-500/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-blue-500/5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           {/* Status Info */}
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="h-12 w-12 rounded-xl bg-emerald-500/10 dark:bg-[#00FF66]/10 flex items-center justify-center text-emerald-400 dark:text-[#00FF66]">
+              <div className="h-12 w-12 rounded-xl bg-blue-600/10 dark:bg-blue-600/10 flex items-center justify-center text-blue-500 dark:text-blue-500">
                 {isRunning ? (
                   <RefreshCw className="h-5 w-5 animate-spin" />
                 ) : (
                   <Package className="h-5 w-5" />
                 )}
               </div>
-              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-emerald-500 dark:bg-[#00FF66] rounded-full border-2 border-white dark:border-[#070709] animate-pulse" />
+              <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 bg-blue-600 dark:bg-blue-600 rounded-full border-2 border-white dark:border-slate-950 animate-pulse" />
             </div>
             
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-[10px] font-black text-emerald-600 dark:text-[#00FF66] uppercase tracking-widest">Local Image Finder</span>
+                <span className="text-[10px] font-black text-blue-600 dark:text-blue-500 uppercase tracking-widest">Local Image Finder</span>
                 <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold uppercase ${
-                  isRunning ? 'bg-emerald-500/20 text-emerald-600 dark:text-[#00FF66]' :
+                  isRunning ? 'bg-blue-600/20 text-blue-600 dark:text-blue-500' :
                   isPaused ? 'bg-amber-500/20 text-amber-600 dark:text-amber-400' :
                   'bg-gray-500/20 text-gray-500'
                 }`}>
@@ -720,7 +720,7 @@ const InventoryView = () => {
                 </div>
                 <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 dark:from-[#00FF66] dark:to-teal-450 transition-all duration-500 rounded-full" 
+                    className="h-full bg-gradient-to-r from-blue-500 to-teal-400 dark:from-blue-500 dark:to-teal-450 transition-all duration-500 rounded-full" 
                     style={{ width: `${percent}%` }}
                   />
                 </div>
@@ -747,7 +747,7 @@ const InventoryView = () => {
                 <>
                   <button
                     onClick={resumeLocalPipeline}
-                    className="px-3.5 py-2 bg-emerald-500 dark:bg-[#00FF66] dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00e65c] text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
+                    className="px-3.5 py-2 bg-blue-600 dark:bg-blue-600 dark:text-black hover:bg-blue-700 dark:hover:bg-blue-700 text-white font-bold text-xs rounded-xl transition-all cursor-pointer shadow-md"
                   >
                     Resume
                   </button>
@@ -761,7 +761,7 @@ const InventoryView = () => {
               ) : (
                 <button
                   onClick={startLocalPipeline}
-                  className="px-4 py-2.5 bg-emerald-500 dark:bg-[#00FF66] dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00e65c] text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg shadow-emerald-500/10"
+                  className="px-4 py-2.5 bg-blue-600 dark:bg-blue-600 dark:text-black hover:bg-blue-700 dark:hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl transition-all cursor-pointer shadow-lg shadow-blue-500/10"
                 >
                   Start Automating Images
                 </button>
@@ -783,7 +783,7 @@ const InventoryView = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 lg:p-8 overflow-hidden bg-gray-50 dark:bg-[#070709] pb-16 lg:pb-8">
+    <div className="flex-1 flex flex-col p-4 lg:p-8 overflow-hidden bg-gray-50 dark:bg-slate-950 pb-16 lg:pb-8">
       {/* Control Bar */}
       {!isImportMode && (
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6">
@@ -802,7 +802,7 @@ const InventoryView = () => {
               className={`flex items-center justify-center gap-2 text-xs font-bold transition-all px-4 py-2.5 rounded-xl border cursor-pointer font-sans w-full sm:w-auto ${
                 showLowStockOnly
                   ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 font-extrabold shadow-sm shadow-amber-500/5'
-                  : 'bg-white dark:bg-[#0c0c14] border-gray-200 dark:border-[#1e1e2f] text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#1a1a26]'
+                  : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-850'
               }`}
             >
               <AlertTriangle className={`w-3.5 h-3.5 ${showLowStockOnly ? 'text-amber-500 animate-bounce' : 'text-gray-400 dark:text-gray-550'}`} />
@@ -814,7 +814,7 @@ const InventoryView = () => {
               onClick={() => {
                 setShowSingleProductModal(true)
               }}
-              className="flex items-center justify-center gap-2 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 dark:bg-[#00FF66] dark:hover:bg-[#00e65c] dark:text-black transition-colors px-4 py-2.5 rounded-xl border border-transparent cursor-pointer font-sans w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-black transition-colors px-4 py-2.5 rounded-xl border border-transparent cursor-pointer font-sans w-full sm:w-auto"
             >
               <Plus className="w-3.5 h-3.5" />
               Add Single Product
@@ -826,7 +826,7 @@ const InventoryView = () => {
                 setShowUploader(true)
                 setHasClosedUploader(false)
               }}
-              className="flex items-center justify-center gap-2 text-xs font-bold text-emerald-600 dark:text-[#00FF66] hover:text-emerald-700 dark:hover:text-[#00e65c] transition-colors bg-emerald-50 dark:bg-[#00FF66]/10 px-4 py-2.5 rounded-xl border border-emerald-100 dark:border-[#00FF66]/20 cursor-pointer font-sans w-full sm:w-auto"
+              className="flex items-center justify-center gap-2 text-xs font-bold text-blue-600 dark:text-blue-500 hover:text-blue-700 dark:hover:text-blue-600 transition-colors bg-blue-50 dark:bg-blue-600/10 px-4 py-2.5 rounded-xl border border-blue-100 dark:border-blue-500/20 cursor-pointer font-sans w-full sm:w-auto"
             >
               <Upload className="w-3.5 h-3.5" />
               Bulk Import CSV
@@ -840,7 +840,7 @@ const InventoryView = () => {
                 placeholder="Search products by name/brand..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors font-sans"
+                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans"
               />
             </div>
           </div>
@@ -861,9 +861,9 @@ const InventoryView = () => {
         />
       ) : (
         /* Inventory Table Container */
-        <div className="flex-1 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181827] rounded-2xl overflow-hidden flex flex-col">
+        <div className="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden flex flex-col">
           {/* Filters Bar */}
-          <div className="px-6 py-3.5 border-b border-gray-200 dark:border-[#181827] bg-gray-50/50 dark:bg-[#0e0e1a]/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="px-6 py-3.5 border-b border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400 font-sans">Filters</span>
               {(selectedCategoryId || availabilityFilter !== 'all') && (
@@ -885,7 +885,7 @@ const InventoryView = () => {
                 <button
                   type="button"
                   onClick={() => setIsFilterCategoryDropdownOpen(!isFilterCategoryDropdownOpen)}
-                  className="w-full bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-2 pl-3 pr-9 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors font-sans cursor-pointer flex items-center justify-between"
+                  className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 pr-9 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans cursor-pointer flex items-center justify-between"
                 >
                   <span className="truncate">
                     {selectedFilterCategoryName || "All Categories"}
@@ -894,7 +894,7 @@ const InventoryView = () => {
                 </button>
 
                 {isFilterCategoryDropdownOpen && (
-                  <div className="absolute left-0 sm:left-auto right-0 z-50 w-full mt-1 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
+                  <div className="absolute left-0 sm:left-auto right-0 z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
                     <div className="relative">
                       <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
@@ -902,7 +902,7 @@ const InventoryView = () => {
                         placeholder="Search category..."
                         value={filterCategorySearchQuery}
                         onChange={(e) => setFilterCategorySearchQuery(e.target.value)}
-                        className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e30] focus:border-emerald-500 dark:focus:border-[#00FF66] rounded-lg pl-9 pr-8 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
+                        className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-lg pl-9 pr-8 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
                         autoFocus
                       />
                       {filterCategorySearchQuery && (
@@ -926,8 +926,8 @@ const InventoryView = () => {
                         }}
                         className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center justify-between ${
                           !selectedCategoryId
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] font-bold'
-                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#181827]'
+                            ? 'bg-blue-600/10 text-blue-600 dark:text-blue-500 font-bold'
+                            : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
                         }`}
                       >
                         <span>All Categories</span>
@@ -948,8 +948,8 @@ const InventoryView = () => {
                             }}
                             className={`w-full text-left px-3 py-2 text-xs rounded-lg transition-colors flex items-center justify-between ${
                               selectedCategoryId === cat.id
-                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] font-bold'
-                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-[#181827]'
+                                ? 'bg-blue-600/10 text-blue-600 dark:text-blue-500 font-bold'
+                                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-800'
                             }`}
                           >
                             <span className="truncate">{cat.name}</span>
@@ -967,7 +967,7 @@ const InventoryView = () => {
                 <select
                   value={availabilityFilter}
                   onChange={(e) => setAvailabilityFilter(e.target.value)}
-                  className="w-full appearance-none bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-2 pl-3 pr-9 text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors font-sans cursor-pointer"
+                  className="w-full appearance-none bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 pr-9 text-xs font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans cursor-pointer"
                 >
                   <option value="all">All Statuses</option>
                   <option value="in_stock">In Stock</option>
@@ -981,7 +981,7 @@ const InventoryView = () => {
           <div className="flex-1 overflow-x-auto overflow-y-auto">
             {isLoadingInventory ? (
               <div className="h-64 flex flex-col items-center justify-center gap-3">
-                <div className="w-8 h-8 border-4 border-t-emerald-500 dark:border-t-[#00FF66] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-t-blue-500 dark:border-t-blue-500 border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
                 <p className="text-gray-500 text-sm">Fetching stock ledger...</p>
               </div>
             ) : filteredProducts.length === 0 ? (
@@ -993,7 +993,7 @@ const InventoryView = () => {
             ) : (
               <table className="w-full text-left border-collapse min-w-[650px] lg:min-w-0">
                 <thead>
-                  <tr className="border-b border-gray-200 dark:border-[#181827] bg-gray-50 dark:bg-[#0e0e1a]">
+                  <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Product Detail</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Brand</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Category</th>
@@ -1004,11 +1004,11 @@ const InventoryView = () => {
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400 text-center">Capture</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-[#181827]">
+                <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                   {filteredProducts.map(product => (
                     <tr 
                       key={product.id} 
-                      className={`hover:bg-gray-50 dark:hover:bg-[#121222] transition-colors group ${
+                      className={`hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors group ${
                         product.stock_quantity < 5 
                           ? 'bg-amber-500/[0.03] dark:bg-amber-500/[0.015] border-l-2 border-l-amber-500/40 dark:border-l-amber-500/20' 
                           : ''
@@ -1021,7 +1021,7 @@ const InventoryView = () => {
                             <img 
                               src={product.image_url} 
                               alt={product.name} 
-                              className="w-10 h-10 object-contain bg-gray-100 dark:bg-[#1c1c28] rounded-lg p-1 cursor-zoom-in transition-transform duration-200 hover:scale-105 active:scale-95"
+                              className="w-10 h-10 object-contain bg-gray-100 dark:bg-slate-800 rounded-lg p-1 cursor-zoom-in transition-transform duration-200 hover:scale-105 active:scale-95"
                               onMouseEnter={(e) => {
                                 const rect = e.currentTarget.getBoundingClientRect()
                                 setHoveredImage({ url: product.image_url, name: product.name, rect })
@@ -1029,7 +1029,7 @@ const InventoryView = () => {
                               onMouseLeave={() => setHoveredImage(null)}
                             />
                           ) : (
-                            <div className="w-10 h-10 bg-gray-150 dark:bg-[#1c1c28] rounded-lg flex items-center justify-center text-gray-500 text-xs">
+                            <div className="w-10 h-10 bg-gray-150 dark:bg-slate-800 rounded-lg flex items-center justify-center text-gray-500 text-xs">
                               No Img
                             </div>
                           )}
@@ -1063,25 +1063,25 @@ const InventoryView = () => {
                               step="0.01"
                               value={tempPrice}
                               onChange={(e) => setTempPrice(e.target.value)}
-                              className="w-20 bg-gray-50 dark:bg-[#1a1a26] border border-gray-200 dark:border-[#2d2d3e] rounded-lg px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] font-bold font-mono"
+                              className="w-20 bg-gray-50 dark:bg-slate-850 border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 font-bold font-mono"
                               autoFocus
                             />
                             <button
                               onClick={() => handlePriceSave(product.id)}
-                              className="px-2 py-1 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black rounded text-xs font-bold hover:bg-emerald-600 dark:hover:bg-[#00e65c] cursor-pointer"
+                              className="px-2 py-1 bg-blue-600 dark:bg-blue-600 text-white dark:text-black rounded text-xs font-bold hover:bg-blue-700 dark:hover:bg-blue-700 cursor-pointer"
                             >
                               Save
                             </button>
                             <button
                               onClick={handlePriceCancel}
-                              className="px-2 py-1 bg-gray-100 dark:bg-[#242435] text-gray-700 dark:text-gray-400 rounded text-xs font-semibold hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                              className="px-2 py-1 bg-gray-100 dark:bg-slate-750 text-gray-700 dark:text-gray-400 rounded text-xs font-semibold hover:text-gray-900 dark:hover:text-white cursor-pointer"
                             >
                               Cancel
                             </button>
                           </div>
                         ) : (
                           <div className="flex items-center gap-2 group-hover:translate-x-0.5 transition-transform">
-                            <span className="font-bold text-sm text-emerald-600 dark:text-[#00FF66] font-mono">
+                            <span className="font-bold text-sm text-blue-600 dark:text-blue-500 font-mono">
                               ₹{product.price.toFixed(2)}
                             </span>
                             <button
@@ -1112,18 +1112,18 @@ const InventoryView = () => {
                               step="1"
                               value={tempStock}
                               onChange={(e) => setTempStock(e.target.value)}
-                              className="w-16 bg-gray-55 dark:bg-[#1a1a26] border border-gray-200 dark:border-[#2d2d3e] rounded-lg px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] font-bold font-mono"
+                              className="w-16 bg-gray-55 dark:bg-slate-850 border border-gray-200 dark:border-slate-700 rounded-lg px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 font-bold font-mono"
                               autoFocus
                             />
                             <button
                               onClick={() => handleStockSave(product.id)}
-                              className="px-2 py-1 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black rounded text-xs font-bold hover:bg-emerald-600 dark:hover:bg-[#00e65c] cursor-pointer"
+                              className="px-2 py-1 bg-blue-600 dark:bg-blue-600 text-white dark:text-black rounded text-xs font-bold hover:bg-blue-700 dark:hover:bg-blue-700 cursor-pointer"
                             >
                               Save
                             </button>
                             <button
                               onClick={handleStockCancel}
-                              className="px-2 py-1 bg-gray-100 dark:bg-[#242435] text-gray-700 dark:text-gray-400 rounded text-xs font-semibold hover:text-gray-900 dark:hover:text-white cursor-pointer"
+                              className="px-2 py-1 bg-gray-100 dark:bg-slate-750 text-gray-700 dark:text-gray-400 rounded text-xs font-semibold hover:text-gray-900 dark:hover:text-white cursor-pointer"
                             >
                               Cancel
                             </button>
@@ -1159,8 +1159,8 @@ const InventoryView = () => {
                           onClick={() => toggleStock(product.id, !product.is_available)}
                           className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                             product.is_available
-                              ? 'bg-emerald-50 dark:bg-[#00FF66]/10 border border-emerald-100 dark:border-[#00FF66]/20 text-emerald-600 dark:text-[#00FF66] hover:bg-emerald-100 dark:hover:bg-[#00FF66]/20'
-                              : 'bg-[#FF3366]/10 border border-[#FF3366]/20 text-[#FF3366] hover:bg-[#FF3366]/20'
+                              ? 'bg-blue-50 dark:bg-blue-600/10 border border-blue-100 dark:border-blue-500/20 text-blue-600 dark:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-600/20'
+                              : 'bg-[red-550/10 border border-[red-550/20 text-[red-550 hover:bg-[red-550/20'
                           }`}
                         >
                           {product.is_available ? 'In Stock' : 'Out of Stock'}
@@ -1174,7 +1174,7 @@ const InventoryView = () => {
                             setEnrichmentProduct(product)
                             setIsEnrichmentModalOpen(true)
                           }}
-                          className="p-2 bg-gray-50 hover:bg-gray-100 dark:bg-[#161624] dark:hover:bg-[#252538] rounded-xl text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-[#00FF66] border border-gray-200 dark:border-[#2d2d3e]/30 transition-all flex items-center justify-center mx-auto cursor-pointer"
+                          className="p-2 bg-gray-50 hover:bg-gray-100 dark:bg-slate-850 dark:hover:bg-slate-750 rounded-xl text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-500 border border-gray-200 dark:border-slate-700/30 transition-all flex items-center justify-center mx-auto cursor-pointer"
                           title="Capture photo using phone or webcam"
                         >
                           <Camera className="w-4 h-4" />
@@ -1189,7 +1189,7 @@ const InventoryView = () => {
 
           {/* Pagination Footer */}
           {!isLoadingInventory && inventoryTotalCount > 0 && (
-            <div className="border-t border-gray-200 dark:border-[#181827] bg-gray-50 dark:bg-[#0c0c14] px-6 py-4 flex items-center justify-between">
+            <div className="border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 px-6 py-4 flex items-center justify-between">
               <div className="text-xs font-bold text-gray-500 dark:text-gray-400 select-none">
                 Showing <span className="text-gray-900 dark:text-white font-extrabold">{Math.min(inventoryTotalCount, (currentPage - 1) * 20 + 1)}</span> to{' '}
                 <span className="text-gray-900 dark:text-white font-extrabold">{Math.min(inventoryTotalCount, currentPage * 20)}</span> of{' '}
@@ -1199,7 +1199,7 @@ const InventoryView = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
                   disabled={currentPage === 1}
-                  className="px-4 py-2 border border-gray-200 dark:border-[#1e1e2d] bg-white dark:bg-[#12121a] hover:bg-gray-50 dark:hover:bg-[#1a1a28] disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-[#12121a] text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer select-none"
+                  className="px-4 py-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-850 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-slate-900 text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer select-none"
                 >
                   ← Previous
                 </button>
@@ -1209,7 +1209,7 @@ const InventoryView = () => {
                 <button
                   onClick={() => setCurrentPage(prev => Math.min(Math.ceil(inventoryTotalCount / 20), prev + 1))}
                   disabled={currentPage * 20 >= inventoryTotalCount}
-                  className="px-4 py-2 border border-gray-200 dark:border-[#1e1e2d] bg-white dark:bg-[#12121a] hover:bg-gray-50 dark:hover:bg-[#1a1a28] disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-[#12121a] text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer select-none"
+                  className="px-4 py-2 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-850 disabled:opacity-40 disabled:hover:bg-white dark:disabled:hover:bg-slate-900 text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer select-none"
                 >
                   Next →
                 </button>
@@ -1221,12 +1221,12 @@ const InventoryView = () => {
 
       {showSingleProductModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl w-full max-w-2xl max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
             {/* Header */}
-            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-[#08080f]/50">
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-950/50">
               <div>
                 <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                  <Plus className="w-5 h-5 text-emerald-500" />
+                  <Plus className="w-5 h-5 text-blue-500" />
                   Add Single Product
                 </h3>
                 <p className="text-xs text-gray-500 mt-0.5">Add products to your mart inventory ledger</p>
@@ -1240,12 +1240,12 @@ const InventoryView = () => {
             </div>
 
             {/* Toggle Tabs */}
-            <div className="flex border-b border-gray-100 dark:border-white/5 p-2 bg-gray-50/30 dark:bg-[#08080f]/20">
+            <div className="flex border-b border-gray-100 dark:border-white/5 p-2 bg-gray-50/30 dark:bg-slate-950/20">
               <button
                 onClick={() => setSingleProductMode('catalog')}
                 className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
                   singleProductMode === 'catalog'
-                    ? 'bg-white dark:bg-[#12121e] text-emerald-600 dark:text-[#00FF66] shadow-sm border border-emerald-500/10'
+                    ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-500 shadow-sm border border-blue-500/10'
                     : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
@@ -1255,7 +1255,7 @@ const InventoryView = () => {
                 onClick={() => setSingleProductMode('new')}
                 className={`flex-1 py-2.5 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer ${
                   singleProductMode === 'new'
-                    ? 'bg-white dark:bg-[#12121e] text-emerald-600 dark:text-[#00FF66] shadow-sm border border-emerald-500/10'
+                    ? 'bg-white dark:bg-slate-800 text-blue-600 dark:text-blue-500 shadow-sm border border-blue-500/10'
                     : 'text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
                 }`}
               >
@@ -1282,13 +1282,13 @@ const InventoryView = () => {
                           setCatalogSearch(e.target.value)
                           setSelectedCatalogProduct(null)
                         }}
-                        className="w-full bg-gray-50 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors"
+                        className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl py-2.5 pl-10 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors"
                       />
                     </div>
 
                     {/* Results Dropdown */}
                     {catalogResults.length > 0 && !selectedCatalogProduct && (
-                      <div className="absolute z-10 left-0 right-0 mt-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5">
+                      <div className="absolute z-10 left-0 right-0 mt-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5">
                         {catalogResults.map((p) => (
                           <div
                             key={p.id}
@@ -1301,10 +1301,10 @@ const InventoryView = () => {
                               }))
                               setCatalogSearch(p.name)
                             }}
-                            className="flex items-center gap-3 p-3 hover:bg-emerald-50/40 dark:hover:bg-emerald-500/[0.03] cursor-pointer transition-colors"
+                            className="flex items-center gap-3 p-3 hover:bg-blue-50/40 dark:hover:bg-blue-600/[0.03] cursor-pointer transition-colors"
                           >
                             {p.image_url ? (
-                              <img src={p.image_url} alt={p.name} className="w-8 h-8 object-contain rounded bg-gray-50 dark:bg-[#181825] p-0.5" />
+                              <img src={p.image_url} alt={p.name} className="w-8 h-8 object-contain rounded bg-gray-50 dark:bg-slate-850 p-0.5" />
                             ) : (
                               <div className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
                                 <Package className="w-4 h-4" />
@@ -1328,16 +1328,16 @@ const InventoryView = () => {
 
                   {/* Selected Product Card */}
                   {selectedCatalogProduct && (
-                    <div className="border border-emerald-500/20 bg-emerald-500/[0.02] rounded-xl p-4 flex items-center gap-4">
+                    <div className="border border-blue-500/20 bg-blue-600/[0.02] rounded-xl p-4 flex items-center gap-4">
                       {selectedCatalogProduct.image_url ? (
-                        <img src={selectedCatalogProduct.image_url} alt={selectedCatalogProduct.name} className="w-12 h-12 object-contain rounded bg-white dark:bg-[#12121e] p-1" />
+                        <img src={selectedCatalogProduct.image_url} alt={selectedCatalogProduct.name} className="w-12 h-12 object-contain rounded bg-white dark:bg-slate-800 p-1" />
                       ) : (
                         <div className="w-12 h-12 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
                           <Package className="w-6 h-6" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
-                        <span className="text-[9px] font-black text-emerald-600 dark:text-[#00FF66] bg-emerald-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Selected Catalog Product</span>
+                        <span className="text-[9px] font-black text-blue-600 dark:text-blue-500 bg-blue-600/10 px-2 py-0.5 rounded-full uppercase tracking-wider">Selected Catalog Product</span>
                         <h4 className="text-sm font-bold text-gray-955 dark:text-white truncate mt-1">{selectedCatalogProduct.name}</h4>
                         <p className="text-xs text-gray-500">{selectedCatalogProduct.brand || 'No Brand'} • {selectedCatalogProduct.unit} • {selectedCatalogProduct.barcode || 'No Barcode'}</p>
                       </div>
@@ -1348,7 +1348,7 @@ const InventoryView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                        Stock Quantity <span className="text-[#FF3366]">*</span>
+                        Stock Quantity <span className="text-[red-550">*</span>
                       </label>
                       <input
                         type="number"
@@ -1365,7 +1365,7 @@ const InventoryView = () => {
                             setCatalogForm(prev => ({ ...prev, stock_quantity: '0' }))
                           }
                         }}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         required
                       />
                     </div>
@@ -1380,7 +1380,7 @@ const InventoryView = () => {
                         placeholder={selectedCatalogProduct ? `Inherit ₹${parseFloat(selectedCatalogProduct.price || 0).toFixed(2)}` : 'e.g. 99.00'}
                         value={catalogForm.mart_price}
                         onChange={(e) => setCatalogForm(prev => ({ ...prev, mart_price: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                       />
                     </div>
                     <div>
@@ -1394,7 +1394,7 @@ const InventoryView = () => {
                         placeholder={selectedCatalogProduct ? `Inherit ₹${parseFloat(selectedCatalogProduct.mrp || 0).toFixed(2)}` : 'e.g. 120.00'}
                         value={catalogForm.mart_mrp}
                         onChange={(e) => setCatalogForm(prev => ({ ...prev, mart_mrp: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1404,14 +1404,14 @@ const InventoryView = () => {
                     <button
                       type="button"
                       onClick={() => setShowSingleProductModal(false)}
-                      className="px-5 py-2.5 border border-gray-200 dark:border-[#1e1e2f] hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                      className="px-5 py-2.5 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={!selectedCatalogProduct}
-                      className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 dark:bg-[#00FF66] dark:hover:bg-[#00e65c] disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white dark:text-black font-extrabold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 disabled:cursor-not-allowed text-white dark:text-black font-extrabold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
                     >
                       Add Product
                     </button>
@@ -1423,14 +1423,14 @@ const InventoryView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                        Product Name <span className="text-[#FF3366]">*</span>
+                        Product Name <span className="text-[red-550">*</span>
                       </label>
                       <input
                         type="text"
                         placeholder="e.g. Amul Gold Milk"
                         value={newProductForm.name}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, name: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         required
                       />
                     </div>
@@ -1443,7 +1443,7 @@ const InventoryView = () => {
                         placeholder="e.g. Amul"
                         value={newProductForm.brand}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, brand: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1451,24 +1451,24 @@ const InventoryView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                        Unit / Size <span className="text-[#FF3366]">*</span>
+                        Unit / Size <span className="text-[red-550">*</span>
                       </label>
                       <input
                         type="text"
                         placeholder="e.g. 500 ml, 1 kg, 1 unit"
                         value={newProductForm.unit}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, unit: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                        Category <span className="text-[#FF3366]">*</span>
+                        Category <span className="text-[red-550">*</span>
                       </label>
                       {isLoadingCategories ? (
-                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5">
-                          <Loader2 className="w-4 h-4 animate-spin text-emerald-500 dark:text-[#00FF66]" />
+                        <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5">
+                          <Loader2 className="w-4 h-4 animate-spin text-blue-500 dark:text-blue-500" />
                           <span>Loading categories...</span>
                         </div>
                       ) : (
@@ -1476,7 +1476,7 @@ const InventoryView = () => {
                           <button
                             type="button"
                             onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-                            className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] focus:border-emerald-500 dark:focus:border-[#00FF66] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/10 transition-all flex items-center justify-between cursor-pointer font-medium text-left"
+                            className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500/10 transition-all flex items-center justify-between cursor-pointer font-medium text-left"
                           >
                             <span className={selectedCategoryName ? "text-gray-900 dark:text-white" : "text-gray-400 dark:text-gray-500"}>
                               {selectedCategoryName || "-- Choose Category --"}
@@ -1485,7 +1485,7 @@ const InventoryView = () => {
                           </button>
 
                           {isCategoryDropdownOpen && (
-                            <div className="absolute z-[100] w-full mt-1.5 bg-white dark:bg-[#0f0f1b] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
+                            <div className="absolute z-[100] w-full mt-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
                               <div className="relative">
                                 <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                                 <input
@@ -1493,7 +1493,7 @@ const InventoryView = () => {
                                   placeholder="Search category..."
                                   value={categorySearchQuery}
                                   onChange={(e) => setCategorySearchQuery(e.target.value)}
-                                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e30] focus:border-emerald-500 dark:focus:border-[#00FF66] rounded-lg pl-9 pr-8 py-2 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
+                                  className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-lg pl-9 pr-8 py-2 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
                                   autoFocus
                                 />
                                 {categorySearchQuery && (
@@ -1522,7 +1522,7 @@ const InventoryView = () => {
                                       }}
                                       className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all duration-150 flex items-center justify-between ${
                                         newProductForm.category_id === cat.id
-                                          ? 'bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black font-extrabold'
+                                          ? 'bg-blue-600 dark:bg-blue-600 text-white dark:text-black font-extrabold'
                                           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-950 dark:hover:text-white'
                                       }`}
                                     >
@@ -1548,7 +1548,7 @@ const InventoryView = () => {
                         placeholder="e.g. 8901262150012"
                         value={newProductForm.barcode}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, barcode: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                       />
                     </div>
                   </div>
@@ -1556,7 +1556,7 @@ const InventoryView = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                        Global Catalog Base Price (₹) <span className="text-[#FF3366]">*</span>
+                        Global Catalog Base Price (₹) <span className="text-[red-550">*</span>
                       </label>
                       <input
                         type="number"
@@ -1565,13 +1565,13 @@ const InventoryView = () => {
                         placeholder="e.g. 33.00"
                         value={newProductForm.price}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, price: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         required
                       />
                     </div>
                     <div>
                       <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                        Global Catalog Base MRP (₹) <span className="text-[#FF3366]">*</span>
+                        Global Catalog Base MRP (₹) <span className="text-[red-550">*</span>
                       </label>
                       <input
                         type="number"
@@ -1580,7 +1580,7 @@ const InventoryView = () => {
                         placeholder="e.g. 35.00"
                         value={newProductForm.mrp}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, mrp: e.target.value }))}
-                        className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         required
                       />
                     </div>
@@ -1591,7 +1591,7 @@ const InventoryView = () => {
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       <div>
                         <label className="block text-[10px] font-semibold text-gray-500 dark:text-gray-400/70 uppercase tracking-wider mb-1.5">
-                          Your Stock Quantity <span className="text-[#FF3366]">*</span>
+                          Your Stock Quantity <span className="text-[red-550">*</span>
                         </label>
                         <input
                           type="number"
@@ -1608,7 +1608,7 @@ const InventoryView = () => {
                               setNewProductForm(prev => ({ ...prev, stock_quantity: '0' }))
                             }
                           }}
-                          className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                          className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                           required
                         />
                       </div>
@@ -1623,7 +1623,7 @@ const InventoryView = () => {
                           placeholder={newProductForm.price ? `Default: ₹${parseFloat(newProductForm.price).toFixed(2)}` : 'e.g. 33.00'}
                           value={newProductForm.mart_price}
                           onChange={(e) => setNewProductForm(prev => ({ ...prev, mart_price: e.target.value }))}
-                          className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                          className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         />
                       </div>
                       <div>
@@ -1637,7 +1637,7 @@ const InventoryView = () => {
                           placeholder={newProductForm.mrp ? `Default: ₹${parseFloat(newProductForm.mrp).toFixed(2)}` : 'e.g. 35.00'}
                           value={newProductForm.mart_mrp}
                           onChange={(e) => setNewProductForm(prev => ({ ...prev, mart_mrp: e.target.value }))}
-                          className="w-full bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                          className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                         />
                       </div>
                     </div>
@@ -1662,7 +1662,7 @@ const InventoryView = () => {
                             handleSearchImages(defaultQuery)
                           }
                         }}
-                        className="text-xs font-bold text-emerald-600 dark:text-[#00FF66] hover:underline flex items-center gap-1 cursor-pointer"
+                        className="text-xs font-bold text-blue-600 dark:text-blue-500 hover:underline flex items-center gap-1 cursor-pointer"
                       >
                         <Image className="w-3.5 h-3.5" />
                         {showImageSearchGrid ? 'Hide Search' : '✨ Find Online Images'}
@@ -1671,7 +1671,7 @@ const InventoryView = () => {
 
                     <div className="flex gap-3">
                       {newProductForm.image_url && (
-                        <div className="w-11 h-11 rounded-xl bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] flex-shrink-0 flex items-center justify-center p-1 overflow-hidden">
+                        <div className="w-11 h-11 rounded-xl bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex-shrink-0 flex items-center justify-center p-1 overflow-hidden">
                           <img
                             src={newProductForm.image_url}
                             alt="Preview"
@@ -1685,16 +1685,16 @@ const InventoryView = () => {
                         placeholder="e.g. https://images.unsplash.com/... or search online"
                         value={newProductForm.image_url}
                         onChange={(e) => setNewProductForm(prev => ({ ...prev, image_url: e.target.value }))}
-                        className="flex-1 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                        className="flex-1 bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                       />
                     </div>
                     <p className="text-[11px] text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1 select-none">
-                      <Camera className="w-3.5 h-3.5 text-emerald-500 dark:text-[#00FF66]" />
+                      <Camera className="w-3.5 h-3.5 text-blue-500 dark:text-blue-500" />
                       <span>Leave empty to capture images using phone/webcam camera immediately after creation.</span>
                     </p>
 
                     {showImageSearchGrid && (
-                      <div className="mt-3 p-4 bg-gray-55 dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl space-y-3">
+                      <div className="mt-3 p-4 bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl space-y-3">
                         <div className="flex gap-2">
                           <div className="relative flex-1">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-3.5 h-3.5" />
@@ -1709,14 +1709,14 @@ const InventoryView = () => {
                                   handleSearchImages()
                                 }
                               }}
-                              className="w-full bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-xl py-1.5 pl-9 pr-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                              className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-1.5 pl-9 pr-3 text-xs text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                             />
                           </div>
                           <button
                             type="button"
                             onClick={() => handleSearchImages()}
                             disabled={isSearchingImages}
-                            className="px-3 py-1.5 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00e65c] disabled:opacity-50 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer"
+                            className="px-3 py-1.5 bg-blue-600 dark:bg-blue-600 text-white dark:text-black hover:bg-blue-700 dark:hover:bg-blue-700 disabled:opacity-50 text-xs font-bold rounded-xl flex items-center gap-1 transition-all cursor-pointer"
                           >
                             {isSearchingImages ? (
                               <Loader2 className="w-3 h-3 animate-spin" />
@@ -1740,10 +1740,10 @@ const InventoryView = () => {
                                 <div
                                   key={i}
                                   onClick={() => setNewProductForm(prev => ({ ...prev, image_url: img.url }))}
-                                  className={`relative aspect-square cursor-pointer rounded-lg overflow-hidden border bg-white dark:bg-[#0c0c14] flex items-center justify-center p-0.5 group transition-all hover:scale-105 duration-200 ${
+                                  className={`relative aspect-square cursor-pointer rounded-lg overflow-hidden border bg-white dark:bg-slate-900 flex items-center justify-center p-0.5 group transition-all hover:scale-105 duration-200 ${
                                     isSelected
-                                      ? 'border-emerald-500 dark:border-[#00FF66] ring-2 ring-emerald-500/20 dark:ring-[#00FF66]/20'
-                                      : 'border-gray-200 dark:border-[#1e1e2f] hover:border-emerald-400 dark:hover:border-[#00FF66]/40'
+                                      ? 'border-blue-500 dark:border-blue-500 ring-2 ring-blue-500/20 dark:ring-blue-500/20'
+                                      : 'border-gray-200 dark:border-slate-700 hover:border-blue-500/40 dark:hover:border-blue-500/40'
                                   }`}
                                   title={img.title}
                                 >
@@ -1755,13 +1755,13 @@ const InventoryView = () => {
                                     onError={(e) => { e.target.src = 'https://wsrv.nl/?url=placeholder&default=ssl' }}
                                   />
                                   {isSelected && (
-                                    <div className="absolute inset-0 bg-emerald-500/10 dark:bg-[#00FF66]/5 flex items-center justify-center">
-                                      <div className="bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black rounded-full p-0.5 shadow">
+                                    <div className="absolute inset-0 bg-blue-600/10 dark:bg-blue-600/5 flex items-center justify-center">
+                                      <div className="bg-blue-600 dark:bg-blue-600 text-white dark:text-black rounded-full p-0.5 shadow">
                                         <Check className="w-2.5 h-2.5 font-bold" />
                                       </div>
                                     </div>
                                   )}
-                                  <div className="absolute bottom-0 inset-x-0 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black text-[9px] font-bold text-center py-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
+                                  <div className="absolute bottom-0 inset-x-0 bg-blue-600 dark:bg-blue-600 text-white dark:text-black text-[9px] font-bold text-center py-1 truncate opacity-0 group-hover:opacity-100 transition-opacity">
                                     Select Image
                                   </div>
                                 </div>
@@ -1782,13 +1782,13 @@ const InventoryView = () => {
                     <button
                       type="button"
                       onClick={() => setShowSingleProductModal(false)}
-                      className="px-5 py-2.5 border border-gray-200 dark:border-[#1e1e2f] hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                      className="px-5 py-2.5 border border-gray-200 dark:border-slate-700 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 font-bold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-5 py-2.5 bg-emerald-500 hover:bg-emerald-600 dark:bg-[#00FF66] dark:hover:bg-[#00e65c] text-white dark:text-black font-extrabold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
+                      className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 text-white dark:text-black font-extrabold rounded-xl transition-all cursor-pointer text-xs uppercase tracking-wider"
                     >
                       Create & Add
                     </button>
@@ -1802,7 +1802,7 @@ const InventoryView = () => {
 
       {hoveredImage && (
         <div 
-          className="fixed z-[9999] pointer-events-none p-1.5 bg-white dark:bg-[#13131c] border-2 border-amber-500/40 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6)]"
+          className="fixed z-[9999] pointer-events-none p-1.5 bg-white dark:bg-slate-900 border-2 border-amber-500/40 rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.6)]"
           style={{
             top: `${Math.max(10, Math.min(window.innerHeight - 420, hoveredImage.rect.top + (hoveredImage.rect.height / 2) - 200))}px`,
             left: `${hoveredImage.rect.right + 16 + 400 > window.innerWidth 
@@ -1815,7 +1815,7 @@ const InventoryView = () => {
           <img 
             src={hoveredImage.url} 
             alt={hoveredImage.name} 
-            className="w-full h-full object-contain rounded-xl bg-gray-50 dark:bg-[#0c0c14]"
+            className="w-full h-full object-contain rounded-xl bg-gray-50 dark:bg-slate-900"
           />
         </div>
       )}

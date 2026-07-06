@@ -64,7 +64,7 @@ const MartOnboarding = ({ onComplete }) => {
   return (
     <div className="w-full max-w-lg mx-auto bg-white dark:bg-black border border-gray-100 dark:border-white/5 rounded-[2.5rem] p-8 md:p-10 shadow-2xl transition-all duration-300">
       <div className="text-center mb-8">
-        <div className="inline-flex bg-green-50 dark:bg-ozo-green/10 p-4 rounded-2xl mb-4 shadow-sm text-ozo-green">
+        <div className="inline-flex bg-green-50 dark:bg-blue-600/10 p-4 rounded-2xl mb-4 shadow-sm text-blue-500">
           <Store className="w-8 h-8" />
         </div>
         <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">OZO Mart Partner</h2>
@@ -79,8 +79,8 @@ const MartOnboarding = ({ onComplete }) => {
             key={num}
             className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm border-2 transition-all duration-300 ${
               step >= num 
-                ? 'bg-ozo-green border-ozo-green text-black shadow-lg shadow-ozo-green/20' 
-                : 'bg-white dark:bg-[#121212] border-gray-200 dark:border-white/10 text-gray-400'
+                ? 'bg-blue-600 border-blue-600 text-black shadow-lg shadow-blue-500/20' 
+                : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-white/10 text-gray-400'
             }`}
           >
             {num}
@@ -93,13 +93,13 @@ const MartOnboarding = ({ onComplete }) => {
           /* STEP 1: Owner Info */
           <div className="space-y-5">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-ozo-green" />
+              <Sparkles className="w-4 h-4 text-blue-500" />
               <h3 className="text-xs font-black uppercase tracking-wider text-gray-400">1. Owner Details</h3>
             </div>
             
             <div className="space-y-4">
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-ozo-green transition-colors" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="text"
                   name="ownerName"
@@ -107,12 +107,12 @@ const MartOnboarding = ({ onComplete }) => {
                   required
                   value={details.ownerName}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-ozo-green dark:focus:border-ozo-green focus:ring-4 focus:ring-ozo-green/10 transition-all font-bold placeholder:text-gray-400"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold placeholder:text-gray-400"
                 />
               </div>
 
               <div className="relative group">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-ozo-green transition-colors" />
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="tel"
                   name="phone"
@@ -120,7 +120,7 @@ const MartOnboarding = ({ onComplete }) => {
                   required
                   value={details.phone}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-ozo-green dark:focus:border-ozo-green focus:ring-4 focus:ring-ozo-green/10 transition-all font-bold placeholder:text-gray-400"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold placeholder:text-gray-400"
                 />
               </div>
             </div>
@@ -128,7 +128,7 @@ const MartOnboarding = ({ onComplete }) => {
             <button
               type="button"
               onClick={nextStep}
-              className="w-full bg-ozo-green hover:bg-[#00b95c] text-black font-black py-4 rounded-2xl text-sm flex items-center justify-center gap-1 mt-6 transition-all hover:shadow-lg hover:shadow-ozo-green/10 active:scale-[0.98]"
+              className="w-full bg-blue-600 hover:bg-blue-700 text-black font-black py-4 rounded-2xl text-sm flex items-center justify-center gap-1 mt-6 transition-all hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]"
             >
               Continue Store Details <ChevronRight className="w-4 h-4" />
             </button>
@@ -139,13 +139,13 @@ const MartOnboarding = ({ onComplete }) => {
           /* STEP 2: Store Info */
           <div className="space-y-5">
             <div className="flex items-center gap-2 mb-2">
-              <Sparkles className="w-4 h-4 text-ozo-green" />
+              <Sparkles className="w-4 h-4 text-blue-500" />
               <h3 className="text-xs font-black uppercase tracking-wider text-gray-400">2. Store Information</h3>
             </div>
 
             <div className="space-y-4">
               <div className="relative group">
-                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-ozo-green transition-colors" />
+                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="text"
                   name="storeName"
@@ -153,12 +153,12 @@ const MartOnboarding = ({ onComplete }) => {
                   required
                   value={details.storeName}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-ozo-green dark:focus:border-ozo-green focus:ring-4 focus:ring-ozo-green/10 transition-all font-bold placeholder:text-gray-400"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold placeholder:text-gray-400"
                 />
               </div>
 
               <div className="relative group">
-                <MapPin className="absolute left-4 top-5 w-4 h-4 text-gray-400 group-focus-within:text-ozo-green transition-colors" />
+                <MapPin className="absolute left-4 top-5 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <textarea
                   name="address"
                   placeholder="Full Store Address"
@@ -166,19 +166,19 @@ const MartOnboarding = ({ onComplete }) => {
                   rows="3"
                   value={details.address}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-ozo-green dark:focus:border-ozo-green focus:ring-4 focus:ring-ozo-green/10 transition-all font-bold placeholder:text-gray-400 resize-none"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold placeholder:text-gray-400 resize-none"
                 />
               </div>
 
               <div className="relative group">
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-ozo-green transition-colors" />
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 <input
                   type="text"
                   name="licenseNumber"
                   placeholder="GSTIN or Trade License No. (Optional)"
                   value={details.licenseNumber}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121212] border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-ozo-green dark:focus:border-ozo-green focus:ring-4 focus:ring-ozo-green/10 transition-all font-bold placeholder:text-gray-400 uppercase"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-600 dark:focus:border-blue-600 focus:ring-4 focus:ring-blue-500/10 transition-all font-bold placeholder:text-gray-400 uppercase"
                 />
               </div>
             </div>
@@ -195,7 +195,7 @@ const MartOnboarding = ({ onComplete }) => {
               <button
                 type="submit"
                 disabled={submittingApplication}
-                className="w-2/3 bg-ozo-green hover:bg-[#00b95c] text-black font-black py-4 rounded-2xl text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-ozo-green/10 active:scale-[0.98]"
+                className="w-2/3 bg-blue-600 hover:bg-blue-700 text-black font-black py-4 rounded-2xl text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50 hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]"
               >
                 {submittingApplication ? (
                   <span className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin"></span>

@@ -36,24 +36,24 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
         onClick={() => setIsOpen(!isOpen)}
         className={`w-full flex items-center justify-between border rounded-xl px-4 py-3 text-sm focus:outline-none cursor-pointer text-left font-semibold ${
           value
-            ? 'bg-emerald-500/[0.04] dark:bg-[#00FF66]/[0.02] border-emerald-500/30 dark:border-[#00FF66]/20 text-emerald-700 dark:text-[#00FF66]'
+            ? 'bg-blue-600/[0.04] dark:bg-blue-600/[0.02] border-blue-500/30 dark:border-blue-500/20 text-blue-700 dark:text-blue-500'
             : isRequired
               ? 'bg-amber-500/[0.03] dark:bg-amber-500/[0.015] border-amber-500/30 dark:border-amber-500/20 text-amber-700 dark:text-amber-400'
-              : 'bg-gray-50 dark:bg-[#12121e] border-gray-250 dark:border-[#1e1e2f] text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'
+              : 'bg-gray-50 dark:bg-slate-800 border-gray-250 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'
         }`}
       >
         <span className="truncate flex items-center gap-2">
-          {value && <CheckCircle className="w-3.5 h-3.5 shrink-0 text-emerald-500 dark:text-[#00FF66]" />}
+          {value && <CheckCircle className="w-3.5 h-3.5 shrink-0 text-blue-500 dark:text-blue-500" />}
           {!value && isRequired && <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-500" />}
           {getLabel()}
         </span>
-        <ChevronDown className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-emerald-555 dark:text-[#00FF66]' : 'text-gray-400'}`} />
+        <ChevronDown className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-blue-500 dark:text-blue-500' : 'text-gray-400'}`} />
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-[#12121e] border border-gray-200 dark:border-[#1e1e2f] rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-hide py-1.5">
+          <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-hide py-1.5">
             {!isRequired && (
               <button
                 type="button"
@@ -61,7 +61,7 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
                   onChange('')
                   setIsOpen(false)
                 }}
-                className="w-full text-left px-4 py-2.5 text-xs text-gray-400 hover:bg-gray-50 dark:hover:bg-[#1a1a2c] hover:text-gray-700 dark:hover:text-white transition-colors cursor-pointer"
+                className="w-full text-left px-4 py-2.5 text-xs text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-700 dark:hover:text-white transition-colors cursor-pointer"
               >
                 Clear mapping
               </button>
@@ -79,8 +79,8 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
                   }}
                   className={`w-full text-left px-4 py-2.5 text-xs transition-colors cursor-pointer flex flex-col gap-0.5 border-b border-gray-100/50 dark:border-white/5 last:border-b-0 ${
                     isSelected
-                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] font-bold'
-                      : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-[#1b1b2d]'
+                      ? 'bg-blue-600/10 text-blue-600 dark:text-blue-500 font-bold'
+                      : 'text-gray-800 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <span className="font-semibold text-sm">{h}</span>
@@ -606,7 +606,7 @@ export default function BulkImportWizard({
     return (
       <div className="flex-1 flex flex-col items-center justify-center max-w-2xl mx-auto w-full py-8 overflow-y-auto scrollbar-hide">
         <div className="text-center mb-6">
-          <div className="inline-flex p-3.5 bg-emerald-500/10 rounded-2xl text-emerald-500 mb-3 animate-bounce">
+          <div className="inline-flex p-3.5 bg-blue-600/10 rounded-2xl text-blue-500 mb-3 animate-bounce">
             <Upload className="w-7 h-7" />
           </div>
           <h3 className="text-xl font-extrabold text-gray-900 dark:text-white font-sans">Import Your Inventory</h3>
@@ -615,12 +615,12 @@ export default function BulkImportWizard({
           </p>
         </div>
 
-        <div className="flex border-b border-gray-150 dark:border-[#1e1e2d] mb-6 w-full shrink-0">
+        <div className="flex border-b border-gray-150 dark:border-slate-700 mb-6 w-full shrink-0">
           <button
             onClick={() => setImportMethod('csv')}
             className={`flex-1 pb-2.5 text-xs font-bold text-center border-b-2 transition-all cursor-pointer ${
               importMethod === 'csv'
-                ? 'border-emerald-500 dark:border-[#00FF66] text-emerald-600 dark:text-[#00FF66]'
+                ? 'border-blue-500 dark:border-blue-500 text-blue-600 dark:text-blue-500'
                 : 'border-transparent text-gray-500 hover:text-gray-750 dark:hover:text-gray-300'
             }`}
           >
@@ -630,7 +630,7 @@ export default function BulkImportWizard({
             onClick={() => setImportMethod('paste')}
             className={`flex-1 pb-2.5 text-xs font-bold text-center border-b-2 transition-all cursor-pointer ${
               importMethod === 'paste'
-                ? 'border-emerald-500 dark:border-[#00FF66] text-emerald-600 dark:text-[#00FF66]'
+                ? 'border-blue-500 dark:border-blue-500 text-blue-600 dark:text-blue-500'
                 : 'border-transparent text-gray-500 hover:text-gray-750 dark:hover:text-gray-300'
             }`}
           >
@@ -647,8 +647,8 @@ export default function BulkImportWizard({
             onClick={() => document.getElementById('csv-file-input').click()}
             className={`w-full border-2 border-dashed rounded-3xl p-10 flex flex-col items-center justify-center cursor-pointer transition-all duration-300 ${
               dragActive 
-                ? 'border-emerald-500 dark:border-[#00FF66] bg-emerald-50 dark:bg-[#00FF66]/5 shadow-[0_0_20px_rgba(16,185,129,0.1)] dark:shadow-[0_0_20px_rgba(0,255,102,0.1)]' 
-                : 'border-gray-200 dark:border-[#1e1e2f] hover:border-gray-400 dark:hover:border-[#00FF66]/50 bg-white dark:bg-[#0c0c14]'
+                ? 'border-blue-500 dark:border-blue-500 bg-blue-50 dark:bg-blue-600/5 shadow-[0_0_20px_rgba(59,130,246,0.1)] dark:shadow-[0_0_20px_rgba(59,130,246,0.1)]' 
+                : 'border-gray-200 dark:border-slate-700 hover:border-gray-400 dark:hover:border-blue-500/50 bg-white dark:bg-slate-900'
             }`}
           >
             <input
@@ -658,16 +658,16 @@ export default function BulkImportWizard({
               className="hidden"
               onChange={(e) => handleCSVFile(e.target.files[0])}
             />
-            <FileSpreadsheet className={`w-12 h-12 mb-4 transition-colors duration-300 ${dragActive ? 'text-emerald-500 dark:text-[#00FF66]' : 'text-gray-400 dark:text-gray-600'}`} />
+            <FileSpreadsheet className={`w-12 h-12 mb-4 transition-colors duration-300 ${dragActive ? 'text-blue-500 dark:text-blue-500' : 'text-gray-400 dark:text-gray-600'}`} />
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-300">
-              Drag and drop your CSV file here, or <span className="text-emerald-600 dark:text-[#00FF66] hover:underline font-bold">browse files</span>
+              Drag and drop your CSV file here, or <span className="text-blue-600 dark:text-blue-500 hover:underline font-bold">browse files</span>
             </p>
             <p className="text-[10px] text-gray-550 mt-2">Only CSV files (.csv) are supported</p>
           </div>
         ) : (
           <div className="w-full flex flex-col gap-4">
-            <div className="bg-emerald-50 dark:bg-[#00FF66]/5 border border-emerald-500/10 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-emerald-800 dark:text-emerald-350">
-              <Info className="w-4 h-4 shrink-0 text-emerald-500 mt-0.5" />
+            <div className="bg-blue-50 dark:bg-blue-600/5 border border-blue-500/10 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-blue-800 dark:text-slate-350">
+              <Info className="w-4 h-4 shrink-0 text-blue-500 mt-0.5" />
               <div>
                 <span className="font-extrabold uppercase tracking-wide text-[10px] block mb-1">How to copy-paste:</span>
                 Open your spreadsheet in Excel or Google Sheets, select the columns you want (e.g. barcode, quantity, price), copy them (Ctrl+C), and paste them below (Ctrl+V). We will read your headers and auto-align!
@@ -677,11 +677,11 @@ export default function BulkImportWizard({
               placeholder="Paste cells here...&#10;Example:&#10;barcode	stock_quantity	mart_price	mart_mrp&#10;890103001	50	45	50&#10;890103002	10	90	100"
               value={pasteText}
               onChange={(e) => setPasteText(e.target.value)}
-              className="w-full h-44 bg-white dark:bg-[#0c0c14] border-2 border-dashed border-gray-200 dark:border-[#1e1e2f] hover:border-gray-400 dark:hover:border-[#00FF66]/50 rounded-3xl p-4 text-xs font-semibold font-mono text-gray-900 dark:text-white outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors resize-none placeholder-gray-400 dark:placeholder-gray-600"
+              className="w-full h-44 bg-white dark:bg-slate-900 border-2 border-dashed border-gray-200 dark:border-slate-700 hover:border-gray-400 dark:hover:border-blue-500/50 rounded-3xl p-4 text-xs font-semibold font-mono text-gray-900 dark:text-white outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors resize-none placeholder-gray-400 dark:placeholder-gray-600"
             />
             <button
               onClick={handlePastedData}
-              className="w-full py-3 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black font-extrabold rounded-xl hover:bg-emerald-600 dark:hover:bg-[#00e65c] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] font-sans text-xs uppercase tracking-wider"
+              className="w-full py-3 bg-blue-600 dark:bg-blue-600 text-white dark:text-black font-extrabold rounded-xl hover:bg-blue-700 dark:hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] font-sans text-xs uppercase tracking-wider"
             >
               Process Pasted Data & Map Columns
             </button>
@@ -691,7 +691,7 @@ export default function BulkImportWizard({
         <div className="flex items-center gap-4 mt-8 w-full justify-between px-4 shrink-0">
           <button
             onClick={downloadSampleTemplate}
-            className="flex items-center gap-2 text-[11px] font-bold text-emerald-600 dark:text-[#00FF66] hover:text-emerald-700 dark:hover:text-[#00e65c] transition-colors bg-emerald-50 dark:bg-[#00FF66]/10 px-4 py-2.5 rounded-xl border border-emerald-100 dark:border-[#00FF66]/20 cursor-pointer"
+            className="flex items-center gap-2 text-[11px] font-bold text-blue-600 dark:text-blue-500 hover:text-blue-700 dark:hover:text-blue-600 transition-colors bg-blue-50 dark:bg-blue-600/10 px-4 py-2.5 rounded-xl border border-blue-100 dark:border-blue-500/20 cursor-pointer"
           >
             <Download className="w-3.5 h-3.5" />
             Download Sample CSV Template
@@ -700,7 +700,7 @@ export default function BulkImportWizard({
           {onClose && (
             <button
               onClick={onClose}
-              className="text-[11px] font-bold text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-[#151522] cursor-pointer"
+              className="text-[11px] font-bold text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-4 py-2.5 rounded-xl bg-gray-100 dark:bg-slate-800 cursor-pointer"
             >
               Cancel & Return
             </button>
@@ -755,7 +755,7 @@ export default function BulkImportWizard({
       })
 
       return (
-        <div className="mt-5 border border-emerald-500/20 bg-emerald-500/[0.03] dark:bg-emerald-500/[0.015] rounded-2xl p-4">
+        <div className="mt-5 border border-blue-500/20 bg-blue-600/[0.03] dark:bg-blue-600/[0.015] rounded-2xl p-4">
           <h4 className="text-[10px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider mb-2.5">Live Mapping Preview (First 3 Rows)</h4>
           <div className="space-y-2">
             {previewItems.map((item, i) => (
@@ -770,7 +770,7 @@ export default function BulkImportWizard({
                 </div>
                 <div className="flex flex-col text-right">
                   <span className="text-[9px] text-gray-400 font-bold uppercase">Price</span>
-                  <span className="font-mono font-bold text-emerald-600 dark:text-[#00FF66]">{item.priceVal}</span>
+                  <span className="font-mono font-bold text-blue-600 dark:text-blue-500">{item.priceVal}</span>
                 </div>
                 <div className="flex flex-col text-right">
                   <span className="text-[9px] text-gray-400 font-bold uppercase">MRP</span>
@@ -851,7 +851,7 @@ export default function BulkImportWizard({
           <div className="flex items-center gap-3 mb-6">
             <button 
               onClick={() => setImportStep('upload')}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-[#1a1a2c] rounded-xl text-gray-550 dark:text-gray-400 transition-colors cursor-pointer"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-gray-550 dark:text-gray-400 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -863,9 +863,9 @@ export default function BulkImportWizard({
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 font-sans items-start">
             {/* Left side: CSV file columns metadata */}
-            <div className="lg:col-span-4 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-3xl p-5 shadow-sm">
+            <div className="lg:col-span-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-3xl p-5 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
-                <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-500" />
+                <FileSpreadsheet className="w-4.5 h-4.5 text-blue-500" />
                 <span className="font-extrabold text-xs text-gray-900 dark:text-white uppercase tracking-wider">CSV Columns Detected</span>
               </div>
               <p className="text-[10px] text-gray-500 leading-relaxed mb-4">
@@ -883,14 +883,14 @@ export default function BulkImportWizard({
                       onDragStart={(e) => e.dataTransfer.setData("text/plain", h)}
                       className={`p-3 rounded-2xl border text-xs font-bold transition-all cursor-grab active:cursor-grabbing flex flex-col gap-1 ${
                         isMapped
-                          ? 'border-emerald-500/20 bg-emerald-500/[0.03] text-emerald-700 dark:text-[#00FF66]'
-                          : 'border-gray-200 dark:border-[#1e1e2d] bg-gray-50 dark:bg-[#12121a]/50 text-gray-800 dark:text-gray-300 hover:border-gray-400'
+                          ? 'border-blue-500/20 bg-blue-600/[0.03] text-blue-700 dark:text-blue-500'
+                          : 'border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 text-gray-800 dark:text-gray-300 hover:border-gray-400'
                       }`}
                     >
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-xs truncate">{h}</span>
                         {isMapped && (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-[#00FF66]">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-blue-600/10 text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-500">
                             Mapped
                           </span>
                         )}
@@ -967,15 +967,15 @@ export default function BulkImportWizard({
                       }}
                       className={`rounded-2xl p-4 flex flex-col justify-between gap-3 transition-all duration-300 relative ${
                         isMapped 
-                          ? 'bg-emerald-500/[0.02] dark:bg-[#00FF66]/[0.01] border border-emerald-550/30 dark:border-[#00FF66]/20 shadow-sm'
+                          ? 'bg-blue-600/[0.02] dark:bg-blue-600/[0.01] border border-blue-500/20 dark:border-blue-500/20 shadow-sm'
                           : slot.isRequired
                             ? 'bg-amber-500/[0.01] dark:bg-amber-500/[0.005] border border-dashed border-amber-500/40 dark:border-amber-500/25 shadow-sm shadow-amber-500/[0.01]'
-                            : 'bg-white dark:bg-[#0e0e18]/40 border border-dashed border-gray-255 dark:border-[#1e1e2f] hover:border-gray-300 dark:hover:border-gray-700'
+                            : 'bg-white dark:bg-slate-900/40 border border-dashed border-gray-255 dark:border-slate-700 hover:border-gray-300 dark:hover:border-gray-700'
                       }`}
                     >
                       {/* Top indicator line for mapped fields */}
                       {isMapped && (
-                        <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-emerald-500 to-[#00FF66]" />
+                        <div className="absolute top-0 left-0 right-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-blue-500 to-blue-500" />
                       )}
                       
                       <div className="flex items-start justify-between gap-2">
@@ -984,15 +984,15 @@ export default function BulkImportWizard({
                             <label className="block text-[11px] font-black text-gray-800 dark:text-gray-300 uppercase tracking-wider">
                               {slot.label}
                             </label>
-                            {slot.isRequired && <span className="text-[#FF3366] font-bold text-xs">*</span>}
+                            {slot.isRequired && <span className="text-[red-550 font-bold text-xs">*</span>}
                           </div>
                           <p className="text-[10px] text-gray-550 mt-0.5 leading-relaxed">{slot.desc}</p>
                         </div>
 
                         {/* Status badges */}
                         {isMapped ? (
-                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-[9px] font-black uppercase tracking-wider text-emerald-600 dark:text-[#00FF66] border border-emerald-500/25">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-[#00FF66]" />
+                          <span className="shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-600/10 text-[9px] font-black uppercase tracking-wider text-blue-600 dark:text-blue-500 border border-blue-500/25">
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-600 dark:bg-blue-600" />
                             Mapped
                           </span>
                         ) : slot.isRequired ? (
@@ -1001,7 +1001,7 @@ export default function BulkImportWizard({
                             Required
                           </span>
                         ) : (
-                          <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-[#1a1a2b] text-[9px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5">
+                          <span className="shrink-0 inline-flex items-center px-2 py-0.5 rounded-full bg-gray-100 dark:bg-slate-800 text-[9px] font-extrabold uppercase tracking-wider text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-white/5">
                             Optional
                           </span>
                         )}
@@ -1046,7 +1046,7 @@ export default function BulkImportWizard({
                 <button
                   onClick={runProductMatching}
                   disabled={isMatching || !columnMapping.product_identifier}
-                  className="w-full py-3 bg-emerald-500 dark:bg-[#00FF66] disabled:bg-gray-700 text-white dark:text-black font-extrabold rounded-xl hover:bg-emerald-600 dark:hover:bg-[#00e65c] transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none font-sans text-xs uppercase tracking-wider"
+                  className="w-full py-3 bg-blue-600 dark:bg-blue-600 disabled:bg-gray-700 text-white dark:text-black font-extrabold rounded-xl hover:bg-blue-700 dark:hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none font-sans text-xs uppercase tracking-wider"
                 >
                   {isMatching ? (
                     <>
@@ -1076,11 +1076,11 @@ export default function BulkImportWizard({
     return (
       <div className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden py-2 w-full">
         {/* Header Summary Stats */}
-        <div className="flex items-center justify-between mb-4 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl p-5 shadow-sm">
+        <div className="flex items-center justify-between mb-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setImportStep('mapping')}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-[#1a1a2c] rounded-xl text-gray-550 dark:text-gray-400 transition-colors cursor-pointer"
+              className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-xl text-gray-550 dark:text-gray-400 transition-colors cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
             </button>
@@ -1094,7 +1094,7 @@ export default function BulkImportWizard({
             <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-700 dark:text-gray-300 font-bold">
               Total Rows: {previewRows.length}
             </div>
-            <div className="px-3 py-1.5 bg-emerald-500/10 rounded-lg text-emerald-500 font-bold border border-emerald-500/20">
+            <div className="px-3 py-1.5 bg-blue-600/10 rounded-lg text-blue-500 font-bold border border-blue-500/20">
               Matched: {matchedCount}
             </div>
             <div className="px-3 py-1.5 bg-amber-500/10 rounded-lg text-amber-500 font-bold border border-amber-500/20">
@@ -1104,10 +1104,10 @@ export default function BulkImportWizard({
         </div>
 
         {((matchRate < 10 && hasUnmappedName) || !columnMapping.product_name || !columnMapping.product_identifier) && previewRows.length > 0 && (
-          <div className="mb-6 bg-red-500/5 dark:bg-[#FF3366]/5 border border-red-500/15 dark:border-[#FF3366]/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 dark:bg-[#FF3366]" />
+          <div className="mb-6 bg-red-500/5 dark:bg-[red-550/5 border border-red-500/15 dark:border-[red-550/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 dark:bg-[red-550" />
             <div className="flex gap-4">
-              <div className="p-2 bg-red-500/10 dark:bg-[#FF3366]/10 rounded-xl text-red-500 dark:text-[#FF3366] shrink-0 self-start">
+              <div className="p-2 bg-red-500/10 dark:bg-[red-550/10 rounded-xl text-red-500 dark:text-[red-550 shrink-0 self-start">
                 <AlertTriangle className="w-5 h-5 animate-pulse" />
               </div>
               <div className="flex-1">
@@ -1147,13 +1147,13 @@ export default function BulkImportWizard({
                     </span>
                     <div className="space-y-2.5">
                       <div className="flex items-start gap-2">
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] font-black text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20 shrink-0 mt-0.5">STEP 1</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-600/10 text-[9px] font-black text-blue-600 dark:text-blue-500 border border-blue-500/20 shrink-0 mt-0.5">STEP 1</span>
                         <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-semibold">
-                          Click <strong className="text-emerald-600 dark:text-[#00FF66] cursor-pointer hover:underline" onClick={() => setImportStep('mapping')}>Back to Mapping</strong>.
+                          Click <strong className="text-blue-600 dark:text-blue-500 cursor-pointer hover:underline" onClick={() => setImportStep('mapping')}>Back to Mapping</strong>.
                         </p>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="px-1.5 py-0.5 rounded bg-emerald-500/10 text-[9px] font-black text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20 shrink-0 mt-0.5">STEP 2</span>
+                        <span className="px-1.5 py-0.5 rounded bg-blue-600/10 text-[9px] font-black text-blue-600 dark:text-blue-500 border border-blue-500/20 shrink-0 mt-0.5">STEP 2</span>
                         <p className="text-[11px] text-gray-700 dark:text-gray-300 leading-relaxed font-semibold">
                           Ensure "Product Identifier" is mapped to the barcode column and "Product Name" is mapped.
                         </p>
@@ -1186,11 +1186,11 @@ export default function BulkImportWizard({
         )}
 
         {/* Preview Scrollable Table */}
-        <div className="flex-1 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e2f] rounded-2xl overflow-hidden flex flex-col mb-4 min-h-[250px] lg:min-h-0">
+        <div className="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden flex flex-col mb-4 min-h-[250px] lg:min-h-0">
           <div className="flex-1 overflow-auto">
             <table className="w-full text-left border-collapse font-sans min-w-[800px] lg:min-w-0">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-[#181827] bg-gray-50 dark:bg-[#0e0e1a]">
+                <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
                   <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">#</th>
                   <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">CSV Identifier</th>
                   <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Matched Catalog Product</th>
@@ -1199,9 +1199,9 @@ export default function BulkImportWizard({
                   <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Match Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-[#181827]">
+              <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
                 {previewRows.map((r, idx) => (
-                  <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-[#121222] transition-colors">
+                  <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                     <td className="p-4 text-sm font-semibold text-gray-500">{r.index}</td>
                     <td className="p-4 text-sm font-bold text-gray-800 dark:text-gray-300 font-mono">{r.identifier}</td>
                     <td className="p-4">
@@ -1209,7 +1209,7 @@ export default function BulkImportWizard({
                         <div className="flex items-center gap-3">
                           {r.product.image_url ? (
                             <div className="relative group w-8 h-8 shrink-0">
-                              <img src={r.product.image_url} alt={r.product.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-[#1c1c28] border border-gray-200 dark:border-white/5" />
+                              <img src={r.product.image_url} alt={r.product.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-white/5" />
                               <button
                                 onClick={() => setPhotoModalData(r)}
                                 className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity cursor-pointer"
@@ -1221,17 +1221,17 @@ export default function BulkImportWizard({
                           ) : (
                             <button
                               onClick={() => setPhotoModalData(r)}
-                              className="w-8 h-8 bg-gray-105 dark:bg-[#1c1c28] hover:bg-emerald-500/10 hover:text-emerald-500 rounded flex items-center justify-center text-xs transition-colors cursor-pointer border border-dashed border-gray-300 dark:border-[#2d2d3f] group shrink-0"
+                              className="w-8 h-8 bg-gray-105 dark:bg-slate-800 hover:bg-blue-600/10 hover:text-blue-500 rounded flex items-center justify-center text-xs transition-colors cursor-pointer border border-dashed border-gray-300 dark:border-slate-700 group shrink-0"
                               title="Capture photo via Phone"
                             >
-                              <Camera className="w-4 h-4 text-gray-400 group-hover:text-emerald-500" />
+                              <Camera className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
                             </button>
                           )}
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.product.name}</p>
                               {r.matchType && (
-                                <span className="px-1.5 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20 text-[9px] font-extrabold uppercase rounded tracking-wider">
+                                <span className="px-1.5 py-0.5 bg-blue-600/10 text-blue-600 dark:text-blue-500 border border-blue-500/20 text-[9px] font-extrabold uppercase rounded tracking-wider">
                                   Matched by {r.matchType}
                                 </span>
                               )}
@@ -1243,7 +1243,7 @@ export default function BulkImportWizard({
                         <div className="flex items-center gap-3">
                           {r.image_url ? (
                             <div className="relative group w-8 h-8 shrink-0">
-                              <img src={r.image_url} alt={r.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-[#1c1c28] border border-gray-200 dark:border-white/5" />
+                              <img src={r.image_url} alt={r.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-white/5" />
                               <button
                                 onClick={() => setPhotoModalData(r)}
                                 className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity cursor-pointer"
@@ -1266,7 +1266,7 @@ export default function BulkImportWizard({
                             <p className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1.5 flex-wrap">
                               <span>Unit: {r.unit || '1 unit'} | Brand: {r.brand || 'Ozo Choice'}</span>
                               {r.image_url && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] text-[9px] font-black uppercase tracking-wider border border-emerald-500/20">
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-600/10 text-blue-600 dark:text-blue-500 text-[9px] font-black uppercase tracking-wider border border-blue-500/20">
                                   ✓ Photo Attached
                                 </span>
                               )}
@@ -1280,7 +1280,7 @@ export default function BulkImportWizard({
                             <span>No catalog match found</span>
                           </div>
                           <span className="text-[10px] text-gray-550 dark:text-gray-500 leading-normal">
-                            Map the <strong className="text-emerald-500">Product Name</strong> column to auto-create this product.
+                            Map the <strong className="text-blue-500">Product Name</strong> column to auto-create this product.
                           </span>
                         </div>
                       )}
@@ -1290,7 +1290,7 @@ export default function BulkImportWizard({
                     <td className="p-4 text-sm">
                       {r.mart_price !== null ? (
                         <div className="flex flex-col">
-                          <span className="font-extrabold font-mono text-emerald-600 dark:text-[#00FF66]">₹{parseFloat(r.mart_price).toFixed(2)}</span>
+                          <span className="font-extrabold font-mono text-blue-600 dark:text-blue-500">₹{parseFloat(r.mart_price).toFixed(2)}</span>
                           {r.product && (
                             <span className="text-[10px] text-gray-500 line-through">Catalog: ₹{parseFloat(r.product.price).toFixed(2)}</span>
                           )}
@@ -1301,7 +1301,7 @@ export default function BulkImportWizard({
                     </td>
                     <td className="p-4">
                       {r.status === 'matched' ? (
-                        <span className="px-3 py-1 text-xs font-bold text-emerald-500 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+                        <span className="px-3 py-1 text-xs font-bold text-blue-500 bg-blue-600/10 rounded-full border border-blue-500/20">
                           Ready to Import
                         </span>
                       ) : r.name && r.name.trim() !== '' ? (
@@ -1324,10 +1324,10 @@ export default function BulkImportWizard({
           </div>
 
           {/* Import Footer Actions */}
-          <div className="border-t border-gray-200 dark:border-[#181827] bg-gray-50 dark:bg-[#0c0c14] px-6 py-4 flex items-center justify-between font-sans">
+          <div className="border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 px-6 py-4 flex items-center justify-between font-sans">
             <button
               onClick={() => setImportStep('mapping')}
-              className="px-5 py-2.5 border border-gray-200 dark:border-[#1e1e2d] bg-white dark:bg-[#12121a] hover:bg-gray-50 dark:hover:bg-[#1a1a28] text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer"
+              className="px-5 py-2.5 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-850 text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer"
             >
               Back to Mapping
             </button>
@@ -1335,7 +1335,7 @@ export default function BulkImportWizard({
             <button
               onClick={executeBulkImport}
               disabled={totalImportCount === 0}
-              className="px-6 py-2.5 bg-emerald-500 dark:bg-[#00FF66] disabled:bg-gray-700 text-white dark:text-black font-extrabold text-xs rounded-xl hover:bg-emerald-600 dark:hover:bg-[#00e65c] transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none"
+              className="px-6 py-2.5 bg-blue-600 dark:bg-blue-600 disabled:bg-gray-700 text-white dark:text-black font-extrabold text-xs rounded-xl hover:bg-blue-700 dark:hover:bg-blue-700 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none"
             >
               <Check className="w-4 h-4" />
               Confirm Import ({totalImportCount} products)
@@ -1347,11 +1347,11 @@ export default function BulkImportWizard({
   }
 
   return (
-    <div className="flex-1 flex flex-col min-h-0 bg-[#f9fafb] dark:bg-[#07070a] rounded-3xl p-6 border border-gray-200 dark:border-[#13131f] relative overflow-hidden font-sans">
+    <div className="flex-1 flex flex-col min-h-0 bg-[#f9fafb] dark:bg-slate-950 rounded-3xl p-6 border border-gray-200 dark:border-slate-800 relative overflow-hidden font-sans">
       {importStep === 'upload' && onClose && (
         <button
           onClick={onClose}
-          className="absolute left-6 top-6 p-2.5 bg-white hover:bg-gray-100 dark:bg-[#12121a] dark:hover:bg-[#1e1e2f] border border-gray-200 dark:border-[#1e1e2f] rounded-xl text-gray-550 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm group z-50 text-[10px] font-bold uppercase tracking-wider"
+          className="absolute left-6 top-6 p-2.5 bg-white hover:bg-gray-100 dark:bg-slate-900 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700 rounded-xl text-gray-550 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer flex items-center justify-center gap-1.5 shadow-sm group z-50 text-[10px] font-bold uppercase tracking-wider"
           title="Back to Inventory"
         >
           <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5 text-gray-450 dark:text-gray-450 group-hover:text-gray-900 dark:group-hover:text-white" />
