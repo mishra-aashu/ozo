@@ -832,21 +832,6 @@ const InventoryView = () => {
               Bulk Import CSV
             </button>
 
-            {/* Download Image Resolver App */}
-            {downloadUrl && (
-              <a
-                href={downloadUrl}
-                download="OzoMartImageTool.exe"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 text-xs font-bold text-blue-600 dark:text-[#38bdf8] hover:text-blue-700 dark:hover:text-[#7dd3fc] transition-colors bg-blue-50 dark:bg-[#38bdf8]/10 px-4 py-2.5 rounded-xl border border-blue-100 dark:border-[#38bdf8]/20 cursor-pointer font-sans w-full sm:w-auto"
-                title="Download desktop app to scan and resolve missing product images automatically"
-              >
-                <Download className="w-3.5 h-3.5" />
-                Download Image Tool
-              </a>
-            )}
-
             {/* Search Bar */}
             <div className="relative w-full lg:w-80">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-550 w-4 h-4" />
