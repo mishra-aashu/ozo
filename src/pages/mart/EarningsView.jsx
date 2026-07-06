@@ -279,7 +279,7 @@ const EarningsView = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 lg:p-6 bg-gray-50 dark:bg-slate-950 pb-16 lg:pb-0 w-full min-w-0 lg:h-full lg:overflow-hidden">
+    <div className="flex-1 flex flex-col p-4 lg:p-6 bg-gray-50 dark:bg-slate-955 w-full min-w-0 overflow-y-auto">
       {/* Earnings Info Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div>
@@ -473,9 +473,9 @@ const EarningsView = () => {
       )}
 
       {/* Workspace Split */}
-      <div className="flex-1 lg:h-0 flex flex-col lg:flex-row gap-4 lg:gap-6 w-full min-w-0 min-h-0 lg:shrink-0 mb-4">
+      <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 w-full min-w-0 mb-8 items-start">
         {/* Left Panel: History List */}
-        <div className={`w-full lg:w-[380px] xl:w-[420px] border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col lg:h-full lg:overflow-hidden shadow-sm shrink-0 ${selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`w-full lg:w-[380px] xl:w-[420px] border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col shadow-sm shrink-0 ${selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
           <div className="p-4 border-b border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900 flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
@@ -489,7 +489,7 @@ const EarningsView = () => {
             </div>
           </div>
 
-          <div className="divide-y divide-gray-150 dark:divide-slate-800 lg:flex-1 lg:overflow-y-auto custom-scrollbar">
+          <div className="divide-y divide-gray-150 dark:divide-slate-800 w-full">
             {isLoadingPastOrders ? (
               <div className="h-full flex items-center justify-center p-8">
                 <div className="flex flex-col items-center gap-3">
@@ -572,10 +572,9 @@ const EarningsView = () => {
           </div>
         </div>
 
-        {/* Right Panel: Detail View */}
-        <div className={`flex-1 min-w-0 border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col lg:h-full lg:overflow-hidden shadow-sm ${!selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex-1 min-w-0 border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col shadow-sm lg:sticky lg:top-4 ${!selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
           {selectedPastOrder ? (
-            <div className="h-full flex flex-col overflow-hidden">
+            <div className="flex flex-col">
               {/* Panel Header */}
               <div className="p-4 md:p-6 border-b border-gray-200 dark:border-slate-800 bg-gradient-to-b from-gray-50/80 to-gray-50/40 dark:from-slate-900/80 dark:to-slate-900/40 backdrop-blur-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
                 <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
@@ -628,175 +627,167 @@ const EarningsView = () => {
               </div>
 
               {/* Panel Body */}
-              <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 lg:flex-1 lg:overflow-y-auto custom-scrollbar">
-                {/* Customer Information */}
-                <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-3.5">
-                  <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-550 uppercase tracking-wider">Customer Details</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="bg-gray-200 dark:bg-slate-850 p-2 rounded-lg text-gray-500 shrink-0">
-                        <User className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-555 font-bold uppercase tracking-wider">Name</p>
-                        <p className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{selectedPastOrder.user?.full_name || 'Ozo Customer'}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2.5">
-                      <div className="bg-gray-200 dark:bg-slate-850 p-2 rounded-lg text-gray-500 shrink-0">
-                        <Phone className="w-4 h-4" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-[9px] sm:text-[10px] text-gray-400 dark:text-gray-555 font-bold uppercase tracking-wider">Phone</p>
-                        <p className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{selectedPastOrder.user?.phone || 'N/A'}</p>
-                      </div>
-                    </div>
+              <div className="p-4 sm:p-5 space-y-4 lg:max-h-[calc(100vh-220px)] lg:overflow-y-auto custom-scrollbar">
+                {/* Customer Information Banner */}
+                <div className="flex flex-wrap items-center gap-x-6 gap-y-2 bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl p-3 text-xs">
+                  <div className="flex items-center gap-2 text-gray-550 dark:text-gray-400">
+                    <User className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="font-bold text-[9px] text-gray-400 uppercase tracking-wider">Customer:</span>
+                    <span className="font-bold text-gray-800 dark:text-gray-200">{selectedPastOrder.user?.full_name || 'Ozo Customer'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-550 dark:text-gray-400">
+                    <Phone className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="font-bold text-[9px] text-gray-400 uppercase tracking-wider">Phone:</span>
+                    <span className="font-bold text-gray-800 dark:text-gray-200">{selectedPastOrder.user?.phone || 'N/A'}</span>
                   </div>
                 </div>
 
-                {/* Order Items Table */}
-                <div className="space-y-2 sm:space-y-3">
-                  <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">Items Ordered</h4>
-                  <div className="border border-gray-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden">
-                    <table className="w-full text-left text-xs sm:text-sm border-collapse">
-                      <thead>
-                        <tr className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 text-[9px] sm:text-[10px] font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">
-                          <th className="p-2 sm:p-4">Item Details</th>
-                          <th className="p-2 sm:p-4 text-center">Qty</th>
-                          <th className="p-2 sm:p-4 text-right">Price</th>
-                          <th className="p-2 sm:p-4 text-right">Total</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-gray-150 dark:divide-slate-800">
-                        {selectedPastOrder.order_items?.map((item) => (
-                           <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-850 transition-all">
-                            <td className="p-2 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
-                              {item.product_image ? (
-                                <img 
-                                  src={item.product_image} 
-                                  alt={item.product_name} 
-                                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg bg-gray-55 dark:bg-slate-900 border border-gray-105 dark:border-white/5 shrink-0"
-                                />
-                              ) : (
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 border border-gray-105 dark:border-white/5 shrink-0">
-                                  <Package className="w-4 h-4 sm:w-5 h-5" />
+                           {/* Items & Summary Grid */}
+                <div className="flex flex-col lg:flex-row gap-6 items-start w-full">
+                  {/* Left Column: Items */}
+                  <div className="flex-1 w-full space-y-2 sm:space-y-3">
+                    <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">Items Ordered</h4>
+                    <div className="border border-gray-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden">
+                      <table className="w-full text-left text-xs sm:text-sm border-collapse">
+                        <thead>
+                          <tr className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 text-[9px] sm:text-[10px] font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">
+                            <th className="p-2 sm:p-4">Item Details</th>
+                            <th className="p-2 sm:p-4 text-center">Qty</th>
+                            <th className="p-2 sm:p-4 text-right">Price</th>
+                            <th className="p-2 sm:p-4 text-right">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-150 dark:divide-slate-800">
+                          {selectedPastOrder.order_items?.map((item) => (
+                             <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-850 transition-all">
+                              <td className="p-2 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
+                                {item.product_image ? (
+                                  <img 
+                                    src={item.product_image} 
+                                    alt={item.product_name} 
+                                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg bg-gray-55 dark:bg-slate-900 border border-gray-105 dark:border-white/5 shrink-0"
+                                  />
+                                ) : (
+                                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 border border-gray-105 dark:border-white/5 shrink-0">
+                                    <Package className="w-4 h-4 sm:w-5 h-5" />
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1">
+                                  <p className="font-bold text-gray-800 dark:text-gray-200 break-words">{item.product_name}</p>
+                                </div>
+                              </td>
+                              <td className="p-2 sm:p-4 text-center font-bold text-gray-700 dark:text-gray-300">
+                                {item.quantity}
+                              </td>
+                              <td className="p-2 sm:p-4 text-right font-medium text-gray-650 dark:text-gray-400 whitespace-nowrap">
+                                ₹{item.unit_price?.toFixed(2)}
+                              </td>
+                              <td className="p-2 sm:p-4 text-right font-bold text-gray-900 dark:text-white whitespace-nowrap">
+                                ₹{item.total_price?.toFixed(2)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Right Column: Calculations */}
+                  <div className="w-full lg:w-[340px] shrink-0 space-y-4">
+                    {/* Order Grand Total Summary */}
+                    <div className="border border-gray-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2.5 sm:space-y-3 bg-gray-50/30 dark:bg-slate-950/40">
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Subtotal</span>
+                        <span className="font-bold text-gray-800 dark:text-gray-205">₹{selectedPastOrder.subtotal?.toFixed(2)}</span>
+                      </div>
+                      {selectedPastOrder.discount > 0 && (
+                        <div className="flex justify-between text-xs text-red-500">
+                          <span>Discount</span>
+                          <span className="font-bold">-₹{selectedPastOrder.discount?.toFixed(2)}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
+                        <span>Delivery Partner Fee</span>
+                        <span className="font-bold text-gray-800 dark:text-gray-205">₹{selectedPastOrder.delivery_fee?.toFixed(2)}</span>
+                      </div>
+                      <div className="h-px bg-gray-200 dark:bg-slate-700 my-1"></div>
+                      <div className="flex justify-between text-sm font-extrabold text-gray-900 dark:text-white">
+                        <span>Grand Total</span>
+                        <span>₹{selectedPastOrder.total?.toFixed(2)}</span>
+                      </div>
+                    </div>
+
+                    {/* Partner Net Payout Breakdown */}
+                    {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(selectedPastOrder.status) && (
+                      <div className="bg-blue-600/5 dark:bg-blue-600/5 border border-blue-500/10 dark:border-blue-500/10 rounded-2xl p-4 sm:p-5 space-y-2.5">
+                        <h4 className="text-[10px] font-black text-blue-800 dark:text-blue-500 uppercase tracking-wider">Supermarket Payout Details</h4>
+                        
+                        <div className="flex justify-between text-xs text-gray-650 dark:text-gray-400">
+                          <span>Gross Sales (Subtotal)</span>
+                          <span className="font-bold text-gray-800 dark:text-gray-200">₹{selectedPastOrder.subtotal?.toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="flex justify-between text-xs text-red-500">
+                          <span>Platform Commission ({commissionPct}%)</span>
+                          <span className="font-bold">-₹{(selectedPastOrder.subtotal * (commissionPct / 100))?.toFixed(2)}</span>
+                        </div>
+                        
+                        <div className="h-px bg-blue-600/10 dark:bg-blue-600/10 my-1"></div>
+                        
+                        <div className="flex justify-between text-sm font-extrabold text-blue-600 dark:text-blue-500">
+                          <span>Net Payout</span>
+                          <span>₹{(selectedPastOrder.subtotal * (1 - commissionPct / 100))?.toFixed(2)}</span>
+                        </div>
+
+                        {/* Payout Status Section */}
+                        <div className="mt-2 pt-2 border-t border-blue-500/10 dark:border-blue-500/10 flex flex-col gap-1.5 text-xs">
+                          <div className="flex items-center justify-between">
+                            <span className="text-gray-500 dark:text-gray-400">Payout Status</span>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase select-none ${
+                              selectedPastOrder.mart_payout_status === 'paid'
+                                ? 'bg-blue-600/10 text-blue-600 dark:text-blue-500 border border-blue-500/20'
+                                : 'bg-amber-500/10 text-amber-600 dark:text-amber-450 border border-amber-500/20'
+                            }`}>
+                              {selectedPastOrder.mart_payout_status === 'paid' ? 'Paid / Settled' : 'Unpaid / Pending'}
+                            </span>
+                          </div>
+                          {selectedPastOrder.mart_payout_status === 'paid' && (
+                            <>
+                              {selectedPastOrder.mart_payout_date && (
+                                <div className="flex justify-between text-[10px] text-gray-550 dark:text-gray-450">
+                                  <span>Settlement Date</span>
+                                  <span className="font-mono text-gray-800 dark:text-gray-200">
+                                    {new Date(selectedPastOrder.mart_payout_date).toLocaleDateString('en-IN', { 
+                                      day: '2-digit', 
+                                      month: 'short', 
+                                      year: 'numeric' 
+                                    })}
+                                  </span>
                                 </div>
                               )}
-                              <div className="min-w-0 flex-1">
-                                <p className="font-bold text-gray-800 dark:text-gray-200 break-words">{item.product_name}</p>
-                              </div>
-                            </td>
-                            <td className="p-2 sm:p-4 text-center font-bold text-gray-700 dark:text-gray-300">
-                              {item.quantity}
-                            </td>
-                            <td className="p-2 sm:p-4 text-right font-medium text-gray-650 dark:text-gray-400 whitespace-nowrap">
-                              ₹{item.unit_price?.toFixed(2)}
-                            </td>
-                            <td className="p-2 sm:p-4 text-right font-bold text-gray-900 dark:text-white whitespace-nowrap">
-                              ₹{item.total_price?.toFixed(2)}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-
-                {/* Summary calculations */}
-                <div className="flex flex-col gap-4 w-full sm:w-80 ml-auto">
-                  {/* Order Grand Total Summary */}
-                  <div className="border border-gray-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2.5 sm:space-y-3 bg-gray-50/30 dark:bg-slate-950/40">
-                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>Subtotal</span>
-                      <span className="font-bold text-gray-800 dark:text-gray-205">₹{selectedPastOrder.subtotal?.toFixed(2)}</span>
-                    </div>
-                    {selectedPastOrder.discount > 0 && (
-                      <div className="flex justify-between text-xs text-red-500">
-                        <span>Discount</span>
-                        <span className="font-bold">-₹{selectedPastOrder.discount?.toFixed(2)}</span>
+                              {selectedPastOrder.mart_payout_reference && (
+                                <div className="flex justify-between text-[10px] text-gray-550 dark:text-gray-450">
+                                  <span>Reference Ref #</span>
+                                  <span className="font-mono select-all bg-gray-150 dark:bg-black/40 px-1.5 py-0.5 rounded text-gray-800 dark:text-gray-200">
+                                    {selectedPastOrder.mart_payout_reference}
+                                  </span>
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                        
+                        <div className="bg-white/50 dark:bg-black/20 rounded-xl p-2 border border-blue-500/5 dark:border-blue-500/5 text-center">
+                          <p className="text-[9px] text-gray-500 dark:text-gray-400 font-semibold italic">
+                            Formula: Gross Sales - {commissionPct}% Commission = Net Payout
+                          </p>
+                          <p className="text-[9px] font-mono text-blue-700 dark:text-blue-500 mt-0.5">
+                            ₹{selectedPastOrder.subtotal?.toFixed(2)} - ₹{(selectedPastOrder.subtotal * (commissionPct / 100))?.toFixed(2)} = ₹{(selectedPastOrder.subtotal * (1 - commissionPct / 100))?.toFixed(2)}
+                          </p>
+                        </div>
                       </div>
                     )}
-                    <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                      <span>Delivery Partner Fee</span>
-                      <span className="font-bold text-gray-800 dark:text-gray-205">₹{selectedPastOrder.delivery_fee?.toFixed(2)}</span>
-                    </div>
-                    <div className="h-px bg-gray-200 dark:bg-slate-700 my-1"></div>
-                    <div className="flex justify-between text-sm font-extrabold text-gray-900 dark:text-white">
-                      <span>Grand Total</span>
-                      <span>₹{selectedPastOrder.total?.toFixed(2)}</span>
-                    </div>
                   </div>
-
-                  {/* Partner Net Payout Breakdown */}
-                  {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(selectedPastOrder.status) && (
-                    <div className="bg-blue-600/5 dark:bg-blue-600/5 border border-blue-500/10 dark:border-blue-500/10 rounded-2xl p-4 sm:p-5 space-y-2.5">
-                      <h4 className="text-[10px] font-black text-blue-800 dark:text-blue-500 uppercase tracking-wider">Supermarket Payout Details</h4>
-                      
-                      <div className="flex justify-between text-xs text-gray-650 dark:text-gray-400">
-                        <span>Gross Sales (Subtotal)</span>
-                        <span className="font-bold text-gray-800 dark:text-gray-200">₹{selectedPastOrder.subtotal?.toFixed(2)}</span>
-                      </div>
-                      
-                      <div className="flex justify-between text-xs text-red-500">
-                        <span>Platform Commission ({commissionPct}%)</span>
-                        <span className="font-bold">-₹{(selectedPastOrder.subtotal * (commissionPct / 100))?.toFixed(2)}</span>
-                      </div>
-                      
-                      <div className="h-px bg-blue-600/10 dark:bg-blue-600/10 my-1"></div>
-                      
-                      <div className="flex justify-between text-sm font-extrabold text-blue-600 dark:text-blue-500">
-                        <span>Net Payout</span>
-                        <span>₹{(selectedPastOrder.subtotal * (1 - commissionPct / 100))?.toFixed(2)}</span>
-                      </div>
-
-                      {/* Payout Status Section */}
-                      <div className="mt-2 pt-2 border-t border-blue-500/10 dark:border-blue-500/10 flex flex-col gap-1.5 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="text-gray-500 dark:text-gray-400">Payout Status</span>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase select-none ${
-                            selectedPastOrder.mart_payout_status === 'paid'
-                              ? 'bg-blue-600/10 text-blue-600 dark:text-blue-500 border border-blue-500/20'
-                              : 'bg-amber-500/10 text-amber-600 dark:text-amber-450 border border-amber-500/20'
-                          }`}>
-                            {selectedPastOrder.mart_payout_status === 'paid' ? 'Paid / Settled' : 'Unpaid / Pending'}
-                          </span>
-                        </div>
-                        {selectedPastOrder.mart_payout_status === 'paid' && (
-                          <>
-                            {selectedPastOrder.mart_payout_date && (
-                              <div className="flex justify-between text-[10px] text-gray-550 dark:text-gray-450">
-                                <span>Settlement Date</span>
-                                <span className="font-mono text-gray-800 dark:text-gray-200">
-                                  {new Date(selectedPastOrder.mart_payout_date).toLocaleDateString('en-IN', { 
-                                    day: '2-digit', 
-                                    month: 'short', 
-                                    year: 'numeric' 
-                                  })}
-                                </span>
-                              </div>
-                            )}
-                            {selectedPastOrder.mart_payout_reference && (
-                              <div className="flex justify-between text-[10px] text-gray-550 dark:text-gray-450">
-                                <span>Reference Ref #</span>
-                                <span className="font-mono select-all bg-gray-150 dark:bg-black/40 px-1.5 py-0.5 rounded text-gray-800 dark:text-gray-200">
-                                  {selectedPastOrder.mart_payout_reference}
-                                </span>
-                              </div>
-                            )}
-                          </>
-                        )}
-                      </div>
-                      
-                      <div className="bg-white/50 dark:bg-black/20 rounded-xl p-2 border border-blue-500/5 dark:border-blue-500/5 text-center">
-                        <p className="text-[9px] text-gray-500 dark:text-gray-400 font-semibold italic">
-                          Formula: Gross Sales - {commissionPct}% Commission = Net Payout
-                        </p>
-                        <p className="text-[9px] font-mono text-blue-700 dark:text-blue-500 mt-0.5">
-                          ₹{selectedPastOrder.subtotal?.toFixed(2)} - ₹{(selectedPastOrder.subtotal * (commissionPct / 100))?.toFixed(2)} = ₹{(selectedPastOrder.subtotal * (1 - commissionPct / 100))?.toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
