@@ -310,11 +310,23 @@ const Checkout = () => {
       notes: '',
       latitude: null,
       longitude: null,
-      google_maps_url: ''
+      google_maps_url: '',
+      locality_id: null,
+      landmark_id: null,
+      gali_id: null
     }
   })
 
   const handleLocationSelect = (loc) => {
+    if (loc.isManualSelect) {
+      setNewAddress(prev => ({
+        ...prev,
+        latitude: loc.lat,
+        longitude: loc.lng
+      }))
+      return
+    }
+
     const isDeliverable = checkDeliveryZoneStatus(loc.lat, loc.lng, useCartStore.getState())
     if (!isDeliverable) {
       const { geofenceConfig } = useCartStore.getState()
@@ -343,17 +355,25 @@ const Checkout = () => {
     const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
     const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
 
+    // Compute smart snapping from hierarchical database nodes
+    const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
+    const matchedLocalityName = snapResult.locality ? snapResult.locality.name : ''
+    const matchedLandmarkName = snapResult.landmark ? snapResult.landmark.name : ''
+
     setNewAddress(prev => ({
       ...prev,
       latitude: loc.lat,
       longitude: loc.lng,
-      address_line1: prev.address_line1 || '',
-      address_line2: street || prev.address_line2 || '',
+      address_line1: prev.address_line1 || (snapResult.gali ? snapResult.gali.name : ''),
+      address_line2: matchedLocalityName || street || prev.address_line2 || '',
       city: cityVal || prev.city || '',
       state: stateVal || prev.state || '',
       pincode: pincodeVal || prev.pincode || '',
-      landmark: prev.landmark || landmarkVal || '',
-      traced_through: 'map'
+      landmark: prev.landmark || matchedLandmarkName || landmarkVal || '',
+      traced_through: 'map',
+      locality_id: snapResult.locality ? snapResult.locality.id : prev.locality_id,
+      landmark_id: snapResult.landmark ? snapResult.landmark.id : prev.landmark_id,
+      gali_id: snapResult.gali ? snapResult.gali.id : prev.gali_id
     }))
   }
 
@@ -792,7 +812,10 @@ const Checkout = () => {
       longitude: newAddress.longitude,
       google_maps_url: newAddress.google_maps_url || null,
       is_default: false,
-      traced_through: newAddress.traced_through || 'map'
+      traced_through: newAddress.traced_through || 'map',
+      locality_id: newAddress.locality_id || null,
+      landmark_id: newAddress.landmark_id || null,
+      gali_id: newAddress.gali_id || null
     }
 
     const result = await addUserAddress(payload)
@@ -815,7 +838,10 @@ const Checkout = () => {
         receiver_phone: '',
         latitude: null,
         longitude: null,
-        google_maps_url: ''
+        google_maps_url: '',
+        locality_id: null,
+        landmark_id: null,
+        gali_id: null
       })
     }
   }

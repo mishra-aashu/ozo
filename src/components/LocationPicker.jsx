@@ -64,12 +64,24 @@ const LocationPicker = ({ isOpen, onClose }) => {
       receiver_phone: '',
       notes: '',
       latitude: null,
-      longitude: null
+      longitude: null,
+      locality_id: null,
+      landmark_id: null,
+      gali_id: null
     }
   })
 
   // Synchronize initial map coordinates and fields when editing
   const handleMapLocationSelect = (loc) => {
+    if (loc.isManualSelect) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: loc.lat,
+        longitude: loc.lng
+      }))
+      return
+    }
+
     const isDeliverable = checkDeliveryZoneStatus(loc.lat, loc.lng, useCartStore.getState())
     if (!isDeliverable) {
       const { geofenceConfig } = useCartStore.getState()
@@ -97,17 +109,25 @@ const LocationPicker = ({ isOpen, onClose }) => {
     const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
     const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
 
+    // Compute smart snapping from hierarchical database nodes
+    const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
+    const matchedLocalityName = snapResult.locality ? snapResult.locality.name : ''
+    const matchedLandmarkName = snapResult.landmark ? snapResult.landmark.name : ''
+
     setFormData(prev => ({
       ...prev,
       latitude: loc.lat,
       longitude: loc.lng,
-      address_line1: prev.address_line1 || '',
-      address_line2: street || prev.address_line2 || '',
+      address_line1: prev.address_line1 || (snapResult.gali ? snapResult.gali.name : ''),
+      address_line2: matchedLocalityName || street || prev.address_line2 || '',
       city: cityVal || prev.city || '',
       state: stateVal || prev.state || '',
       pincode: pincodeVal || prev.pincode || '',
-      landmark: prev.landmark || landmarkVal || '',
-      traced_through: 'map'
+      landmark: prev.landmark || matchedLandmarkName || landmarkVal || '',
+      traced_through: 'map',
+      locality_id: snapResult.locality ? snapResult.locality.id : prev.locality_id,
+      landmark_id: snapResult.landmark ? snapResult.landmark.id : prev.landmark_id,
+      gali_id: snapResult.gali ? snapResult.gali.id : prev.gali_id
     }))
   }
 
@@ -164,7 +184,10 @@ const LocationPicker = ({ isOpen, onClose }) => {
       receiver_phone: profile?.phone_number || profile?.phone || '9999999999',
       notes: '',
       latitude: null,
-      longitude: null
+      longitude: null,
+      locality_id: null,
+      landmark_id: null,
+      gali_id: null
     })
     setShowMapPicker(false)
     setShowForm(true)
@@ -189,7 +212,10 @@ const LocationPicker = ({ isOpen, onClose }) => {
       notes: parsed.notes || '',
       latitude: addr.latitude || null,
       longitude: addr.longitude || null,
-      traced_through: addr.traced_through || 'manual'
+      traced_through: addr.traced_through || 'manual',
+      locality_id: addr.locality_id || null,
+      landmark_id: addr.landmark_id || null,
+      gali_id: addr.gali_id || null
     })
     setShowMapPicker(false)
     setShowForm(true)
@@ -269,7 +295,10 @@ const LocationPicker = ({ isOpen, onClose }) => {
       latitude: formData.latitude,
       longitude: formData.longitude,
       is_default: false,
-      traced_through: formData.traced_through || 'map'
+      traced_through: formData.traced_through || 'map',
+      locality_id: formData.locality_id || null,
+      landmark_id: formData.landmark_id || null,
+      gali_id: formData.gali_id || null
     }
 
     let result
@@ -533,17 +562,21 @@ const LocationPicker = ({ isOpen, onClose }) => {
                         // Since currentCoords is available and has been verified by the geofence check,
                         // we do not block on pincode validation here.
 
+                        const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(currentCoords.lat, currentCoords.lng)
                         const savedAddress = await addUserAddress({
                           label: 'Current Location',
                           address_line1: currentAddress,
-                          address_line2: details.road || '',
+                          address_line2: snapResult.locality ? snapResult.locality.name : (details.road || ''),
                           city: details.city || fallbackCity,
                           state: details.state || fallbackState,
                           pincode: detectedPincode,
                           latitude: currentCoords.lat,
                           longitude: currentCoords.lng,
                           traced_through: 'gps',
-                          is_default: true
+                          is_default: true,
+                          locality_id: snapResult.locality ? snapResult.locality.id : null,
+                          landmark_id: snapResult.landmark ? snapResult.landmark.id : null,
+                          gali_id: snapResult.gali ? snapResult.gali.id : null
                         }, true)
                         if (savedAddress) {
                           const cleanAddressLine = [savedAddress.address_line1, savedAddress.address_line2].filter(Boolean).join(', ')
@@ -642,13 +675,16 @@ const LocationPicker = ({ isOpen, onClose }) => {
                               <div className="flex items-center gap-2">
                                 <p className="font-black text-gray-900 dark:text-white capitalize">{addr.label || addr.title}</p>
                                 {addr.latitude && addr.longitude && (
-                                  <span className="text-[8px] uppercase tracking-wider font-black text-ozo-red bg-red-50 dark:bg-ozo-red/10 px-2 py-0.5 rounded-full border border-ozo-red/15">📍 Pinned</span>
+                                  <span className="text-[8px] uppercase tracking-wider font-black text-ozo-red bg-red-50 dark:bg-ozo-red/10 px-2 py-0.5 rounded-full border border-ozo-red/15 flex items-center gap-1">
+                                    <MapPin size={8} /> Pinned
+                                  </span>
                                 )}
                               </div>
                               
                               {(parsed.receiverName || parsed.receiverPhone) && (
-                                <p className="text-[10px] font-bold text-ozo-red dark:text-red-400 mt-0.5">
-                                  👤 {parsed.receiverName} {parsed.receiverPhone && `(${parsed.receiverPhone})`}
+                                <p className="text-[10px] font-bold text-ozo-red dark:text-red-400 mt-0.5 flex items-center gap-1">
+                                  <User size={10} className="shrink-0" />
+                                  <span>{parsed.receiverName} {parsed.receiverPhone && `(${parsed.receiverPhone})`}</span>
                                 </p>
                               )}
                               

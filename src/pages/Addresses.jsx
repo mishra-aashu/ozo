@@ -74,7 +74,10 @@ const Addresses = () => {
       latitude: null,
       longitude: null,
       google_maps_url: '',
-      is_default: false
+      is_default: false,
+      locality_id: null,
+      landmark_id: null,
+      gali_id: null
     }
   })
 
@@ -106,7 +109,10 @@ const Addresses = () => {
       latitude: null,
       longitude: null,
       google_maps_url: '',
-      is_default: userAddresses.length === 0 // default to true if it is the first address
+      is_default: userAddresses.length === 0, // default to true if it is the first address
+      locality_id: null,
+      landmark_id: null,
+      gali_id: null
     })
     setShowMapPicker(false)
     setIsModalOpen(true)
@@ -132,13 +138,25 @@ const Addresses = () => {
       longitude: addr.longitude || null,
       google_maps_url: addr.google_maps_url || '',
       is_default: addr.is_default || false,
-      traced_through: addr.traced_through || 'manual'
+      traced_through: addr.traced_through || 'manual',
+      locality_id: addr.locality_id || null,
+      landmark_id: addr.landmark_id || null,
+      gali_id: addr.gali_id || null
     })
     setShowMapPicker(false)
     setIsModalOpen(true)
   }
 
   const handleLocationSelect = (loc) => {
+    if (loc.isManualSelect) {
+      setFormData(prev => ({
+        ...prev,
+        latitude: loc.lat,
+        longitude: loc.lng
+      }))
+      return
+    }
+
     const isDeliverable = checkDeliveryZoneStatus(loc.lat, loc.lng, useCartStore.getState())
     if (!isDeliverable) {
       const { geofenceConfig } = useCartStore.getState()
@@ -167,17 +185,25 @@ const Addresses = () => {
     const pincodeVal = nearest ? (nearestCity?.slug?.includes('aurangabad') ? '824101' : '') : (addr.postcode || '')
     const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
 
+    // Compute smart snapping from hierarchical database nodes
+    const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
+    const matchedLocalityName = snapResult.locality ? snapResult.locality.name : ''
+    const matchedLandmarkName = snapResult.landmark ? snapResult.landmark.name : ''
+
     setFormData(prev => ({
       ...prev,
       latitude: loc.lat,
       longitude: loc.lng,
-      address_line1: prev.address_line1 || '',
-      address_line2: street || prev.address_line2 || '',
+      address_line1: prev.address_line1 || (snapResult.gali ? snapResult.gali.name : ''),
+      address_line2: matchedLocalityName || street || prev.address_line2 || '',
       city: cityVal || prev.city || '',
       state: stateVal || prev.state || '',
       pincode: pincodeVal || prev.pincode || '',
-      landmark: prev.landmark || landmarkVal || '',
-      traced_through: 'map'
+      landmark: prev.landmark || matchedLandmarkName || landmarkVal || '',
+      traced_through: 'map',
+      locality_id: snapResult.locality ? snapResult.locality.id : prev.locality_id,
+      landmark_id: snapResult.landmark ? snapResult.landmark.id : prev.landmark_id,
+      gali_id: snapResult.gali ? snapResult.gali.id : prev.gali_id
     }))
   }
 
@@ -256,7 +282,10 @@ const Addresses = () => {
       longitude: formData.longitude,
       google_maps_url: formData.google_maps_url || null,
       is_default: formData.is_default,
-      traced_through: formData.traced_through || 'map'
+      traced_through: formData.traced_through || 'map',
+      locality_id: formData.locality_id || null,
+      landmark_id: formData.landmark_id || null,
+      gali_id: formData.gali_id || null
     }
 
     let success = false
@@ -437,7 +466,7 @@ const Addresses = () => {
                           })()}
                           {addr.latitude && addr.longitude && (
                             <span className="text-[10px] uppercase tracking-widest font-black text-ozo-red bg-red-50 dark:bg-ozo-red/10 px-3 py-1 rounded-full border border-ozo-red/20 flex items-center gap-1">
-                              📍 Pinned
+                              <MapPin size={10} /> Pinned
                             </span>
                           )}
                           {addr.is_default && (
@@ -452,7 +481,8 @@ const Addresses = () => {
                       <div className="space-y-1.5 mb-6 pr-6">
                         {(parsed.receiverName || parsed.receiverPhone) && (
                           <div className="flex items-center gap-1.5 text-xs font-bold text-ozo-red dark:text-red-400 mb-2 bg-red-50/50 dark:bg-ozo-red/5 px-2.5 py-1.5 rounded-xl w-fit">
-                            <span>👤 {parsed.receiverName || 'Contact'}</span>
+                            <User size={12} className="shrink-0" />
+                            <span>{parsed.receiverName || 'Contact'}</span>
                             {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
                           </div>
                         )}

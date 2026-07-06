@@ -2126,7 +2126,7 @@ const AdminSettings = () => {
                       }`}
                     >
                       <MapPin className={`w-4 h-4 ${isPlacingWarehouse ? 'animate-bounce text-white' : 'text-emerald-500'}`} />
-                      {isPlacingWarehouse ? 'Click Map to Place Warehouse...' : '📍 Mark Warehouse on Map'}
+                      {isPlacingWarehouse ? 'Click Map to Place Warehouse...' : 'Mark Warehouse on Map'}
                     </button>
 
                     {/* Active Coordinates Display */}
@@ -2223,7 +2223,7 @@ const AdminSettings = () => {
                       }`}
                     >
                       <MapPin className={`w-4 h-4 ${isPlacingStore ? 'animate-bounce text-white' : 'text-amber-500'}`} />
-                      {isPlacingStore ? 'Click Map to Place Delivery Center...' : '📍 Mark Delivery Center on Map'}
+                      {isPlacingStore ? 'Click Map to Place Delivery Center...' : 'Mark Delivery Center on Map'}
                     </button>
 
                     {/* Active Coordinates Display */}
