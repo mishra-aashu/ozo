@@ -390,54 +390,56 @@ export default function PhoneCapture() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col justify-between">
+    <div className="h-[100dvh] overflow-hidden bg-slate-950 text-white flex flex-col justify-between">
       {/* Hidden canvas for capturing frames */}
       <canvas ref={canvasRef} className="hidden" />
 
       {/* Header */}
-      <header className="p-4 border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3">
-        <button
-          onClick={() => {
-            if (activeStep > 0) {
-              setActiveStep(activeStep - 1)
-            } else {
-              window.history.back()
-            }
-          }}
-          className="p-2 -ml-2 rounded-xl hover:bg-slate-900 active:scale-95 transition-all text-gray-400 hover:text-white"
-          aria-label="Go back"
-        >
-          <ArrowLeft className="w-5 h-5" />
-        </button>
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-ozo-red to-orange-500 flex items-center justify-center shadow-lg shadow-ozo-red/20">
-          <Smartphone className="w-5 h-5 text-white" />
+      <header className="px-4 py-2.5 border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => {
+              if (activeStep > 0) {
+                setActiveStep(activeStep - 1)
+              } else {
+                window.history.back()
+              }
+            }}
+            className="p-2 -ml-2 rounded-xl hover:bg-slate-900 active:scale-95 text-gray-400 hover:text-white transition-all"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest text-rose-500 block leading-none mb-1">
+              Step {activeStep + 1} of 3
+            </span>
+            <h1 className="font-bold text-sm text-white leading-none">
+              {STEPS[activeStep].title.split('. ')[1]}
+            </h1>
+          </div>
         </div>
-        <div>
-          <h1 className="font-bold text-sm leading-tight">Catalog Photo Capture</h1>
-          <p className="text-xs text-gray-400 truncate max-w-[220px]">
-            {product?.name || `Product: ${session.barcode}`}
+
+        <div className="text-right">
+          <span className="text-[10px] text-gray-300 font-mono font-bold bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+            {session.barcode}
+          </span>
+          <p className="text-[10px] text-gray-500 mt-1 max-w-[140px] truncate">
+            {product?.name || 'New Product'}
           </p>
         </div>
       </header>
 
       {/* Main Stream Area */}
-      <main className="flex-1 flex flex-col justify-center p-4">
-        {/* Guide / Description card */}
-        <div className="mb-4 bg-slate-900/60 border border-slate-800 rounded-2xl p-4 backdrop-blur-sm">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-black uppercase tracking-widest text-ozo-red">
-              Step {activeStep + 1} of 3
-            </span>
-            <span className="text-xs text-gray-400 font-bold bg-slate-800 px-2 py-0.5 rounded-full">
-              {session.barcode}
-            </span>
+      <main className="flex-1 flex flex-col justify-center p-4 min-h-0">
+        {/* Viewport Frame - aspect-[3/4] for a taller, larger preview */}
+        <div className="relative aspect-[3/4] w-full max-w-sm max-h-[calc(100dvh-230px)] mx-auto bg-slate-900 border border-slate-800 rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center">
+          {/* Top Instruction Guide Overlay (Floating inside camera) */}
+          <div className="absolute top-4 left-4 right-4 z-10 px-3 py-2 bg-slate-950/85 backdrop-blur-md rounded-2xl border border-white/5 text-center shadow-lg">
+            <p className="text-[11px] text-gray-200 font-medium leading-relaxed">
+              {STEPS[activeStep].desc}
+            </p>
           </div>
-          <h2 className="text-lg font-bold mb-1">{STEPS[activeStep].title}</h2>
-          <p className="text-xs text-gray-400 leading-relaxed">{STEPS[activeStep].desc}</p>
-        </div>
-
-        {/* Viewport Frame */}
-        <div className="relative aspect-video sm:aspect-square bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl flex items-center justify-center">
           {!photos[activeStep] ? (
             isCameraActive ? (
               <video 
@@ -497,9 +499,9 @@ export default function PhoneCapture() {
       </main>
 
       {/* Controls & Steps Indicators */}
-      <footer className="p-4 bg-slate-950/95 border-t border-slate-900 sticky bottom-0">
+      <footer className="p-3 bg-slate-950/95 border-t border-slate-900 sticky bottom-0">
         {/* Small slots showing status of 3 steps */}
-        <div className="grid grid-cols-3 gap-2 mb-4">
+        <div className="grid grid-cols-3 gap-2 mb-3">
           {STEPS.map((step, idx) => (
             <div 
               key={step.key} 
@@ -526,17 +528,17 @@ export default function PhoneCapture() {
         </div>
 
         {/* Buttons */}
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center justify-between w-full">
           {!photos[activeStep] ? (
-            <>
-              {/* File upload fallback link */}
+            <div className="grid grid-cols-3 items-center justify-items-center w-full py-2">
+              {/* Left: Gallery Upload button */}
               <label 
-                className={`flex-1 bg-slate-900 hover:bg-slate-850 active:scale-95 border border-slate-800 py-3.5 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm cursor-pointer transition-all ${
+                className={`w-12 h-12 rounded-full bg-slate-900/90 hover:bg-slate-800 active:scale-95 border border-slate-800/80 flex items-center justify-center cursor-pointer transition-all shadow-md ${
                   syncing ? 'opacity-50 cursor-not-allowed pointer-events-none' : ''
                 }`}
+                title="Upload Image"
               >
-                <Upload className="w-4 h-4 text-gray-400" />
-                Upload Image
+                <Upload className="w-5 h-5 text-gray-300" />
                 <input 
                   type="file" 
                   accept="image/*" 
@@ -546,15 +548,18 @@ export default function PhoneCapture() {
                 />
               </label>
 
-              {/* Shutter capture button */}
+              {/* Center: iOS/Android-style Camera Shutter Button */}
               <button 
                 onClick={capturePhoto}
                 disabled={!isCameraActive || syncing}
-                className="w-14 h-14 rounded-full bg-white text-slate-950 flex items-center justify-center shadow-lg shadow-white/20 active:scale-90 disabled:opacity-50 disabled:scale-100 transition-all"
+                className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center active:scale-90 disabled:opacity-40 disabled:scale-100 transition-all focus:outline-none shadow-lg shadow-white/5"
               >
-                <Camera className="w-6 h-6" />
+                <div className="w-11 h-11 rounded-full bg-white" />
               </button>
-            </>
+
+              {/* Right: Empty spacer to align items symmetrically */}
+              <div className="w-12 h-12" />
+            </div>
           ) : (
             <>
               {/* Retake button */}
