@@ -44,7 +44,8 @@ async function calculateExpectedAmount(
   userId: string, 
   addressId?: string, 
   couponCode?: string,
-  martId?: string
+  martId?: string,
+  charityDonation?: number
 ): Promise<{ subtotal: number, deliveryFee: number, discountAmount: number, platformFee: number, total: number }> {
   
   // 1. Fetch address first if addressId is provided (needed for city-specific pricing and delivery fee)
@@ -414,7 +415,7 @@ async function calculateExpectedAmount(
       }
     }
 
-  const total = subtotal + deliveryFee + platformFee - discountAmount
+  const total = subtotal + deliveryFee + platformFee + (charityDonation || 0) - discountAmount
   return {
     subtotal,
     deliveryFee,
@@ -501,7 +502,8 @@ Deno.serve(async (req: Request) => {
     // Calculate server-side expected price
     let calculatedDetails;
     try {
-      calculatedDetails = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
+      const charityAmt = Math.max(0, parseFloat(body.charityDonation !== undefined ? body.charityDonation : (body.charity_donation !== undefined ? body.charity_donation : 0)) || 0);
+      calculatedDetails = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId, charityAmt)
     } catch (e: any) {
       return new Response(
         JSON.stringify({ verified: false, error: e.message }),

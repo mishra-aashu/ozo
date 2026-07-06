@@ -40,7 +40,8 @@ const RazorpayShield = ({
   addressId,
   couponCode,
   onPaymentSuccess,
-  pendingOrderId
+  pendingOrderId,
+  charityDonation
 }) => {
   const [shieldState, setShieldState] = useState('checking') // checking, challenge, payment_portal, blocked, success
   const [botScore, setBotScore] = useState(0)
@@ -255,7 +256,8 @@ const RazorpayShield = ({
           action: 'create_order', 
           addressId: addressId,
           couponCode: couponCode,
-          pendingOrderId
+          pendingOrderId,
+          charityDonation
         }
       })
 
@@ -315,7 +317,8 @@ const RazorpayShield = ({
                 orderId: response.razorpay_order_id,
                 signature: response.razorpay_signature,
                 addressId: addressId,
-                couponCode: couponCode
+                couponCode: couponCode,
+                charityDonation
               }
             })
 

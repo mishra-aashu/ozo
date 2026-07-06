@@ -1463,6 +1463,18 @@ const OrderDetail = () => {
                     <span>{Number(currentOrder.distance).toFixed(1)} km</span>
                   </div>
                 )}
+                {currentOrder.platform_fee > 0 && (
+                  <div className="flex justify-between text-sm font-medium">
+                    <span className="text-ozo-gray dark:text-gray-400">Handling Fee</span>
+                    <span className="text-gray-900 dark:text-white font-bold">₹{Number(currentOrder.platform_fee).toLocaleString()}</span>
+                  </div>
+                )}
+                {currentOrder.charity_donation > 0 && (
+                  <div className="flex justify-between text-sm font-medium">
+                    <span className="text-ozo-gray dark:text-gray-400">Charity Donation</span>
+                    <span className="text-emerald-600 dark:text-emerald-400 font-bold">₹{Number(currentOrder.charity_donation).toLocaleString()}</span>
+                  </div>
+                )}
                 {currentOrder.discount > 0 && (
                   <div className="flex justify-between text-sm font-medium">
                     <span className="text-ozo-gray dark:text-gray-400">Discount</span>
@@ -1901,6 +1913,12 @@ const OrderDetail = () => {
                     <tr className="border-b border-gray-100">
                       <td className="py-1.5 text-gray-500 font-medium">Coupon Discount:</td>
                       <td className="py-1.5 text-right text-red-600 font-bold">-₹{currentOrder.discount.toFixed(2)}</td>
+                    </tr>
+                  )}
+                  {currentOrder.charity_donation > 0 && (
+                    <tr className="border-b border-gray-100">
+                      <td className="py-1.5 text-gray-500 font-medium">Charity Donation:</td>
+                      <td className="py-1.5 text-right text-emerald-600 font-bold">₹{Number(currentOrder.charity_donation).toFixed(2)}</td>
                     </tr>
                   )}
                   <tr className="border-b border-gray-100">

@@ -310,7 +310,8 @@ export const useOrderStore = create((set, get) => ({
           p_google_maps_url: googleMapsUrlVal,
           p_mart_id: orderData.martId || null,
           p_platform_fee: orderData.platformFee || 0,
-          p_distance: orderData.distance || null
+          p_distance: orderData.distance || null,
+          p_charity_donation: orderData.charityDonation || 0
         })
 
       if (rpcError) throw rpcError
