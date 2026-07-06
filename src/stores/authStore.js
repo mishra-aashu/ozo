@@ -392,36 +392,10 @@ export const useAuthStore = create(
             console.warn('Failed to clear location on signOut:', err)
           }
 
-          // Clear other persisted user stores dynamically to prevent circular dependencies
+          // Clear other persisted user stores by dispatching an event to prevent circular dependencies
           // BUT preserve them if the session expired (so the user doesn't lose their cart/wishlist!)
-          if (reason !== 'session_expired') {
-            try {
-              const { useCartStore } = await import('./cartStore')
-              await useCartStore.getState().clearCart()
-            } catch (err) {
-              console.warn('Failed to clear cart on signOut:', err)
-            }
-
-            try {
-              const { useWishlistStore } = await import('./wishlistStore')
-              await useWishlistStore.getState().clearWishlist()
-            } catch (err) {
-              console.warn('Failed to clear wishlist on signOut:', err)
-            }
-
-            try {
-              const { useNotificationStore } = await import('./notificationStore')
-              useNotificationStore.setState({ notifications: [] })
-            } catch (err) {
-              console.warn('Failed to clear notifications on signOut:', err)
-            }
-
-            try {
-              const { useOrderStore } = await import('./orderStore')
-              useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
-            } catch (err) {
-              console.warn('Failed to clear orders on signOut:', err)
-            }
+          if (reason !== 'session_expired' && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('ozo-auth-signout', { detail: { reason } }))
           }
 
           // 2. Manually clear Supabase local storage key to guarantee session is deleted from the root
@@ -457,23 +431,8 @@ export const useAuthStore = create(
           }
 
           // Fallback stores clear (if not session expiration)
-          if (reason !== 'session_expired') {
-            try {
-              const { useCartStore } = await import('./cartStore')
-              useCartStore.getState().clearCart()
-            } catch (err) {}
-            try {
-              const { useWishlistStore } = await import('./wishlistStore')
-              useWishlistStore.getState().clearWishlist()
-            } catch (err) {}
-            try {
-              const { useNotificationStore } = await import('./notificationStore')
-              useNotificationStore.setState({ notifications: [] })
-            } catch (err) {}
-            try {
-              const { useOrderStore } = await import('./orderStore')
-              useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
-            } catch (err) {}
+          if (reason !== 'session_expired' && typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('ozo-auth-signout', { detail: { reason } }))
           }
 
           if (reason === 'session_expired') {
@@ -564,3 +523,9 @@ export const useAuthStore = create(
     }
   )
 )
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('ozo-session-expired', () => {
+    useAuthStore.getState().signOut('session_expired').catch(() => {})
+  })
+}

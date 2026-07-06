@@ -673,3 +673,11 @@ export const useOrderStore = create((set, get) => ({
     }
   },
 }))
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('ozo-auth-signout', (e) => {
+    if (e.detail?.reason !== 'session_expired') {
+      useOrderStore.setState({ orders: [], activeOrder: null, currentOrder: null })
+    }
+  })
+}

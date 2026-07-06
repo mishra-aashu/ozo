@@ -960,5 +960,13 @@ export const useCartStore = create(
   )
 )
 
+if (typeof window !== 'undefined') {
+  window.addEventListener('ozo-auth-signout', (e) => {
+    if (e.detail?.reason !== 'session_expired') {
+      useCartStore.getState().clearCart().catch(() => {})
+    }
+  })
+}
+
 
 
