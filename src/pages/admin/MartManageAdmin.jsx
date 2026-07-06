@@ -33,6 +33,7 @@ import {
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
+import AdminMapPickerModal from '../../components/admin/AdminMapPickerModal'
 
 // Helper to generate URL-friendly slug while typing
 const slugifyForTyping = (text) => {
@@ -60,6 +61,7 @@ const MartManageAdmin = () => {
   const [isDeleting, setIsDeleting] = useState(null)
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
   const [martToDelete, setMartToDelete] = useState(null)
+  const [isMapPickerOpen, setIsMapPickerOpen] = useState(false)
 
   // View orders states
   const [selectedMartForOrders, setSelectedMartForOrders] = useState(null)
@@ -1186,28 +1188,41 @@ const MartManageAdmin = () => {
                 </div>
 
                 {/* Mart Location Coordinates */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Latitude</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      placeholder="e.g. 24.752871"
-                      value={formData.latitude}
-                      onChange={e => setFormData({ ...formData, latitude: e.target.value })}
-                      className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
-                    />
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase">Location Coordinates</label>
+                    <button
+                      type="button"
+                      onClick={() => setIsMapPickerOpen(true)}
+                      className="text-[10px] font-black uppercase text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 flex items-center gap-1 active:scale-95 transition-all select-none cursor-pointer"
+                    >
+                      <MapPin className="w-3.5 h-3.5" />
+                      Pick on Map
+                    </button>
                   </div>
-                  <div>
-                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Longitude</label>
-                    <input
-                      type="number"
-                      step="0.000001"
-                      placeholder="e.g. 84.3738"
-                      value={formData.longitude}
-                      onChange={e => setFormData({ ...formData, longitude: e.target.value })}
-                      className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
-                    />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Latitude</label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        placeholder="e.g. 24.752871"
+                        value={formData.latitude}
+                        onChange={e => setFormData({ ...formData, latitude: e.target.value })}
+                        className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Longitude</label>
+                      <input
+                        type="number"
+                        step="0.000001"
+                        placeholder="e.g. 84.3738"
+                        value={formData.longitude}
+                        onChange={e => setFormData({ ...formData, longitude: e.target.value })}
+                        className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -1479,6 +1494,21 @@ const MartManageAdmin = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Admin Map Picker Modal */}
+      <AdminMapPickerModal
+        isOpen={isMapPickerOpen}
+        onClose={() => setIsMapPickerOpen(false)}
+        initialLat={formData.latitude}
+        initialLng={formData.longitude}
+        onSelect={({ lat, lng }) => {
+          setFormData(prev => ({
+            ...prev,
+            latitude: lat.toString(),
+            longitude: lng.toString()
+          }))
+        }}
+      />
     </div>
   )
 }
