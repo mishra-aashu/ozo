@@ -669,7 +669,7 @@ export const useLocationStore = create(
                   error: errMsg, 
                   isDetecting: false 
                 })
-                if (isManual && !silent) {
+                if (isManual) {
                   toast.error(errMsg, { duration: 6000, id: 'out-of-zone-error' })
                 }
                 resolve(false)
@@ -700,7 +700,7 @@ export const useLocationStore = create(
                   tracedThrough: 'gps'
                 })
                 await get().updateNearestCitySlug(latitude, longitude)
-                if (isManual && !silent) {
+                if (isManual) {
                   toast.success('Location detected successfully!')
                 }
                 resolve(true)
@@ -721,7 +721,7 @@ export const useLocationStore = create(
                   tracedThrough: 'gps'
                 })
                 await get().updateNearestCitySlug(latitude, longitude)
-                if (isManual && !silent) {
+                if (isManual) {
                   toast.success('Location detected successfully!')
                 }
                 resolve(true)
@@ -750,7 +750,7 @@ export const useLocationStore = create(
               if (error.code === error.PERMISSION_DENIED) {
                 localStorage.setItem('ozo_location_permission_denied', 'true')
               }
-              if (isManual && !silent) {
+              if (isManual) {
                 toast.error('Could not detect live location. Defaulted to Aurangabad.', { id: 'gps-error' })
               }
               resolve(false)

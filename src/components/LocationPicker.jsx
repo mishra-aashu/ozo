@@ -544,7 +544,6 @@ const LocationPicker = ({ isOpen, onClose }) => {
                     if (currentCoords) {
                       setAddress(currentAddress)
                       setCoordinates({ lat: currentCoords.lat, lng: currentCoords.lng })
-                      toast.success('Location set to Aurangabad successfully')
                     }
                     onClose()
                   }
