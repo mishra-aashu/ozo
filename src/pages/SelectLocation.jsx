@@ -558,46 +558,9 @@ const SelectLocation = () => {
                     const currentAddress = useLocationStore.getState().address
                     const currentCoords = useLocationStore.getState().coordinates
                     if (currentCoords) {
-                      const isDeliverable = checkDeliveryZoneStatus(currentCoords.lat, currentCoords.lng, useCartStore.getState())
-                      if (!isDeliverable) {
-                        const { geofenceConfig } = useCartStore.getState()
-                        if (geofenceConfig?.strict_enforcement) {
-                          toast.error('Your current location is outside our active delivery zone.')
-                          return
-                        } else {
-                          toast.success('Using location outside zone (double delivery fee will apply).')
-                        }
-                      }
-                      const nearestCity = useLocationStore.getState().nearestCity
-                      const fallbackCity = nearestCity?.name || 'Aurangabad'
-                      const fallbackState = nearestCity?.state || 'Bihar'
-                      const fallbackPostcode = nearestCity?.slug?.includes('aurangabad') ? '824101' : ''
-
-                      const details = useLocationStore.getState().addressDetails || {}
-                      const detectedPincode = details.postcode || fallbackPostcode
-                      
-                      // Since currentCoords is available and has been verified by the geofence check,
-                      // we do not block on pincode validation here.
-
-                      const savedAddress = await addUserAddress({
-                        label: 'Current Location',
-                        address_line1: currentAddress,
-                        address_line2: details.road || '',
-                        city: details.city || fallbackCity,
-                        state: details.state || fallbackState,
-                        pincode: detectedPincode,
-                        latitude: currentCoords.lat,
-                        longitude: currentCoords.lng,
-                        traced_through: 'gps',
-                        is_default: true
-                      }, true)
-                      if (savedAddress) {
-                        const cleanAddressLine = [savedAddress.address_line1, savedAddress.address_line2].filter(Boolean).join(', ')
-                        const formattedAddress = `${cleanAddressLine}, ${savedAddress.city}, ${savedAddress.state} - ${savedAddress.pincode}`
-                        setAddress(formattedAddress)
-                        setCoordinates({ lat: parseFloat(savedAddress.latitude), lng: parseFloat(savedAddress.longitude) })
-                      }
-                      toast.success('Current location selected')
+                      setAddress(currentAddress)
+                      setCoordinates({ lat: currentCoords.lat, lng: currentCoords.lng })
+                      toast.success('Location set to Aurangabad successfully')
                     }
                     navigate(-1)
                   }

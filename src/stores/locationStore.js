@@ -634,93 +634,38 @@ export const useLocationStore = create(
           localStorage.removeItem('ozo_location_permission_denied')
         }
         
-        if (!navigator.geolocation) {
-          const errMsg = 'Geolocation is not supported by your browser'
+        // Direct default location preset to Aurangabad, Bihar (Ramesh Chowk center)
+        const latitude = 24.753239;
+        const longitude = 84.374124;
+        
+        try {
+          const displayAddress = 'Aurangabad, Bihar - 824101';
+          const addressDetails = {
+            road: '',
+            suburb: '',
+            city: 'Aurangabad',
+            state: 'Bihar',
+            postcode: '824101'
+          };
+
           set({ 
-            error: errMsg, 
-            isDetecting: false 
-          })
+            coordinates: { lat: latitude, lng: longitude },
+            address: displayAddress,
+            addressDetails: addressDetails,
+            isDetecting: false,
+            tracedThrough: 'gps'
+          });
+          
+          await get().updateNearestCitySlug(latitude, longitude);
           if (isManual && !silent) {
-            toast.error(errMsg)
+            toast.success('Location set to Aurangabad successfully!');
           }
-          return false
+          return true;
+        } catch (err) {
+          console.error('Error in detectLocation:', err);
+          set({ isDetecting: false });
+          return false;
         }
-
-        return new Promise((resolve) => {
-          navigator.geolocation.getCurrentPosition(
-            async (position) => {
-              const { latitude, longitude } = position.coords
-              localStorage.removeItem('ozo_location_permission_denied')
-              
-              try {
-                // Reverse geocoding to fetch detailed address via utility
-                const { displayName, addressDetails } = await reverseGeocode(latitude, longitude)
-                
-                // Construct a shorter, cleaner display address (e.g. Road, Suburb, City)
-                const road = addressDetails.road || addressDetails.street || ''
-                const suburb = addressDetails.suburb || addressDetails.neighbourhood || addressDetails.village || ''
-                const city = addressDetails.city || addressDetails.town || addressDetails.county || ''
-                
-                let displayAddress = ''
-                if (road || suburb) {
-                  displayAddress = [road, suburb, city].filter(Boolean).join(', ')
-                } else {
-                  displayAddress = displayName || `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
-                }
-
-                 set({ 
-                  coordinates: { lat: latitude, lng: longitude },
-                  address: displayAddress,
-                  addressDetails: addressDetails,
-                  isDetecting: false,
-                  tracedThrough: 'gps'
-                })
-                await get().updateNearestCitySlug(latitude, longitude)
-                if (isManual && !silent) {
-                  toast.success('Location detected successfully!')
-                }
-                resolve(true)
-              } catch (err) {
-                // Fallback to simple display
-                const nearestCity = get().nearestCity
-                set({ 
-                  coordinates: { lat: latitude, lng: longitude },
-                  address: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
-                  addressDetails: {
-                    road: '',
-                    suburb: '',
-                    city: nearestCity?.name || '',
-                    state: nearestCity?.state || '',
-                    postcode: nearestCity?.allowed_pincodes?.[0] || ''
-                  },
-                  isDetecting: false,
-                  tracedThrough: 'gps'
-                })
-                await get().updateNearestCitySlug(latitude, longitude)
-                if (isManual && !silent) {
-                  toast.success('Location detected successfully!')
-                }
-                resolve(true)
-              }
-            },
-            (error) => {
-              let errMsg = 'Failed to detect location'
-              if (error.code === error.PERMISSION_DENIED) {
-                localStorage.setItem('ozo_location_permission_denied', 'true')
-                errMsg = 'Location permission denied. Please enable location permissions.'
-              }
-              set({ 
-                error: errMsg, 
-                isDetecting: false 
-              })
-              if (isManual) {
-                toast.error(errMsg)
-              }
-              resolve(false)
-            },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-          )
-        })
       },
 
       // Clears GPS-derived location state and the selected city.
