@@ -104,77 +104,133 @@ export const useLocationStore = create(
         const { localities, landmarks, galis } = get();
         if (!lat || !lng) return { locality: null, landmark: null, gali: null };
 
-        let closestGali = null;
-        let minGaliDist = Infinity;
-        for (const g of galis) {
-          if (g.latitude && g.longitude) {
-            const dist = getDistanceKm(lat, lng, parseFloat(g.latitude), parseFloat(g.longitude));
-            if (dist < minGaliDist) {
-              minGaliDist = dist;
-              closestGali = g;
-            }
-          }
-        }
-
-        let closestLandmark = null;
-        let minLandmarkDist = Infinity;
-        for (const lm of landmarks) {
-          if (lm.latitude && lm.longitude) {
-            const dist = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude));
-            if (dist < minLandmarkDist) {
-              minLandmarkDist = dist;
-              closestLandmark = lm;
-            }
-          }
-        }
-
-        let closestLocality = null;
-        let minLocalityDist = Infinity;
-        for (const loc of localities) {
-          if (loc.latitude && loc.longitude) {
-            const dist = getDistanceKm(lat, lng, parseFloat(loc.latitude), parseFloat(loc.longitude));
-            if (dist < minLocalityDist) {
-              minLocalityDist = dist;
-              closestLocality = loc;
-            }
-          }
-        }
-
         let matchedGali = null;
         let matchedLandmark = null;
         let matchedLocality = null;
 
-        // Snapping thresholds:
-        // 1. Gali/Street: Snap if distance is within the Gali's specific radius (converted to km) or 0.15 km fallback
-        if (closestGali) {
-          const allowedGaliRadiusKm = closestGali.radius ? parseFloat(closestGali.radius) / 1000 : 0.15;
-          if (minGaliDist <= allowedGaliRadiusKm) {
-            matchedGali = closestGali;
-            matchedLocality = localities.find(loc => loc.id === closestGali.locality_id) || null;
-          }
-        }
+        // 1. First check if coordinates fall within the radius of any primary locality
+        const primaryLocalities = localities.filter(loc => loc.is_primary === true);
+        let closestPrimaryLocality = null;
+        let minPrimaryLocalityDist = Infinity;
 
-        // 2. Landmark within 0.2 km (200m)
-        if (closestLandmark && minLandmarkDist <= 0.2) {
-          matchedLandmark = closestLandmark;
-          if (!matchedLocality) {
-            matchedLocality = localities.find(loc => loc.id === closestLandmark.locality_id) || null;
-          }
-        }
-
-        // 3. Locality: Snap if distance is within the Locality's specific allowed radius (converted to km) or 0.4 km fallback
-        if (closestLocality) {
-          const allowedLocRadiusKm = closestLocality.radius ? parseFloat(closestLocality.radius) / 1000 : 0.4;
-          if (minLocalityDist <= allowedLocRadiusKm) {
-            if (!matchedLocality) {
-              matchedLocality = closestLocality;
+        for (const loc of primaryLocalities) {
+          if (loc.latitude && loc.longitude) {
+            const dist = getDistanceKm(lat, lng, parseFloat(loc.latitude), parseFloat(loc.longitude));
+            const allowedLocRadiusKm = loc.radius ? parseFloat(loc.radius) / 1000 : 0.4;
+            if (dist <= allowedLocRadiusKm) {
+              if (dist < minPrimaryLocalityDist) {
+                minPrimaryLocalityDist = dist;
+                closestPrimaryLocality = loc;
+              }
             }
           }
         }
 
-        // Broad fallback: if still not matched but within a 2.5km zone limit of any locality, snap to closest
-        if (!matchedLocality && closestLocality && minLocalityDist <= 2.5) {
-          matchedLocality = closestLocality;
+        // If we found a matching primary locality by radius, use it and search within its children
+        if (closestPrimaryLocality) {
+          matchedLocality = closestPrimaryLocality;
+
+          // Search closest gali within this locality
+          let closestGali = null;
+          let minGaliDist = Infinity;
+          const localityGalis = galis.filter(g => g.locality_id === matchedLocality.id);
+          for (const g of localityGalis) {
+            if (g.latitude && g.longitude) {
+              const dist = getDistanceKm(lat, lng, parseFloat(g.latitude), parseFloat(g.longitude));
+              if (dist < minGaliDist) {
+                minGaliDist = dist;
+                closestGali = g;
+              }
+            }
+          }
+          if (closestGali) {
+            const allowedGaliRadiusKm = closestGali.radius ? parseFloat(closestGali.radius) / 1000 : 0.15;
+            if (minGaliDist <= allowedGaliRadiusKm) {
+              matchedGali = closestGali;
+            }
+          }
+
+          // Search closest landmark within this locality
+          let closestLandmark = null;
+          let minLandmarkDist = Infinity;
+          const localityLandmarks = landmarks.filter(lm => lm.locality_id === matchedLocality.id);
+          for (const lm of localityLandmarks) {
+            if (lm.latitude && lm.longitude) {
+              const dist = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude));
+              if (dist < minLandmarkDist) {
+                minLandmarkDist = dist;
+                closestLandmark = lm;
+              }
+            }
+          }
+          if (closestLandmark && minLandmarkDist <= 0.2) {
+            matchedLandmark = closestLandmark;
+          }
+        } else {
+          // 2. Standard fallback matching if not inside any primary locality's radius
+          let closestGali = null;
+          let minGaliDist = Infinity;
+          for (const g of galis) {
+            if (g.latitude && g.longitude) {
+              const dist = getDistanceKm(lat, lng, parseFloat(g.latitude), parseFloat(g.longitude));
+              if (dist < minGaliDist) {
+                minGaliDist = dist;
+                closestGali = g;
+              }
+            }
+          }
+
+          let closestLandmark = null;
+          let minLandmarkDist = Infinity;
+          for (const lm of landmarks) {
+            if (lm.latitude && lm.longitude) {
+              const dist = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude));
+              if (dist < minLandmarkDist) {
+                minLandmarkDist = dist;
+                closestLandmark = lm;
+              }
+            }
+          }
+
+          let closestLocality = null;
+          let minLocalityDist = Infinity;
+          for (const loc of localities) {
+            if (loc.latitude && loc.longitude) {
+              const dist = getDistanceKm(lat, lng, parseFloat(loc.latitude), parseFloat(loc.longitude));
+              if (dist < minLocalityDist) {
+                minLocalityDist = dist;
+                closestLocality = loc;
+              }
+            }
+          }
+
+          if (closestGali) {
+            const allowedGaliRadiusKm = closestGali.radius ? parseFloat(closestGali.radius) / 1000 : 0.15;
+            if (minGaliDist <= allowedGaliRadiusKm) {
+              matchedGali = closestGali;
+              matchedLocality = localities.find(loc => loc.id === closestGali.locality_id) || null;
+            }
+          }
+
+          if (closestLandmark && minLandmarkDist <= 0.2) {
+            matchedLandmark = closestLandmark;
+            if (!matchedLocality) {
+              matchedLocality = localities.find(loc => loc.id === closestLandmark.locality_id) || null;
+            }
+          }
+
+          if (closestLocality) {
+            const allowedLocRadiusKm = closestLocality.radius ? parseFloat(closestLocality.radius) / 1000 : 0.4;
+            if (minLocalityDist <= allowedLocRadiusKm) {
+              if (!matchedLocality) {
+                matchedLocality = closestLocality;
+              }
+            }
+          }
+
+          if (!matchedLocality && closestLocality && minLocalityDist <= 2.5) {
+            matchedLocality = closestLocality;
+          }
         }
 
         return {
