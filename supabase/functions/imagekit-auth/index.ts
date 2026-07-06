@@ -42,6 +42,47 @@ Deno.serve(async (req: Request) => {
       );
     }
 
+    // Handle POST request for deleting files
+    if (req.method === 'POST') {
+      try {
+        const { action, filePath } = await req.json();
+        if (action === 'delete' && filePath) {
+          const authHeader = 'Basic ' + btoa(privateKey + ':');
+          const imgkitRes = await fetch('https://api.imagekit.io/v1/files/batch/deleteByFilePaths', {
+            method: 'POST',
+            headers: {
+              'Authorization': authHeader,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              filePaths: [filePath]
+            })
+          });
+
+          if (imgkitRes.ok) {
+            const resData = await imgkitRes.json();
+            return new Response(
+              JSON.stringify({ success: true, data: resData }),
+              { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          } else {
+            const errText = await imgkitRes.text();
+            console.error('[ImageKit Auth] Delete API failed:', errText);
+            return new Response(
+              JSON.stringify({ error: 'ImageKit delete failed', details: errText }),
+              { status: imgkitRes.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+        }
+      } catch (postErr: any) {
+        console.error('[ImageKit Auth] POST error:', postErr);
+        return new Response(
+          JSON.stringify({ error: postErr.message }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     // Token: unique string (random UUID)
     const token = crypto.randomUUID();
     

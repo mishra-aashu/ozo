@@ -274,6 +274,37 @@ export default function PhoneCapture() {
   const retakePhoto = async () => {
     try {
       setSyncing(true)
+      const fileIdentifier = session?.barcode || session?.product_id || 'nobarcode'
+
+      // 1. Delete the existing photo from Supabase Storage bucket to free up space
+      const supabasePath = `merchant-photos/${fileIdentifier}/${activeStep}.jpg`
+      const { error: deleteErr } = await supabase.storage
+        .from('mart-assets')
+        .remove([supabasePath])
+      
+      if (deleteErr) {
+        console.warn('[PhoneCapture] Failed to delete image from Supabase Storage:', deleteErr)
+      } else {
+        console.log('[PhoneCapture] Successfully deleted old image from storage to save space:', supabasePath)
+      }
+
+      // 2. Delete the photo from ImageKit CDN via the Edge Function POST action
+      try {
+        const { data: ikDeleteData, error: ikDeleteErr } = await supabase.functions.invoke('imagekit-auth', {
+          body: {
+            action: 'delete',
+            filePath: `/ozomart-products/${fileIdentifier}_${activeStep}.jpg`
+          }
+        })
+        if (ikDeleteErr) {
+          console.warn('[PhoneCapture] ImageKit CDN deletion error:', ikDeleteErr)
+        } else {
+          console.log('[PhoneCapture] ImageKit CDN deletion response:', ikDeleteData)
+        }
+      } catch (ikErr) {
+        console.error('[PhoneCapture] ImageKit delete invocation failed:', ikErr)
+      }
+
       const newPhotos = [...photos]
       newPhotos[activeStep] = null
       setPhotos(newPhotos)
