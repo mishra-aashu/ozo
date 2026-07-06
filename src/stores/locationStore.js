@@ -634,38 +634,130 @@ export const useLocationStore = create(
           localStorage.removeItem('ozo_location_permission_denied')
         }
         
-        // Direct default location preset to Aurangabad, Bihar (Ramesh Chowk center)
-        const latitude = 24.753239;
-        const longitude = 84.374124;
-        
-        try {
-          const displayAddress = 'Aurangabad, Bihar - 824101';
-          const addressDetails = {
-            road: '',
-            suburb: '',
-            city: 'Aurangabad',
-            state: 'Bihar',
-            postcode: '824101'
-          };
-
+        if (!navigator.geolocation) {
+          const errMsg = 'Geolocation is not supported by your browser'
+          const lat = GEOFENCE_DEFAULTS.warehouse_lat || 24.753239;
+          const lng = GEOFENCE_DEFAULTS.warehouse_lng || 84.374124;
           set({ 
-            coordinates: { lat: latitude, lng: longitude },
-            address: displayAddress,
-            addressDetails: addressDetails,
+            coordinates: { lat, lng },
+            address: 'Aurangabad, Bihar - 824101',
+            addressDetails: {
+              road: '',
+              suburb: '',
+              city: 'Aurangabad',
+              state: 'Bihar',
+              postcode: '824101'
+            },
             isDetecting: false,
-            tracedThrough: 'gps'
-          });
-          
-          await get().updateNearestCitySlug(latitude, longitude);
-          if (isManual && !silent) {
-            toast.success('Location set to Aurangabad successfully!');
-          }
-          return true;
-        } catch (err) {
-          console.error('Error in detectLocation:', err);
-          set({ isDetecting: false });
-          return false;
+            tracedThrough: 'fallback_default'
+          })
+          await get().updateNearestCitySlug(lat, lng)
+          return false
         }
+
+        return new Promise((resolve) => {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const { latitude, longitude } = position.coords
+              localStorage.removeItem('ozo_location_permission_denied')
+              
+              // Validate serviceability using checkDeliveryZoneStatus
+              const isServiceable = checkDeliveryZoneStatus(latitude, longitude)
+              if (!isServiceable) {
+                const errMsg = 'OZO is not yet serviceable at your location. We currently only deliver in Aurangabad, Bihar.'
+                set({ 
+                  error: errMsg, 
+                  isDetecting: false 
+                })
+                if (isManual && !silent) {
+                  toast.error(errMsg, { duration: 6000, id: 'out-of-zone-error' })
+                }
+                resolve(false)
+                return
+              }
+
+              try {
+                // Reverse geocoding to fetch detailed address via utility
+                const { displayName, addressDetails } = await reverseGeocode(latitude, longitude)
+                
+                // Construct a shorter, cleaner display address (e.g. Road, Suburb, City)
+                const road = addressDetails.road || addressDetails.street || ''
+                const suburb = addressDetails.suburb || addressDetails.neighbourhood || addressDetails.village || ''
+                const city = addressDetails.city || addressDetails.town || addressDetails.county || ''
+                
+                let displayAddress = ''
+                if (road || suburb) {
+                  displayAddress = [road, suburb, city].filter(Boolean).join(', ')
+                } else {
+                  displayAddress = displayName || `Lat: ${latitude.toFixed(4)}, Lng: ${longitude.toFixed(4)}`
+                }
+
+                set({ 
+                  coordinates: { lat: latitude, lng: longitude },
+                  address: displayAddress,
+                  addressDetails: addressDetails,
+                  isDetecting: false,
+                  tracedThrough: 'gps'
+                })
+                await get().updateNearestCitySlug(latitude, longitude)
+                if (isManual && !silent) {
+                  toast.success('Location detected successfully!')
+                }
+                resolve(true)
+              } catch (err) {
+                // Fallback to simple display
+                const nearestCity = get().nearestCity
+                set({ 
+                  coordinates: { lat: latitude, lng: longitude },
+                  address: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
+                  addressDetails: {
+                    road: '',
+                    suburb: '',
+                    city: nearestCity?.name || 'Aurangabad',
+                    state: nearestCity?.state || 'Bihar',
+                    postcode: nearestCity?.allowed_pincodes?.[0] || '824101'
+                  },
+                  isDetecting: false,
+                  tracedThrough: 'gps'
+                })
+                await get().updateNearestCitySlug(latitude, longitude)
+                if (isManual && !silent) {
+                  toast.success('Location detected successfully!')
+                }
+                resolve(true)
+              }
+            },
+            async (error) => {
+              // Fallback to Aurangabad defaults when permission is denied or geolocator fails
+              const lat = 24.753239;
+              const lng = 84.374124;
+              
+              set({ 
+                coordinates: { lat, lng },
+                address: 'Aurangabad, Bihar - 824101',
+                addressDetails: {
+                  road: '',
+                  suburb: '',
+                  city: 'Aurangabad',
+                  state: 'Bihar',
+                  postcode: '824101'
+                },
+                isDetecting: false,
+                tracedThrough: 'fallback_default'
+              })
+              await get().updateNearestCitySlug(lat, lng)
+              
+              if (error.code === error.PERMISSION_DENIED) {
+                localStorage.setItem('ozo_location_permission_denied', 'true')
+              }
+              if (isManual && !silent) {
+                toast.error('Could not detect live location. Defaulted to Aurangabad.', { id: 'gps-error' })
+              }
+              resolve(false)
+            },
+            { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+          )
+        })
       },
 
       // Clears GPS-derived location state and the selected city.
@@ -882,10 +974,20 @@ export const findCityByPincode = (pincode) => {
   return activeCities.find(c => c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.includes(cleanPin));
 };
 
-// Check if a pincode is serviceable based on the nearest city's configuration or entered city.
-// Always returns true because physical geofence (coordinates check) is the Single Source of Truth for delivery serviceability.
 export const checkPincodeServiceable = (pincode, cityName = null) => {
-  return true;
+  if (!pincode) return false;
+  const cleanPin = pincode.toString().trim();
+  const activeCities = useLocationStore.getState().activeCities || [];
+  
+  if (cityName) {
+    const cleanCity = cityName.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+    const city = activeCities.find(c => c.name.toLowerCase().replace(/[^a-z0-9]/g, '').trim().includes(cleanCity));
+    if (city) {
+      return city.allowed_pincodes && Array.isArray(city.allowed_pincodes) && city.allowed_pincodes.includes(cleanPin);
+    }
+  }
+  
+  return activeCities.some(c => c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.includes(cleanPin));
 };
 
 export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => {

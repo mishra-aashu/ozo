@@ -164,6 +164,7 @@ const Addresses = () => {
         toast.error('Location is outside our active delivery zone.', {
           duration: 4000
         })
+        return
       } else {
         toast.success('Location is outside zone. Double delivery fee will apply.', {
           duration: 4000
