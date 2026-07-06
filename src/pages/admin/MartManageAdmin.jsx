@@ -596,7 +596,7 @@ const MartManageAdmin = () => {
           className={`px-6 py-3 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'directory'
               ? 'border-ozo-red text-ozo-red dark:text-[#FF6B6B]'
-              : 'border-transparent text-gray-400 hover:text-gray-905 dark:hover:text-white'
+              : 'border-transparent text-gray-400 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Store className="w-4 h-4" />
@@ -607,7 +607,7 @@ const MartManageAdmin = () => {
           className={`px-6 py-3 font-bold text-xs uppercase tracking-wider border-b-2 transition-colors flex items-center gap-2 ${
             activeTab === 'settings'
               ? 'border-ozo-red text-ozo-red dark:text-[#FF6B6B]'
-              : 'border-transparent text-gray-400 hover:text-gray-905 dark:hover:text-white'
+              : 'border-transparent text-gray-400 hover:text-gray-900 dark:hover:text-white'
           }`}
         >
           <Settings className="w-4 h-4" />
@@ -676,11 +676,13 @@ const MartManageAdmin = () => {
                 return (
                   <div 
                     key={mart.id}
-                    className="bg-white dark:bg-[#1a1a1a] border border-gray-100 dark:border-white/5 hover:border-ozo-red/20 dark:hover:border-ozo-red/20 rounded-[2rem] p-6 flex flex-col justify-between shadow-premium hover:shadow-premium-lg transition-all duration-300 relative overflow-hidden group"
+                    className="bg-white/90 dark:bg-[#111113]/90 backdrop-blur-xl border border-gray-200/50 dark:border-white/5 hover:border-ozo-red/30 dark:hover:border-ozo-red/30 rounded-[2.5rem] p-6 flex flex-col justify-between shadow-premium hover:shadow-premium-lg transition-all duration-300 relative overflow-hidden group"
                   >
-                    {/* Status indicator bar */}
-                    <div className={`absolute top-0 inset-x-0 h-1.5 transition-all ${
-                      mart.is_active ? 'bg-[#00FF66]' : 'bg-red-500'
+                    {/* Status indicator bar with ambient glow */}
+                    <div className={`absolute top-0 inset-x-0 h-1 transition-all duration-300 ${
+                      mart.is_active 
+                        ? 'bg-gradient-to-r from-emerald-400 to-teal-500 shadow-[0_2px_10px_rgba(16,185,129,0.3)]' 
+                        : 'bg-gradient-to-r from-rose-500 to-red-600 shadow-[0_2px_10px_rgba(244,63,94,0.3)]'
                     }`} />
 
                     <div>
@@ -688,69 +690,87 @@ const MartManageAdmin = () => {
                       <div className="flex items-start justify-between gap-2 mb-4">
                         <div className="flex items-center gap-3">
                           {mart.logo_url ? (
-                            <img 
-                              src={mart.logo_url} 
-                              alt={mart.name} 
-                              className="w-12 h-12 rounded-2xl object-cover border border-gray-200 dark:border-white/10"
-                            />
+                            <div className="relative shrink-0">
+                              <img 
+                                src={mart.logo_url} 
+                                alt={mart.name} 
+                                className="w-12 h-12 rounded-2xl object-cover border border-gray-200/60 dark:border-white/10 shadow-sm"
+                              />
+                              {mart.is_active && (
+                                <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#111113]">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                </span>
+                              )}
+                            </div>
                           ) : (
-                            <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-red-950/20 text-ozo-red dark:text-[#FF6B6B] flex items-center justify-center font-extrabold text-sm uppercase border border-red-500/15">
-                              {mart.name?.slice(0, 2) || 'MT'}
+                            <div className="relative shrink-0">
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500/10 to-ozo-red/10 text-ozo-red dark:text-rose-450 flex items-center justify-center font-black text-sm uppercase border border-ozo-red/20 shadow-sm">
+                                {mart.name?.slice(0, 2) || 'MT'}
+                              </div>
+                              {mart.is_active && (
+                                <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 ring-2 ring-white dark:ring-[#111113]">
+                                  <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                                </span>
+                              )}
                             </div>
                           )}
-                          <div>
-                            <h4 className="font-bold text-sm text-gray-900 dark:text-white flex items-center gap-1.5 leading-none">
+                          <div className="min-w-0">
+                            <h4 className="font-black text-sm text-gray-900 dark:text-zinc-100 flex items-center gap-1.5 leading-none tracking-tight truncate max-w-[150px]" title={mart.name}>
                               {mart.name || 'Anonymous Mart'}
                               {mart.is_active && (
-                                <CheckCircle className="w-3.5 h-3.5 text-blue-500" title="Active store" />
+                                <CheckCircle className="w-3.5 h-3.5 text-blue-500 shrink-0" title="Active store" />
                               )}
                             </h4>
-                            <p className="text-[10px] text-gray-400 font-bold mt-1.5 font-mono">
+                            <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold mt-2 font-mono flex items-center gap-1">
+                              <Phone className="w-2.5 h-2.5 text-gray-400 dark:text-gray-500 shrink-0" />
                               {mart.phone || mart.users?.phone || <span className="text-red-500 font-black">⚠️ Phone Required</span>}
                             </p>
                           </div>
                         </div>
 
-                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-wider border ${
-                          mart.is_active 
-                            ? 'bg-[#00FF66]/10 text-emerald-650 dark:text-[#00FF66] border-emerald-500/20' 
-                            : 'bg-red-500/10 text-red-650 dark:text-red-400 border-red-500/20'
-                        }`}>
-                        {mart.is_active ? 'Open' : 'Closed'}
-                        </span>
+                        {mart.is_active ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                            Open
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase tracking-wider bg-rose-500/10 text-rose-600 dark:text-rose-450 border border-rose-500/20">
+                            Closed
+                          </span>
+                        )}
                       </div>
 
                       {/* Detail stats */}
-                      <div className="grid grid-cols-2 gap-3 mb-4 bg-gray-50/50 dark:bg-white/[0.01] rounded-2xl border border-gray-150/60 dark:border-white/5 p-4 text-xs">
+                      <div className="grid grid-cols-2 gap-3 mb-4 bg-gray-50/50 dark:bg-[#161619]/40 rounded-2xl border border-gray-150/50 dark:border-white/[0.03] p-3.5 text-xs">
                         <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-500 dark:text-gray-400 block mb-0.5">Operating City</span>
-                          <span className="font-extrabold text-gray-800 dark:text-gray-200 uppercase tracking-wider flex items-center gap-1">
-                            <MapPin className="w-3 h-3 text-ozo-red" />
+                          <span className="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 block mb-1 tracking-wider">Operating City</span>
+                          <span className="font-extrabold text-gray-800 dark:text-gray-250 uppercase tracking-wide flex items-center gap-1 truncate">
+                            <MapPin className="w-3.5 h-3.5 text-ozo-red shrink-0" />
                             {mart.operating_cities?.name || mart.city_slug || 'Default'}
                           </span>
                         </div>
                         <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-500 dark:text-gray-400 block mb-0.5">Operating Hours</span>
-                          <span className="font-extrabold text-gray-800 dark:text-gray-200 block truncate">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 block mb-1 tracking-wider">Operating Hours</span>
+                          <span className="font-extrabold text-gray-800 dark:text-gray-250 flex items-center gap-1.5">
+                            <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                             {mart.is_24_7 ? (
-                              <span className="text-amber-500 font-mono text-[10px] font-black uppercase">24/7 Hours</span>
+                              <span className="text-amber-500 font-mono text-[9px] font-black uppercase tracking-wider">24/7 Hours</span>
                             ) : (
-                              <span className="font-mono text-[10px]">
+                              <span className="font-mono text-[9px] tracking-tight">
                                 {mart.opens_at?.slice(0, 5)} - {mart.closes_at?.slice(0, 5)}
                               </span>
                             )}
                           </span>
                         </div>
-                        <div className="col-span-2 pt-2 border-t border-gray-150 dark:border-white/5">
-                          <div className="flex justify-between items-center mb-1">
-                            <span className="text-[9px] uppercase font-bold text-gray-600 dark:text-gray-400">Active Load Status</span>
+                        <div className="col-span-2 pt-2.5 border-t border-gray-150 dark:border-white/[0.04]">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 tracking-wider">Active Load Status</span>
                             <span className={`text-[10px] font-extrabold ${isHighLoad ? 'text-red-500 font-black animate-pulse' : 'text-gray-800 dark:text-gray-200'}`}>
                               {currentLoad}/{maxOrders} Orders
                             </span>
                           </div>
-                          <div className="w-full bg-gray-200 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-gray-200/70 dark:bg-white/10 h-1.5 rounded-full overflow-hidden">
                             <div 
-                              className={`h-full rounded-full transition-all duration-500 ${isHighLoad ? 'bg-red-500' : 'bg-emerald-500'}`} 
+                              className={`h-full rounded-full transition-all duration-500 ${isHighLoad ? 'bg-gradient-to-r from-red-500 to-rose-600' : 'bg-gradient-to-r from-emerald-400 to-teal-500'}`} 
                               style={{ width: `${loadPercent}%` }}
                             />
                           </div>
@@ -758,43 +778,43 @@ const MartManageAdmin = () => {
                       </div>
 
                       {/* Store Performance */}
-                      <div className="grid grid-cols-2 gap-3 mb-4 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.01] rounded-2xl border border-emerald-500/10 dark:border-emerald-500/5 p-3.5 text-xs">
+                      <div className="grid grid-cols-2 gap-3 mb-4 bg-emerald-500/[0.02] dark:bg-emerald-500/[0.01] rounded-2xl border border-emerald-500/10 dark:border-emerald-500/5 p-3 text-xs">
                         <div>
-                          <span className="text-[9px] uppercase font-bold text-emerald-700 dark:text-emerald-450 block mb-0.5 tracking-wider flex items-center gap-1">
-                            <DollarSign className="w-2.5 h-2.5" /> Total Earnings
+                          <span className="text-[9px] uppercase font-bold text-emerald-650 dark:text-emerald-500 block mb-1 tracking-wider flex items-center gap-1">
+                            <DollarSign className="w-3 h-3" /> Total Earnings
                           </span>
-                          <span className="font-extrabold text-[13px] text-emerald-600 dark:text-emerald-400 tracking-tight block">
+                          <span className="font-black text-sm text-emerald-600 dark:text-emerald-400 tracking-tight block">
                             ₹{parseFloat(mart.totalEarnings || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </span>
                         </div>
                         <div>
-                          <span className="text-[9px] uppercase font-bold text-gray-500 dark:text-gray-400 block mb-0.5 tracking-wider">
+                          <span className="text-[9px] uppercase font-bold text-gray-400 dark:text-gray-500 block mb-1 tracking-wider">
                             Completed Orders
                           </span>
-                          <span className="font-extrabold text-gray-800 dark:text-gray-200 block font-mono text-[13px]">
+                          <span className="font-extrabold text-gray-800 dark:text-gray-200 block font-mono text-sm leading-none pt-0.5">
                             {mart.completedOrders || 0}
                           </span>
                         </div>
                       </div>
 
                       {/* Store Metadata */}
-                      <div className="bg-gray-50 dark:bg-white/[0.02] border border-gray-150 dark:border-white/5 rounded-2xl p-4 text-xs space-y-2.5 mb-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-500 dark:text-gray-400 font-semibold">Store Operator/Owner:</span>
-                          <span className="font-extrabold text-gray-800 dark:text-gray-200 truncate max-w-[150px]" title={mart.users?.email}>
-                            {mart.users?.full_name || 'Unassigned'}
+                      <div className="bg-gray-50/50 dark:bg-[#161619]/20 border border-gray-150 dark:border-white/[0.03] rounded-2xl p-3.5 text-xs space-y-2 mb-4">
+                        <div className="flex justify-between items-center gap-2">
+                          <span className="text-gray-400 dark:text-gray-500 font-bold text-[9px] uppercase tracking-wider">Operator:</span>
+                          <span className="font-extrabold text-gray-800 dark:text-gray-250 truncate text-right max-w-[140px]" title={mart.users?.email}>
+                            {mart.users?.full_name || <span className="text-gray-400 dark:text-gray-600 font-semibold italic">Unassigned</span>}
                           </span>
                         </div>
-                        <div className="flex justify-between items-start">
-                          <span className="text-gray-500 dark:text-gray-400 font-semibold shrink-0">Address:</span>
-                          <span className="font-semibold text-gray-700 dark:text-gray-350 text-right line-clamp-2 max-w-[180px]">
+                        <div className="flex justify-between items-start gap-2">
+                          <span className="text-gray-400 dark:text-gray-500 font-bold text-[9px] uppercase tracking-wider shrink-0 pt-0.5">Address:</span>
+                          <span className="font-semibold text-gray-700 dark:text-gray-300 text-right line-clamp-2 text-[11px] leading-snug">
                             {mart.address || 'No address registered'}
                           </span>
                         </div>
                         {mart.slug && (
-                          <div className="pt-2 border-t border-gray-150 dark:border-white/5 flex justify-between items-center font-mono text-[9px] text-gray-500 dark:text-gray-450">
-                            <span>Slug:</span>
-                            <span className="font-bold text-gray-650 dark:text-gray-300">{mart.slug}</span>
+                          <div className="pt-2 border-t border-gray-150 dark:border-white/[0.04] flex justify-between items-center font-mono text-[9px] text-gray-400 dark:text-gray-500">
+                            <span className="uppercase font-bold tracking-wider text-[8px]">Slug:</span>
+                            <span className="font-bold text-gray-600 dark:text-gray-400 select-all">{mart.slug}</span>
                           </div>
                         )}
                       </div>
@@ -802,7 +822,7 @@ const MartManageAdmin = () => {
                       {/* View Orders Button */}
                       <button
                         onClick={() => handleViewOrders(mart)}
-                        className="w-full mb-4 py-2.5 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 shadow-md shadow-red-500/10 hover:shadow-lg"
+                        className="w-full mb-4 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-650 hover:to-rose-700 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-1.5 shadow-md shadow-red-500/10 hover:shadow-lg hover:shadow-red-500/20 active:scale-[0.98] cursor-pointer"
                       >
                         <FileText className="w-3.5 h-3.5" />
                         View Store Orders ({mart.totalOrders || 0})
@@ -810,10 +830,10 @@ const MartManageAdmin = () => {
                     </div>
 
                     {/* Actions bar */}
-                    <div className="flex gap-2 pt-3 border-t border-gray-100 dark:border-white/5">
+                    <div className="flex gap-2 pt-3 border-t border-gray-150 dark:border-white/[0.04]">
                       <button
                         onClick={() => handleEdit(mart)}
-                        className="flex-1 py-2.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-650 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5"
+                        className="flex-1 py-2.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/10 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 active:scale-95 cursor-pointer"
                       >
                         <Edit className="w-3.5 h-3.5" />
                         Configure
@@ -821,10 +841,10 @@ const MartManageAdmin = () => {
 
                       <button
                         onClick={() => handleToggleActive(mart.id, mart.is_active)}
-                        className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 border ${
+                        className={`px-4 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 border active:scale-95 cursor-pointer ${
                           mart.is_active
                             ? 'border-red-500/20 text-red-500 hover:bg-red-500/5 bg-transparent'
-                            : 'border-green-500/20 text-emerald-600 dark:text-[#00FF66] hover:bg-green-500/5 bg-transparent'
+                            : 'border-emerald-500/20 text-emerald-600 dark:text-emerald-450 hover:bg-green-500/5 bg-transparent'
                         }`}
                       >
                         {mart.is_active ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
@@ -834,7 +854,7 @@ const MartManageAdmin = () => {
                       <button
                         onClick={() => triggerDeleteConfirm(mart)}
                         disabled={isDeleting === mart.id}
-                        className="p-2.5 border border-red-500/20 hover:border-red-500/40 text-red-500 rounded-xl hover:bg-red-500/5 transition-all disabled:opacity-50"
+                        className="p-2.5 border border-red-500/20 hover:border-red-500/40 text-red-500 rounded-xl hover:bg-red-500/5 transition-all disabled:opacity-50 active:scale-95 cursor-pointer"
                         title="Delete Mart Location"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
