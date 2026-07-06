@@ -264,33 +264,105 @@ export default function AddressForm({
     return null
   }, [formData.gali_id, galis])
 
-  // Calculate distance from pinned/selected coordinates to locality center
+  // Get active landmark object by matching current form's landmark_id or name
+  const currentLandmark = React.useMemo(() => {
+    if (formData.landmark_id) {
+      const found = landmarks.find(lm => lm.id === formData.landmark_id)
+      if (found) return found
+    }
+    if (!formData.landmark) return null
+    return landmarks.find(lm => 
+      lm.name.toLowerCase().trim() === formData.landmark.toLowerCase().trim()
+    )
+  }, [formData.landmark_id, formData.landmark, landmarks])
+
+  // Calculate distance from pinned/selected coordinates to locality/street/landmark center
   const radiusMetrics = React.useMemo(() => {
     if (!currentLocality || !formData.latitude || !formData.longitude) return null;
-    if (!currentLocality.latitude || !currentLocality.longitude) return null;
 
-    const lat1 = parseFloat(formData.latitude);
-    const lon1 = parseFloat(formData.longitude);
-    const lat2 = parseFloat(currentLocality.latitude);
-    const lon2 = parseFloat(currentLocality.longitude);
+    // 1. If Gali is selected, calculate distance relative to Gali's coordinates
+    if (currentGali && currentGali.latitude && currentGali.longitude) {
+      const lat1 = parseFloat(formData.latitude);
+      const lon1 = parseFloat(formData.longitude);
+      const lat2 = parseFloat(currentGali.latitude);
+      const lon2 = parseFloat(currentGali.longitude);
 
-    const R = 6371; // Earth's radius in km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distMeters = R * c * 1000;
-    const allowedRadius = parseFloat(currentLocality.radius) || 250;
-    
-    return {
-      distance: distMeters,
-      allowedRadius,
-      isValid: distMeters <= (allowedRadius + 10) // 10 meter safe buffer for rounding / floating point calculation errors
-    };
-  }, [currentLocality, formData.latitude, formData.longitude])
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distMeters = R * c * 1000;
+      const allowedRadius = parseFloat(currentGali.length) || parseFloat(currentGali.radius) || 300;
+
+      return {
+        type: 'street',
+        name: currentGali.name,
+        distance: distMeters,
+        allowedRadius,
+        isValid: distMeters <= (allowedRadius + 10)
+      };
+    }
+
+    // 2. If Landmark is selected, calculate distance relative to Landmark's coordinates
+    if (currentLandmark && currentLandmark.latitude && currentLandmark.longitude) {
+      const lat1 = parseFloat(formData.latitude);
+      const lon1 = parseFloat(formData.longitude);
+      const lat2 = parseFloat(currentLandmark.latitude);
+      const lon2 = parseFloat(currentLandmark.longitude);
+
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distMeters = R * c * 1000;
+      const allowedRadius = parseFloat(currentLandmark.radius) || 100;
+
+      return {
+        type: 'landmark',
+        name: currentLandmark.name,
+        distance: distMeters,
+        allowedRadius,
+        isValid: distMeters <= (allowedRadius + 10)
+      };
+    }
+
+    // 3. Fallback: Locality coordinates
+    if (currentLocality.latitude && currentLocality.longitude) {
+      const lat1 = parseFloat(formData.latitude);
+      const lon1 = parseFloat(formData.longitude);
+      const lat2 = parseFloat(currentLocality.latitude);
+      const lon2 = parseFloat(currentLocality.longitude);
+
+      const R = 6371; // Earth's radius in km
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = 
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+        Math.sin(dLon / 2) * Math.sin(dLon / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      const distMeters = R * c * 1000;
+      const allowedRadius = parseFloat(currentLocality.radius) || 250;
+
+      return {
+        type: 'locality',
+        name: currentLocality.name,
+        distance: distMeters,
+        allowedRadius,
+        isValid: distMeters <= (allowedRadius + 10)
+      };
+    }
+
+    return null;
+  }, [currentLocality, currentGali, currentLandmark, formData.latitude, formData.longitude])
 
   // Prepare searchable select options for localities, prioritizing core areas dynamically
   const localitySelectOptions = React.useMemo(() => {
@@ -915,16 +987,40 @@ export default function AddressForm({
                   <>
                     <Check size={16} className="shrink-0 text-emerald-500 mt-0.5" />
                     <div>
-                      <p className="font-extrabold text-sm mb-0.5">✓ Address Verified inside {currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}</p>
-                      <p className="text-[11px] font-medium leading-relaxed opacity-90">Coordinates snapped successfully (approx. {Math.round(radiusMetrics.distance)} meters from locality center; allowed radius: {radiusMetrics.allowedRadius} meters).</p>
+                      <p className="font-extrabold text-sm mb-0.5">
+                        ✓ Address Verified {
+                          radiusMetrics.type === 'street' ? `on Street: ${radiusMetrics.name}` :
+                          radiusMetrics.type === 'landmark' ? `near Landmark: ${radiusMetrics.name}` :
+                          `inside ${currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}`
+                        }
+                      </p>
+                      <p className="text-[11px] font-medium leading-relaxed opacity-90">
+                        Coordinates snapped successfully (approx. {Math.round(radiusMetrics.distance)} meters from {
+                          radiusMetrics.type === 'street' ? 'street' :
+                          radiusMetrics.type === 'landmark' ? 'landmark' :
+                          'locality'
+                        } center; allowed radius: {radiusMetrics.allowedRadius} meters).
+                      </p>
                     </div>
                   </>
                 ) : (
                   <>
                     <Info size={16} className="shrink-0 text-amber-500 mt-0.5" />
                     <div>
-                      <p className="font-extrabold text-sm mb-0.5">⚠️ Out of Bound Warning for {currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}</p>
-                      <p className="text-[11px] font-medium leading-relaxed opacity-90">This pinned location is {Math.round(radiusMetrics.distance)} meters from the center, which exceeds the area limit of {radiusMetrics.allowedRadius} meters. Please verify the map marker.</p>
+                      <p className="font-extrabold text-sm mb-0.5">
+                        ⚠️ Out of Bound Warning for {
+                          radiusMetrics.type === 'street' ? `Street: ${radiusMetrics.name}` :
+                          radiusMetrics.type === 'landmark' ? `Landmark: ${radiusMetrics.name}` :
+                          `${currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}`
+                        }
+                      </p>
+                      <p className="text-[11px] font-medium leading-relaxed opacity-90">
+                        This pinned location is {Math.round(radiusMetrics.distance)} meters from the {
+                          radiusMetrics.type === 'street' ? 'street' :
+                          radiusMetrics.type === 'landmark' ? 'landmark' :
+                          'locality'
+                        } center, which exceeds the allowed limit of {radiusMetrics.allowedRadius} meters. Please verify the map marker.
+                      </p>
                     </div>
                   </>
                 )}
