@@ -168,8 +168,8 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
     const latDelta = (maxRadius * 2.0) / 111
     const lngDelta = (maxRadius * 2.0) / (111 * Math.cos(centerLat * Math.PI / 180))
     return [
-      [centerLat - latDelta, centerLng - lngDelta],
-      [centerLat + latDelta, centerLng + lngDelta]
+      [centerLng - lngDelta, centerLat - latDelta],
+      [centerLng + lngDelta, centerLat + latDelta]
     ]
   }, [centerLat, centerLng, maxRadius])
 
