@@ -128,9 +128,8 @@ const Checkout = () => {
   const [isCharitySelected, setIsCharitySelected] = useState(false)
 
   const baseTotal = subtotal + deliveryFee + platformFee - discount
-  const nextMultipleOfTen = Math.ceil(baseTotal / 10) * 10
-  const calculatedRoundOff = Math.round((nextMultipleOfTen - baseTotal) * 100) / 100
-  const charityDonationAmount = calculatedRoundOff === 0 ? 10 : calculatedRoundOff
+  const charityDonationAmount = parseFloat(platformConfig?.charity_amount) || 10
+  const charityName = platformConfig?.charity_name || 'local feeding programs'
   const activeCharityDonation = isCharitySelected ? charityDonationAmount : 0
   const displayTotal = baseTotal + activeCharityDonation
 
@@ -1423,10 +1422,10 @@ const Checkout = () => {
                         </div>
                         <div className="text-left">
                           <p className="font-bold text-emerald-800 dark:text-emerald-450 text-sm">
-                            Round off for Charity
+                            Charity Donation
                           </p>
                           <p className="text-[11px] text-emerald-600 dark:text-emerald-500/80 font-semibold mt-0.5">
-                            Donate ₹{charityDonationAmount.toFixed(2)} to support local feeding programs.
+                            Donate ₹{charityDonationAmount} to support {charityName}.
                           </p>
                         </div>
                       </div>
