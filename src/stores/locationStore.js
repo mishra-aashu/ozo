@@ -628,6 +628,41 @@ export const useLocationStore = create(
         }
       },
 
+      getFallbackLocation: async (userLat = null, userLng = null) => {
+        let activeCities = get().activeCities || []
+        if (activeCities.length === 0) {
+          activeCities = await get().fetchActiveCities()
+        }
+
+        let fallbackCity = null
+        if (userLat !== null && userLng !== null && activeCities.length > 0) {
+          let minDistance = Infinity
+          for (const city of activeCities) {
+            if (city.latitude && city.longitude) {
+              const dist = getDistanceKm(userLat, userLng, parseFloat(city.latitude), parseFloat(city.longitude))
+              if (dist < minDistance) {
+                minDistance = dist
+                fallbackCity = city
+              }
+            }
+          }
+        }
+
+        // Default to the first active city if no coordinates or no match
+        if (!fallbackCity && activeCities.length > 0) {
+          fallbackCity = activeCities[0]
+        }
+
+        const lat = fallbackCity ? parseFloat(fallbackCity.latitude) : (GEOFENCE_DEFAULTS.warehouse_lat || 24.753239);
+        const lng = fallbackCity ? parseFloat(fallbackCity.longitude) : (GEOFENCE_DEFAULTS.warehouse_lng || 84.374124);
+        const cityName = fallbackCity ? fallbackCity.name : 'Aurangabad, Bihar';
+        const rawCity = fallbackCity ? fallbackCity.name.split(',')[0].trim() : 'Aurangabad';
+        const stateName = fallbackCity ? fallbackCity.state : 'Bihar';
+        const pincode = (fallbackCity && fallbackCity.allowed_pincodes && fallbackCity.allowed_pincodes[0]) || '824101';
+
+        return { lat, lng, cityName, rawCity, stateName, pincode }
+      },
+
       detectLocation: async (isManual = false, silent = false) => {
         set({ isDetecting: true, error: null })
         if (isManual) {
@@ -635,23 +670,21 @@ export const useLocationStore = create(
         }
         
         if (!navigator.geolocation) {
-          const errMsg = 'Geolocation is not supported by your browser'
-          const lat = GEOFENCE_DEFAULTS.warehouse_lat || 24.753239;
-          const lng = GEOFENCE_DEFAULTS.warehouse_lng || 84.374124;
+          const fallback = await get().getFallbackLocation()
           set({ 
-            coordinates: { lat, lng },
-            address: 'Aurangabad, Bihar - 824101',
+            coordinates: { lat: fallback.lat, lng: fallback.lng },
+            address: `${fallback.cityName} - ${fallback.pincode}`,
             addressDetails: {
               road: '',
               suburb: '',
-              city: 'Aurangabad',
-              state: 'Bihar',
-              postcode: '824101'
+              city: fallback.rawCity,
+              state: fallback.stateName,
+              postcode: fallback.pincode
             },
             isDetecting: false,
             tracedThrough: 'fallback_default'
           })
-          await get().updateNearestCitySlug(lat, lng)
+          await get().updateNearestCitySlug(fallback.lat, fallback.lng)
           return false
         }
 
@@ -661,28 +694,27 @@ export const useLocationStore = create(
               const { latitude, longitude } = position.coords
               localStorage.removeItem('ozo_location_permission_denied')
               
-              // Validate serviceability using checkDeliveryZoneStatus
+               // Validate serviceability using checkDeliveryZoneStatus
               const isServiceable = checkDeliveryZoneStatus(latitude, longitude)
               if (!isServiceable) {
-                const fallbackLat = 24.753239;
-                const fallbackLng = 84.374124;
+                const fallback = await get().getFallbackLocation(latitude, longitude)
                 set({ 
-                  coordinates: { lat: fallbackLat, lng: fallbackLng },
-                  address: 'Aurangabad, Bihar - 824101',
+                  coordinates: { lat: fallback.lat, lng: fallback.lng },
+                  address: `${fallback.cityName} - ${fallback.pincode}`,
                   addressDetails: {
                     road: '',
                     suburb: '',
-                    city: 'Aurangabad',
-                    state: 'Bihar',
-                    postcode: '824101'
+                    city: fallback.rawCity,
+                    state: fallback.stateName,
+                    postcode: fallback.pincode
                   },
                   error: null, // Clear error so the UI isn't blocked by unserviceable error state
                   isDetecting: false,
                   tracedThrough: 'fallback_default'
                 })
-                await get().updateNearestCitySlug(fallbackLat, fallbackLng)
+                await get().updateNearestCitySlug(fallback.lat, fallback.lng)
                 if (!silent) {
-                  toast.error('OZO is not yet serviceable at your location. Showing Aurangabad, Bihar.', { duration: 6000, id: 'out-of-zone-error' })
+                  toast.error(`OZO is not yet serviceable at your location. Showing ${fallback.cityName}.`, { duration: 6000, id: 'out-of-zone-error' })
                 }
                 resolve(true)
                 return
@@ -717,7 +749,8 @@ export const useLocationStore = create(
                 }
                 resolve(true)
               } catch (err) {
-                // Fallback to simple display
+                // Fallback to simple display using dynamic active city
+                const fallback = await get().getFallbackLocation(latitude, longitude)
                 const nearestCity = get().nearestCity
                 set({ 
                   coordinates: { lat: latitude, lng: longitude },
@@ -725,9 +758,9 @@ export const useLocationStore = create(
                   addressDetails: {
                     road: '',
                     suburb: '',
-                    city: nearestCity?.name || 'Aurangabad',
-                    state: nearestCity?.state || 'Bihar',
-                    postcode: nearestCity?.allowed_pincodes?.[0] || '824101'
+                    city: nearestCity?.name || fallback.rawCity,
+                    state: nearestCity?.state || fallback.stateName,
+                    postcode: nearestCity?.allowed_pincodes?.[0] || fallback.pincode
                   },
                   isDetecting: false,
                   tracedThrough: 'gps'
@@ -740,30 +773,28 @@ export const useLocationStore = create(
               }
             },
             async (error) => {
-              // Fallback to Aurangabad defaults when permission is denied or geolocator fails
-              const lat = 24.753239;
-              const lng = 84.374124;
-              
+              // Fallback to closest active city defaults when permission is denied or geolocator fails
+              const fallback = await get().getFallbackLocation()
               set({ 
-                coordinates: { lat, lng },
-                address: 'Aurangabad, Bihar - 824101',
+                coordinates: { lat: fallback.lat, lng: fallback.lng },
+                address: `${fallback.cityName} - ${fallback.pincode}`,
                 addressDetails: {
                   road: '',
                   suburb: '',
-                  city: 'Aurangabad',
-                  state: 'Bihar',
-                  postcode: '824101'
+                  city: fallback.rawCity,
+                  state: fallback.stateName,
+                  postcode: fallback.pincode
                 },
                 isDetecting: false,
                 tracedThrough: 'fallback_default'
               })
-              await get().updateNearestCitySlug(lat, lng)
+              await get().updateNearestCitySlug(fallback.lat, fallback.lng)
               
               if (error.code === error.PERMISSION_DENIED) {
                 localStorage.setItem('ozo_location_permission_denied', 'true')
               }
               if (isManual) {
-                toast.error('Could not detect live location. Defaulted to Aurangabad.', { id: 'gps-error' })
+                toast.error(`Could not detect live location. Defaulted to ${fallback.cityName}.`, { id: 'gps-error' })
               }
               resolve(false)
             },
