@@ -219,7 +219,7 @@ export default function PhoneCapture() {
         .eq('session_id', sessionId)
 
       if (syncErr) throw syncErr
-      toast.success(`${STEPS[stepIndex].title.split('. ')[1]} synced to laptop!`)
+      toast.success(`${STEPS[stepIndex].title.split('. ')[1]} synced to catalog!`)
     } catch (err) {
       console.error('[PhoneCapture] Real-time photo sync failed:', err)
       toast.error('Sync failed: ' + err.message)
@@ -358,7 +358,7 @@ export default function PhoneCapture() {
 
       setUploadProgress('Finalizing sync session...')
 
-      // Update capture_session to let the laptop know we are done
+      // Update capture_session to notify the catalog system that we are done
       const { error: sessionUpdateErr } = await supabase
         .from('capture_sessions')
         .update({
@@ -515,7 +515,7 @@ export default function PhoneCapture() {
           {syncing && (
             <div className="absolute inset-0 bg-slate-950/60 backdrop-blur-[2px] flex flex-col items-center justify-center p-6 z-10 animate-fade-in">
               <Loader2 className="w-8 h-8 text-emerald-400 animate-spin mb-2" />
-              <p className="text-xs font-bold text-emerald-400 animate-pulse">Syncing photo to laptop...</p>
+              <p className="text-xs font-bold text-emerald-400 animate-pulse">Syncing photo to catalog...</p>
             </div>
           )}
 
