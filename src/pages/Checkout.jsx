@@ -554,6 +554,16 @@ const Checkout = () => {
         const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || 'Aurangabad'}, Bihar, India`
         const googleMapsUrl = activeAddr?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullTextAddress)}`
 
+        let etaMinutes = deliveryConfig?.estimated_minutes ?? 30;
+        const currentHour = new Date().getHours();
+        if (
+          streetGali.toLowerCase().includes('coaching gali') &&
+          currentHour >= 13 &&
+          currentHour < 16
+        ) {
+          etaMinutes += 4;
+        }
+
         const orderData = {
           addressId: selectedAddress,
           subtotal: orderTotals.subtotal,
@@ -563,7 +573,7 @@ const Checkout = () => {
           total: orderTotals.total,
           paymentMethod,
           paymentStatus: 'pending_payment',
-          estimatedDelivery: new Date(Date.now() + (deliveryConfig?.estimated_minutes ?? 30) * 60000).toISOString(),
+          estimatedDelivery: new Date(Date.now() + etaMinutes * 60000).toISOString(),
           transactionId: null,
           deliveryInstructions: deliveryInstructions || null,
           couponCode: storeCouponCode || null,
