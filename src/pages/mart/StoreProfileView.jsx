@@ -165,16 +165,16 @@ const StoreProfileView = () => {
 
   return (
     <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 dark:bg-slate-950 scrollbar-hide pb-16 lg:pb-6">
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-slate-700">
+      <div className="max-w-6xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-slate-850">
           <div>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Profile Settings</h2>
-            <p className="text-xs sm:text-sm text-gray-505 dark:text-gray-400 mt-1">Configure your public store details, banners, operating status, badges, and guarantees.</p>
+            <h2 className="text-lg sm:text-xl font-bold text-gray-800 dark:text-white uppercase tracking-wider">Store Profile Settings</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Configure your public store details, banners, operating status, badges, and guarantees.</p>
           </div>
           <button
             onClick={() => handleSaveStoreProfile()}
             disabled={isSavingProfile}
-            className="px-6 py-3 bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 text-white dark:text-black text-sm font-black rounded-xl transition-all shadow-lg shadow-blue-500/10 dark:shadow-blue-500/15 hover:shadow-blue-500/20 dark:hover:shadow-blue-500/25 flex items-center gap-2 active:scale-95 select-none cursor-pointer"
+            className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs sm:text-sm font-bold rounded-xl transition-all shadow-md shadow-blue-500/10 flex items-center gap-2 active:scale-95 cursor-pointer select-none"
           >
             {isSavingProfile ? (
               <>
@@ -183,7 +183,7 @@ const StoreProfileView = () => {
               </>
             ) : (
               <>
-                <Check className="w-4 h-4 font-black" />
+                <Check className="w-4 h-4" />
                 Save Settings
               </>
             )}
@@ -193,22 +193,22 @@ const StoreProfileView = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Logo & Banner */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
-              <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Branding Assets</h3>
+            <div className="bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-850 rounded-2xl p-5 shadow-sm space-y-5">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wider">Branding Assets</h3>
 
               {/* Banner Upload */}
               <div className="space-y-2">
-                <label className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Store Banner</label>
+                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Store Banner</label>
                 <div className="flex flex-col gap-3">
-                  <div className="w-full h-28 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center relative group">
+                  <div className="w-full h-28 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 overflow-hidden flex items-center justify-center relative group">
                     {profileBannerFile ? (
                       <img src={URL.createObjectURL(profileBannerFile)} alt="Banner Preview" className="w-full h-full object-cover" />
                     ) : profileForm.banner_url ? (
                       <img src={profileForm.banner_url} alt="Banner" className="w-full h-full object-cover" />
                     ) : (
                       <div className="text-center py-6">
-                        <Store className="w-8 h-8 text-gray-400 mx-auto mb-1" />
-                        <span className="text-xs text-gray-400 block">No Banner Uploaded</span>
+                        <Store className="w-7 h-7 text-gray-350 dark:text-gray-650 mx-auto mb-1" />
+                        <span className="text-[11px] text-gray-400 block font-medium">No Banner Uploaded</span>
                       </div>
                     )}
                     {(profileForm.banner_url || profileBannerFile) && (
@@ -225,13 +225,13 @@ const StoreProfileView = () => {
                       </button>
                     )}
                   </div>
-                  <label className="flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                  <label className="flex flex-col items-center justify-center border border-dashed border-gray-200 dark:border-slate-800 rounded-xl py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 hover:border-blue-500 dark:hover:border-blue-500/50 transition-all group">
                     {uploadingProfileBanner ? (
-                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500 dark:text-blue-500" />
+                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500" />
                     ) : (
                       <>
-                        <Upload className="w-5 h-5 text-gray-400 mb-1" />
-                        <span className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-wider">Upload Banner</span>
+                        <Upload className="w-4 h-4 text-gray-400 mb-1 group-hover:text-blue-500 transition-colors" />
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-gray-450 uppercase tracking-wider group-hover:text-blue-500 transition-colors">Upload Banner</span>
                       </>
                     )}
                     <input
@@ -246,24 +246,24 @@ const StoreProfileView = () => {
 
               {/* Logo Upload */}
               <div className="space-y-2">
-                <label className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Store Logo</label>
+                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Store Logo</label>
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 overflow-hidden shrink-0 flex items-center justify-center relative group">
+                  <div className="w-14 h-14 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5 overflow-hidden shrink-0 flex items-center justify-center relative group">
                     {profileLogoFile ? (
                       <img src={URL.createObjectURL(profileLogoFile)} alt="Logo Preview" className="w-full h-full object-cover" />
                     ) : profileForm.logo_url ? (
                       <img src={profileForm.logo_url} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
-                      <Store className="w-6 h-6 text-gray-400" />
+                      <Store className="w-5 h-5 text-gray-350 dark:text-gray-650" />
                     )}
                   </div>
-                  <label className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
+                  <label className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-200 dark:border-slate-800 rounded-xl py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800/40 hover:border-blue-500 dark:hover:border-blue-500/50 transition-all group">
                     {uploadingProfileLogo ? (
-                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500 dark:text-blue-500" />
+                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500" />
                     ) : (
                       <>
-                        <Upload className="w-5 h-5 text-gray-400 mb-1" />
-                        <span className="text-[10px] font-black text-gray-600 dark:text-gray-400 uppercase tracking-wider">Upload Logo</span>
+                        <Upload className="w-4 h-4 text-gray-400 mb-1 group-hover:text-blue-500 transition-colors" />
+                        <span className="text-[9px] font-bold text-gray-500 dark:text-gray-450 uppercase tracking-wider group-hover:text-blue-500 transition-colors">Upload Logo</span>
                       </>
                     )}
                     <input
@@ -278,82 +278,83 @@ const StoreProfileView = () => {
             </div>
           </div>
 
-          {/* Middle Column: Basic Details & Hours */}
+          {/* Right Column: Basic Details & Hours */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
-              <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Details</h3>
+            <div className="bg-white dark:bg-slate-900 border border-gray-155 dark:border-slate-850 rounded-2xl p-5 shadow-sm space-y-5">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wider">Store Details</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Name */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Store Name</label>
+                  <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Store Name</label>
                   <input
                     type="text"
                     value={profileForm.name}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-800 dark:text-gray-200 shadow-sm transition-all"
                   />
                 </div>
 
                 {/* Phone */}
                 <div className="space-y-1.5">
-                  <label className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Helpline Phone</label>
+                  <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Helpline Phone</label>
                   <input
                     type="text"
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white"
+                    className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-800 dark:text-gray-200 shadow-sm transition-all"
                   />
                 </div>
               </div>
 
               {/* Description */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Description / Tagline</label>
+                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Description / Tagline</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={profileForm.description}
                   onChange={(e) => setProfileForm(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Describe your store and offers..."
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white resize-none"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-800 dark:text-gray-200 shadow-sm transition-all resize-none"
                 />
               </div>
 
               {/* Address */}
               <div className="space-y-1.5">
-                <label className="text-xs font-black text-gray-700 dark:text-gray-300 uppercase tracking-wider block">Address</label>
+                <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider block">Address</label>
                 <input
                   type="text"
                   value={profileForm.address}
                   onChange={(e) => setProfileForm(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white"
+                  className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-800 dark:text-gray-200 shadow-sm transition-all"
                 />
               </div>
 
               {/* Operating Hours */}
-              <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 space-y-4 border border-gray-200 dark:border-white/5">
+              <div className="bg-gray-50/50 dark:bg-slate-900/40 rounded-xl p-4 space-y-4 border border-gray-200/60 dark:border-slate-850">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h4 className="text-sm font-black text-gray-800 dark:text-white">Operating Hours Configuration</h4>
-                    <p className="text-xs text-gray-550 dark:text-gray-400 mt-0.5">Configure opening and closing schedule</p>
+                    <h4 className="text-xs sm:text-sm font-bold text-gray-700 dark:text-white">Operating Hours Configuration</h4>
+                    <p className="text-[11px] text-gray-400 dark:text-gray-450 mt-0.5">Configure opening and closing schedule</p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setProfileForm(prev => ({ ...prev, is_24_7: !prev.is_24_7 }))}
-                    className={`w-12 h-6.5 rounded-full p-1 transition-all flex items-center cursor-pointer ${
-                      profileForm.is_24_7 ? 'bg-blue-600 dark:bg-blue-600' : 'bg-gray-300 dark:bg-white/10'
+                    className={`w-10 h-5.5 rounded-full p-0.5 transition-all flex items-center cursor-pointer ${
+                      profileForm.is_24_7 ? 'bg-blue-600' : 'bg-gray-300 dark:bg-slate-800'
                     }`}
                   >
                     <div className={`w-4.5 h-4.5 rounded-full bg-white transition-all transform ${
-                      profileForm.is_24_7 ? 'translate-x-5.5' : 'translate-x-0'
+                      profileForm.is_24_7 ? 'translate-x-4.5' : 'translate-x-0'
                     }`} />
                   </button>
                 </div>
 
                 {!profileForm.is_24_7 && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                    {/* Opens At */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-gray-550 dark:text-gray-400 uppercase tracking-wider block">Opens At</label>
+                      <label className="text-[10px] font-bold text-gray-450 dark:text-gray-500 uppercase tracking-wider block">Opens At</label>
                       <div className="flex gap-2 items-center">
                         <select
                           value={parseTimeString(profileForm.opens_at).hour}
@@ -365,12 +366,12 @@ const StoreProfileView = () => {
                               opens_at: `${newHour}:${currentMin}:00`
                             }))
                           }}
-                          className="flex-1 min-w-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
+                          className="flex-1 min-w-0 appearance-none pr-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-250 shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[right_8px_center] bg-no-repeat bg-[length:16px_16px]"
                         >
                           {Array.from({ length: 24 }).map((_, i) => {
                             const h = String(i).padStart(2, '0')
                             return (
-                              <option key={h} value={h} className="bg-white dark:bg-black text-gray-900 dark:text-white">
+                              <option key={h} value={h} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
                                 {h} ({i >= 12 ? (i === 12 ? '12 PM' : `${i-12} PM`) : (i === 0 ? '12 AM' : `${i} AM`)})
                               </option>
                             )
@@ -387,16 +388,18 @@ const StoreProfileView = () => {
                               opens_at: `${currentHour}:${newMin}:00`
                             }))
                           }}
-                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
+                          className="w-20 shrink-0 appearance-none pr-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-250 shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[right_8px_center] bg-no-repeat bg-[length:16px_16px]"
                         >
                           {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) => (
-                            <option key={m} value={m} className="bg-white dark:bg-black text-gray-900 dark:text-white">{m}</option>
+                            <option key={m} value={m} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">{m}</option>
                           ))}
                         </select>
                       </div>
                     </div>
+
+                    {/* Closes At */}
                     <div className="space-y-1.5">
-                      <label className="text-[10px] font-black text-gray-550 dark:text-gray-400 uppercase tracking-wider block">Closes At</label>
+                      <label className="text-[10px] font-bold text-gray-455 dark:text-gray-500 uppercase tracking-wider block">Closes At</label>
                       <div className="flex gap-2 items-center">
                         <select
                           value={parseTimeString(profileForm.closes_at).hour}
@@ -408,12 +411,12 @@ const StoreProfileView = () => {
                               closes_at: `${newHour}:${currentMin}:00`
                             }))
                           }}
-                          className="flex-1 min-w-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
+                          className="flex-1 min-w-0 appearance-none pr-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-250 shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[right_8px_center] bg-no-repeat bg-[length:16px_16px]"
                         >
                           {Array.from({ length: 24 }).map((_, i) => {
                             const h = String(i).padStart(2, '0')
                             return (
-                              <option key={h} value={h} className="bg-white dark:bg-black text-gray-900 dark:text-white">
+                              <option key={h} value={h} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">
                                 {h} ({i >= 12 ? (i === 12 ? '12 PM' : `${i-12} PM`) : (i === 0 ? '12 AM' : `${i} AM`)})
                               </option>
                             )
@@ -430,32 +433,10 @@ const StoreProfileView = () => {
                               closes_at: `${currentHour}:${newMin}:00`
                             }))
                           }}
-                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
-                        >
-                          {Array.from({ length: 24 }).map((_, i) => {
-                            const h = String(i).padStart(2, '0')
-                            return (
-                              <option key={h} value={h} className="bg-white dark:bg-black text-gray-900 dark:text-white">
-                                {h} ({i >= 12 ? (i === 12 ? '12 PM' : `${i-12} PM`) : (i === 0 ? '12 AM' : `${i} AM`)})
-                              </option>
-                            )
-                          })}
-                        </select>
-                        <span className="text-gray-400 font-bold shrink-0">:</span>
-                        <select
-                          value={parseTimeString(profileForm.closes_at).minute}
-                          onChange={(e) => {
-                            const newMin = e.target.value
-                            const currentHour = parseTimeString(profileForm.closes_at).hour
-                            setProfileForm(prev => ({
-                              ...prev,
-                              closes_at: `${currentHour}:${newMin}:00`
-                            }))
-                          }}
-                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
+                          className="w-20 shrink-0 appearance-none pr-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl px-3 py-2 text-xs font-semibold text-gray-800 dark:text-gray-250 shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-none transition-all cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[right_8px_center] bg-no-repeat bg-[length:16px_16px]"
                         >
                           {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) => (
-                            <option key={m} value={m} className="bg-white dark:bg-black text-gray-900 dark:text-white">{m}</option>
+                            <option key={m} value={m} className="bg-white dark:bg-slate-900 text-gray-900 dark:text-white">{m}</option>
                           ))}
                         </select>
                       </div>
@@ -469,10 +450,10 @@ const StoreProfileView = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Badges Custom Config */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-gray-155 dark:border-slate-850 rounded-2xl p-5 shadow-sm space-y-4">
             <div>
-              <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Badges / Highlights</h3>
-              <p className="text-xs text-gray-555 dark:text-gray-400 mt-0.5">These small highlight badges are shown under the store title.</p>
+              <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wider">Store Badges / Highlights</h3>
+              <p className="text-[11px] text-gray-500 dark:text-gray-450 mt-0.5">These small highlight badges are shown under the store title.</p>
             </div>
 
             {/* Added Badges list */}
@@ -480,7 +461,7 @@ const StoreProfileView = () => {
               {profileForm.badges?.map((badge, idx) => (
                 <span
                   key={idx}
-                  className="inline-flex items-center gap-1.5 px-3 py-1 bg-gray-50 dark:bg-black border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold text-gray-800 dark:text-zinc-200"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg text-xs font-semibold text-gray-700 dark:text-zinc-300 animate-fade-in"
                 >
                   <span>{badge}</span>
                   <button
@@ -496,7 +477,7 @@ const StoreProfileView = () => {
                 </span>
               ))}
               {(!profileForm.badges || profileForm.badges.length === 0) && (
-                <p className="text-xs text-gray-400 dark:text-zinc-500 italic">No badges configured. Standard system defaults will be shown.</p>
+                <p className="text-xs text-gray-400 dark:text-zinc-500 italic font-medium">No badges configured. Standard system defaults will be shown.</p>
               )}
             </div>
 
@@ -521,7 +502,7 @@ const StoreProfileView = () => {
                     }
                   }
                 }}
-                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
+                className="flex-1 px-3 py-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl text-xs sm:text-sm font-semibold focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 text-gray-800 dark:text-gray-200 shadow-sm transition-all"
               />
               <button
                 type="button"
@@ -536,15 +517,15 @@ const StoreProfileView = () => {
                     setNewProfileBadgeText('')
                   }
                 }}
-                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-white/10 dark:hover:bg-white/15 rounded-xl text-xs font-black uppercase text-gray-800 dark:text-white transition-all active:scale-95 shrink-0 cursor-pointer"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700/80 rounded-xl text-xs font-bold uppercase text-gray-700 dark:text-zinc-200 transition-all active:scale-95 shrink-0 cursor-pointer"
               >
                 Add
               </button>
             </div>
 
             {/* Quick Suggestions */}
-            <div className="space-y-1">
-              <span className="text-[10px] font-black text-gray-400 dark:text-zinc-500 uppercase tracking-widest block">Quick Suggestions</span>
+            <div className="space-y-2">
+              <span className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 uppercase tracking-widest block">Quick Suggestions</span>
               <div className="flex flex-wrap gap-1.5">
                 {[
                   '30 Min Delivery',
@@ -566,7 +547,7 @@ const StoreProfileView = () => {
                         ...prev,
                         badges: [...(prev.badges || []), sug]
                       }))}
-                      className="text-[10px] font-bold px-2 py-1 bg-gray-50 hover:bg-gray-150 dark:bg-black dark:hover:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-lg text-gray-600 dark:text-zinc-400 hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-colors cursor-pointer"
+                      className="text-[10px] font-bold px-2 py-1 bg-gray-50 hover:bg-gray-100 dark:bg-slate-850 dark:hover:bg-slate-800 border border-gray-200 dark:border-slate-800 rounded-lg text-gray-600 dark:text-zinc-400 hover:border-blue-500/35 dark:hover:border-blue-500/35 transition-all cursor-pointer"
                     >
                       + {sug}
                     </button>
@@ -577,11 +558,11 @@ const StoreProfileView = () => {
           </div>
 
           {/* Guarantees Custom Config */}
-          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-gray-155 dark:border-slate-850 rounded-2xl p-5 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Guarantees</h3>
-                <p className="text-xs text-gray-550 dark:text-gray-400 mt-0.5">Configure the trust indicators shown on your store profile.</p>
+                <h3 className="text-xs sm:text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wider">Store Guarantees</h3>
+                <p className="text-[11px] text-gray-500 dark:text-gray-450 mt-0.5">Configure the trust indicators shown on your store profile.</p>
               </div>
               <button
                 type="button"
@@ -592,7 +573,7 @@ const StoreProfileView = () => {
                     { title: 'New Guarantee', description: 'Describe your guarantee here.', icon: 'shield' }
                   ]
                 }))}
-                className="px-3 py-1 bg-blue-600 dark:bg-blue-600 text-white dark:text-black hover:bg-blue-700 dark:hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-[10px] font-bold uppercase tracking-wider transition-all cursor-pointer"
               >
                 + Add Card
               </button>
@@ -600,7 +581,7 @@ const StoreProfileView = () => {
 
             <div className="space-y-3 max-h-80 overflow-y-auto pr-1 scrollbar-hide">
               {profileForm.guarantees?.map((guarantee, idx) => (
-                <div key={idx} className="bg-gray-50 dark:bg-black p-3.5 rounded-xl border border-gray-200 dark:border-white/5 space-y-2.5 relative">
+                <div key={idx} className="bg-gray-50/50 dark:bg-slate-950 p-4 rounded-xl border border-gray-200 dark:border-slate-850 space-y-3.5 relative">
                   <button
                     type="button"
                     onClick={() => setProfileForm(prev => ({
@@ -615,7 +596,7 @@ const StoreProfileView = () => {
 
                   {/* Title */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-550 uppercase tracking-widest block">Title</label>
+                    <label className="text-[9px] font-bold text-gray-450 uppercase tracking-widest block">Title</label>
                     <input
                       type="text"
                       value={guarantee.title}
@@ -627,13 +608,13 @@ const StoreProfileView = () => {
                           return { ...prev, guarantees: newGuar }
                         })
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all"
                     />
                   </div>
 
                   {/* Description */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-550 uppercase tracking-widest block">Description</label>
+                    <label className="text-[9px] font-bold text-gray-455 uppercase tracking-widest block">Description</label>
                     <textarea
                       rows={2}
                       value={guarantee.description}
@@ -645,13 +626,13 @@ const StoreProfileView = () => {
                           return { ...prev, guarantees: newGuar }
                         })
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 resize-none"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 transition-all resize-none"
                     />
                   </div>
 
                   {/* Icon Selection */}
                   <div className="space-y-1">
-                    <label className="text-[9px] font-black text-gray-550 uppercase tracking-widest block">Icon style</label>
+                    <label className="text-[9px] font-bold text-gray-455 uppercase tracking-widest block">Icon style</label>
                     <select
                       value={guarantee.icon}
                       onChange={(e) => {
@@ -662,7 +643,7 @@ const StoreProfileView = () => {
                           return { ...prev, guarantees: newGuar }
                         })
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-950 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-950 dark:text-zinc-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
+                      className="w-full appearance-none pr-8 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-gray-800 dark:text-gray-250 focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 cursor-pointer bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%3E%3Cpath%20d%3D%22M7%209l3%203%203-3%22%20stroke%3D%22%239ca3af%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[right_8px_center] bg-no-repeat bg-[length:16px_16px]"
                     >
                       <option value="shield">Shield (Security)</option>
                       <option value="shield-check">Shield Check (Quality Check)</option>
@@ -677,7 +658,7 @@ const StoreProfileView = () => {
                 </div>
               ))}
               {(!profileForm.guarantees || profileForm.guarantees.length === 0) && (
-                <p className="text-xs text-gray-400 dark:text-zinc-500 italic text-center py-6 bg-gray-50 dark:bg-black rounded-xl border border-dashed border-gray-200 dark:border-white/10">No guarantees configured.</p>
+                <p className="text-xs text-gray-400 dark:text-zinc-550 italic text-center py-6 bg-gray-50 dark:bg-slate-950 rounded-xl border border-dashed border-gray-200 dark:border-slate-850">No guarantees configured.</p>
               )}
             </div>
           </div>
