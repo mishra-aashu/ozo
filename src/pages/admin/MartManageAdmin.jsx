@@ -82,7 +82,9 @@ const MartManageAdmin = () => {
     max_concurrent_orders: 50,
     owner_id: '',
     logo_url: '',
-    banner_url: ''
+    banner_url: '',
+    latitude: '',
+    longitude: ''
   })
 
   // Global Config State for Marts (to match Rider config structure)
@@ -291,7 +293,9 @@ const MartManageAdmin = () => {
       max_concurrent_orders: 50,
       owner_id: '',
       logo_url: '',
-      banner_url: ''
+      banner_url: '',
+      latitude: '',
+      longitude: ''
     })
     setSelectedMart(null)
   }
@@ -318,7 +322,9 @@ const MartManageAdmin = () => {
       max_concurrent_orders: mart.max_concurrent_orders || 50,
       owner_id: mart.owner_id || '',
       logo_url: mart.logo_url || '',
-      banner_url: mart.banner_url || ''
+      banner_url: mart.banner_url || '',
+      latitude: mart.latitude !== null && mart.latitude !== undefined ? mart.latitude.toString() : '',
+      longitude: mart.longitude !== null && mart.longitude !== undefined ? mart.longitude.toString() : ''
     })
     setIsDrawerOpen(true)
   }
@@ -418,6 +424,8 @@ const MartManageAdmin = () => {
         owner_id: formData.owner_id || null,
         logo_url: formData.logo_url.trim() || null,
         banner_url: formData.banner_url.trim() || null,
+        latitude: formData.latitude !== '' && formData.latitude !== null ? parseFloat(formData.latitude) : null,
+        longitude: formData.longitude !== '' && formData.longitude !== null ? parseFloat(formData.longitude) : null,
         // Add defaults if creating new mart
         ...(selectedMart ? {} : {
           current_order_load: 0
@@ -811,6 +819,14 @@ const MartManageAdmin = () => {
                             {mart.address || 'No address registered'}
                           </span>
                         </div>
+                        <div className="flex justify-between items-center gap-2 pt-2 border-t border-gray-150 dark:border-white/[0.04]">
+                          <span className="text-gray-400 dark:text-gray-500 font-bold text-[9px] uppercase tracking-wider">Coordinates:</span>
+                          <span className="font-mono text-[10px] text-gray-700 dark:text-gray-300 font-semibold">
+                            {mart.latitude !== null && mart.latitude !== undefined && mart.longitude !== null && mart.longitude !== undefined 
+                              ? `${parseFloat(mart.latitude).toFixed(6)}, ${parseFloat(mart.longitude).toFixed(6)}` 
+                              : <span className="text-amber-500 font-bold">Not Set</span>}
+                          </span>
+                        </div>
                         {mart.slug && (
                           <div className="pt-2 border-t border-gray-150 dark:border-white/[0.04] flex justify-between items-center font-mono text-[9px] text-gray-400 dark:text-gray-500">
                             <span className="uppercase font-bold tracking-wider text-[8px]">Slug:</span>
@@ -1164,6 +1180,32 @@ const MartManageAdmin = () => {
                       placeholder="Dark store postal address details..."
                       value={formData.address}
                       onChange={e => setFormData({ ...formData, address: e.target.value })}
+                      className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
+                    />
+                  </div>
+                </div>
+
+                {/* Mart Location Coordinates */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Latitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      placeholder="e.g. 24.752871"
+                      value={formData.latitude}
+                      onChange={e => setFormData({ ...formData, latitude: e.target.value })}
+                      className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[10px] font-bold text-gray-400 uppercase mb-2">Longitude</label>
+                    <input
+                      type="number"
+                      step="0.000001"
+                      placeholder="e.g. 84.3738"
+                      value={formData.longitude}
+                      onChange={e => setFormData({ ...formData, longitude: e.target.value })}
                       className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-xs font-semibold text-gray-900 dark:text-white"
                     />
                   </div>
