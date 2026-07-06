@@ -880,7 +880,8 @@ export const useMartStore = create((set, get) => {
           is_available: item.is_available !== false,
           stock_quantity: item.stock_quantity,
           blinkit_product_id: item.products.blinkit_product_id,
-          barcode: item.products.barcode
+          barcode: item.products.barcode,
+          category_id: item.products.category_id
         }))
 
         set({ 
