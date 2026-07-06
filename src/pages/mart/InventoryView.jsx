@@ -996,6 +996,7 @@ const InventoryView = () => {
                   <tr className="border-b border-gray-200 dark:border-[#181827] bg-gray-50 dark:bg-[#0e0e1a]">
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Product Detail</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Brand</th>
+                    <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Category</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Sales Price (₹)</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">MRP (₹)</th>
                     <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-555 dark:text-gray-400">Stock Qty</th>
@@ -1046,6 +1047,11 @@ const InventoryView = () => {
                       {/* Brand */}
                       <td className="p-4 text-sm font-semibold text-gray-800 dark:text-gray-300">
                         {product.brand || 'OZO Choice'}
+                      </td>
+
+                      {/* Category */}
+                      <td className="p-4 text-sm font-semibold text-gray-800 dark:text-gray-300">
+                        {categories.find(cat => cat.id === product.category_id)?.name || 'N/A'}
                       </td>
 
                       {/* Sales Price with inline editor */}
