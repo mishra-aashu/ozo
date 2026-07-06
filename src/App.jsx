@@ -121,6 +121,7 @@ const AdminMarts = lazyWithRetry(() => import('./pages/admin/MartManageAdmin'))
 const AdminMartPayouts = lazyWithRetry(() => import('./pages/admin/MartPayoutsAdmin'))
 const AdminBackup = lazyWithRetry(() => import('./pages/admin/Backup'))
 const AdminBlog = lazyWithRetry(() => import('./pages/admin/Blog'))
+const AdminPhoneCaptureSandbox = lazyWithRetry(() => import('./pages/admin/PhoneCaptureSandbox'))
 
 // Lazy loaded Mart & Captain Dashboards
 const MartDashboard = lazyWithRetry(() => import('./pages/mart/Dashboard'))
@@ -430,7 +431,6 @@ function App() {
             <Route path="developer" element={<Developer />} />
             <Route path="founder" element={<Developer />} />
             <Route path="mart/:slug" element={<MartProfile />} />
-            <Route path="capture/:sessionId" element={<PhoneCapture />} />
 
             {/* Auth Route */}
             <Route
@@ -580,6 +580,7 @@ function App() {
             <Route path="marts/payouts" element={<AdminMartPayouts />} />
             <Route path="backup" element={<AdminBackup />} />
             <Route path="blog" element={<AdminBlog />} />
+            <Route path="phone-capture-sandbox" element={<AdminPhoneCaptureSandbox />} />
           </Route>
 
           {/* Mart & Captain Standalone Portals */}
@@ -607,6 +608,8 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route path="/capture/:sessionId" element={<PhoneCapture />} />
 
           {/* 404 Not Found */}
           <Route path="*" element={<NotFound />} />

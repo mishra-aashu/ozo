@@ -10,7 +10,8 @@ import {
   Sparkles,
   Smartphone,
   Check,
-  ChevronRight
+  ChevronRight,
+  ArrowLeft
 } from 'lucide-react'
 import { supabase, uploadCatalogImage } from '../lib/supabase'
 import toast from 'react-hot-toast'
@@ -395,6 +396,19 @@ export default function PhoneCapture() {
 
       {/* Header */}
       <header className="p-4 border-b border-slate-900 bg-slate-950/80 backdrop-blur-md sticky top-0 z-10 flex items-center gap-3">
+        <button
+          onClick={() => {
+            if (activeStep > 0) {
+              setActiveStep(activeStep - 1)
+            } else {
+              window.history.back()
+            }
+          }}
+          className="p-2 -ml-2 rounded-xl hover:bg-slate-900 active:scale-95 transition-all text-gray-400 hover:text-white"
+          aria-label="Go back"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
         <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-ozo-red to-orange-500 flex items-center justify-center shadow-lg shadow-ozo-red/20">
           <Smartphone className="w-5 h-5 text-white" />
         </div>
