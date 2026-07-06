@@ -5,6 +5,7 @@ import toast from 'react-hot-toast'
 import { reverseGeocode, resolveAddressToCoordinates } from '../lib/geocoding'
 import { GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
 
+
 const getDistanceKm = (lat1, lon1, lat2, lon2) => {
   const R = 6371; // Earth's radius in km
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -898,38 +899,10 @@ export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
         }
         
         // 2. Check Landmarks
-        const landmarkRadii = {
-          'Ramesh Chowk': 80,
-          'Maharajganj Chowk': 60,
-          'Gandhi Chowk': 50,
-          'Swarn Jayanti Chowk': 70,
-          'Karma Road More': 100,
-          'Karma Road Entry More': 40,
-          'Karma Road Mid-Section': 50,
-          'Karma Road Bypass Crossing': 100,
-          'Maa Sharda Complex': 30,
-          'Karma Road Power Grid': 120,
-          'St. Joseph\'s / Local Schools Area': 80,
-          'Deo More': 150,
-          'Jasaiya More': 50,
-          'Amba More': 60,
-          'Overbridge Chowk': 120,
-          'Kutchehry Chowk': 80,
-          'Bypass Chauraha': 200,
-          'Sinha College More': 60,
-          'Dhobaul More': 40,
-          'Kanap More': 40,
-          'Old GT Road More': 90,
-          'Mavesi Hospital More': 50,
-          'Bauddh Vihar Chowk': 40,
-          'Jail More': 50,
-          'Thana Chowk': 50,
-          'Block More': 50
-        };
         for (const lm of landmarks) {
           if (lm.latitude && lm.longitude) {
             const distMeters = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude)) * 1000;
-            const radius = landmarkRadii[lm.name] || 80;
+            const radius = parseFloat(lm.radius) || 100;
             if (distMeters <= radius) {
               return true;
             }
