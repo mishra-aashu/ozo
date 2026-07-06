@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2 } from 'lucide-react'
-import { findCityByPincode, checkDeliveryZoneStatus, checkPincodeServiceable } from '../stores/locationStore'
+import { findCityByPincode, findMatchingActiveCity, checkDeliveryZoneStatus, checkPincodeServiceable } from '../stores/locationStore'
 import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
 
@@ -27,10 +27,26 @@ export default function AddressForm({
       onChange({
         pincode: pin,
         city: matchedCity.name,
-        state: matchedCity.state || 'Bihar'
+        state: matchedCity.state || 'Bihar',
+        latitude: matchedCity.latitude ? parseFloat(matchedCity.latitude) : null,
+        longitude: matchedCity.longitude ? parseFloat(matchedCity.longitude) : null
       })
     } else {
       onChange({ pincode: pin })
+    }
+  }
+
+  const handleCityChange = (cityName) => {
+    const matchedCity = findMatchingActiveCity(cityName)
+    if (matchedCity) {
+      onChange({
+        city: cityName,
+        state: matchedCity.state || 'Bihar',
+        latitude: matchedCity.latitude ? parseFloat(matchedCity.latitude) : null,
+        longitude: matchedCity.longitude ? parseFloat(matchedCity.longitude) : null
+      })
+    } else {
+      onChange({ city: cityName })
     }
   }
 
@@ -338,7 +354,7 @@ export default function AddressForm({
           <input
             type="text"
             value={formData.city || ''}
-            onChange={(e) => updateField('city', e.target.value)}
+            onChange={(e) => handleCityChange(e.target.value)}
             className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50/50 dark:bg-white/5 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-450/30 dark:placeholder:text-white/20 transition-all"
             placeholder="City"
             required
