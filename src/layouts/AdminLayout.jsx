@@ -31,7 +31,8 @@ import {
   Database,
   Newspaper,
   Coins,
-  Store
+  Store,
+  Smartphone
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -222,6 +223,13 @@ const AdminLayout = () => {
       path: '/admin/marts/payouts',
       color: 'text-amber-500 dark:text-[#FFB800]',
       bgColor: 'bg-amber-100 dark:bg-amber-950/30',
+    },
+    {
+      icon: Smartphone,
+      label: 'Capture Sandbox',
+      path: '/admin/phone-capture-sandbox',
+      color: 'text-[#e11d48] dark:text-rose-400',
+      bgColor: 'bg-rose-100/50 dark:bg-rose-950/20',
     },
   ]
 
