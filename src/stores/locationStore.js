@@ -228,22 +228,42 @@ export const useLocationStore = create(
           const { data: { session } } = await supabase.auth.getSession()
           const userAddresses = get().userAddresses || []
 
+          let lat = addressData.latitude
+          let lng = addressData.longitude
+          let tracedThrough = addressData.traced_through || 'manual'
+
+          if (!lat || !lng) {
+            const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
+            if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
+              lat = parseFloat(matchedCity.latitude)
+              lng = parseFloat(matchedCity.longitude)
+              tracedThrough = 'city_fallback'
+            }
+          }
+
+          const resolvedAddressData = {
+            ...addressData,
+            latitude: lat,
+            longitude: lng,
+            traced_through: tracedThrough
+          }
+
           // Check if an address with almost identical coordinates or matching address lines already exists
           const existingAddress = userAddresses.find(addr => {
-            if (addressData.latitude && addressData.longitude && addr.latitude && addr.longitude) {
-              const latDiff = Math.abs(parseFloat(addr.latitude) - parseFloat(addressData.latitude))
-              const lngDiff = Math.abs(parseFloat(addr.longitude) - parseFloat(addressData.longitude))
+            if (resolvedAddressData.latitude && resolvedAddressData.longitude && addr.latitude && addr.longitude) {
+              const latDiff = Math.abs(parseFloat(addr.latitude) - parseFloat(resolvedAddressData.latitude))
+              const lngDiff = Math.abs(parseFloat(addr.longitude) - parseFloat(resolvedAddressData.longitude))
               return latDiff < 0.00025 && lngDiff < 0.00025
             }
-            const line1Match = (addr.address_line1 || '').toLowerCase().trim() === (addressData.address_line1 || '').toLowerCase().trim()
-            const cityMatch = (addr.city || '').toLowerCase().trim() === (addressData.city || '').toLowerCase().trim()
-            const pinMatch = (addr.pincode || '').toString().trim() === (addressData.pincode || '').toString().trim()
+            const line1Match = (addr.address_line1 || '').toLowerCase().trim() === (resolvedAddressData.address_line1 || '').toLowerCase().trim()
+            const cityMatch = (addr.city || '').toLowerCase().trim() === (resolvedAddressData.city || '').toLowerCase().trim()
+            const pinMatch = (addr.pincode || '').toString().trim() === (resolvedAddressData.pincode || '').toString().trim()
             return line1Match && cityMatch && pinMatch
           })
 
           if (existingAddress) {
             // Update default status if requested and not already default
-            if (addressData.is_default && !existingAddress.is_default) {
+            if (resolvedAddressData.is_default && !existingAddress.is_default) {
               existingAddress.is_default = true
               if (session) {
                 await supabase
@@ -270,12 +290,12 @@ export const useLocationStore = create(
             // Guest mode: save to local state / storage
             const newAddress = {
               id: `temp-addr-${Date.now()}`,
-              ...addressData,
+              ...resolvedAddressData,
               created_at: new Date().toISOString()
             }
             
             let currentAddresses = get().userAddresses || []
-            if (addressData.is_default) {
+            if (resolvedAddressData.is_default) {
               currentAddresses = currentAddresses.map(addr => ({ ...addr, is_default: false }))
             }
             
@@ -291,7 +311,7 @@ export const useLocationStore = create(
           set({ isLoading: true })
 
           // If the new address is default, reset other default addresses first
-          if (addressData.is_default) {
+          if (resolvedAddressData.is_default) {
             await supabase
               .from('addresses')
               .update({ is_default: false })
@@ -300,7 +320,7 @@ export const useLocationStore = create(
 
           const { data, error } = await supabase
             .from('addresses')
-            .insert([{ ...addressData, user_id: session.user.id }])
+            .insert([{ ...resolvedAddressData, user_id: session.user.id }])
             .select()
             .single()
 
@@ -323,14 +343,35 @@ export const useLocationStore = create(
       updateUserAddress: async (addressId, addressData) => {
         try {
           const { data: { session } } = await supabase.auth.getSession()
+          
+          let lat = addressData.latitude
+          let lng = addressData.longitude
+          let tracedThrough = addressData.traced_through || 'manual'
+
+          if (!lat || !lng) {
+            const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
+            if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
+              lat = parseFloat(matchedCity.latitude)
+              lng = parseFloat(matchedCity.longitude)
+              tracedThrough = 'city_fallback'
+            }
+          }
+
+          const resolvedAddressData = {
+            ...addressData,
+            latitude: lat,
+            longitude: lng,
+            traced_through: tracedThrough
+          }
+
           if (!session) {
             // Guest mode: update locally
             let currentAddresses = get().userAddresses || []
-            if (addressData.is_default) {
+            if (resolvedAddressData.is_default) {
               currentAddresses = currentAddresses.map(addr => ({ ...addr, is_default: false }))
             }
             const updatedAddresses = currentAddresses.map(addr => 
-              addr.id === addressId ? { ...addr, ...addressData } : addr
+              addr.id === addressId ? { ...addr, ...resolvedAddressData } : addr
             )
             set({ userAddresses: updatedAddresses })
             toast.success('Address updated locally')
@@ -340,7 +381,7 @@ export const useLocationStore = create(
           set({ isLoading: true })
 
           // If this address is set to default, reset other default addresses first
-          if (addressData.is_default) {
+          if (resolvedAddressData.is_default) {
             await supabase
               .from('addresses')
               .update({ is_default: false })
@@ -349,7 +390,7 @@ export const useLocationStore = create(
 
           const { data, error } = await supabase
             .from('addresses')
-            .update(addressData)
+            .update(resolvedAddressData)
             .eq('id', addressId)
             .eq('user_id', session.user.id)
             .select()
