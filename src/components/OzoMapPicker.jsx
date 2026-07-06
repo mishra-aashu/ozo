@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { MapContainer, TileLayer, Marker, CircleMarker, Tooltip, Polygon, Circle, useMap, useMapEvents, GeoJSON } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Search, Navigation, MapPin, Loader2, Layers } from 'lucide-react'
+import { Search, Navigation, MapPin, Loader2, Layers, Route, Home } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { checkDeliveryZoneStatus, useLocationStore } from '../stores/locationStore'
 import { reverseGeocode, findNearestStreet } from '../lib/geocoding'
@@ -51,24 +51,7 @@ const serviceableStreetMarker = L.divIcon({
 })
 
 const isLatLngInDeliveryZone = (lat, lng, config) => {
-  if (!lat || !lng) return false
-  const l = parseFloat(lat)
-  const g = parseFloat(lng)
-  if (isNaN(l) || isNaN(g)) return false
-  
-  const centerLat = parseFloat(config?.warehouse_lat) || 24.745736
-  const centerLng = parseFloat(config?.warehouse_lng) || 84.390014
-  const maxRadius = parseFloat(config?.max_radius_km) || 2.5
-  
-  const R = 6371
-  const dLat = (l - centerLat) * Math.PI / 180
-  const dLon = (g - centerLng) * Math.PI / 180
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(centerLat * Math.PI / 180) * Math.cos(l * Math.PI / 180) * 
-    Math.sin(dLon/2) * Math.sin(dLon/2)
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-  return R * c <= maxRadius
+  return checkDeliveryZoneStatus(lat, lng, { geofenceConfig: config })
 }
 
 // Simple Levenshtein distance algorithm for fuzzy searching
@@ -288,6 +271,36 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
     fetchSettings()
   }, [fetchSettings])
 
+  const localities = useLocationStore((state) => state.localities)
+  const landmarks = useLocationStore((state) => state.landmarks)
+  const galis = useLocationStore((state) => state.galis)
+
+  const [useSteppedSearch, setUseSteppedSearch] = useState(true)
+  const [step, setStep] = useState(1)
+  const [selectedZone, setSelectedZone] = useState(null)
+  const [selectedLocality, setSelectedLocality] = useState(null)
+  const [selectedLandmark, setSelectedLandmark] = useState(null)
+  const [selectedGali, setSelectedGali] = useState(null)
+  const [customGaliText, setCustomGaliText] = useState('')
+  const [localitySearch, setLocalitySearch] = useState('')
+  const [landmarkSearch, setLandmarkSearch] = useState('')
+  const [galiSearch, setGaliSearch] = useState('')
+  const [zones, setZones] = useState([])
+
+  useEffect(() => {
+    const loadZones = async () => {
+      try {
+        const { data, error } = await supabase.from('delivery_zones').select('*')
+        if (!error && data) {
+          setZones(data)
+        }
+      } catch (e) {
+        console.error('Error fetching zones:', e)
+      }
+    }
+    loadZones()
+  }, [])
+
   // position is null until GPS resolves — prevents rendering map at wrong default
   const [position, setPosition] = useState(() => {
     if (initialPosition && isLatLngInDeliveryZone(initialPosition[0], initialPosition[1], geofenceConfig)) {
@@ -307,6 +320,57 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
   const [isSatellite, setIsSatellite] = useState(false)
   const hasAutoDetected = useRef(false)
   const isDeliverable = position ? checkDeliveryZoneStatus(position[0], position[1], useCartStore.getState()) : false
+
+  const handleConfirmSteppedAddress = () => {
+    if (!selectedLocality) return
+
+    let lat = position ? position[0] : parseFloat(selectedLocality.latitude)
+    let lng = position ? position[1] : parseFloat(selectedLocality.longitude)
+
+    if (selectedGali && customGaliText.includes(selectedGali.name)) {
+      lat = parseFloat(selectedGali.latitude)
+      lng = parseFloat(selectedGali.longitude)
+    } else if (selectedLandmark && !customGaliText) {
+      lat = parseFloat(selectedLandmark.latitude)
+      lng = parseFloat(selectedLandmark.longitude)
+    }
+
+    const parts = []
+    if (customGaliText) {
+      parts.push(customGaliText.trim())
+    }
+    if (selectedLandmark) {
+      parts.push(selectedLandmark.name_hi ? `${selectedLandmark.name} (${selectedLandmark.name_hi})` : selectedLandmark.name)
+    }
+    parts.push(selectedLocality.name_hi ? `${selectedLocality.name} (${selectedLocality.name_hi})` : selectedLocality.name)
+    parts.push('Aurangabad')
+    parts.push('Bihar')
+    parts.push('824101')
+
+    const displayName = parts.join(', ')
+
+    const addressDetails = {
+      road: customGaliText || (selectedLandmark ? selectedLandmark.name : ''),
+      suburb: selectedLocality.name,
+      city: 'Aurangabad',
+      state: 'Bihar',
+      postcode: '824101'
+    }
+
+    setPosition([lat, lng])
+
+    if (onLocationSelect) {
+      onLocationSelect({
+        lat,
+        lng,
+        displayName,
+        addressDetails,
+        nearestStreet: selectedGali || selectedLocality
+      })
+    }
+    
+    toast.success('Address set successfully!')
+  }
 
 
   // Fetch verified serviceable streets on mount
@@ -726,39 +790,314 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
         }
       `}</style>
 
-      {/* Floating Search Bar */}
+      {/* Floating Search Bar & Stepped Autocomplete Container */}
       <div className="absolute top-4 left-4 right-4 z-[1000] max-w-md">
-        <div className="relative flex gap-2">
-          <div className="relative flex-1">
-            <input
-              type="text"
-              placeholder="Search address or area..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleSearch(e)
-                }
-              }}
-              className="w-full pl-11 pr-4 py-3 bg-[#ffffff]/95 dark:bg-[#121212]/95 border border-gray-200 dark:border-zinc-800 rounded-2xl text-sm font-bold text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ozo-red/50 shadow-lg backdrop-blur-md transition-all"
-            />
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            {isSearching && (
-              <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ozo-red animate-spin" />
-            )}
-          </div>
+        {/* Toggle between stepped and manual search */}
+        <div className="flex bg-[#ffffff]/90 dark:bg-[#121212]/90 backdrop-blur-md border border-gray-200 dark:border-zinc-800 p-1.5 rounded-2xl mb-2 gap-1 shadow-lg">
           <button
             type="button"
-            onClick={handleSearch}
-            className="px-4 py-3 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] hover:shadow-[0_4px_15px_rgba(226,55,68,0.3)] text-white font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center"
+            onClick={() => setUseSteppedSearch(true)}
+            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
+              useSteppedSearch 
+                ? 'bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] text-white shadow-md' 
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800'
+            }`}
           >
-            Find
+            <MapPin size={10} /> Guided Steps
+          </button>
+          <button
+            type="button"
+            onClick={() => setUseSteppedSearch(false)}
+            className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
+              !useSteppedSearch 
+                ? 'bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] text-white shadow-md' 
+                : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800'
+            }`}
+          >
+            <Search size={10} /> Search Text
           </button>
         </div>
 
+        {!useSteppedSearch ? (
+          <div className="relative flex gap-2">
+            <div className="relative flex-1">
+              <input
+                type="text"
+                placeholder="Search address or area..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    handleSearch(e)
+                  }
+                }}
+                className="w-full pl-11 pr-4 py-3 bg-[#ffffff]/95 dark:bg-[#121212]/95 border border-gray-200 dark:border-zinc-800 rounded-2xl text-sm font-bold text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-ozo-red/50 shadow-lg backdrop-blur-md transition-all"
+              />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              {isSearching && (
+                <Loader2 className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-ozo-red animate-spin" />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleSearch}
+              className="px-4 py-3 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] hover:shadow-[0_4px_15px_rgba(226,55,68,0.3)] text-white font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center"
+            >
+              Find
+            </button>
+          </div>
+        ) : (
+          <div className="bg-[#ffffff]/95 dark:bg-[#121212]/95 border border-gray-200 dark:border-zinc-800 rounded-3xl shadow-2xl backdrop-blur-md p-4 flex flex-col gap-3 transition-all max-h-[380px] overflow-y-auto">
+            {/* Header: Back & Step Indicator */}
+            <div className="flex items-center justify-between border-b border-gray-150 dark:border-zinc-800 pb-2">
+              <div className="flex items-center gap-2">
+                {step > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => setStep(prev => prev - 1)}
+                    className="p-1 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg text-gray-500 dark:text-gray-400 transition-colors font-bold text-xs"
+                  >
+                    ← Back
+                  </button>
+                )}
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#E23744]">
+                  Step {step} of 4
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep(1)
+                  setSelectedZone(null)
+                  setSelectedLocality(null)
+                  setSelectedLandmark(null)
+                  setSelectedGali(null)
+                  setCustomGaliText('')
+                }}
+                className="text-[9px] font-black uppercase tracking-widest text-gray-450 hover:text-gray-650 dark:hover:text-gray-200"
+              >
+                Reset
+              </button>
+            </div>
+
+            {/* Step Content */}
+            {step === 1 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  Select Delivery Zone
+                </p>
+                <div className="grid grid-cols-2 gap-2">
+                  {zones.map((zone) => (
+                    <button
+                      key={zone.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedZone(zone)
+                        setStep(2)
+                      }}
+                      className="p-3 bg-gray-50 dark:bg-zinc-850 hover:bg-[#E23744]/10 dark:hover:bg-[#E23744]/10 border border-gray-150 dark:border-zinc-800 hover:border-[#E23744]/30 rounded-2xl flex flex-col text-left transition-all active:scale-[0.98]"
+                    >
+                      <span className="text-xs font-black text-gray-900 dark:text-white leading-tight">
+                        {zone.name.split(':')[1]?.split('(')[0]?.trim() || zone.name}
+                      </span>
+                      {zone.name_hi && (
+                        <span className="text-[10px] font-semibold text-gray-500 dark:text-gray-400 mt-1">
+                          {zone.name_hi.split(':')[1]?.split('(')[0]?.trim() || zone.name_hi}
+                        </span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  Select Locality
+                </p>
+                <input
+                  type="text"
+                  placeholder="Filter localities..."
+                  value={localitySearch}
+                  onChange={(e) => setLocalitySearch(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-ozo-red/50 text-gray-900 dark:text-white font-bold"
+                />
+                <div className="overflow-y-auto divide-y divide-gray-150 dark:divide-zinc-800/60 max-h-48 pr-1">
+                  {localities
+                    .filter(loc => loc.zone_id === selectedZone?.id)
+                    .filter(loc => 
+                      loc.name.toLowerCase().includes(localitySearch.toLowerCase()) ||
+                      (loc.name_hi && loc.name_hi.includes(localitySearch))
+                    )
+                    .map((loc) => (
+                      <button
+                        key={loc.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLocality(loc)
+                          const lat = parseFloat(loc.latitude)
+                          const lng = parseFloat(loc.longitude)
+                          setPosition([lat, lng])
+                          setStep(3)
+                        }}
+                        className="w-full py-2.5 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-zinc-800/30 px-2 transition-colors rounded-lg"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-gray-900 dark:text-white">
+                            {loc.name}
+                          </span>
+                          {loc.name_hi && (
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                              {loc.name_hi}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[8px] text-emerald-500 font-black uppercase bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
+                          ~{loc.radius}m Spread
+                        </span>
+                      </button>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {step === 3 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  Select Sub-Locality / Landmark
+                </p>
+                <input
+                  type="text"
+                  placeholder="Filter landmarks..."
+                  value={landmarkSearch}
+                  onChange={(e) => setLandmarkSearch(e.target.value)}
+                  className="w-full px-3 py-2 text-xs bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-ozo-red/50 text-gray-900 dark:text-white font-bold"
+                />
+                <div className="overflow-y-auto divide-y divide-gray-150 dark:divide-zinc-800/60 max-h-40 pr-1">
+                  {landmarks
+                    .filter(lm => lm.locality_id === selectedLocality?.id)
+                    .filter(lm => 
+                      lm.name.toLowerCase().includes(landmarkSearch.toLowerCase()) ||
+                      (lm.name_hi && lm.name_hi.includes(landmarkSearch))
+                    )
+                    .map((lm) => (
+                      <button
+                        key={lm.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedLandmark(lm)
+                          const lat = parseFloat(lm.latitude)
+                          const lng = parseFloat(lm.longitude)
+                          setPosition([lat, lng])
+                          setStep(4)
+                        }}
+                        className="w-full py-2.5 text-left flex flex-col hover:bg-gray-50 dark:hover:bg-zinc-800/30 px-2 transition-colors rounded-lg"
+                      >
+                        <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                          <MapPin size={12} className="text-[#E23744] shrink-0" />
+                          <span>{lm.name}</span>
+                        </span>
+                        {lm.name_hi && (
+                          <span className="text-[10px] text-gray-500 dark:text-gray-400 pl-4">
+                            {lm.name_hi}
+                          </span>
+                        )}
+                      </button>
+                    ))}
+                  {landmarks.filter(lm => lm.locality_id === selectedLocality?.id).length === 0 && (
+                    <div className="py-4 text-center text-[10px] text-gray-450 uppercase tracking-wider">
+                      No landmarks registered in this locality
+                    </div>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedLandmark(null)
+                    setStep(4)
+                  }}
+                  className="mt-1 w-full py-2 border border-dashed border-gray-200 dark:border-zinc-850 hover:bg-gray-50 dark:hover:bg-zinc-800/20 text-gray-500 dark:text-gray-400 text-xs font-black rounded-xl uppercase tracking-wider transition-all"
+                >
+                  Skip Landmark
+                </button>
+              </div>
+            )}
+
+            {step === 4 && (
+              <div className="flex flex-col gap-2">
+                <p className="text-[11px] font-black uppercase tracking-wider text-gray-400">
+                  Select Street/Gali or Enter House details
+                </p>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Enter custom House No., Apartment, or Gali..."
+                    value={customGaliText}
+                    onChange={(e) => setCustomGaliText(e.target.value)}
+                    className="w-full px-3 py-2.5 text-xs bg-gray-50 dark:bg-zinc-900 border border-gray-250 dark:border-zinc-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-ozo-red/50 text-gray-900 dark:text-white font-bold"
+                  />
+                </div>
+                
+                <p className="text-[9px] font-black uppercase tracking-wider text-gray-405 mt-1">
+                  Or select verified streets from database:
+                </p>
+                <div className="overflow-y-auto divide-y divide-gray-150 dark:divide-zinc-800/60 max-h-32 pr-1">
+                  {galis
+                    .filter(g => g.locality_id === selectedLocality?.id)
+                    .map((g) => (
+                      <button
+                        key={g.id}
+                        type="button"
+                        onClick={() => {
+                          setSelectedGali(g)
+                          setCustomGaliText(g.name_hi ? `${g.name} (${g.name_hi})` : g.name)
+                          const lat = parseFloat(g.latitude)
+                          const lng = parseFloat(g.longitude)
+                          setPosition([lat, lng])
+                        }}
+                        className="w-full py-2 text-left flex justify-between items-center hover:bg-gray-50 dark:hover:bg-zinc-800/30 px-2 transition-colors rounded-lg"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5">
+                            <Route size={12} className="text-[#E23744] shrink-0" />
+                            <span>{g.name}</span>
+                          </span>
+                          {g.name_hi && (
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400 pl-4">
+                              {g.name_hi}
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-[8px] text-blue-500 font-black uppercase bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">
+                          {g.length ? `~${g.length}m Stretch` : `~${g.radius}m Bounds`}
+                        </span>
+                      </button>
+                    ))}
+                  {galis.filter(g => g.locality_id === selectedLocality?.id).length === 0 && (
+                    <div className="py-2 text-center text-[9px] text-gray-450 uppercase tracking-wider">
+                      No streets registered in this locality
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleConfirmSteppedAddress()
+                  }}
+                  className="mt-2 w-full py-3 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] text-white text-xs font-black rounded-2xl uppercase tracking-wider hover:shadow-lg transition-all active:scale-[0.98] flex items-center justify-center gap-2"
+                >
+                  Confirm Location
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Search Results Dropdown */}
-        {searchResults.length > 0 && (
+        {!useSteppedSearch && searchResults.length > 0 && (
           <div className="mt-2 bg-[#ffffff]/95 dark:bg-[#121212]/95 border border-gray-200 dark:border-zinc-800 rounded-2xl shadow-2xl backdrop-blur-md max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-800 scrollbar-hide">
             {searchResults.map((result, idx) => (
               <button
@@ -776,11 +1115,6 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
                     {result.isLocal && (
                       <span className="text-[8px] uppercase tracking-widest font-black text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
                         Verified Area
-                      </span>
-                    )}
-                    {result.isGoogle && (
-                      <span className="text-[8px] uppercase tracking-widest font-black text-blue-500 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">
-                        Google Maps
                       </span>
                     )}
                   </div>
@@ -976,7 +1310,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
       {position && (
         <div className="absolute bottom-4 left-4 z-[1000] bg-[#121212]/90 text-white border border-zinc-800 px-4 py-2 rounded-2xl text-[11px] font-bold backdrop-blur-md flex items-center gap-2 shadow-lg">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>📍 Lat: {position[0].toFixed(5)}</span>
+          <span>Lat: {position[0].toFixed(5)}</span>
           <span className="opacity-30">|</span>
           <span>Lng: {position[1].toFixed(5)}</span>
         </div>

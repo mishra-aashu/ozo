@@ -62,6 +62,13 @@ supabase-proxy-worker/index.js
 # Local AI configuration
 AI_CONSTITUTION.md
 
+# Serviceable streets documentation
+serviceable_streets.md
+src/data/aurangabad_streets.json
+
+# Conversation history files
+conversation_*_history.md
+
 # CSV Files
 *.csv
 

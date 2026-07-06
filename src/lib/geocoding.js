@@ -312,3 +312,100 @@ export const extractCoordinatesFromUrl = (url) => {
   return null;
 };
 
+/**
+ * Resolves typed address components (street, landmark, city, state, pincode) to precise coordinates
+ * using a cascading series of forward geocoding queries against Nominatim and/or LocationIQ.
+ * @param {object} addressObj 
+ * @returns {Promise<{lat: number, lng: number, traced_through: string} | null>}
+ */
+export const resolveAddressToCoordinates = async (addressObj) => {
+  if (!addressObj) return null;
+  const { address_line2, landmark, city, state, pincode } = addressObj;
+  
+  // Construct queries of varying specificity
+  const queries = [];
+  
+  // Query 1: Specific Street + Landmark + City + State + Pincode
+  if (address_line2 && city && pincode) {
+    queries.push(`${address_line2}, ${landmark ? landmark + ', ' : ''}${city}, ${state || 'Bihar'}, ${pincode}, India`);
+  }
+  
+  // Query 2: Street + City + Pincode
+  if (address_line2 && city && pincode) {
+    queries.push(`${address_line2}, ${city}, ${pincode}, India`);
+  }
+
+  // Query 3: Pincode + India
+  if (pincode) {
+    queries.push(`${pincode}, India`);
+  }
+
+  // Query 4: City + State + India
+  if (city) {
+    queries.push(`${city}, ${state || 'Bihar'}, India`);
+  }
+
+  for (const q of queries) {
+    try {
+      // 1. Try serverless proxy first
+      const isDev = import.meta.env.DEV;
+      if (!isDev) {
+        const res = await fetch(`/api/geocode?type=search&q=${encodeURIComponent(q)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data) && data.length > 0) {
+            const match = data[0];
+            return {
+              lat: parseFloat(match.lat || match.latitude),
+              lng: parseFloat(match.lon || match.longitude),
+              traced_through: 'nominatim-proxy'
+            };
+          }
+        }
+      }
+
+      // 2. Fallback to direct LocationIQ if key is available
+      if (LOCATIONIQ_KEY && LOCATIONIQ_KEY !== 'YOUR_FREE_KEY_HERE' && !LOCATIONIQ_KEY.includes('YOUR_')) {
+        const url = `https://api.locationiq.com/v1/autocomplete?key=${LOCATIONIQ_KEY}&q=${encodeURIComponent(q)}&limit=1&countrycodes=in&accept-language=en`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && Array.isArray(data) && data.length > 0) {
+            const match = data[0];
+            return {
+              lat: parseFloat(match.lat || match.latitude),
+              lng: parseFloat(match.lon || match.longitude),
+              traced_through: 'locationiq-direct'
+            };
+          }
+        }
+      }
+
+      // 3. Fallback to direct Nominatim
+      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&addressdetails=1&countrycodes=in`;
+      const res = await fetch(url, {
+        headers: {
+          'User-Agent': 'OZOMart/1.0 (contact@ozomart.store)',
+          'Referer': 'https://ozomart.store'
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data && Array.isArray(data) && data.length > 0) {
+          const match = data[0];
+          return {
+            lat: parseFloat(match.lat || match.latitude),
+            lng: parseFloat(match.lon || match.longitude),
+            traced_through: 'nominatim-direct'
+          };
+        }
+      }
+    } catch (e) {
+      console.warn(`Geocoding failed for query "${q}":`, e);
+    }
+  }
+
+  return null;
+};
+
+

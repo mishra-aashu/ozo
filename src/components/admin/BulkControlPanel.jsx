@@ -547,7 +547,7 @@ export default function BulkControlPanel({
       await loadData()
     } catch (err) {
       console.error('Bulk op failed:', err)
-      toast.error('Bulk operation fail ho gayi: ' + err.message, { id: tid })
+      toast.error('Bulk operation failed: ' + err.message, { id: tid })
     } finally {
       setBulkRunning(false)
     }
@@ -609,19 +609,19 @@ export default function BulkControlPanel({
                 </div>
                 <div>
                   <h3 className="font-black text-gray-900 dark:text-white">Confirm Bulk Operation</h3>
-                  <p className="text-xs text-gray-500">Ye action reverse nahi ho sakti easily</p>
+                  <p className="text-xs text-gray-500">This action cannot be easily undone.</p>
                 </div>
               </div>
               <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-2xl p-4 mb-4">
                 <p className="text-sm font-bold text-amber-800 dark:text-amber-300">
-                  {bulkAction === 'oos-off' && 'Emergency: Selected products OUT OF STOCK ho jayenge'}
-                  {bulkAction === 'oos-on' && 'Restore: Selected products IN STOCK mark ho jayenge'}
-                  {bulkAction === 'price-adj' && `Price Adjustment: Selling Price (OZO Price) ${parseFloat(bulkPercent) > 0 ? `+${bulkPercent}` : bulkPercent}% adjust hoga (MRP same rahega)`}
-                  {bulkAction === 'margin' && `Margin Set: ${bulkMargin}% margin set hoga — Selling Price (OZO Price) = MRP × ${100 - parseFloat(bulkMargin || 0)}% (MRP same rahega)`}
+                  {bulkAction === 'oos-off' && 'Emergency: Selected products will be marked OUT OF STOCK'}
+                  {bulkAction === 'oos-on' && 'Restore: Selected products will be marked IN STOCK'}
+                  {bulkAction === 'price-adj' && `Price Adjustment: Selling Price (OZO Price) will adjust by ${parseFloat(bulkPercent) > 0 ? `+${bulkPercent}` : bulkPercent}% (MRP remains unchanged)`}
+                  {bulkAction === 'margin' && `Margin Set: ${bulkMargin}% margin will be set — Selling Price (OZO Price) = MRP × ${100 - parseFloat(bulkMargin || 0)}% (MRP remains unchanged)`}
                 </p>
                 <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
                   Scope: <strong className="capitalize">{bulkScope === 'all' ? 'All Products' : bulkScope === 'category' ? `Category: ${selectedCategory === 'all' ? 'All' : (categories.find(c => c.id === selectedCategory)?.name || selectedCategory)}` : bulkScope === 'mart' ? `Mart: ${selectedMart === 'all' ? 'All' : (marts.find(m => m.id === selectedMart)?.name || selectedMart)}` : bulkScope === 'oos' ? 'Out of Stock Products' : bulkScope === 'brand' ? `Brand: ${selectedBrand}` : `Storage Zone: ${selectedStorage}`}</strong>
-                  {bulkPreviewCount !== null && <> — <strong>{bulkPreviewCount} products</strong> affected honge</>}
+                  {bulkPreviewCount !== null && <> — <strong>{bulkPreviewCount} products</strong> will be affected</>}
                 </p>
               </div>
               <div className="flex gap-3">
@@ -638,7 +638,7 @@ export default function BulkControlPanel({
                   className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-amber-500 text-white text-sm font-black hover:from-rose-600 hover:to-amber-600 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
                   {bulkRunning ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
-                  {bulkRunning ? 'Running...' : 'Haan, Execute Karo'}
+                  {bulkRunning ? 'Running...' : 'Yes, Execute Operation'}
                 </button>
               </div>
             </motion.div>
@@ -1033,7 +1033,7 @@ export default function BulkControlPanel({
                     <div className="bg-[#111317] border border-zinc-900 rounded-2xl p-5 space-y-4 shadow-sm animate-none">
                       <div className="flex items-center gap-2 border-b border-zinc-900/60 pb-2">
                         <span className="w-5 h-5 rounded-full bg-zinc-900 text-[10px] text-zinc-400 flex items-center justify-center font-black">1</span>
-                        <p className="text-xs font-black text-gray-300 uppercase tracking-wider">Scope (Kaunse Products?)</p>
+                        <p className="text-xs font-black text-gray-300 uppercase tracking-wider">Scope (Target Products)</p>
                       </div>
                       <div className="grid grid-cols-2 gap-2 animate-none">
                         {[
@@ -1068,7 +1068,7 @@ export default function BulkControlPanel({
                         {bulkScope === 'category' && (
                           <div className="bg-zinc-900/20 border border-zinc-900/60 rounded-xl p-3">
                             <p className="text-xs font-semibold text-zinc-350">
-                              Selected: <span className="text-zinc-100 font-bold capitalize">{selectedCategory === 'all' ? 'Pehle Category Select Karo (Top Filter)' : (categories.find(c => c.id === selectedCategory)?.name || selectedCategory)}</span>
+                              Selected: <span className="text-zinc-100 font-bold capitalize">{selectedCategory === 'all' ? 'Select Category from filters' : (categories.find(c => c.id === selectedCategory)?.name || selectedCategory)}</span>
                             </p>
                           </div>
                         )}
@@ -1076,7 +1076,7 @@ export default function BulkControlPanel({
                         {bulkScope === 'mart' && (
                           <div className="bg-zinc-900/20 border border-zinc-900/60 rounded-xl p-3">
                             <p className="text-xs font-semibold text-zinc-350">
-                              Selected: <span className="text-zinc-100 font-bold capitalize">{selectedMart === 'all' ? 'Pehle Mart Select Karo (Top Filter)' : (marts.find(m => m.id === selectedMart)?.name || selectedMart)}</span>
+                              Selected: <span className="text-zinc-100 font-bold capitalize">{selectedMart === 'all' ? 'Select Mart from filters' : (marts.find(m => m.id === selectedMart)?.name || selectedMart)}</span>
                             </p>
                           </div>
                         )}
@@ -1213,14 +1213,14 @@ export default function BulkControlPanel({
                     <div className="bg-[#111317] border border-zinc-900 rounded-2xl p-5 space-y-4 shadow-sm animate-none">
                       <div className="flex items-center gap-2 border-b border-zinc-900/60 pb-2">
                         <span className="w-5 h-5 rounded-full bg-zinc-900 text-[10px] text-zinc-400 flex items-center justify-center font-black">2</span>
-                        <p className="text-xs font-black text-gray-300 uppercase tracking-wider">Action (Kya Karna Hai?)</p>
+                        <p className="text-xs font-black text-gray-300 uppercase tracking-wider">Action (Bulk Task)</p>
                       </div>
                       <div className="space-y-2">
                         {[
                           { val: 'oos-off', label: 'Emergency: All Out of Stock', Icon: AlertOctagon, color: 'red' },
                           { val: 'oos-on',  label: 'Restore: All In Stock', Icon: CheckCircle2, color: 'green' },
                           { val: 'price-adj', label: 'Price % Adjust (Selling Price)', Icon: TrendingUp, color: 'orange' },
-                          { val: 'margin',  label: 'Margin % Set (MRP base pr)', Icon: Coins, color: 'purple' },
+                          { val: 'margin',  label: 'Margin % Set (MRP Based)', Icon: Coins, color: 'purple' },
                         ].map(({ val, label, Icon, color }) => (
                           <button
                             key={val}
@@ -1254,7 +1254,7 @@ export default function BulkControlPanel({
 
                       {bulkAction === 'price-adj' && (
                         <div className="space-y-2">
-                          <label className="text-xs text-gray-400 block font-bold">Selling Price Change % (जिस Rate पर बेच रहे हैं)</label>
+                          <label className="text-xs text-gray-400 block font-bold">Selling Price Change %</label>
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
@@ -1266,14 +1266,14 @@ export default function BulkControlPanel({
                             <div className="w-11 h-11 rounded-xl bg-zinc-900 flex items-center justify-center border border-zinc-800 text-orange-400 font-bold shrink-0">%</div>
                           </div>
                           {bulkPercent && !isNaN(parseFloat(bulkPercent)) && (
-                            <p className="text-[11px] text-orange-300 mt-1">Selling Price (बेचने वाला Rate): ₹100 → ₹{Math.round(100 * (1 + parseFloat(bulkPercent)/100))} (MRP same rahega)</p>
+                            <p className="text-[11px] text-orange-300 mt-1">Selling Price: ₹100 → ₹{Math.round(100 * (1 + parseFloat(bulkPercent)/100))} (MRP remains unchanged)</p>
                           )}
                         </div>
                       )}
 
                       {bulkAction === 'margin' && (
                         <div className="space-y-2">
-                          <label className="text-xs text-gray-400 block font-bold">Target Margin % (MRP value base par)</label>
+                          <label className="text-xs text-gray-400 block font-bold">Target Margin % (MRP Value Based)</label>
                           <div className="flex items-center gap-2">
                             <input
                               type="number"
@@ -1304,8 +1304,8 @@ export default function BulkControlPanel({
                           )}
                           <p className={`text-xs font-semibold ${ bulkAction === 'oos-off' ? 'text-red-300' : 'text-emerald-300' }`}>
                             {bulkAction === 'oos-off'
-                              ? 'Selected products customer app me dikhna band (hidden) ho jayenge.'
-                              : 'Selected products customer app me wapas active aur visible ho jayenge.'}
+                              ? 'Selected products will be hidden from the customer application.'
+                              : 'Selected products will be active and visible in the customer application.'}
                           </p>
                         </div>
                       )}

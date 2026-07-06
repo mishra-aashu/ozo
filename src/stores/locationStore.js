@@ -2,8 +2,20 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { reverseGeocode } from '../lib/geocoding'
+import { reverseGeocode, resolveAddressToCoordinates } from '../lib/geocoding'
 import { GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
+
+const getDistanceKm = (lat1, lon1, lat2, lon2) => {
+  const R = 6371; // Earth's radius in km
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+};
 
 export const useLocationStore = create(
   persist(
@@ -19,6 +31,9 @@ export const useLocationStore = create(
       isLoading: false,
       error: null,
       activeCities: [],
+      localities: [],
+      landmarks: [],
+      galis: [],
       serviceabilityModal: {
         isOpen: false,
         cityName: '',
@@ -66,6 +81,107 @@ export const useLocationStore = create(
           console.error('Failed to fetch active cities:', e)
         }
         return []
+      },
+
+      fetchHierarchicalData: async () => {
+        try {
+          const [locs, lms, gas] = await Promise.all([
+            supabase.from('localities').select('*'),
+            supabase.from('landmarks').select('*'),
+            supabase.from('galis_apartments').select('*')
+          ]);
+          set({
+            localities: locs.data || [],
+            landmarks: lms.data || [],
+            galis: gas.data || []
+          });
+        } catch (err) {
+          console.error('Error fetching hierarchical data:', err);
+        }
+      },
+
+      findClosestHierarchicalMatch: (lat, lng) => {
+        const { localities, landmarks, galis } = get();
+        if (!lat || !lng) return { locality: null, landmark: null, gali: null };
+
+        let closestGali = null;
+        let minGaliDist = Infinity;
+        for (const g of galis) {
+          if (g.latitude && g.longitude) {
+            const dist = getDistanceKm(lat, lng, parseFloat(g.latitude), parseFloat(g.longitude));
+            if (dist < minGaliDist) {
+              minGaliDist = dist;
+              closestGali = g;
+            }
+          }
+        }
+
+        let closestLandmark = null;
+        let minLandmarkDist = Infinity;
+        for (const lm of landmarks) {
+          if (lm.latitude && lm.longitude) {
+            const dist = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude));
+            if (dist < minLandmarkDist) {
+              minLandmarkDist = dist;
+              closestLandmark = lm;
+            }
+          }
+        }
+
+        let closestLocality = null;
+        let minLocalityDist = Infinity;
+        for (const loc of localities) {
+          if (loc.latitude && loc.longitude) {
+            const dist = getDistanceKm(lat, lng, parseFloat(loc.latitude), parseFloat(loc.longitude));
+            if (dist < minLocalityDist) {
+              minLocalityDist = dist;
+              closestLocality = loc;
+            }
+          }
+        }
+
+        let matchedGali = null;
+        let matchedLandmark = null;
+        let matchedLocality = null;
+
+        // Snapping thresholds:
+        // 1. Gali/Street: Snap if distance is within the Gali's specific radius (converted to km) or 0.15 km fallback
+        if (closestGali) {
+          const allowedGaliRadiusKm = closestGali.radius ? parseFloat(closestGali.radius) / 1000 : 0.15;
+          if (minGaliDist <= allowedGaliRadiusKm) {
+            matchedGali = closestGali;
+            matchedLocality = localities.find(loc => loc.id === closestGali.locality_id) || null;
+          }
+        }
+
+        // 2. Landmark within 0.2 km (200m)
+        if (closestLandmark && minLandmarkDist <= 0.2) {
+          matchedLandmark = closestLandmark;
+          if (!matchedLocality) {
+            matchedLocality = localities.find(loc => loc.id === closestLandmark.locality_id) || null;
+          }
+        }
+
+        // 3. Locality: Snap if distance is within the Locality's specific allowed radius (converted to km) or 0.4 km fallback
+        if (closestLocality) {
+          const allowedLocRadiusKm = closestLocality.radius ? parseFloat(closestLocality.radius) / 1000 : 0.4;
+          if (minLocalityDist <= allowedLocRadiusKm) {
+            if (!matchedLocality) {
+              matchedLocality = closestLocality;
+            }
+          }
+        }
+
+        // Broad fallback: if still not matched but within a 2.5km zone limit of any locality, snap to closest
+        if (!matchedLocality && closestLocality && minLocalityDist <= 2.5) {
+          matchedLocality = closestLocality;
+        }
+
+        return {
+          locality: matchedLocality,
+          landmark: matchedLandmark,
+          gali: matchedGali
+        };
       },
 
       setAddress: (address) => set({ address }),
@@ -233,11 +349,18 @@ export const useLocationStore = create(
           let tracedThrough = addressData.traced_through || 'manual'
 
           if (!lat || !lng) {
-            const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
-            if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
-              lat = parseFloat(matchedCity.latitude)
-              lng = parseFloat(matchedCity.longitude)
-              tracedThrough = 'city_fallback'
+            const resolvedCoords = await resolveAddressToCoordinates(addressData)
+            if (resolvedCoords) {
+              lat = resolvedCoords.lat
+              lng = resolvedCoords.lng
+              tracedThrough = resolvedCoords.traced_through
+            } else {
+              const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
+              if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
+                lat = parseFloat(matchedCity.latitude)
+                lng = parseFloat(matchedCity.longitude)
+                tracedThrough = 'city_fallback'
+              }
             }
           }
 
@@ -349,11 +472,18 @@ export const useLocationStore = create(
           let tracedThrough = addressData.traced_through || 'manual'
 
           if (!lat || !lng) {
-            const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
-            if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
-              lat = parseFloat(matchedCity.latitude)
-              lng = parseFloat(matchedCity.longitude)
-              tracedThrough = 'city_fallback'
+            const resolvedCoords = await resolveAddressToCoordinates(addressData)
+            if (resolvedCoords) {
+              lat = resolvedCoords.lat
+              lng = resolvedCoords.lng
+              tracedThrough = resolvedCoords.traced_through
+            } else {
+              const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
+              if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
+                lat = parseFloat(matchedCity.latitude)
+                lng = parseFloat(matchedCity.longitude)
+                tracedThrough = 'city_fallback'
+              }
             }
           }
 
@@ -565,6 +695,9 @@ export const useLocationStore = create(
         selectedCitySlug: state.selectedCitySlug,
         nearestCity: state.nearestCity,
         activeCities: state.activeCities,
+        localities: state.localities,
+        landmarks: state.landmarks,
+        galis: state.galis,
         userAddresses: state.userAddresses,
         tracedThrough: state.tracedThrough
       }),
@@ -594,33 +727,99 @@ export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
   try {
     const locationState = useLocationStore.getState();
     const activeCities = locationState.activeCities || [];
+    const localities = locationState.localities || [];
+    const landmarks = locationState.landmarks || [];
+    const galis = locationState.galis || [];
 
     // If we have active cities loaded, check if coordinates fall within any active city's radius
     if (activeCities.length > 0) {
-      const R = 6371; // Earth's radius in KM
+      let matchedCity = null;
       for (const city of activeCities) {
         if (!city.latitude || !city.longitude) continue;
         const cLat = parseFloat(city.latitude);
         const cLng = parseFloat(city.longitude);
         const maxRadius = parseFloat(city.service_radius_km) || 15.0;
-
-        const dLat = (lat - cLat) * Math.PI / 180;
-        const dLon = (lng - cLng) * Math.PI / 180;
-        const a = 
-          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-          Math.cos(cLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
-          Math.sin(dLon / 2) * Math.sin(dLon / 2);
-        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-        const distance = R * c;
-
-        if (distance <= maxRadius) {
-          return true; // Found a serviceable city!
+        const dist = getDistanceKm(lat, lng, cLat, cLng);
+        if (dist <= maxRadius) {
+          matchedCity = city;
+          break;
         }
       }
-      return false; // Coordinates checked and none of the active cities cover them
+
+      if (!matchedCity) return false;
+
+      // If the matched city is Aurangabad, apply hyper-local boundary check
+      if (matchedCity.slug?.includes('aurangabad')) {
+        // 1. Check Localities
+        for (const loc of localities) {
+          if (loc.latitude && loc.longitude) {
+            const distMeters = getDistanceKm(lat, lng, parseFloat(loc.latitude), parseFloat(loc.longitude)) * 1000;
+            const radius = parseFloat(loc.radius) || 250;
+            if (distMeters <= radius) {
+              return true;
+            }
+          }
+        }
+        
+        // 2. Check Landmarks
+        const landmarkRadii = {
+          'Ramesh Chowk': 80,
+          'Maharajganj Chowk': 60,
+          'Gandhi Chowk': 50,
+          'Swarn Jayanti Chowk': 70,
+          'Karma Road More': 100,
+          'Karma Road Entry More': 40,
+          'Karma Road Mid-Section': 50,
+          'Karma Road Bypass Crossing': 100,
+          'Maa Sharda Complex': 30,
+          'Karma Road Power Grid': 120,
+          'St. Joseph\'s / Local Schools Area': 80,
+          'Deo More': 150,
+          'Jasaiya More': 50,
+          'Amba More': 60,
+          'Overbridge Chowk': 120,
+          'Kutchehry Chowk': 80,
+          'Bypass Chauraha': 200,
+          'Sinha College More': 60,
+          'Dhobaul More': 40,
+          'Kanap More': 40,
+          'Old GT Road More': 90,
+          'Mavesi Hospital More': 50,
+          'Bauddh Vihar Chowk': 40,
+          'Jail More': 50,
+          'Thana Chowk': 50,
+          'Block More': 50
+        };
+        for (const lm of landmarks) {
+          if (lm.latitude && lm.longitude) {
+            const distMeters = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude)) * 1000;
+            const radius = landmarkRadii[lm.name] || 80;
+            if (distMeters <= radius) {
+              return true;
+            }
+          }
+        }
+        
+        // 3. Check Galis
+        for (const gali of galis) {
+          if (gali.latitude && gali.longitude) {
+            const distMeters = getDistanceKm(lat, lng, parseFloat(gali.latitude), parseFloat(gali.longitude)) * 1000;
+            const stretch = parseFloat(gali.length) || 300;
+            if (distMeters <= stretch) {
+              return true;
+            }
+          }
+        }
+        
+        // If it's Aurangabad but matches none of our serviceable areas, it's not deliverable!
+        return false;
+      }
+
+      // For other cities, return true as it's within the city radius
+      return true;
     }
 
-    // Fallback: If activeCities are not loaded yet, use nearestCity or GEOFENCE_DEFAULTS
+    // Fallback: If activeCities are not loaded yet
     let centerLat = GEOFENCE_DEFAULTS.warehouse_lat;
     let centerLng = GEOFENCE_DEFAULTS.warehouse_lng;
     let maxRadius = GEOFENCE_DEFAULTS.max_radius_km;
@@ -644,17 +843,8 @@ export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
       }
     }
 
-    const R = 6371; // Earth's radius in KM
-    const dLat = (lat - centerLat) * Math.PI / 180;
-    const dLon = (lng - centerLng) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(centerLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    const distance = R * c;
-
-    return distance <= maxRadius;
+    const dist = getDistanceKm(lat, lng, centerLat, centerLng);
+    return dist <= maxRadius;
   } catch (e) {
     console.error("Error checking dynamic delivery zone:", e);
     return false;
@@ -704,4 +894,5 @@ export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => 
 // Initialize active cities on module load
 if (typeof window !== 'undefined') {
   useLocationStore.getState().fetchActiveCities().catch(console.error);
+  useLocationStore.getState().fetchHierarchicalData().catch(console.error);
 }
