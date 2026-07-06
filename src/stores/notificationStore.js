@@ -226,3 +226,11 @@ export const useNotificationStore = create((set, get) => ({
     }
   },
 }))
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('ozo-auth-signout', (e) => {
+    if (e.detail?.reason !== 'session_expired') {
+      useNotificationStore.setState({ notifications: [] })
+    }
+  })
+}

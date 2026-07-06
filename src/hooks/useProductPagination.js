@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
+import { useLocationStore } from '../stores/locationStore';
+import { useCartStore } from '../stores/cartStore';
 
 export const PAGINATION_LIMIT = 10;
 
@@ -179,9 +181,6 @@ export function useProductPagination() {
       // Apply city-level overrides from product_city_availability
       // This ensures city-specific is_available, city_price, city_mrp are respected
       try {
-        // Dynamically import to avoid circular dependency issues
-        const { useLocationStore } = await import('../stores/locationStore');
-        const { useCartStore } = await import('../stores/cartStore');
         const citySlug = useLocationStore.getState().selectedCitySlug;
 
         if (citySlug && formatted.length > 0) {

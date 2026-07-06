@@ -40,6 +40,7 @@
     "@vercel/node": "^5.8.15",
     "@vitejs/plugin-react": "^5.2.0",
     "autoprefixer": "^10.4.16",
+    "baseline-browser-mapping": "^2.10.42",
     "eslint": "^8.55.0",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",

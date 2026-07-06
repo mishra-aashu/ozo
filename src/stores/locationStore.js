@@ -664,15 +664,27 @@ export const useLocationStore = create(
               // Validate serviceability using checkDeliveryZoneStatus
               const isServiceable = checkDeliveryZoneStatus(latitude, longitude)
               if (!isServiceable) {
-                const errMsg = 'OZO is not yet serviceable at your location. We currently only deliver in Aurangabad, Bihar.'
+                const fallbackLat = 24.753239;
+                const fallbackLng = 84.374124;
                 set({ 
-                  error: errMsg, 
-                  isDetecting: false 
+                  coordinates: { lat: fallbackLat, lng: fallbackLng },
+                  address: 'Aurangabad, Bihar - 824101',
+                  addressDetails: {
+                    road: '',
+                    suburb: '',
+                    city: 'Aurangabad',
+                    state: 'Bihar',
+                    postcode: '824101'
+                  },
+                  error: null, // Clear error so the UI isn't blocked by unserviceable error state
+                  isDetecting: false,
+                  tracedThrough: 'fallback_default'
                 })
-                if (isManual) {
-                  toast.error(errMsg, { duration: 6000, id: 'out-of-zone-error' })
+                await get().updateNearestCitySlug(fallbackLat, fallbackLng)
+                if (!silent) {
+                  toast.error('OZO is not yet serviceable at your location. Showing Aurangabad, Bihar.', { duration: 6000, id: 'out-of-zone-error' })
                 }
-                resolve(false)
+                resolve(true)
                 return
               }
 
@@ -904,8 +916,8 @@ export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
           }
         }
         
-        // If it's Aurangabad but matches none of our serviceable areas, it's not deliverable!
-        return false;
+        // If it's Aurangabad, we still deliver to the city as a whole!
+        return true;
       }
 
       // For other cities, return true as it's within the city radius
