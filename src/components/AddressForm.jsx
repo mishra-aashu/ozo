@@ -364,6 +364,25 @@ export default function AddressForm({
     })
   }, [galis, currentLocality, localities])
 
+  const housePlaceholder = React.useMemo(() => {
+    const isSinhaCollege = 
+      (currentLocality && (
+        currentLocality.id === 'f0a21680-4578-4a33-a757-c529dfc03d17' ||
+        currentLocality.name?.includes('Sinha College') ||
+        currentLocality.name?.includes('Ram Nagar') ||
+        currentLocality.name?.includes('Adarsh Colony') ||
+        currentLocality.name?.includes('Professor') ||
+        currentLocality.name?.includes('Surya Nagar')
+      )) ||
+      (currentGali && (
+        currentGali.name?.includes('Coaching Gali') ||
+        currentGali.name?.includes('Gate Back Lane')
+      ));
+    return isSinhaCollege 
+      ? 'e.g. Room No 12, Shanti Boys Lodge'
+      : 'e.g. Room No 102, Shanti Boys Lodge / Flat 3A, Maa Sharda Complex';
+  }, [currentLocality, currentGali]);
+
   const updateField = (key, value) => {
     onChange({ [key]: value })
   }
@@ -820,7 +839,20 @@ export default function AddressForm({
 
         {formData.address_line2 ? (
           <div className="space-y-4 slide-up">
-            {/* 3. Flat / House No. / Building / Lodge */}
+            {/* 3. Gali / Apartment / Street (Optional Dropdown Selection) */}
+            <SearchableSelect
+              label="Street / Gali / Apartment (Optional)"
+              placeholder={currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first"}
+              value=""
+              options={filteredGalis}
+              onChange={handleGaliSelect}
+              required={false}
+              disabled={!formData.address_line2}
+              icon={Route}
+              noOptionsMessage="No streets recorded in this area. Type custom details above."
+            />
+
+            {/* 4. Flat / House No. / Building / Lodge */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
                 Flat / House No. / Building / Lodge <span className="text-ozo-red">*</span>
@@ -834,36 +866,23 @@ export default function AddressForm({
                   value={formData.address_line1 || ''}
                   onChange={(e) => updateField('address_line1', e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/20 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
-                  placeholder="e.g. Room No 102, Shanti Boys Lodge / Flat 3A, Maa Sharda Complex"
+                  placeholder={housePlaceholder}
                   required
                 />
               </div>
             </div>
 
-            {/* 4. Landmark Dropdown Selection */}
+            {/* 5. Landmark Dropdown Selection */}
             <SearchableSelect
-              label="Nearest Landmark"
+              label="Nearest Landmark (Optional)"
               placeholder={currentLocality ? "Search nearby landmarks..." : "Please select an Area/Locality first"}
               value={formData.landmark}
               options={filteredLandmarks}
               onChange={handleLandmarkSelect}
-              required={true}
+              required={false}
               disabled={!formData.address_line2}
               icon={MapPin}
               noOptionsMessage="No matching landmarks. Type to enter a custom landmark."
-            />
-
-            {/* 5. Gali / Apartment / Street (Optional Dropdown Selection) */}
-            <SearchableSelect
-              label="Street / Gali / Apartment (Optional)"
-              placeholder={currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first"}
-              value=""
-              options={filteredGalis}
-              onChange={handleGaliSelect}
-              required={false}
-              disabled={!formData.address_line2}
-              icon={Route}
-              noOptionsMessage="No streets recorded in this area. Type custom details above."
             />
 
             {/* Geospatial Snapping Radius Feedback */}
