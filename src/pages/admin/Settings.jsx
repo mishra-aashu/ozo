@@ -153,6 +153,8 @@ const AdminSettings = () => {
   const [platformConfig, setPlatformConfig] = useState({
     platform_fee: 2,
     charity_enabled: true,
+    charity_amount: 10,
+    charity_name: 'Local Feeding Programs',
     global_commission_pct: 24
   })
 
@@ -334,6 +336,8 @@ const AdminSettings = () => {
         let platform = {
           platform_fee: 2,
           charity_enabled: true,
+          charity_amount: 10,
+          charity_name: 'Local Feeding Programs',
           global_commission_pct: 24
         }
         let shg = {
@@ -767,6 +771,8 @@ const AdminSettings = () => {
           value: {
             platform_fee: parseFloat(platformConfig.platform_fee) || 0,
             charity_enabled: !!platformConfig.charity_enabled,
+            charity_amount: parseFloat(platformConfig.charity_amount) || 10,
+            charity_name: platformConfig.charity_name || 'Local Feeding Programs',
             global_commission_pct: parseFloat(platformConfig.global_commission_pct) || 0
           },
           description: 'Platform level configurations'
@@ -1320,7 +1326,7 @@ const AdminSettings = () => {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-gray-800 dark:text-white">Charity Option at Checkout</p>
-                        <p className="text-[10px] text-gray-400">Ask clients for small round-off donations for charity at checkout.</p>
+                        <p className="text-[10px] text-gray-400">Ask clients for small donations for charity at checkout.</p>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer select-none">
@@ -1333,6 +1339,35 @@ const AdminSettings = () => {
                       <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-white/10 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-500"></div>
                     </label>
                   </div>
+
+                  {platformConfig.charity_enabled && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 p-4 bg-gray-50/50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-2xl">
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 text-left">
+                          Charity Name / Cause Description
+                        </label>
+                        <input
+                          type="text"
+                          value={platformConfig.charity_name || ''}
+                          onChange={e => setPlatformConfig({ ...platformConfig, charity_name: e.target.value })}
+                          placeholder="e.g. Local Feeding Programs"
+                          className="w-full px-4 py-2.5 bg-white dark:bg-white/5 border border-gray-105 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all font-bold text-xs text-gray-800 dark:text-white text-left"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1.5 text-left">
+                          Fixed Donation Amount (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={platformConfig.charity_amount || ''}
+                          onChange={e => setPlatformConfig({ ...platformConfig, charity_amount: e.target.value ? parseFloat(e.target.value) : 0 })}
+                          placeholder="e.g. 10"
+                          className="w-full px-4 py-2.5 bg-white dark:bg-white/5 border border-gray-105 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all font-bold text-xs text-gray-800 dark:text-white text-left"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
