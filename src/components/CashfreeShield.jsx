@@ -29,7 +29,8 @@ const CashfreeShield = ({
   addressId,
   couponCode,
   onPaymentSuccess,
-  pendingOrderId
+  pendingOrderId,
+  charityDonation
 }) => {
   // shield states: checking → challenge → payment_portal → blocked → success
   const [shieldState, setShieldState]     = useState('checking')
@@ -189,7 +190,8 @@ const CashfreeShield = ({
           customerName:  userData?.fullName  || 'OZO Customer',
           customerPhone: userData?.phone     || '9999999999',
           customerEmail: userData?.email     || 'customer@ozomart.store',
-          pendingOrderId
+          pendingOrderId,
+          charityDonation
         }
       })
 
@@ -243,7 +245,8 @@ const CashfreeShield = ({
                 action: 'verify_cashfree_payment',
                 cfOrderId: cf_order_id,
                 addressId,
-                couponCode
+                couponCode,
+                charityDonation
               }
             })
             toast.dismiss(verifyToast)

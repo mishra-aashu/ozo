@@ -15,7 +15,8 @@ async function calculateExpectedAmount(
   userId: string,
   addressId?: string,
   couponCode?: string,
-  martId?: string
+  martId?: string,
+  charityDonation?: number
 ): Promise<{ subtotal: number, deliveryFee: number, discountAmount: number, platformFee: number, total: number }> {
 
   // 1. Fetch address first if addressId is provided (needed for city-specific pricing and delivery fee)
@@ -335,7 +336,7 @@ async function calculateExpectedAmount(
       if (isOutsideZone && !geofenceConfig.strict_enforcement) deliveryFee *= 2
     }
 
-  const total = subtotal + deliveryFee + platformFee - discountAmount
+  const total = subtotal + deliveryFee + platformFee + (charityDonation || 0) - discountAmount
   return { subtotal, deliveryFee, discountAmount, platformFee, total: Math.max(0, total) }
 }
 
@@ -417,7 +418,8 @@ Deno.serve(async (req: Request) => {
     if (action === 'calculate_totals') {
       let calc
       try {
-        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
+        const charityAmt = Math.max(0, parseFloat(body.charityDonation !== undefined ? body.charityDonation : (body.charity_donation !== undefined ? body.charity_donation : 0)) || 0);
+        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId, charityAmt)
       } catch (e: any) {
         return new Response(
           JSON.stringify({ success: false, error: e.message }),
@@ -467,7 +469,8 @@ Deno.serve(async (req: Request) => {
 
       let calc
       try {
-        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
+        const charityAmt = Math.max(0, parseFloat(body.charityDonation !== undefined ? body.charityDonation : (body.charity_donation !== undefined ? body.charity_donation : 0)) || 0);
+        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId, charityAmt)
       } catch (e: any) {
         return new Response(
           JSON.stringify({ success: false, error: e.message }),
@@ -603,7 +606,8 @@ Deno.serve(async (req: Request) => {
       // Server-side amount verification
       let calc
       try {
-        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId)
+        const charityAmt = Math.max(0, parseFloat(body.charityDonation !== undefined ? body.charityDonation : (body.charity_donation !== undefined ? body.charity_donation : 0)) || 0);
+        calc = await calculateExpectedAmount(supabaseAdmin, user.id, addressId, couponCode, martId, charityAmt)
       } catch (e: any) {
         return new Response(
           JSON.stringify({ verified: false, error: e.message }),

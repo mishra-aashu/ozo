@@ -24,7 +24,8 @@ import {
   Briefcase,
   X,
   User,
-  Users
+  Users,
+  Heart
 } from 'lucide-react'
 import { useCartStore } from '../stores/cartStore'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findCityByPincode } from '../stores/locationStore'
@@ -66,7 +67,8 @@ const Checkout = () => {
     mapConfig,
     launchConfig,
     serviceHoursConfig,
-    paymentConfig
+    paymentConfig,
+    platformConfig
   } = useCartStore(useShallow(state => ({
     items: state.items,
     total: state.total,
@@ -87,7 +89,8 @@ const Checkout = () => {
     mapConfig: state.mapConfig,
     launchConfig: state.launchConfig,
     serviceHoursConfig: state.serviceHoursConfig,
-    paymentConfig: state.paymentConfig
+    paymentConfig: state.paymentConfig,
+    platformConfig: state.platformConfig
   })))
   const minOrderValueLimit = orderConfig?.min_order_value ?? 0
   const hasOutOfStockItems = items.some(item => !item.isAvailable || item.quantityAvailable <= 0)
@@ -122,6 +125,14 @@ const Checkout = () => {
   const [isProcessing, setIsProcessing] = useState(false)
   const [pendingOrderId, setPendingOrderId] = useState(null)
   const [recipientType, setRecipientType] = useState(null)
+  const [isCharitySelected, setIsCharitySelected] = useState(false)
+
+  const baseTotal = subtotal + deliveryFee + platformFee - discount
+  const nextMultipleOfTen = Math.ceil(baseTotal / 10) * 10
+  const calculatedRoundOff = Math.round((nextMultipleOfTen - baseTotal) * 100) / 100
+  const charityDonationAmount = calculatedRoundOff === 0 ? 10 : calculatedRoundOff
+  const activeCharityDonation = isCharitySelected ? charityDonationAmount : 0
+  const displayTotal = baseTotal + activeCharityDonation
 
   // Filter available payment methods based on DB config
   const availablePaymentMethods = []
@@ -501,7 +512,8 @@ const Checkout = () => {
           body: {
             action: 'calculate_totals',
             addressId: selectedAddress,
-            couponCode: storeCouponCode
+            couponCode: storeCouponCode,
+            charityDonation: activeCharityDonation
           }
         });
 
@@ -547,7 +559,8 @@ const Checkout = () => {
           latitude: activeAddr?.latitude ? parseFloat(activeAddr.latitude) : null,
           longitude: activeAddr?.longitude ? parseFloat(activeAddr.longitude) : null,
           martId: null,
-          distance: distance || null
+          distance: distance || null,
+          charityDonation: activeCharityDonation
         }
 
         const result = await placeOrder(orderData)
@@ -604,7 +617,8 @@ const Checkout = () => {
             body: {
               action: 'calculate_totals',
               addressId: selectedAddress,
-              couponCode: storeCouponCode
+              couponCode: storeCouponCode,
+              charityDonation: activeCharityDonation
             }
           });
           toast.dismiss(loadingToast);
@@ -684,7 +698,8 @@ const Checkout = () => {
         latitude: activeAddr?.latitude ? parseFloat(activeAddr.latitude) : null,
         longitude: activeAddr?.longitude ? parseFloat(activeAddr.longitude) : null,
         martId: null,
-        distance: distance || null
+        distance: distance || null,
+        charityDonation: activeCharityDonation
       }
 
       const result = await placeOrder(orderData)
@@ -1399,10 +1414,47 @@ const Checkout = () => {
                     </div>
                   )}
 
+                  {/* Charity Option Card */}
+                  {platformConfig?.charity_enabled && charityDonationAmount > 0 && (
+                    <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-900/30 rounded-2xl p-4 flex items-center justify-between transition-all hover:scale-[1.01] shadow-sm my-2">
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 rounded-xl mt-0.5">
+                          <Heart className="w-5 h-5 fill-current" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold text-emerald-800 dark:text-emerald-450 text-sm">
+                            Round off for Charity
+                          </p>
+                          <p className="text-[11px] text-emerald-600 dark:text-emerald-500/80 font-semibold mt-0.5">
+                            Donate ₹{charityDonationAmount.toFixed(2)} to support local feeding programs.
+                          </p>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => setIsCharitySelected(!isCharitySelected)}
+                        className={`px-4 py-2 rounded-xl font-bold text-xs transition-all uppercase tracking-wider flex items-center gap-1.5 shadow-sm border ${
+                          isCharitySelected
+                            ? 'bg-emerald-600 text-white border-emerald-600 hover:bg-emerald-700'
+                            : 'bg-white dark:bg-white/5 text-emerald-600 border-emerald-200 dark:border-emerald-900/30 hover:bg-emerald-50 dark:hover:bg-emerald-950/30'
+                        }`}
+                      >
+                        {isCharitySelected ? 'Added ✓' : 'Add'}
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Charity Line Item inside Breakdown */}
+                  {isCharitySelected && (
+                    <div className="flex justify-between text-sm font-medium">
+                      <span className="text-ozo-gray dark:text-gray-400">Charity Donation</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">₹{charityDonationAmount}</span>
+                    </div>
+                  )}
+
                   <div className="h-px bg-gray-50 dark:bg-white/5 my-4" />
                   <div className="flex justify-between items-center">
                     <span className="text-lg font-black text-gray-900 dark:text-white">Total</span>
-                    <span className="text-3xl font-black text-ozo-red font-display">₹{totalAmount.toLocaleString()}</span>
+                    <span className="text-3xl font-black text-ozo-red font-display">₹{displayTotal.toLocaleString()}</span>
                   </div>
                   {(savings + discount) > 0 && (
                     <p className="text-xs sm:text-sm text-ozo-green mt-1 font-semibold text-left">
@@ -1591,7 +1643,7 @@ const Checkout = () => {
       <RazorpayShield
         isOpen={isShieldOpen}
         onClose={() => setIsShieldOpen(false)}
-        amount={totalAmount}
+        amount={displayTotal}
         orderNumber={tempOrderNumber}
         addressId={selectedAddress}
         couponCode={storeCouponCode}
@@ -1604,12 +1656,13 @@ const Checkout = () => {
           executePlaceOrder(transactionId, extraInstructions, serverCalculatedTotals)
         }}
         pendingOrderId={pendingOrderId}
+        charityDonation={activeCharityDonation}
       />
 
       <CashfreeShield
         isOpen={isCfShieldOpen}
         onClose={() => setIsCfShieldOpen(false)}
-        amount={totalAmount}
+        amount={displayTotal}
         orderNumber={tempOrderNumber}
         addressId={selectedAddress}
         couponCode={storeCouponCode}
@@ -1622,6 +1675,7 @@ const Checkout = () => {
           executePlaceOrder(transactionId, extraInstructions, serverCalculatedTotals)
         }}
         pendingOrderId={pendingOrderId}
+        charityDonation={activeCharityDonation}
       />
     </div>
   )
