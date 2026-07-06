@@ -533,65 +533,24 @@ const LocationPicker = ({ isOpen, onClose }) => {
                   />
                 </div>
 
-                {/* Current Location Button */}
-                <button 
-                  onClick={async () => {
-                    const success = await detectLocation(true, true)
-                    if (success) {
-                      const currentAddress = useLocationStore.getState().address
-                      const currentCoords = useLocationStore.getState().coordinates
-                      if (currentCoords) {
-                        const isDeliverable = checkDeliveryZoneStatus(currentCoords.lat, currentCoords.lng, useCartStore.getState())
-                        if (!isDeliverable) {
-                          const { geofenceConfig } = useCartStore.getState()
-                          if (geofenceConfig?.strict_enforcement) {
-                            toast.error('Your current location is outside our active delivery zone.')
-                            return
-                          } else {
-                            toast.success('Using location outside zone (double delivery fee will apply).')
-                          }
-                        }
-                        const nearestCity = useLocationStore.getState().nearestCity
-                        const fallbackCity = nearestCity?.name || 'Aurangabad'
-                        const fallbackState = nearestCity?.state || 'Bihar'
-                        const fallbackPostcode = nearestCity?.allowed_pincodes?.[0] || ''
-
-                        const details = useLocationStore.getState().addressDetails || {}
-                        const detectedPincode = details.postcode || fallbackPostcode
-                        
-                        // Since currentCoords is available and has been verified by the geofence check,
-                        // we do not block on pincode validation here.
-
-                        const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(currentCoords.lat, currentCoords.lng)
-                        const savedAddress = await addUserAddress({
-                          label: 'Current Location',
-                          address_line1: currentAddress,
-                          address_line2: snapResult.locality ? snapResult.locality.name : (details.road || ''),
-                          city: details.city || fallbackCity,
-                          state: details.state || fallbackState,
-                          pincode: detectedPincode,
-                          latitude: currentCoords.lat,
-                          longitude: currentCoords.lng,
-                          traced_through: 'gps',
-                          is_default: true,
-                          locality_id: snapResult.locality ? snapResult.locality.id : null,
-                          landmark_id: snapResult.landmark ? snapResult.landmark.id : null,
-                          gali_id: snapResult.gali ? snapResult.gali.id : null
-                        }, true)
-                        if (savedAddress) {
-                          const cleanAddressLine = [savedAddress.address_line1, savedAddress.address_line2].filter(Boolean).join(', ')
-                          const formattedAddress = `${cleanAddressLine}, ${savedAddress.city}, ${savedAddress.state} - ${savedAddress.pincode}`
-                          setAddress(formattedAddress)
-                          setCoordinates({ lat: parseFloat(savedAddress.latitude), lng: parseFloat(savedAddress.longitude) })
-                        }
-                        toast.success('Current location selected')
-                      }
-                      onClose()
+              {/* Current Location Button */}
+              <button 
+                onClick={async () => {
+                  const success = await detectLocation(true, true)
+                  if (success) {
+                    const currentAddress = useLocationStore.getState().address
+                    const currentCoords = useLocationStore.getState().coordinates
+                    if (currentCoords) {
+                      setAddress(currentAddress)
+                      setCoordinates({ lat: currentCoords.lat, lng: currentCoords.lng })
+                      toast.success('Location set to Aurangabad successfully')
                     }
-                  }}
-                  disabled={isDetecting}
-                  className="w-full flex items-center gap-5 p-5 rounded-[2rem] bg-red-50 dark:bg-ozo-red/10 text-ozo-red hover:bg-red-100 dark:hover:bg-ozo-red/20 transition-all group border border-ozo-red/10"
-                >
+                    onClose()
+                  }
+                }}
+                disabled={isDetecting}
+                className="w-full flex items-center gap-5 p-5 rounded-[2rem] bg-red-50 dark:bg-ozo-red/10 text-ozo-red hover:bg-red-100 dark:hover:bg-ozo-red/20 transition-all group border border-ozo-red/10"
+              >
                   <div className={`w-12 h-12 rounded-2xl bg-white dark:bg-[#1a1a1a] shadow-sm flex items-center justify-center ${isDetecting ? 'animate-pulse' : 'group-hover:scale-110 group-hover:rotate-12 transition-all'}`}>
                     <Navigation size={22} className={isDetecting ? 'animate-spin' : ''} />
                   </div>
