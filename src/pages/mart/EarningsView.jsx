@@ -279,7 +279,7 @@ const EarningsView = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 lg:p-6 bg-gray-50 dark:bg-[#070709] pb-16 lg:pb-0 w-full min-w-0 lg:h-full lg:overflow-hidden">
+    <div className="flex-1 flex flex-col p-4 lg:p-6 bg-gray-50 dark:bg-slate-950 pb-16 lg:pb-0 w-full min-w-0 lg:h-full lg:overflow-hidden">
       {/* Earnings Info Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div>
@@ -289,7 +289,7 @@ const EarningsView = () => {
         <div className="flex items-center gap-3">
           <button
             onClick={exportToCSV}
-            className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 dark:bg-[#00FF66] dark:hover:bg-[#00E055] text-white dark:text-[#0a0a0f] font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md shadow-emerald-500/10 cursor-pointer border border-transparent dark:border-none"
+            className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500 text-white dark:text-white font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-md shadow-blue-500/10 cursor-pointer border border-transparent dark:border-none"
           >
             <Download className="w-4 h-4" />
             <span>Export CSV</span>
@@ -298,13 +298,13 @@ const EarningsView = () => {
       </div>
 
       {/* Date Filter & Range Picker */}
-      <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 mb-4 shadow-sm flex flex-col gap-4">
-        <div className="flex items-center justify-between border-b border-gray-150 dark:border-[#181824] pb-3">
+      <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 mb-4 shadow-sm flex flex-col gap-4">
+        <div className="flex items-center justify-between border-b border-gray-150 dark:border-slate-800 pb-3">
           <div className="flex items-center gap-2 text-xs font-bold text-gray-700 dark:text-gray-300">
-            <Calendar className="w-4 h-4 text-emerald-500 dark:text-[#00FF66]" />
+            <Calendar className="w-4 h-4 text-blue-500 dark:text-blue-500" />
             <span>Date Range Filter</span>
           </div>
-          <span className="text-[10px] bg-emerald-50 dark:bg-[#00FF66]/10 text-emerald-600 dark:text-[#00FF66] px-2 py-0.5 rounded font-black uppercase tracking-wider">
+          <span className="text-[10px] bg-blue-50 dark:bg-blue-600/10 text-blue-600 dark:text-blue-500 px-2 py-0.5 rounded font-black uppercase tracking-wider">
             {dateFilter === 'all' ? 'All Time' : dateFilter}
           </span>
         </div>
@@ -326,8 +326,8 @@ const EarningsView = () => {
               }}
               className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
                 dateFilter === btn.id
-                  ? 'bg-emerald-600 border-emerald-600 text-white dark:bg-[#00FF66] dark:border-[#00FF66] dark:text-[#0a0a0f]'
-                  : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-750 dark:bg-[#12121a]/60 dark:border-white/5 dark:hover:bg-[#181824] dark:text-gray-300'
+                  ? 'bg-blue-600 border-blue-600 text-white dark:bg-blue-600 dark:border-blue-500 dark:text-white'
+                  : 'bg-gray-50 border-gray-200 hover:bg-gray-100 text-gray-750 dark:bg-slate-900/60 dark:border-white/5 dark:hover:bg-slate-800 dark:text-gray-300'
               }`}
             >
               {btn.label}
@@ -336,7 +336,7 @@ const EarningsView = () => {
 
           {dateFilter === 'custom' && (
             <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:ml-auto mt-2 sm:mt-0 animate-fadeIn w-full sm:w-auto">
-              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-[#12121a] px-3 py-1.5 rounded-xl border border-gray-205 dark:border-white/5">
+              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-205 dark:border-white/5">
                 <span className="text-[10px] text-gray-400 font-bold uppercase">From</span>
                 <input
                   type="date"
@@ -348,7 +348,7 @@ const EarningsView = () => {
                   className="bg-transparent border-none text-xs text-gray-800 dark:text-gray-250 font-bold focus:outline-none dark:color-scheme-dark"
                 />
               </div>
-              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-[#12121a] px-3 py-1.5 rounded-xl border border-gray-205 dark:border-white/5">
+              <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-gray-205 dark:border-white/5">
                 <span className="text-[10px] text-gray-400 font-bold uppercase">To</span>
                 <input
                   type="date"
@@ -368,18 +368,18 @@ const EarningsView = () => {
       {/* Stats Grid */}
       <div className="w-full min-w-0 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 md:gap-5 mb-4 shrink-0">
         {/* Card 1: Total Sales */}
-        <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-emerald-500/20 hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-blue-500/20 hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Total Sales</span>
             <span className="text-lg font-extrabold text-gray-955 dark:text-white">₹{totalEarnings.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="bg-emerald-500/10 dark:bg-emerald-500/20 p-2 rounded-xl text-emerald-600 dark:text-[#00FF66] shrink-0">
+          <div className="bg-blue-600/10 dark:bg-blue-600/20 p-2 rounded-xl text-blue-600 dark:text-blue-500 shrink-0">
             <TrendingUp className="w-4 h-4" />
           </div>
         </div>
 
         {/* Card 2: Completed Orders */}
-        <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-blue-500/20 hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-blue-500/20 hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Completed</span>
             <span className="text-lg font-extrabold text-gray-955 dark:text-white">{completedPastOrders.length}</span>
@@ -390,29 +390,29 @@ const EarningsView = () => {
         </div>
 
         {/* Card 3: Net Payout */}
-        <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-emerald-500/30 hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-blue-500/30 hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-1">
-            <span className="text-[10px] font-bold text-emerald-800 dark:text-[#00FF66] uppercase tracking-wider block">Net Payout</span>
-            <span className="text-lg font-extrabold text-emerald-600 dark:text-[#00FF66]">₹{netEarningsTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-[10px] font-bold text-blue-800 dark:text-blue-500 uppercase tracking-wider block">Net Payout</span>
+            <span className="text-lg font-extrabold text-blue-600 dark:text-blue-500">₹{netEarningsTotal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="bg-emerald-500/15 dark:bg-emerald-500/25 p-2 rounded-xl text-emerald-600 dark:text-[#00FF66] shrink-0">
+          <div className="bg-blue-600/15 dark:bg-blue-600/25 p-2 rounded-xl text-blue-600 dark:text-blue-500 shrink-0">
             <DollarSign className="w-4 h-4" />
           </div>
         </div>
 
         {/* Card 4: Settled Payouts */}
-        <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-emerald-500/20 hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-blue-500/20 hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Settled (Paid)</span>
-            <span className="text-lg font-extrabold text-emerald-650 dark:text-[#00FF66]">₹{totalSettled.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+            <span className="text-lg font-extrabold text-blue-600 dark:text-blue-500">₹{totalSettled.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
           </div>
-          <div className="bg-emerald-500/10 dark:bg-emerald-500/20 p-2 rounded-xl text-emerald-600 dark:text-[#00FF66] shrink-0">
+          <div className="bg-blue-600/10 dark:bg-blue-600/20 p-2 rounded-xl text-blue-600 dark:text-blue-500 shrink-0">
             <CheckCircle className="w-4 h-4" />
           </div>
         </div>
 
         {/* Card 5: Pending Payouts */}
-        <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-amber-500/20 hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-amber-500/20 hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Pending</span>
             <span className="text-lg font-extrabold text-amber-600 dark:text-amber-450">₹{pendingSettlement.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
@@ -423,7 +423,7 @@ const EarningsView = () => {
         </div>
 
         {/* Card 6: Cancelled Orders */}
-        <div className="bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-red-500/20 hover:-translate-y-0.5 transition-all duration-300">
+        <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 shadow-sm flex items-center justify-between hover:shadow-md hover:border-red-500/20 hover:-translate-y-0.5 transition-all duration-300">
           <div className="space-y-1">
             <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider block">Cancelled</span>
             <span className="text-lg font-extrabold text-red-500">{cancelledPastOrders.length}</span>
@@ -436,16 +436,16 @@ const EarningsView = () => {
 
       {/* Financial Transparency & Payout Breakdown Card (Dismissible) */}
       {showFormulaBanner && (
-        <div className="relative bg-gradient-to-r from-emerald-600/10 via-emerald-500/5 to-teal-500/10 border border-emerald-500/20 rounded-2xl p-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 transition-all">
+        <div className="relative bg-gradient-to-r from-blue-600/10 via-blue-500/5 to-teal-500/10 border border-blue-500/20 rounded-2xl p-4 mb-4 flex flex-col md:flex-row items-center justify-between gap-4 shrink-0 transition-all">
           <button 
             onClick={handleDismissFormula}
-            className="absolute top-3 right-3 p-1 rounded-lg hover:bg-gray-150/50 dark:hover:bg-[#1a1a24] text-gray-400 hover:text-gray-600 dark:hover:text-white transition-all cursor-pointer"
+            className="absolute top-3 right-3 p-1 rounded-lg hover:bg-gray-150/50 dark:hover:bg-slate-800 text-gray-400 hover:text-gray-600 dark:hover:text-white transition-all cursor-pointer"
             title="Dismiss formula banner"
           >
             <X className="w-4 h-4" />
           </button>
           <div className="flex items-center gap-3 pr-6">
-            <div className="bg-emerald-500/10 dark:bg-emerald-500/25 p-2 rounded-xl text-emerald-600 dark:text-[#00FF66] hidden sm:block">
+            <div className="bg-blue-600/10 dark:bg-blue-600/25 p-2 rounded-xl text-blue-600 dark:text-blue-500 hidden sm:block">
               <Info className="w-5 h-5" />
             </div>
             <div>
@@ -454,19 +454,19 @@ const EarningsView = () => {
             </div>
           </div>
           <div className="flex items-center gap-4 sm:gap-6 shrink-0 flex-wrap pr-8">
-            <div className="text-center bg-white dark:bg-[#0c0c14] border border-gray-150 dark:border-[#181824] px-4 py-2 rounded-xl min-w-[110px]">
+            <div className="text-center bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 px-4 py-2 rounded-xl min-w-[110px]">
               <span className="text-[9px] font-bold text-gray-500 uppercase">Gross Sales</span>
               <p className="text-sm font-extrabold text-gray-900 dark:text-white mt-0.5">₹{totalEarnings.toFixed(2)}</p>
             </div>
             <span className="text-gray-400 font-bold text-lg">-</span>
-            <div className="text-center bg-white dark:bg-[#0c0c14] border border-gray-150 dark:border-[#181824] px-4 py-2 rounded-xl min-w-[110px]">
+            <div className="text-center bg-white dark:bg-slate-900 border border-gray-150 dark:border-slate-800 px-4 py-2 rounded-xl min-w-[110px]">
               <span className="text-[9px] font-bold text-gray-500 uppercase">Commission ({commissionPct}%)</span>
               <p className="text-sm font-extrabold text-red-500 mt-0.5">₹{(totalEarnings * (commissionPct / 100)).toFixed(2)}</p>
             </div>
             <span className="text-gray-400 font-bold text-lg">=</span>
-            <div className="text-center bg-emerald-500/15 border border-emerald-500/30 px-5 py-2 rounded-xl min-w-[120px]">
-              <span className="text-[9px] font-black text-emerald-700 dark:text-[#00FF66] uppercase">Net Payout</span>
-              <p className="text-base font-black text-emerald-600 dark:text-[#00FF66] mt-0.5">₹{netEarningsTotal.toFixed(2)}</p>
+            <div className="text-center bg-blue-600/15 border border-blue-500/30 px-5 py-2 rounded-xl min-w-[120px]">
+              <span className="text-[9px] font-black text-blue-700 dark:text-blue-500 uppercase">Net Payout</span>
+              <p className="text-base font-black text-blue-600 dark:text-blue-500 mt-0.5">₹{netEarningsTotal.toFixed(2)}</p>
             </div>
           </div>
         </div>
@@ -475,8 +475,8 @@ const EarningsView = () => {
       {/* Workspace Split */}
       <div className="flex-1 lg:h-0 flex flex-col lg:flex-row gap-4 lg:gap-6 w-full min-w-0 min-h-0 lg:shrink-0 mb-4">
         {/* Left Panel: History List */}
-        <div className={`w-full lg:w-[380px] xl:w-[420px] border border-gray-200 dark:border-[#181824] bg-white dark:bg-[#0c0c14] rounded-2xl flex flex-col lg:h-full lg:overflow-hidden shadow-sm shrink-0 ${selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-gray-200 dark:border-[#181824] bg-gray-50/50 dark:bg-[#0e0e18] flex items-center gap-3">
+        <div className={`w-full lg:w-[380px] xl:w-[420px] border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col lg:h-full lg:overflow-hidden shadow-sm shrink-0 ${selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
+          <div className="p-4 border-b border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900 flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -484,16 +484,16 @@ const EarningsView = () => {
                 placeholder="Search by Order # or Customer..."
                 value={pastSearchQuery}
                 onChange={(e) => setPastSearchQuery(e.target.value)}
-                className="w-full bg-white dark:bg-[#12121a] border border-gray-200 dark:border-[#1e1e2d] focus:border-emerald-500 dark:focus:border-[#00FF66] rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all"
+                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all"
               />
             </div>
           </div>
 
-          <div className="divide-y divide-gray-150 dark:divide-[#181824] lg:flex-1 lg:overflow-y-auto custom-scrollbar">
+          <div className="divide-y divide-gray-150 dark:divide-slate-800 lg:flex-1 lg:overflow-y-auto custom-scrollbar">
             {isLoadingPastOrders ? (
               <div className="h-full flex items-center justify-center p-8">
                 <div className="flex flex-col items-center gap-3">
-                  <RefreshCw className="w-8 h-8 text-emerald-500 dark:text-[#00FF66] animate-spin" />
+                  <RefreshCw className="w-8 h-8 text-blue-500 dark:text-blue-500 animate-spin" />
                   <p className="text-xs text-gray-550 font-bold uppercase tracking-wider">Loading history...</p>
                 </div>
               </div>
@@ -522,8 +522,8 @@ const EarningsView = () => {
                   <button
                     key={order.id}
                     onClick={() => setSelectedPastOrderId(order.id)}
-                    className={`w-full text-left p-4 transition-all flex items-start gap-4 hover:bg-gray-50 dark:hover:bg-[#12121a] cursor-pointer ${
-                      isSelected ? 'bg-emerald-50/30 dark:bg-[#00FF66]/5 border-l-4 border-l-emerald-500 dark:border-l-[#00FF66]' : ''
+                    className={`w-full text-left p-4 transition-all flex items-start gap-4 hover:bg-gray-50 dark:hover:bg-slate-900 cursor-pointer ${
+                      isSelected ? 'bg-blue-50/30 dark:bg-blue-600/5 border-l-4 border-l-blue-500 dark:border-l-blue-500' : ''
                     }`}
                   >
                     <div className="flex-1 min-w-0 space-y-1.5">
@@ -535,7 +535,7 @@ const EarningsView = () => {
                           {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(order.status) && (
                             <span className={`text-[9px] font-extrabold px-1.5 py-0.5 rounded select-none ${
                               order.mart_payout_status === 'paid'
-                                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-[#00FF66]'
+                                ? 'bg-blue-600/10 border border-blue-500/20 text-blue-600 dark:text-blue-500'
                                 : 'bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400'
                             }`}>
                               {order.mart_payout_status === 'paid' ? 'Settled' : 'Unpaid'}
@@ -543,7 +543,7 @@ const EarningsView = () => {
                           )}
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full select-none ${
                             ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(order.status)
-                              ? 'bg-emerald-50 dark:bg-[#00FF66]/10 border border-emerald-100 dark:border-[#00FF66]/20 text-emerald-600 dark:text-[#00FF66]'
+                              ? 'bg-blue-50 dark:bg-blue-600/10 border border-blue-100 dark:border-blue-500/20 text-blue-600 dark:text-blue-500'
                               : 'bg-red-500/10 border border-red-500/20 text-red-500 dark:text-red-400'
                           }`}>
                             {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(order.status) ? 'Delivered' : 'Cancelled'}
@@ -573,15 +573,15 @@ const EarningsView = () => {
         </div>
 
         {/* Right Panel: Detail View */}
-        <div className={`flex-1 min-w-0 border border-gray-200 dark:border-[#181824] bg-white dark:bg-[#0c0c14] rounded-2xl flex flex-col lg:h-full lg:overflow-hidden shadow-sm ${!selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex-1 min-w-0 border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col lg:h-full lg:overflow-hidden shadow-sm ${!selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
           {selectedPastOrder ? (
             <div className="h-full flex flex-col overflow-hidden">
               {/* Panel Header */}
-              <div className="p-4 md:p-6 border-b border-gray-200 dark:border-[#181824] bg-gradient-to-b from-gray-50/80 to-gray-50/40 dark:from-[#0e0e18]/80 dark:to-[#0e0e18]/40 backdrop-blur-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
+              <div className="p-4 md:p-6 border-b border-gray-200 dark:border-slate-800 bg-gradient-to-b from-gray-50/80 to-gray-50/40 dark:from-slate-900/80 dark:to-slate-900/40 backdrop-blur-md flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 min-w-0">
                 <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
                   <button
                     onClick={() => setSelectedPastOrderId(null)}
-                    className="lg:hidden flex-shrink-0 p-2.5 bg-gray-150 hover:bg-gray-200 dark:bg-[#1a1a24] dark:hover:bg-[#252538] border border-gray-205 dark:border-white/5 rounded-xl text-gray-700 dark:text-gray-300 transition-colors cursor-pointer flex items-center justify-center mr-1"
+                    className="lg:hidden flex-shrink-0 p-2.5 bg-gray-150 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-750 border border-gray-205 dark:border-white/5 rounded-xl text-gray-700 dark:text-gray-300 transition-colors cursor-pointer flex items-center justify-center mr-1"
                     title="Back to Earnings List"
                   >
                     <ArrowLeft className="w-5 h-5" />
@@ -605,21 +605,21 @@ const EarningsView = () => {
                 <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 flex-wrap justify-between sm:justify-end border-t sm:border-t-0 border-gray-100 dark:border-white/5 pt-2.5 sm:pt-0">
                   <button
                     onClick={() => printInvoice(selectedPastOrder)}
-                    className="bg-white hover:bg-gray-50 border border-gray-250 dark:bg-[#1a1a24] dark:border-white/5 dark:hover:bg-[#252538] text-gray-750 dark:text-gray-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
+                    className="bg-white hover:bg-gray-50 border border-gray-250 dark:bg-slate-800 dark:border-white/5 dark:hover:bg-slate-750 text-gray-750 dark:text-gray-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shrink-0"
                     title="Print Receipt"
                   >
                     <Printer className="w-3.5 h-3.5 text-gray-400" />
                     <span>Print Receipt</span>
                   </button>
                   {selectedPastOrder.payment_method && (
-                    <span className="bg-gray-100 dark:bg-[#1a1a24] text-gray-750 dark:text-gray-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-xl border border-gray-200 dark:border-white/5 flex items-center gap-1 uppercase select-none shrink-0">
+                    <span className="bg-gray-100 dark:bg-slate-800 text-gray-750 dark:text-gray-300 text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-xl border border-gray-200 dark:border-white/5 flex items-center gap-1 uppercase select-none shrink-0">
                       <CreditCard className="w-3.5 h-3.5 text-gray-400" />
                       {selectedPastOrder.payment_method}
                     </span>
                   )}
                   <span className={`text-[10px] sm:text-xs font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-xl uppercase tracking-wider select-none shrink-0 border ${
                     ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(selectedPastOrder.status)
-                      ? 'bg-emerald-50 dark:bg-[#00FF66]/10 border-emerald-100 dark:border-[#00FF66]/20 text-emerald-600 dark:text-[#00FF66]'
+                      ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-100 dark:border-blue-500/20 text-blue-600 dark:text-blue-500'
                       : 'bg-red-500/10 border-red-500/20 text-red-500'
                   }`}>
                     {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(selectedPastOrder.status) ? 'Delivered' : 'Cancelled'}
@@ -630,11 +630,11 @@ const EarningsView = () => {
               {/* Panel Body */}
               <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 lg:flex-1 lg:overflow-y-auto custom-scrollbar">
                 {/* Customer Information */}
-                <div className="bg-gray-50 dark:bg-[#0e0e18] border border-gray-200 dark:border-[#181824] rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-3.5">
+                <div className="bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-3 sm:space-y-3.5">
                   <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-550 uppercase tracking-wider">Customer Details</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                     <div className="flex items-center gap-2.5">
-                      <div className="bg-gray-200 dark:bg-[#1a1a26] p-2 rounded-lg text-gray-500 shrink-0">
+                      <div className="bg-gray-200 dark:bg-slate-850 p-2 rounded-lg text-gray-500 shrink-0">
                         <User className="w-4 h-4" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -643,7 +643,7 @@ const EarningsView = () => {
                       </div>
                     </div>
                     <div className="flex items-center gap-2.5">
-                      <div className="bg-gray-200 dark:bg-[#1a1a26] p-2 rounded-lg text-gray-500 shrink-0">
+                      <div className="bg-gray-200 dark:bg-slate-850 p-2 rounded-lg text-gray-500 shrink-0">
                         <Phone className="w-4 h-4" />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -657,28 +657,28 @@ const EarningsView = () => {
                 {/* Order Items Table */}
                 <div className="space-y-2 sm:space-y-3">
                   <h4 className="text-[10px] sm:text-xs font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">Items Ordered</h4>
-                  <div className="border border-gray-200 dark:border-[#181824] rounded-2xl bg-white dark:bg-[#0c0c14] overflow-hidden">
+                  <div className="border border-gray-200 dark:border-slate-800 rounded-2xl bg-white dark:bg-slate-900 overflow-hidden">
                     <table className="w-full text-left text-xs sm:text-sm border-collapse">
                       <thead>
-                        <tr className="bg-gray-50 dark:bg-[#0e0e18] border-b border-gray-200 dark:border-[#181824] text-[9px] sm:text-[10px] font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">
+                        <tr className="bg-gray-50 dark:bg-slate-900 border-b border-gray-200 dark:border-slate-800 text-[9px] sm:text-[10px] font-bold text-gray-400 dark:text-gray-555 uppercase tracking-wider">
                           <th className="p-2 sm:p-4">Item Details</th>
                           <th className="p-2 sm:p-4 text-center">Qty</th>
                           <th className="p-2 sm:p-4 text-right">Price</th>
                           <th className="p-2 sm:p-4 text-right">Total</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-150 dark:divide-[#181824]">
+                      <tbody className="divide-y divide-gray-150 dark:divide-slate-800">
                         {selectedPastOrder.order_items?.map((item) => (
-                           <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-[#09090f] transition-all">
+                           <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-850 transition-all">
                             <td className="p-2 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
                               {item.product_image ? (
                                 <img 
                                   src={item.product_image} 
                                   alt={item.product_name} 
-                                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg bg-gray-55 dark:bg-[#0c0c14] border border-gray-105 dark:border-white/5 shrink-0"
+                                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg bg-gray-55 dark:bg-slate-900 border border-gray-105 dark:border-white/5 shrink-0"
                                 />
                               ) : (
-                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 dark:bg-[#1a1a24] flex items-center justify-center text-gray-400 border border-gray-105 dark:border-white/5 shrink-0">
+                                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 border border-gray-105 dark:border-white/5 shrink-0">
                                   <Package className="w-4 h-4 sm:w-5 h-5" />
                                 </div>
                               )}
@@ -705,7 +705,7 @@ const EarningsView = () => {
                 {/* Summary calculations */}
                 <div className="flex flex-col gap-4 w-full sm:w-80 ml-auto">
                   {/* Order Grand Total Summary */}
-                  <div className="border border-gray-200 dark:border-[#181824] rounded-2xl p-4 sm:p-5 space-y-2.5 sm:space-y-3 bg-gray-50/30 dark:bg-[#0a0a0f]/40">
+                  <div className="border border-gray-200 dark:border-slate-800 rounded-2xl p-4 sm:p-5 space-y-2.5 sm:space-y-3 bg-gray-50/30 dark:bg-slate-950/40">
                     <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                       <span>Subtotal</span>
                       <span className="font-bold text-gray-800 dark:text-gray-205">₹{selectedPastOrder.subtotal?.toFixed(2)}</span>
@@ -720,7 +720,7 @@ const EarningsView = () => {
                       <span>Delivery Partner Fee</span>
                       <span className="font-bold text-gray-800 dark:text-gray-205">₹{selectedPastOrder.delivery_fee?.toFixed(2)}</span>
                     </div>
-                    <div className="h-px bg-gray-200 dark:bg-[#1e1e2d] my-1"></div>
+                    <div className="h-px bg-gray-200 dark:bg-slate-700 my-1"></div>
                     <div className="flex justify-between text-sm font-extrabold text-gray-900 dark:text-white">
                       <span>Grand Total</span>
                       <span>₹{selectedPastOrder.total?.toFixed(2)}</span>
@@ -729,8 +729,8 @@ const EarningsView = () => {
 
                   {/* Partner Net Payout Breakdown */}
                   {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(selectedPastOrder.status) && (
-                    <div className="bg-emerald-500/5 dark:bg-[#00FF66]/5 border border-emerald-500/10 dark:border-[#00FF66]/10 rounded-2xl p-4 sm:p-5 space-y-2.5">
-                      <h4 className="text-[10px] font-black text-emerald-800 dark:text-[#00FF66] uppercase tracking-wider">Supermarket Payout Details</h4>
+                    <div className="bg-blue-600/5 dark:bg-blue-600/5 border border-blue-500/10 dark:border-blue-500/10 rounded-2xl p-4 sm:p-5 space-y-2.5">
+                      <h4 className="text-[10px] font-black text-blue-800 dark:text-blue-500 uppercase tracking-wider">Supermarket Payout Details</h4>
                       
                       <div className="flex justify-between text-xs text-gray-650 dark:text-gray-400">
                         <span>Gross Sales (Subtotal)</span>
@@ -742,20 +742,20 @@ const EarningsView = () => {
                         <span className="font-bold">-₹{(selectedPastOrder.subtotal * (commissionPct / 100))?.toFixed(2)}</span>
                       </div>
                       
-                      <div className="h-px bg-emerald-500/10 dark:bg-[#00FF66]/10 my-1"></div>
+                      <div className="h-px bg-blue-600/10 dark:bg-blue-600/10 my-1"></div>
                       
-                      <div className="flex justify-between text-sm font-extrabold text-emerald-600 dark:text-[#00FF66]">
+                      <div className="flex justify-between text-sm font-extrabold text-blue-600 dark:text-blue-500">
                         <span>Net Payout</span>
                         <span>₹{(selectedPastOrder.subtotal * (1 - commissionPct / 100))?.toFixed(2)}</span>
                       </div>
 
                       {/* Payout Status Section */}
-                      <div className="mt-2 pt-2 border-t border-emerald-500/10 dark:border-[#00FF66]/10 flex flex-col gap-1.5 text-xs">
+                      <div className="mt-2 pt-2 border-t border-blue-500/10 dark:border-blue-500/10 flex flex-col gap-1.5 text-xs">
                         <div className="flex items-center justify-between">
                           <span className="text-gray-500 dark:text-gray-400">Payout Status</span>
                           <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase select-none ${
                             selectedPastOrder.mart_payout_status === 'paid'
-                              ? 'bg-emerald-500/10 text-emerald-600 dark:text-[#00FF66] border border-emerald-500/20'
+                              ? 'bg-blue-600/10 text-blue-600 dark:text-blue-500 border border-blue-500/20'
                               : 'bg-amber-500/10 text-amber-600 dark:text-amber-450 border border-amber-500/20'
                           }`}>
                             {selectedPastOrder.mart_payout_status === 'paid' ? 'Paid / Settled' : 'Unpaid / Pending'}
@@ -787,11 +787,11 @@ const EarningsView = () => {
                         )}
                       </div>
                       
-                      <div className="bg-white/50 dark:bg-black/20 rounded-xl p-2 border border-emerald-500/5 dark:border-[#00FF66]/5 text-center">
+                      <div className="bg-white/50 dark:bg-black/20 rounded-xl p-2 border border-blue-500/5 dark:border-blue-500/5 text-center">
                         <p className="text-[9px] text-gray-500 dark:text-gray-400 font-semibold italic">
                           Formula: Gross Sales - {commissionPct}% Commission = Net Payout
                         </p>
-                        <p className="text-[9px] font-mono text-emerald-700 dark:text-[#00FF66] mt-0.5">
+                        <p className="text-[9px] font-mono text-blue-700 dark:text-blue-500 mt-0.5">
                           ₹{selectedPastOrder.subtotal?.toFixed(2)} - ₹{(selectedPastOrder.subtotal * (commissionPct / 100))?.toFixed(2)} = ₹{(selectedPastOrder.subtotal * (1 - commissionPct / 100))?.toFixed(2)}
                         </p>
                       </div>

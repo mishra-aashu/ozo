@@ -164,9 +164,9 @@ const StoreProfileView = () => {
   if (!currentMart) return null
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 dark:bg-[#070709] scrollbar-hide pb-16 lg:pb-6">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 dark:bg-slate-950 scrollbar-hide pb-16 lg:pb-6">
       <div className="max-w-4xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-[#1e1e2d]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-slate-700">
           <div>
             <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Profile Settings</h2>
             <p className="text-xs sm:text-sm text-gray-505 dark:text-gray-400 mt-1">Configure your public store details, banners, operating status, badges, and guarantees.</p>
@@ -174,7 +174,7 @@ const StoreProfileView = () => {
           <button
             onClick={() => handleSaveStoreProfile()}
             disabled={isSavingProfile}
-            className="px-6 py-3 bg-emerald-500 dark:bg-[#00FF66] hover:bg-emerald-600 dark:hover:bg-[#00E055] disabled:opacity-50 text-white dark:text-black text-sm font-black rounded-xl transition-all shadow-lg shadow-emerald-500/10 dark:shadow-[#00FF66]/15 hover:shadow-emerald-500/20 dark:hover:shadow-[#00FF66]/25 flex items-center gap-2 active:scale-95 select-none cursor-pointer"
+            className="px-6 py-3 bg-blue-600 dark:bg-blue-600 hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 text-white dark:text-black text-sm font-black rounded-xl transition-all shadow-lg shadow-blue-500/10 dark:shadow-blue-500/15 hover:shadow-blue-500/20 dark:hover:shadow-blue-500/25 flex items-center gap-2 active:scale-95 select-none cursor-pointer"
           >
             {isSavingProfile ? (
               <>
@@ -193,7 +193,7 @@ const StoreProfileView = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Column: Logo & Banner */}
           <div className="lg:col-span-1 space-y-6">
-            <div className="bg-white dark:bg-[#0c0c12] border border-gray-200 dark:border-[#18181f] rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
               <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Branding Assets</h3>
 
               {/* Banner Upload */}
@@ -227,7 +227,7 @@ const StoreProfileView = () => {
                   </div>
                   <label className="flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
                     {uploadingProfileBanner ? (
-                      <RefreshCw className="w-5 h-5 animate-spin text-emerald-500 dark:text-[#00FF66]" />
+                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500 dark:text-blue-500" />
                     ) : (
                       <>
                         <Upload className="w-5 h-5 text-gray-400 mb-1" />
@@ -259,7 +259,7 @@ const StoreProfileView = () => {
                   </div>
                   <label className="flex-1 flex flex-col items-center justify-center border border-dashed border-gray-300 dark:border-white/10 rounded-2xl py-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-white/5 transition-colors">
                     {uploadingProfileLogo ? (
-                      <RefreshCw className="w-5 h-5 animate-spin text-emerald-500 dark:text-[#00FF66]" />
+                      <RefreshCw className="w-5 h-5 animate-spin text-blue-500 dark:text-blue-500" />
                     ) : (
                       <>
                         <Upload className="w-5 h-5 text-gray-400 mb-1" />
@@ -280,7 +280,7 @@ const StoreProfileView = () => {
 
           {/* Middle Column: Basic Details & Hours */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-[#0c0c12] border border-gray-200 dark:border-[#18181f] rounded-3xl p-6 shadow-sm space-y-6">
+            <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-6">
               <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Details</h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -291,7 +291,7 @@ const StoreProfileView = () => {
                     type="text"
                     value={profileForm.name}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white"
                   />
                 </div>
 
@@ -302,7 +302,7 @@ const StoreProfileView = () => {
                     type="text"
                     value={profileForm.phone}
                     onChange={(e) => setProfileForm(prev => ({ ...prev, phone: e.target.value }))}
-                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] text-gray-900 dark:text-white"
+                    className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white"
                   />
                 </div>
               </div>
@@ -315,7 +315,7 @@ const StoreProfileView = () => {
                   value={profileForm.description}
                   onChange={(e) => setProfileForm(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Describe your store and offers..."
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] text-gray-900 dark:text-white resize-none"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white resize-none"
                 />
               </div>
 
@@ -326,7 +326,7 @@ const StoreProfileView = () => {
                   type="text"
                   value={profileForm.address}
                   onChange={(e) => setProfileForm(prev => ({ ...prev, address: e.target.value }))}
-                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] text-gray-900 dark:text-white"
+                  className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/5 rounded-xl text-sm font-bold focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 text-gray-900 dark:text-white"
                 />
               </div>
 
@@ -341,7 +341,7 @@ const StoreProfileView = () => {
                     type="button"
                     onClick={() => setProfileForm(prev => ({ ...prev, is_24_7: !prev.is_24_7 }))}
                     className={`w-12 h-6.5 rounded-full p-1 transition-all flex items-center cursor-pointer ${
-                      profileForm.is_24_7 ? 'bg-emerald-500 dark:bg-[#00FF66]' : 'bg-gray-300 dark:bg-white/10'
+                      profileForm.is_24_7 ? 'bg-blue-600 dark:bg-blue-600' : 'bg-gray-300 dark:bg-white/10'
                     }`}
                   >
                     <div className={`w-4.5 h-4.5 rounded-full bg-white transition-all transform ${
@@ -365,7 +365,7 @@ const StoreProfileView = () => {
                               opens_at: `${newHour}:${currentMin}:00`
                             }))
                           }}
-                          className="flex-1 min-w-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] cursor-pointer"
+                          className="flex-1 min-w-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
                         >
                           {Array.from({ length: 24 }).map((_, i) => {
                             const h = String(i).padStart(2, '0')
@@ -387,7 +387,7 @@ const StoreProfileView = () => {
                               opens_at: `${currentHour}:${newMin}:00`
                             }))
                           }}
-                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] cursor-pointer"
+                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
                         >
                           {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) => (
                             <option key={m} value={m} className="bg-white dark:bg-black text-gray-900 dark:text-white">{m}</option>
@@ -408,7 +408,7 @@ const StoreProfileView = () => {
                               closes_at: `${newHour}:${currentMin}:00`
                             }))
                           }}
-                          className="flex-1 min-w-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] cursor-pointer"
+                          className="flex-1 min-w-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
                         >
                           {Array.from({ length: 24 }).map((_, i) => {
                             const h = String(i).padStart(2, '0')
@@ -430,7 +430,7 @@ const StoreProfileView = () => {
                               closes_at: `${currentHour}:${newMin}:00`
                             }))
                           }}
-                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] cursor-pointer"
+                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
                         >
                           {Array.from({ length: 24 }).map((_, i) => {
                             const h = String(i).padStart(2, '0')
@@ -452,7 +452,7 @@ const StoreProfileView = () => {
                               closes_at: `${currentHour}:${newMin}:00`
                             }))
                           }}
-                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] cursor-pointer"
+                          className="w-16 sm:w-20 shrink-0 bg-white dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl px-2 py-2 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 cursor-pointer"
                         >
                           {['00', '05', '10', '15', '20', '25', '30', '35', '40', '45', '50', '55'].map((m) => (
                             <option key={m} value={m} className="bg-white dark:bg-black text-gray-900 dark:text-white">{m}</option>
@@ -469,7 +469,7 @@ const StoreProfileView = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Badges Custom Config */}
-          <div className="bg-white dark:bg-[#0c0c12] border border-gray-200 dark:border-[#18181f] rounded-3xl p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
             <div>
               <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Badges / Highlights</h3>
               <p className="text-xs text-gray-555 dark:text-gray-400 mt-0.5">These small highlight badges are shown under the store title.</p>
@@ -521,7 +521,7 @@ const StoreProfileView = () => {
                     }
                   }
                 }}
-                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                className="flex-1 px-3 py-2 bg-gray-50 dark:bg-black border border-gray-200 dark:border-white/5 rounded-xl text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
               />
               <button
                 type="button"
@@ -566,7 +566,7 @@ const StoreProfileView = () => {
                         ...prev,
                         badges: [...(prev.badges || []), sug]
                       }))}
-                      className="text-[10px] font-bold px-2 py-1 bg-gray-50 hover:bg-gray-150 dark:bg-black dark:hover:bg-[#12121a] border border-gray-200 dark:border-white/5 rounded-lg text-gray-600 dark:text-zinc-400 hover:border-emerald-500/30 dark:hover:border-[#00FF66]/30 transition-colors cursor-pointer"
+                      className="text-[10px] font-bold px-2 py-1 bg-gray-50 hover:bg-gray-150 dark:bg-black dark:hover:bg-slate-900 border border-gray-200 dark:border-white/5 rounded-lg text-gray-600 dark:text-zinc-400 hover:border-blue-500/30 dark:hover:border-blue-500/30 transition-colors cursor-pointer"
                     >
                       + {sug}
                     </button>
@@ -577,7 +577,7 @@ const StoreProfileView = () => {
           </div>
 
           {/* Guarantees Custom Config */}
-          <div className="bg-white dark:bg-[#0c0c12] border border-gray-200 dark:border-[#18181f] rounded-3xl p-6 shadow-sm space-y-4">
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">Store Guarantees</h3>
@@ -592,7 +592,7 @@ const StoreProfileView = () => {
                     { title: 'New Guarantee', description: 'Describe your guarantee here.', icon: 'shield' }
                   ]
                 }))}
-                className="px-3 py-1 bg-emerald-500 dark:bg-[#00FF66] text-white dark:text-black hover:bg-emerald-600 dark:hover:bg-[#00E055] rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
+                className="px-3 py-1 bg-blue-600 dark:bg-blue-600 text-white dark:text-black hover:bg-blue-700 dark:hover:bg-blue-500 rounded-xl text-xs font-black uppercase tracking-wider transition-all cursor-pointer"
               >
                 + Add Card
               </button>
@@ -627,7 +627,7 @@ const StoreProfileView = () => {
                           return { ...prev, guarantees: newGuar }
                         })
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                     />
                   </div>
 
@@ -645,7 +645,7 @@ const StoreProfileView = () => {
                           return { ...prev, guarantees: newGuar }
                         })
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] resize-none"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 resize-none"
                     />
                   </div>
 
@@ -662,7 +662,7 @@ const StoreProfileView = () => {
                           return { ...prev, guarantees: newGuar }
                         })
                       }}
-                      className="w-full px-2.5 py-1.5 bg-white dark:bg-[#070709] border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-950 dark:text-zinc-100 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66]"
+                      className="w-full px-2.5 py-1.5 bg-white dark:bg-slate-950 border border-gray-200 dark:border-white/10 rounded-lg text-xs font-bold text-gray-950 dark:text-zinc-100 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500"
                     >
                       <option value="shield">Shield (Security)</option>
                       <option value="shield-check">Shield Check (Quality Check)</option>

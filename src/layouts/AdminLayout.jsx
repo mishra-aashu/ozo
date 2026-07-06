@@ -207,7 +207,7 @@ const AdminLayout = () => {
       icon: Bike,
       label: 'Rider Settings',
       path: '/admin/riders',
-      color: 'text-emerald-500 dark:text-[#00FF66]',
+      color: 'text-emerald-500 dark:text-blue-500',
       bgColor: 'bg-emerald-100 dark:bg-emerald-950/30',
     },
     {
