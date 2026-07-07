@@ -11,7 +11,8 @@ import {
   Smartphone,
   Check,
   ChevronRight,
-  ArrowLeft
+  ArrowLeft,
+  SunDim
 } from 'lucide-react'
 import { supabase, uploadCatalogImage } from '../lib/supabase'
 import toast from 'react-hot-toast'
@@ -50,6 +51,7 @@ export default function PhoneCapture() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState('')
   const [completed, setCompleted] = useState(false)
+  const [isTooDark, setIsTooDark] = useState(false)
 
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -190,6 +192,53 @@ export default function PhoneCapture() {
     }
     return () => stopCamera()
   }, [activeStep, session, completed, loading, sessionError])
+
+  // Brightness check loop for low-lighting warning & lock
+  useEffect(() => {
+    if (!isCameraActive || photos[activeStep]) {
+      setIsTooDark(false)
+      return
+    }
+
+    const checkBrightness = () => {
+      if (!videoRef.current) return
+      const video = videoRef.current
+      if (video.readyState < 2) return
+
+      // Create an offscreen small canvas for performance
+      const canvas = document.createElement('canvas')
+      canvas.width = 40
+      canvas.height = 30
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      try {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+        let totalLuminance = 0
+        for (let i = 0; i < imgData.length; i += 4) {
+          const r = imgData[i]
+          const g = imgData[i + 1]
+          const b = imgData[i + 2]
+          // Standard relative luminance formula
+          const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+          totalLuminance += luminance
+        }
+        const avgBrightness = totalLuminance / (imgData.length / 4)
+        
+        // Threshold: 65 is optimized for clear product photos
+        setIsTooDark(avgBrightness < 65)
+      } catch (err) {
+        console.warn('Error reading brightness:', err)
+      }
+    }
+
+    const interval = setInterval(checkBrightness, 600)
+    return () => {
+      clearInterval(interval)
+      setIsTooDark(false)
+    }
+  }, [isCameraActive, activeStep, photos])
 
   // Helper to upload single photo instantly
   const uploadCapturedPhoto = async (dataUrl, stepIndex) => {
@@ -473,12 +522,22 @@ export default function PhoneCapture() {
           </div>
           {!photos[activeStep] ? (
             isCameraActive ? (
-              <video 
-                ref={videoRef} 
-                className="w-full h-full object-cover" 
-                playsInline 
-                muted 
-              />
+              <>
+                <video 
+                  ref={videoRef} 
+                  className="w-full h-full object-cover" 
+                  playsInline 
+                  muted 
+                />
+                {isTooDark && (
+                  <div className="absolute inset-x-4 top-16 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg animate-pulse z-10 select-none text-center">
+                    <SunDim className="w-4 h-4 animate-spin text-amber-350 shrink-0" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      Too Dark! Move product to a brighter area
+                    </span>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center p-6 text-center text-gray-500">
                 <Loader2 className="w-8 h-8 animate-spin text-ozo-red mb-2" />
@@ -582,10 +641,15 @@ export default function PhoneCapture() {
               {/* Center: iOS/Android-style Camera Shutter Button */}
               <button 
                 onClick={capturePhoto}
-                disabled={!isCameraActive || syncing}
-                className="w-16 h-16 rounded-full border-4 border-white flex items-center justify-center active:scale-90 disabled:opacity-40 disabled:scale-100 transition-all focus:outline-none shadow-lg shadow-white/5"
+                disabled={!isCameraActive || syncing || isTooDark}
+                className={`w-16 h-16 rounded-full border-4 flex items-center justify-center transition-all focus:outline-none ${
+                  isTooDark 
+                    ? 'border-rose-900 bg-rose-950/40 text-rose-500 cursor-not-allowed shadow-none'
+                    : 'border-white bg-transparent active:scale-90 disabled:opacity-40 disabled:scale-100 shadow-lg shadow-white/5 cursor-pointer'
+                }`}
+                title={isTooDark ? "Capture locked: Lighting is too dark" : "Capture photo"}
               >
-                <div className="w-11 h-11 rounded-full bg-white" />
+                <div className={`w-11 h-11 rounded-full transition-all ${isTooDark ? 'bg-rose-900/60' : 'bg-white'}`} />
               </button>
 
               {/* Right: Empty spacer to align items symmetrically */}
