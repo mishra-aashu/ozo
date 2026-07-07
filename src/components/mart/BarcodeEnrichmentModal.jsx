@@ -553,14 +553,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-fadeIn">
       {/* Hidden canvas for capturing */}
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="relative w-full max-w-lg bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-slate-900 bg-slate-950/50">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-900 bg-gray-50/50 dark:bg-slate-950/50">
           <div className="flex items-center gap-3">
             {step === 2 && (
               <button 
@@ -572,26 +572,26 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     setStep(1)
                   }
                 }}
-                className="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-gray-400 hover:text-white transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-900 hover:bg-gray-250 dark:hover:bg-slate-850 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
             <div>
-              <h3 className="font-bold text-white text-base">
+              <h3 className="font-bold text-gray-900 dark:text-white text-base">
                 {step === 1 && 'Step 1: Product Details'}
                 {step === 2 && mode === 'select' && 'Step 2: Select Photo Method'}
                 {step === 2 && mode === 'webcam' && 'Webcam Photo Capture'}
                 {step === 2 && mode === 'phone_qr' && 'Phone Camera QR Sync'}
               </h3>
-              <p className="text-xs text-gray-500 truncate max-w-[280px]">
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[280px]">
                 {editedProduct.name || `Barcode: ${barcode}`}
               </p>
             </div>
           </div>
           <button 
             onClick={onClose}
-            className="p-1.5 rounded-lg bg-slate-900/60 hover:bg-slate-850 text-gray-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-slate-900/60 dark:hover:bg-slate-850 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors cursor-pointer"
           >
             <X className="w-4.5 h-4.5" />
           </button>
@@ -601,14 +601,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             STEP 1: PRODUCT INFO DETAILS FORM
            ========================================== */}
         {step === 1 && (
-          <div className="p-6 space-y-5">
-            <div className="p-4 rounded-2xl bg-indigo-500/5 border border-indigo-500/10 flex gap-3">
-              <div className="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center shrink-0">
+          <div className="p-6 space-y-5 bg-white dark:bg-slate-900">
+            <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 flex gap-3">
+              <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                 <Layers className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-0.5">master catalog registration</h4>
-                <p className="text-xs text-gray-400 leading-relaxed">
+                <h4 className="text-xs font-bold text-indigo-600 dark:text-indigo-400 uppercase tracking-wider mb-0.5">master catalog registration</h4>
+                <p className="text-xs text-gray-650 dark:text-gray-400 leading-relaxed">
                   Provide catalog details, pricing, and category mapping. This information will be saved directly to the Master Catalog.
                 </p>
               </div>
@@ -617,12 +617,12 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             <div className="space-y-4">
               {/* Product Name */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Product Name *</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Product Name *</label>
                 <input
                   type="text"
                   value={editedProduct.name}
                   onChange={(e) => setEditedProduct({ ...editedProduct, name: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
                   placeholder="e.g. Coca Cola 2.25 L"
                   required
                 />
@@ -630,7 +630,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
               {/* Category */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Category *</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Category *</label>
                 {loadingCategories ? (
                   <div className="flex items-center gap-2 text-xs text-gray-500">
                     <Loader2 className="w-4 h-4 animate-spin text-indigo-500" />
@@ -639,33 +639,33 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 ) : (
                   <div className="relative" ref={dropdownRef}>
                     <button
-                      type="button"
-                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                      className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all flex items-center justify-between cursor-pointer font-medium text-left"
+                       type="button"
+                       onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                       className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all flex items-center justify-between cursor-pointer font-medium text-left"
                     >
-                      <span className={selectedCategoryName ? "text-white" : "text-gray-500"}>
+                      <span className={selectedCategoryName ? "text-gray-900 dark:text-white" : "text-gray-400"}>
                         {selectedCategoryName || "Select Category"}
                       </span>
                       <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
                     </button>
 
                     {isDropdownOpen && (
-                      <div className="absolute z-50 w-full mt-1.5 bg-slate-900 border border-slate-800 rounded-xl shadow-2xl p-2 space-y-2 max-h-60 overflow-hidden flex flex-col animate-fade-in">
+                      <div className="absolute z-50 w-full mt-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-xl shadow-2xl p-2 space-y-2 max-h-60 overflow-hidden flex flex-col animate-fade-in">
                         <div className="relative">
                           <input
                             type="text"
                             placeholder="Search category..."
                             value={categorySearchQuery}
                             onChange={(e) => setCategorySearchQuery(e.target.value)}
-                            className="w-full bg-slate-950 border border-slate-800/80 focus:border-indigo-500/30 rounded-lg pl-8 pr-8 py-1.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-1 focus:ring-indigo-500/10"
+                            className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800/80 focus:border-indigo-500/30 rounded-lg pl-8 pr-8 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:ring-1 focus:ring-indigo-500/10"
                             autoFocus
                           />
-                          <Search className="w-3.5 h-3.5 text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                          <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute left-2.5 top-1/2 -translate-y-1/2" />
                           {categorySearchQuery && (
                             <button
                               type="button"
                               onClick={() => setCategorySearchQuery("")}
-                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white transition-colors"
+                              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -674,7 +674,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
                         <div className="overflow-y-auto max-h-40 space-y-0.5 pr-1 no-scrollbar">
                           {filteredCategories.length === 0 ? (
-                            <div className="text-gray-500 text-xs py-3 text-center">No categories found</div>
+                            <div className="text-gray-400 dark:text-gray-550 text-xs py-3 text-center">No categories found</div>
                           ) : (
                             filteredCategories.map((cat) => (
                               <button
@@ -687,8 +687,8 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                                 }}
                                 className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-all duration-150 flex items-center justify-between ${
                                   editedProduct.category_id === cat.id
-                                    ? 'bg-indigo-600 text-white font-bold'
-                                    : 'text-gray-300 hover:bg-slate-900/60 hover:text-white'
+                                    ? 'bg-indigo-650 dark:bg-indigo-600 text-white font-bold'
+                                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-slate-900/60'
                                 }`}
                               >
                                 <span>{cat.name}</span>
@@ -706,22 +706,22 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               {/* Brand & Unit (Side by Side) */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Brand Name</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Brand Name</label>
                   <input
                     type="text"
                     value={editedProduct.brand}
                     onChange={(e) => setEditedProduct({ ...editedProduct, brand: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
                     placeholder="e.g. Coca-Cola"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Product Unit</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Product Unit</label>
                   <input
                     type="text"
                     value={editedProduct.unit}
                     onChange={(e) => setEditedProduct({ ...editedProduct, unit: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
                     placeholder="e.g. 1 unit, 500g, 1L"
                   />
                 </div>
@@ -730,25 +730,25 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               {/* Price & MRP (Side by Side) */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Mart Price (₹) *</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Mart Price (₹) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={editedProduct.price}
                     onChange={(e) => setEditedProduct({ ...editedProduct, price: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
                     placeholder="0.00"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Mart MRP (₹) *</label>
+                  <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Mart MRP (₹) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={editedProduct.mrp}
                     onChange={(e) => setEditedProduct({ ...editedProduct, mrp: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                    className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
                     placeholder="0.00"
                     required
                   />
@@ -757,12 +757,12 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
               {/* Stock Quantity */}
               <div>
-                <label className="block text-xs font-bold text-gray-400 mb-1.5 uppercase tracking-wide">Stock Quantity *</label>
+                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 mb-1.5 uppercase tracking-wide">Stock Quantity *</label>
                 <input
                   type="number"
                   value={editedProduct.stock_quantity}
                   onChange={(e) => setEditedProduct({ ...editedProduct, stock_quantity: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-white placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
+                  className="w-full bg-gray-50 dark:bg-slate-900 border border-gray-200 dark:border-slate-850 focus:border-indigo-500/50 rounded-xl px-4 py-2.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/10 transition-all font-medium"
                   placeholder="0"
                   required
                 />
@@ -770,11 +770,11 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             </div>
 
             {/* Step 1 Footer */}
-            <div className="border-t border-slate-900 pt-4 flex justify-between items-center mt-6">
+            <div className="border-t border-gray-100 dark:border-slate-850 pt-4 flex justify-between items-center mt-6">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 border border-slate-800 bg-transparent hover:bg-slate-900 text-xs font-bold text-gray-400 hover:text-white rounded-xl transition-all cursor-pointer"
+                className="px-4 py-2 border border-gray-200 dark:border-slate-800 bg-transparent hover:bg-gray-50 dark:hover:bg-slate-900 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-xl transition-all cursor-pointer"
               >
                 Cancel
               </button>
@@ -800,15 +800,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             </div>
           </div>
         )}
-
-        {/* ==========================================
+                {/* ==========================================
             STEP 2: OPTION CHOOSE METHOD SCREEN
            ========================================== */}
          {step === 2 && mode === 'select' && (
-          <div className="p-6">
-            <div className="mb-6 p-4 rounded-2xl bg-slate-900/40 border border-slate-850">
-              <h4 className="text-xs font-black uppercase tracking-wider text-orange-400 mb-1">Photo Enrichment Required</h4>
-              <p className="text-xs text-gray-450 leading-relaxed">
+          <div className="p-6 bg-white dark:bg-slate-900">
+            <div className="mb-6 p-4 rounded-2xl bg-amber-50/50 dark:bg-slate-900/40 border border-amber-100 dark:border-slate-850">
+              <h4 className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-orange-400 mb-1">Photo Enrichment Required</h4>
+              <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
                 This product has no catalog image. Capture or upload 3 view angles to activate it in the customer store.
               </p>
             </div>
@@ -817,28 +816,28 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               {/* Option A: Laptop Webcam */}
               <button
                 onClick={() => setMode('webcam')}
-                className="w-full p-4 bg-slate-800/40 hover:bg-slate-800/85 border border-slate-850 hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] cursor-pointer text-left flex items-center justify-between group"
+                className="w-full p-4 bg-gray-50/50 hover:bg-gray-100/70 dark:bg-slate-800/40 dark:hover:bg-slate-800/85 border border-gray-200 dark:border-slate-850 hover:border-gray-300 dark:hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] cursor-pointer text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-500 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-blue-600/10 text-blue-600 dark:text-blue-500 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
                     <Camera className="w-5 h-5" />
                   </div>
                   <div>
-                    <h5 className="font-bold text-white text-sm">Use Laptop Webcam</h5>
-                    <p className="text-xs text-gray-500 mt-0.5">Take photos instantly using your laptop's built-in webcam</p>
+                    <h5 className="font-bold text-gray-900 dark:text-white text-sm">Use Laptop Webcam</h5>
+                    <p className="text-xs text-gray-500 dark:text-gray-450 mt-0.5">Take photos instantly using your laptop's built-in webcam</p>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
               </button>
 
               {/* Option B: Mobile via QR */}
               <button
                 onClick={startPhoneCaptureSession}
                 disabled={creatingSession}
-                className="w-full p-4 bg-slate-800/40 hover:bg-slate-800/85 border border-slate-850 hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] disabled:opacity-50 cursor-pointer text-left flex items-center justify-between group"
+                className="w-full p-4 bg-gray-50/50 hover:bg-gray-100/70 dark:bg-slate-800/40 dark:hover:bg-slate-800/85 border border-gray-200 dark:border-slate-850 hover:border-gray-300 dark:hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] disabled:opacity-50 cursor-pointer text-left flex items-center justify-between group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
+                  <div className="w-10 h-10 rounded-xl bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center group-hover:scale-105 transition-transform duration-200 shrink-0">
                     {creatingSession ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
                     ) : (
@@ -846,13 +845,13 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     )}
                   </div>
                   <div>
-                    <h5 className="font-bold text-white text-sm">
+                    <h5 className="font-bold text-gray-900 dark:text-white text-sm">
                       {creatingSession ? 'Creating sync session...' : 'Use Mobile Phone Camera'}
                     </h5>
-                    <p className="text-xs text-gray-500 mt-0.5">Scan QR code to capture HD photos from your phone camera</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-450 mt-0.5">Scan QR code to capture HD photos from your phone camera</p>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-gray-400 transition-colors" />
+                <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
               </button>
             </div>
           </div>
@@ -862,20 +861,20 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             STEP 2: WEBCAM CAPTURE SCREEN
            ========================================== */}
         {step === 2 && mode === 'webcam' && (
-          <div className="p-6">
+          <div className="p-6 bg-white dark:bg-slate-900">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-widest text-blue-500">
+              <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-500">
                 Step {webcamStep + 1} of 3: {WEBCAM_STEPS[webcamStep].title}
               </span>
-              <span className="text-xs text-gray-500 font-bold">
+              <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">
                 {barcode}
               </span>
             </div>
-            <p className="text-xs text-gray-400 mb-4 bg-slate-900/50 p-3 rounded-xl border border-slate-850">
+            <p className="text-xs text-gray-650 dark:text-gray-450 mb-4 bg-gray-50 dark:bg-slate-900/50 p-3 rounded-xl border border-gray-200 dark:border-slate-850">
               {WEBCAM_STEPS[webcamStep].desc}
             </p>
 
-            <div className="relative aspect-video bg-slate-950 border border-slate-850 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
+            <div className="relative aspect-video bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
               {!webcamPhotos[webcamStep] ? (
                 isCameraActive ? (
                   <video 
@@ -885,8 +884,8 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     muted 
                   />
                 ) : (
-                  <div className="flex flex-col items-center justify-center text-gray-500 p-4">
-                    <Loader2 className="w-7 h-7 animate-spin text-blue-500 mb-2" />
+                  <div className="flex flex-col items-center justify-center text-gray-450 dark:text-gray-500 p-4">
+                    <Loader2 className="w-7 h-7 animate-spin text-blue-550 mb-2" />
                     <p className="text-xs font-medium">Starting local camera stream...</p>
                   </div>
                 )
@@ -899,10 +898,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               )}
 
               {cameraError && !webcamPhotos[webcamStep] && (
-                <div className="absolute inset-0 bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center">
-                  <AlertCircle className="w-8 h-8 text-amber-500 mb-2" />
-                  <p className="text-xs text-gray-400 mb-4">{cameraError}</p>
-                  <label className="bg-slate-850 hover:bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer flex items-center gap-2">
+                <div className="absolute inset-0 bg-gray-100/95 dark:bg-slate-950/95 flex flex-col items-center justify-center p-6 text-center">
+                  <AlertCircle className="w-8 h-8 text-amber-600 dark:text-amber-500 mb-2" />
+                  <p className="text-xs text-gray-600 dark:text-gray-400 mb-4">{cameraError}</p>
+                  <label className="bg-gray-200 dark:bg-slate-850 hover:bg-gray-300 dark:hover:bg-slate-800 text-gray-800 dark:text-white text-xs font-bold px-4 py-2 rounded-xl cursor-pointer flex items-center gap-2">
                     <Upload className="w-4 h-4" />
                     Select File
                     <input 
@@ -916,7 +915,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               )}
 
               {webcamUploading && (
-                <div className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6">
+                <div className="absolute inset-0 bg-black/60 dark:bg-slate-950/80 backdrop-blur-sm flex flex-col items-center justify-center p-6">
                   <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-3" />
                   <p className="text-xs font-bold text-white">{webcamProgress}</p>
                 </div>
@@ -930,10 +929,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   key={stepInfo.key} 
                   className={`p-2 rounded-xl border text-center transition-all ${
                     webcamStep === idx 
-                      ? 'bg-slate-900/60 border-blue-500/50' 
+                      ? 'bg-gray-50 dark:bg-slate-900/60 border-blue-550/50' 
                       : webcamPhotos[idx] 
-                        ? 'bg-blue-950/10 border-blue-500/20 text-blue-500' 
-                        : 'bg-transparent border-slate-900 text-gray-600'
+                        ? 'bg-blue-50 dark:bg-blue-950/10 border-blue-500/20 text-blue-600 dark:text-blue-500' 
+                        : 'bg-transparent border-gray-100 dark:border-slate-900 text-gray-400 dark:text-gray-600'
                   }`}
                 >
                   <div className="text-[10px] font-black uppercase tracking-wider mb-0.5">
@@ -941,9 +940,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   </div>
                   <div className="flex items-center justify-center h-4">
                     {webcamPhotos[idx] ? (
-                      <Check className="w-3.5 h-3.5 text-blue-400" />
+                      <Check className="w-3.5 h-3.5 text-blue-500 dark:text-blue-400" />
                     ) : (
-                      <div className={`w-1.5 h-1.5 rounded-full ${webcamStep === idx ? 'bg-blue-600 animate-ping' : 'bg-slate-800'}`} />
+                      <div className={`w-1.5 h-1.5 rounded-full ${webcamStep === idx ? 'bg-blue-600 animate-ping' : 'bg-gray-200 dark:bg-slate-800'}`} />
                     )}
                   </div>
                 </div>
@@ -956,7 +955,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 type="button"
                 onClick={handleWebcamPrev}
                 disabled={webcamStep === 0}
-                className="px-4 py-2.5 rounded-xl border border-slate-800 text-xs font-bold text-gray-400 hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-all cursor-pointer"
+                className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-800 text-xs font-bold text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 disabled:hover:text-gray-400 transition-all cursor-pointer"
               >
                 Back
               </button>
@@ -964,7 +963,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               <div className="flex items-center gap-3">
                 {!webcamPhotos[webcamStep] ? (
                   <>
-                    <label className="bg-slate-900 hover:bg-slate-800 text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-850 cursor-pointer flex items-center gap-2">
+                    <label className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-250 dark:border-slate-850 cursor-pointer flex items-center gap-2">
                       <Upload className="w-3.5 h-3.5" />
                       Upload
                       <input 
@@ -978,7 +977,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     <button
                       onClick={capturePhoto}
                       disabled={!isCameraActive}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-slate-950 text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all active:scale-[0.97] cursor-pointer"
+                      className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all active:scale-[0.97] cursor-pointer"
                     >
                       <Camera className="w-4 h-4" />
                       Capture
@@ -988,7 +987,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   <>
                     <button
                       onClick={retakePhoto}
-                      className="bg-slate-900 hover:bg-slate-800 text-gray-355 text-xs font-bold px-4 py-2.5 rounded-xl border border-slate-850 flex items-center gap-2 cursor-pointer"
+                      className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-250 dark:border-slate-850 flex items-center gap-2 cursor-pointer"
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
                       Retake
@@ -997,14 +996,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                     {webcamStep === 2 ? (
                       <button
                         onClick={handleWebcamSave}
-                        className="bg-gradient-to-r from-blue-500 to-blue-500 text-slate-950 text-xs font-black px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/10 flex items-center gap-2 cursor-pointer"
+                        className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-xs font-black px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/10 flex items-center gap-2 cursor-pointer"
                       >
                         Save Images
                       </button>
                     ) : (
                       <button
                         onClick={handleWebcamNext}
-                        className="bg-blue-505 hover:bg-blue-600 text-slate-950 text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
+                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
                       >
                         Next Step
                         <ChevronRight className="w-4 h-4" />
@@ -1021,7 +1020,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             STEP 2: PHONE QR SCAN SCREEN
            ========================================== */}
         {step === 2 && mode === 'phone_qr' && (
-          <div className="p-6 flex flex-col items-center">
+          <div className="p-6 bg-white dark:bg-slate-900 flex flex-col items-center">
             {/* Inline Scanner Line Animation Styles */}
             <style>{`
               @keyframes qr-scan-pulse {
@@ -1034,43 +1033,43 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             `}</style>
             
             {/* Countdown / Session Status indicator */}
-            <div className="w-full flex justify-between items-center mb-5 bg-amber-500/5 border border-amber-500/10 p-3 rounded-2xl">
+            <div className="w-full flex justify-between items-center mb-5 bg-amber-50/50 dark:bg-amber-500/5 border border-amber-100 dark:border-amber-500/10 p-3 rounded-2xl">
               <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-550" />
-                <span className="text-xs font-bold text-amber-500/80">QR Session Expiry</span>
+                <Clock className="w-4 h-4 text-amber-600 dark:text-amber-550" />
+                <span className="text-xs font-bold text-amber-700 dark:text-amber-500/80">QR Session Expiry</span>
               </div>
-              <span className="text-xs font-mono font-black text-amber-400 bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-500/15">
+              <span className="text-xs font-mono font-black text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-500/15">
                 {formatTime(timeLeft)}
               </span>
             </div>
 
             {/* QR Code Container */}
             {sessionStatus === 'expired' ? (
-              <div className="p-6 bg-red-950/20 border border-red-500/20 text-center rounded-2xl mb-5 w-full">
-                <AlertCircle className="w-8 h-8 text-red-500 mx-auto mb-2" />
-                <h4 className="font-bold text-sm text-red-400 mb-1">Session Expired</h4>
-                <p className="text-xs text-gray-500 mb-4">The 5-minute capture window has closed.</p>
+              <div className="p-6 bg-red-50 dark:bg-red-950/20 border border-red-100 dark:border-red-500/20 text-center rounded-2xl mb-5 w-full">
+                <AlertCircle className="w-8 h-8 text-red-600 dark:text-red-500 mx-auto mb-2" />
+                <h4 className="font-bold text-sm text-red-700 dark:text-red-400 mb-1">Session Expired</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-500 mb-4">The 5-minute capture window has closed.</p>
                 <button
                   onClick={startPhoneCaptureSession}
-                  className="bg-slate-900 hover:bg-slate-800 text-xs font-bold px-4 py-2 rounded-xl text-white transition-all cursor-pointer"
+                  className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-xs font-bold px-4 py-2 rounded-xl text-gray-800 dark:text-white transition-all cursor-pointer"
                 >
                   Regenerate QR Code
                 </button>
               </div>
             ) : (sessionStatus === 'joined' || sessionStatus === 'uploading') ? (
-              <div className="w-full max-w-[280px] p-6 bg-blue-600/5 border border-blue-500/20 rounded-3xl text-center mb-5 flex flex-col items-center justify-center space-y-4 min-h-[220px] shadow-[0_0_30px_rgba(16,185,129,0.08)]">
-                <div className="w-16 h-16 bg-blue-600/10 border border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-500 relative">
+              <div className="w-full max-w-[280px] p-6 bg-blue-50/60 dark:bg-blue-600/5 border border-blue-100 dark:border-blue-500/20 rounded-3xl text-center mb-5 flex flex-col items-center justify-center space-y-4 min-h-[220px] shadow-[0_0_30px_rgba(37,99,235,0.08)]">
+                <div className="w-16 h-16 bg-blue-100 dark:bg-blue-600/10 border border-blue-200 dark:border-blue-500/20 rounded-2xl flex items-center justify-center text-blue-600 dark:text-blue-500 relative">
                   <span className="absolute inset-0 rounded-2xl bg-blue-600/20 animate-ping opacity-75" />
                   <Smartphone className="w-8 h-8" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-white text-sm">Phone Connected</h4>
-                  <p className="text-[11px] text-gray-400 mt-1 leading-relaxed">
+                  <h4 className="font-bold text-gray-900 dark:text-white text-sm">Phone Connected</h4>
+                  <p className="text-[11px] text-gray-650 dark:text-gray-400 mt-1 leading-relaxed">
                     Capture session is active. Take photos on your phone and watch them sync live.
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-blue-500 bg-emerald-950/40 px-3 py-1 rounded-full border border-blue-500/15 animate-pulse">
-                  <span className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-blue-605 dark:text-blue-500 bg-blue-50 dark:bg-emerald-950/40 px-3 py-1 rounded-full border border-blue-100 dark:border-blue-500/15 animate-pulse">
+                  <span className="w-1.5 h-1.5 bg-emerald-500 dark:bg-emerald-400 rounded-full" />
                   Live Syncing
                 </div>
               </div>
@@ -1089,10 +1088,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
             {/* Instructions */}
             <div className="text-center max-w-sm mb-6">
-              <h4 className="font-bold text-white text-sm mb-1">
+              <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-1">
                 {(sessionStatus === 'joined' || sessionStatus === 'uploading') ? 'Live Catalog Capture' : 'Scan with Phone Camera'}
               </h4>
-              <p className="text-xs text-gray-400 leading-relaxed">
+              <p className="text-xs text-gray-650 dark:text-gray-400 leading-relaxed">
                 {(sessionStatus === 'joined' || sessionStatus === 'uploading') 
                   ? 'Keep this window open. As you press capture on your phone, images appear here instantly.'
                   : 'Scan the QR code to open the HD capture portal on your phone. Stream will sync automatically.'}
@@ -1100,31 +1099,31 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             </div>
 
             {/* Live Status indicator */}
-            <div className="w-full border-t border-slate-900/60 pt-5 mt-2">
+            <div className="w-full border-t border-gray-100 dark:border-slate-850 pt-5 mt-2">
               <div className="flex items-center justify-between mb-4">
-                <span className="text-xs text-gray-400 font-bold">Live Stream Status</span>
+                <span className="text-xs text-gray-550 dark:text-gray-400 font-bold">Live Stream Status</span>
                 <span className="text-xs flex items-center gap-1.5 font-bold">
                   {sessionStatus === 'waiting' && (
-                    <span className="text-indigo-400 flex items-center gap-1.5">
+                    <span className="text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
                       <span className="w-2 h-2 bg-indigo-500 rounded-full animate-ping" />
                       Waiting for scan...
                     </span>
                   )}
                   {sessionStatus === 'joined' && (
-                    <span className="text-blue-500 flex items-center gap-1.5">
+                    <span className="text-blue-600 dark:text-blue-500 flex items-center gap-1.5">
                       <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
                       Phone Connected
                     </span>
                   )}
                   {sessionStatus === 'uploading' && (
-                    <span className="text-amber-455 flex items-center gap-1.5">
+                    <span className="text-amber-600 dark:text-amber-500 flex items-center gap-1.5">
                       <span className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
                       Syncing photos...
                     </span>
                   )}
                   {sessionStatus === 'completed' && (
-                    <span className="text-blue-500 flex items-center gap-1.5">
-                      <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse" />
+                    <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                      <span className="w-2 h-2 bg-emerald-555 rounded-full animate-pulse" />
                       Perfect! Saving...
                     </span>
                   )}
@@ -1137,9 +1136,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   const hasPhoto = phonePhotos[idx]
                   const labels = ["Front View", "Back View", "Barcode Label"]
                   const icons = [
-                    <Package className="w-4 h-4 text-indigo-400/40" />,
-                    <Layers className="w-4 h-4 text-indigo-400/40" />,
-                    <Tag className="w-4 h-4 text-indigo-400/40" />
+                    <Package className="w-4 h-4 text-indigo-600/30 dark:text-indigo-400/40" />,
+                    <Layers className="w-4 h-4 text-indigo-600/30 dark:text-indigo-400/40" />,
+                    <Tag className="w-4 h-4 text-indigo-600/30 dark:text-indigo-400/40" />
                   ]
                   
                   return (
@@ -1147,8 +1146,8 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                       key={idx} 
                       className={`h-16 rounded-xl border flex flex-col items-center justify-center transition-all overflow-hidden relative ${
                         hasPhoto 
-                          ? 'border-blue-500/40 bg-blue-950/10' 
-                          : 'border-slate-800/80 bg-slate-950/20'
+                          ? 'border-blue-500/40 bg-blue-50/50 dark:bg-blue-950/10' 
+                          : 'border-gray-205 dark:border-slate-800/80 bg-gray-50/30 dark:bg-slate-950/20'
                       }`}
                     >
                       {hasPhoto ? (
@@ -1158,14 +1157,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                             alt={labels[idx]} 
                             className="w-full h-full object-cover"
                           />
-                          <div className="absolute top-1 right-1 bg-blue-600 text-slate-950 p-0.5 rounded-full shadow-md">
+                          <div className="absolute top-1 right-1 bg-blue-600 text-white p-0.5 rounded-full shadow-md">
                             <Check className="w-2.5 h-2.5 font-black" />
                           </div>
                         </div>
                       ) : (
                         <div className="flex flex-col items-center gap-1">
                           {icons[idx]}
-                          <span className="text-[8px] font-black text-gray-500 uppercase tracking-wider">{labels[idx].split(' ')[0]}</span>
+                          <span className="text-[8px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider">{labels[idx].split(' ')[0]}</span>
                         </div>
                       )}
                     </div>
