@@ -3,7 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useLocationStore } from '../stores/locationStore';
 import { useCartStore } from '../stores/cartStore';
 
-export const PAGINATION_LIMIT = 10;
+export const PAGINATION_LIMIT = 24;
 
 export function useProductPagination() {
   const [products, setProducts] = useState([]);
@@ -137,6 +137,12 @@ export function useProductPagination() {
       }
 
       // Ordering: Use standard order if explicitly specified, otherwise preserve relevance-based FTS search order
+      if (!options.search) {
+        query = query
+          .order('is_available', { ascending: false })
+          .order('is_upcoming', { ascending: true });
+      }
+
       if (options.sortBy && options.sortBy !== 'relevance') {
         const ascending = options.ascending !== undefined ? options.ascending : true;
         query = query.order(options.sortBy, { ascending });
@@ -237,10 +243,10 @@ export function useProductPagination() {
         console.warn('[useProductPagination] City override fetch failed:', cityErr);
       }
 
-      // Sort: in-stock first, out-of-stock last
+      // Sort: in-stock first, out-of-stock / upcoming last
       formatted.sort((a, b) => {
-        const aOOS = !a.is_available || (a.quantity_available !== undefined && a.quantity_available === 0);
-        const bOOS = !b.is_available || (b.quantity_available !== undefined && b.quantity_available === 0);
+        const aOOS = !a.is_available || (a.quantity_available !== undefined && a.quantity_available === 0) || a.is_upcoming;
+        const bOOS = !b.is_available || (b.quantity_available !== undefined && b.quantity_available === 0) || b.is_upcoming;
         if (aOOS && !bOOS) return 1;
         if (!aOOS && bOOS) return -1;
         return 0;
@@ -254,7 +260,7 @@ export function useProductPagination() {
           const uniqueFormatted = formatted.filter(p => !existingIds.has(p.id));
           return [...prev, ...uniqueFormatted];
         });
-        setHasMore(formatted.length === PAGINATION_LIMIT);
+        setHasMore((data || []).length === PAGINATION_LIMIT);
         offsetRef.current = currentOffset + PAGINATION_LIMIT;
       }
     } catch (err) {
