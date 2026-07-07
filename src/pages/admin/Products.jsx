@@ -42,6 +42,7 @@ import toast from 'react-hot-toast'
 import ImageUpload from '../../components/ImageUpload'
 import BulkControlPanel from '../../components/admin/BulkControlPanel'
 import ProductCityManager from '../../components/admin/ProductCityManager'
+import ConfirmModal from '../../components/ConfirmModal'
 
 // Helper to generate unique slugs
 const generateSlug = (name) => {
@@ -220,6 +221,10 @@ const Products = () => {
   const [customSql, setCustomSql] = useState('')
   const [sqlResult, setSqlResult] = useState(null)
   const [runningSql, setRunningSql] = useState(false)
+
+  // Custom Confirmation Modal states
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [confirmRejectProduct, setConfirmRejectProduct] = useState(null)
 
   const generateProductSql = () => {
     const name = (formData.name || '').trim().replace(/'/g, "''")
@@ -1071,10 +1076,13 @@ WHERE id = '${editingProduct.id}';`
     }
   }
 
-  // Delete product
-  const handleDeleteProduct = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return
+  // Delete product (opens custom confirmation modal)
+  const handleDeleteProduct = (productId) => {
+    setConfirmDeleteId(productId)
+  }
 
+  // Actual logic to delete product after confirmation
+  const executeDeleteProduct = async (productId) => {
     setUpdatingProductId(productId)
     try {
       const { error } = await supabaseAdmin
@@ -1091,6 +1099,7 @@ WHERE id = '${editingProduct.id}';`
       toast.error('Failed to delete product')
     } finally {
       setUpdatingProductId(null)
+      setConfirmDeleteId(null)
     }
   }
 
@@ -1124,9 +1133,13 @@ WHERE id = '${editingProduct.id}';`
     }
   }
 
-  // Reject proposed details and images
-  const handleRejectProduct = async (product) => {
-    if (!window.confirm('Are you sure you want to REJECT the new proposed details and photos?')) return
+  // Reject proposed details and images (opens custom confirmation modal)
+  const handleRejectProduct = (product) => {
+    setConfirmRejectProduct(product)
+  }
+
+  // Actual logic to reject proposed details after confirmation
+  const executeRejectProduct = async (product) => {
     try {
       setUpdatingProductId(product.id)
       const { error } = await supabaseAdmin
@@ -1148,6 +1161,7 @@ WHERE id = '${editingProduct.id}';`
       toast.error('Reject failed: ' + err.message)
     } finally {
       setUpdatingProductId(null)
+      setConfirmRejectProduct(null)
     }
   }
 
@@ -2476,6 +2490,32 @@ WHERE id = '${editingProduct.id}';`
           />
         </div>
       )}
+
+      {/* Delete Product Custom Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmDeleteId !== null}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => executeDeleteProduct(confirmDeleteId)}
+        title="Delete Product"
+        message="Are you sure you want to delete this product? This action cannot be undone and will permanently remove this product from all mart inventories."
+        confirmText="Delete Product"
+        cancelText="Cancel"
+        isDanger={true}
+        isLoading={updatingProductId === confirmDeleteId}
+      />
+
+      {/* Reject Changes Custom Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmRejectProduct !== null}
+        onClose={() => setConfirmRejectProduct(null)}
+        onConfirm={() => executeRejectProduct(confirmRejectProduct)}
+        title="Reject Proposed Changes"
+        message={`Are you sure you want to REJECT the new proposed details and photos for "${confirmRejectProduct?.name || 'this product'}"?`}
+        confirmText="Reject Changes"
+        cancelText="Cancel"
+        isDanger={true}
+        isLoading={updatingProductId === confirmRejectProduct?.id}
+      />
     </div>
   )
 }
