@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import Papa from 'papaparse'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
+import { matchProductsForImport } from '../../lib/rpc'
 import { useMartStore } from '../../stores/martStore'
 import {
   Upload,
@@ -16,7 +17,8 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Camera
+  Camera,
+  Clock
 } from 'lucide-react'
 import BarcodeEnrichmentModal from '../../components/mart/BarcodeEnrichmentModal'
 
@@ -106,7 +108,7 @@ export default function BulkImportWizard({
   fetchInventory,
   onClose
 }) {
-  const { importInventoryRows, currentMart } = useMartStore()
+  const { importInventoryRows, importPendingProducts, currentMart } = useMartStore()
 
   // State local to BulkImportWizard
   const [importStep, setImportStep] = useState('upload') // 'upload', 'mapping', 'preview'
@@ -329,9 +331,7 @@ export default function BulkImportWizard({
       setImportStep('mapping')
     }
     reader.readAsText(file)
-  }
-
-  const runProductMatching = async () => {
+  }  const runProductMatching = async () => {
     setIsMatching(true)
     try {
       const identifierIndex = csvHeaders.indexOf(columnMapping.product_identifier)
@@ -367,7 +367,7 @@ export default function BulkImportWizard({
         if (val === undefined || val === null || val.toString().trim() === '') return 0
         const cleaned = val.toString().trim()
           .replace(/[,\s]/g, '')
-          .replace(/[A-Za-z]/g, '')
+          .replace(/[A-Za-5]/g, '')
         const num = parseInt(cleaned, 10)
         return isNaN(num) ? 0 : num
       }
@@ -404,103 +404,53 @@ export default function BulkImportWizard({
         return
       }
 
-      let allCatalogProducts = []
-      let from = 0
-      const limit = 1000
-      while (true) {
-        const { data, error } = await supabase
-          .from('products')
-          .select('id, name, slug, brand, unit, image_url, price, mrp, blinkit_product_id, barcode')
-          .range(from, from + limit - 1)
-        if (error) throw error
-        if (!data || data.length === 0) break
-        allCatalogProducts.push(...data)
-        if (data.length < limit) break
-        from += limit
-      }
+      // Map rows for server-side matching
+      const payload = mappedRows.map(r => ({
+        barcode: r.identifier,
+        name: r.name
+      }))
 
-      const barcodeMap = new Map()
-      const blinkitIdMap = new Map()
-      const slugMap = new Map()
-      const uuidMap = new Map()
-      const nameMap = new Map()
+      // Call our Postgres function
+      const matchResponse = await matchProductsForImport(payload)
 
-      allCatalogProducts.forEach(p => {
-        if (p.barcode) barcodeMap.set(p.barcode.toString().trim().toLowerCase(), p)
-        if (p.blinkit_product_id) blinkitIdMap.set(p.blinkit_product_id.toString().trim().toLowerCase(), p)
-        if (p.slug) slugMap.set(p.slug.toString().trim().toLowerCase(), p)
-        if (p.name) nameMap.set(p.name.toString().trim().toLowerCase(), p)
-        if (p.id) uuidMap.set(p.id.toLowerCase(), p)
+      const resolved = []
+
+      // 1. Process matched rows
+      matchResponse.matched.forEach((match, idx) => {
+        const original = mappedRows.find(r => r.identifier === match.csv_data.barcode && r.name === match.csv_data.name) || match.csv_data
+        resolved.push({
+          index: idx + 1,
+          identifier: original.identifier,
+          stock_quantity: original.stock_quantity,
+          mart_price: original.mart_price,
+          mart_mrp: original.mart_mrp,
+          name: original.name,
+          brand: original.brand,
+          unit: original.unit,
+          product: match.product,
+          matchConfidence: match.match_confidence,
+          matchType: match.match_confidence === 'high' ? 'Exact Match' : 'Fuzzy Match',
+          status: 'matched'
+        })
       })
 
-      const resolved = mappedRows.map((r, idx) => {
-        const iden = r.identifier.toString().trim()
-        const key = iden.toLowerCase()
-
-        let matched = null
-        let matchType = null
-
-        if (barcodeMap.has(key)) {
-          matched = barcodeMap.get(key)
-          matchType = 'Barcode'
-        } else if (blinkitIdMap.has(key)) {
-          matched = blinkitIdMap.get(key)
-          matchType = 'Blinkit ID'
-        } else if (slugMap.has(key)) {
-          matched = slugMap.get(key)
-          matchType = 'Slug'
-        } else if (uuidMap.has(key)) {
-          matched = uuidMap.get(key)
-          matchType = 'Database ID'
-        } else if (nameMap.has(key)) {
-          matched = nameMap.get(key)
-          matchType = 'Exact Name'
-        }
-
-        if (!matched && iden.length >= 4) {
-          const isNumeric = /^\d+$/.test(iden)
-          
-          matched = allCatalogProducts.find(p => {
-            const barcode = p.barcode?.toString() || ''
-            const blinkitId = p.blinkit_product_id?.toString() || ''
-            
-            if (isNumeric) {
-              if (barcode.endsWith(iden) || blinkitId.endsWith(iden)) return true
-            }
-            if (barcode.includes(iden) || blinkitId.includes(iden)) return true
-            return false
-          }) || null
-
-          if (matched) {
-            matchType = 'Partial Code Match'
-          }
-        }
-
-        if (!matched && r.name && r.name.length >= 3) {
-          const cleanName = r.name.toLowerCase().trim()
-          matched = allCatalogProducts.find(p => {
-            const catalogName = p.name?.toLowerCase() || ''
-            return catalogName.includes(cleanName) || cleanName.includes(catalogName)
-          }) || null
-
-          if (matched) {
-            matchType = 'Similar Name Match'
-          }
-        }
-
-        return {
-          index: idx + 1,
-          identifier: r.identifier,
-          stock_quantity: r.stock_quantity,
-          mart_price: r.mart_price,
-          mart_mrp: r.mart_mrp,
-          name: r.name,
-          brand: r.brand,
-          unit: r.unit,
-          product: matched,
-          matchType: matchType,
-          status: matched ? 'matched' : 'not_found'
-        }
+      // 2. Process unmatched rows
+      matchResponse.unmatched.forEach((unmatched, idx) => {
+        const original = mappedRows.find(r => r.identifier === unmatched.barcode && r.name === unmatched.name) || unmatched
+        resolved.push({
+          index: matchResponse.matched.length + idx + 1,
+          identifier: original.identifier,
+          stock_quantity: original.stock_quantity,
+          mart_price: original.mart_price,
+          mart_mrp: original.mart_mrp,
+          name: original.name,
+          brand: original.brand,
+          unit: original.unit,
+          product: null,
+          matchConfidence: 'none',
+          matchType: null,
+          status: 'not_found'
+        })
       })
 
       setPreviewRows(resolved)
@@ -546,21 +496,8 @@ export default function BulkImportWizard({
     toast.success('Sample template downloaded!')
   }
 
-  const executeBulkImport = async () => {
+  const executeBulkImport = async (mode = 'all') => {
     try {
-      const unenrichedRows = previewRows.filter(
-        r => r.status === 'not_found' && r.name && r.name.trim() !== ''
-      )
-
-      if (unenrichedRows.length > 0) {
-        // Automatically open the enrichment modal for the first product that needs photos/metadata!
-        setPhotoModalData(unenrichedRows[0])
-        toast(`Please add details and photos for "${unenrichedRows[0].name}"`, {
-          icon: 'ℹ️'
-        })
-        return
-      }
-
       const matchedRows = previewRows.filter(r => r.status === 'matched').map(r => ({
         product_id: r.product.id,
         stock_quantity: r.stock_quantity,
@@ -569,16 +506,48 @@ export default function BulkImportWizard({
         is_available: r.stock_quantity > 0
       }))
 
-      if (matchedRows.length === 0) {
-        toast.error('No products to import')
+      const unmatchedRows = previewRows.filter(r => r.status === 'not_found')
+
+      if (mode === 'all' && unmatchedRows.length > 0) {
+        // Automatically open the enrichment modal for the first product that needs photos/metadata!
+        const firstUnenriched = unmatchedRows.find(r => r.name && r.name.trim() !== '')
+        if (firstUnenriched) {
+          setPhotoModalData(firstUnenriched)
+          toast(`Please add details and photos for "${firstUnenriched.name}"`, {
+            icon: 'ℹ️'
+          })
+          return
+        } else {
+          toast.error('Cannot enrich products without names. Map the Product Name column first.')
+          return
+        }
+      }
+
+      if (matchedRows.length === 0 && mode === 'matched_only') {
+        toast.error('No matched products to import')
         return
       }
 
-      toast.loading(`Importing ${allRowsToImport.length} products to inventory...`, { id: 'import-loading' })
-      const res = await importInventoryRows(allRowsToImport)
+      toast.loading(`Processing import...`, { id: 'import-loading' })
+
+      let importSuccess = true
+      if (matchedRows.length > 0) {
+        const res = await importInventoryRows(matchedRows)
+        if (!res.success) {
+          importSuccess = false
+        }
+      }
+
+      if (importSuccess && mode === 'queue_unmatched' && unmatchedRows.length > 0) {
+        const res = await importPendingProducts(unmatchedRows)
+        if (!res.success) {
+          importSuccess = false
+        }
+      }
+
       toast.dismiss('import-loading')
 
-      if (res.success) {
+      if (importSuccess) {
         if (onClose) onClose()
         setCsvFileName('')
         setCsvHeaders([])
@@ -590,7 +559,7 @@ export default function BulkImportWizard({
           fetchInventory(1, 20)
         }
         
-        if (localToolState.online && startLocalPipeline) {
+        if (localToolState?.online && startLocalPipeline) {
           setTimeout(() => {
             startLocalPipeline()
           }, 800)
@@ -598,6 +567,7 @@ export default function BulkImportWizard({
       }
     } catch (err) {
       console.error('Bulk import failed:', err)
+      toast.close('import-loading')
       toast.error('Bulk import failed: ' + err.message)
     }
   }
@@ -1086,7 +1056,7 @@ export default function BulkImportWizard({
             </button>
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white font-sans">Review & Match Preview</h3>
-              <p className="text-xs text-gray-500">Cross-referencing global catalog</p>
+              <p className="text-xs text-gray-550">Cross-referencing global catalog</p>
             </div>
           </div>
 
@@ -1104,10 +1074,10 @@ export default function BulkImportWizard({
         </div>
 
         {((matchRate < 10 && hasUnmappedName) || !columnMapping.product_name || !columnMapping.product_identifier) && previewRows.length > 0 && (
-          <div className="mb-6 bg-red-500/5 dark:bg-[red-550/5 border border-red-500/15 dark:border-[red-550/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 dark:bg-[red-550" />
+          <div className="mb-6 bg-red-500/5 dark:bg-red-500/5 border border-red-500/15 dark:border-red-500/20 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-red-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="absolute top-0 left-0 w-1.5 h-full bg-red-500 dark:bg-red-500" />
             <div className="flex gap-4">
-              <div className="p-2 bg-red-500/10 dark:bg-[red-550/10 rounded-xl text-red-500 dark:text-[red-550 shrink-0 self-start">
+              <div className="p-2 bg-red-500/10 dark:bg-red-500/10 rounded-xl text-red-500 dark:text-red-500 shrink-0 self-start">
                 <AlertTriangle className="w-5 h-5 animate-pulse" />
               </div>
               <div className="flex-1">
@@ -1166,25 +1136,6 @@ export default function BulkImportWizard({
           </div>
         )}
 
-        {!hasUnmappedName && previewRows.some(r => r.status !== 'matched') && (
-          <div className="mb-6 bg-blue-500/5 border border-blue-500/15 rounded-2xl p-5 font-sans relative overflow-hidden shadow-lg shadow-blue-500/5 animate-in fade-in slide-in-from-top-4 duration-300">
-            <div className="absolute top-0 left-0 w-1.5 h-full bg-blue-500 dark:bg-blue-400" />
-            <div className="flex gap-4">
-              <div className="p-2 bg-blue-500/10 dark:bg-blue-400/10 rounded-xl text-blue-550 dark:text-blue-400 shrink-0 self-start">
-                <Info className="w-5 h-5" />
-              </div>
-              <div className="flex-1">
-                <h4 className="text-sm font-extrabold text-blue-850 dark:text-blue-300 tracking-wide uppercase flex items-center gap-2 mb-1.5">
-                  New Catalog Products Detected ({previewRows.filter(r => r.status !== 'matched').length} Products)
-                </h4>
-                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed font-semibold">
-                  These products were not found in the global catalog. Since you mapped the <strong>Product Name</strong> column, they will be automatically created as new custom products in your store.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Preview Scrollable Table */}
         <div className="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden flex flex-col mb-4 min-h-[250px] lg:min-h-0">
           <div className="flex-1 overflow-auto">
@@ -1229,10 +1180,16 @@ export default function BulkImportWizard({
                           )}
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.product.name}</p>
+                              <p className="font-bold text-sm text-gray-900 dark:text-gray-250">{r.product.name}</p>
                               {r.matchType && (
-                                <span className="px-1.5 py-0.5 bg-blue-600/10 text-blue-600 dark:text-blue-500 border border-blue-500/20 text-[9px] font-extrabold uppercase rounded tracking-wider">
-                                  Matched by {r.matchType}
+                                <span className={`px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded tracking-wider border ${
+                                  r.matchConfidence === 'high'
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20'
+                                    : r.matchConfidence === 'medium'
+                                      ? 'bg-blue-500/10 text-blue-650 dark:text-blue-500 border-blue-500/20'
+                                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'
+                                }`}>
+                                  {r.matchType} ({r.matchConfidence})
                                 </span>
                               )}
                             </div>
@@ -1263,7 +1220,7 @@ export default function BulkImportWizard({
                           )}
                           <div>
                             <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-500 flex items-center gap-1.5 flex-wrap">
+                            <p className="text-xs text-gray-500 dark:text-gray-555 flex items-center gap-1.5 flex-wrap">
                               <span>Unit: {r.unit || '1 unit'} | Brand: {r.brand || 'Ozo Choice'}</span>
                               {r.image_url && (
                                 <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-600/10 text-blue-600 dark:text-blue-500 text-[9px] font-black uppercase tracking-wider border border-blue-500/20">
@@ -1296,24 +1253,50 @@ export default function BulkImportWizard({
                           )}
                         </div>
                       ) : (
-                        <span className="text-gray-500 text-xs italic">Inherit Catalog (₹{r.product ? parseFloat(r.product.price).toFixed(2) : '0.00'})</span>
+                        <span className="text-gray-500 text-xs italic font-medium">Inherit Catalog {r.product ? `(₹${parseFloat(r.product.price).toFixed(2)})` : ''}</span>
                       )}
                     </td>
                     <td className="p-4">
                       {r.status === 'matched' ? (
-                        <span className="px-3 py-1 text-xs font-bold text-blue-500 bg-blue-600/10 rounded-full border border-blue-500/20">
-                          Ready to Import
-                        </span>
+                        <div className="flex flex-col gap-1.5">
+                          <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full border text-center w-max ${
+                            r.matchConfidence === 'high'
+                              ? 'text-emerald-600 bg-emerald-50 border-emerald-250 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-800/30'
+                              : r.matchConfidence === 'medium'
+                                ? 'text-blue-650 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950/20 dark:border-blue-800/30'
+                                : 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/20 dark:border-amber-800/30'
+                          }`}>
+                            {r.matchConfidence === 'high' 
+                              ? 'Ready' 
+                              : r.matchConfidence === 'medium'
+                                ? 'Fuzzy Ready'
+                                : 'Verify'}
+                          </span>
+                          <button
+                            onClick={() => setPhotoModalData(r)}
+                            className="text-[10px] text-gray-550 hover:text-blue-600 font-bold text-left underline cursor-pointer"
+                          >
+                            Override Match
+                          </button>
+                        </div>
                       ) : r.name && r.name.trim() !== '' ? (
-                        <span className="px-3 py-1 text-xs font-bold text-blue-500 bg-blue-500/10 rounded-full border border-blue-500/20">
-                          Will Create Product
-                        </span>
+                        <div className="flex flex-col gap-1.5">
+                          <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full dark:text-indigo-400 dark:bg-indigo-950/20 dark:border-indigo-800/30 text-center w-max">
+                            New Product
+                          </span>
+                          <button
+                            onClick={() => setPhotoModalData(r)}
+                            className="text-[10px] text-blue-500 hover:underline font-bold text-left cursor-pointer"
+                          >
+                            Enrich details
+                          </button>
+                        </div>
                       ) : (
                         <div className="flex flex-col gap-0.5">
-                          <span className="px-3 py-1 text-xs font-bold text-amber-500 bg-amber-500/10 rounded-full border border-amber-500/20 text-center w-max">
+                          <span className="px-2.5 py-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-full text-center w-max">
                             Skipped
                           </span>
-                          <span className="text-[10px] text-gray-500 dark:text-gray-500 italic">No Name Column Mapped</span>
+                          <span className="text-[10px] text-gray-500 dark:text-gray-500 italic">No Name Column</span>
                         </div>
                       )}
                     </td>
@@ -1324,22 +1307,48 @@ export default function BulkImportWizard({
           </div>
 
           {/* Import Footer Actions */}
-          <div className="border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 px-6 py-4 flex items-center justify-between font-sans">
+          <div className="border-t border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900 px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-4 font-sans">
             <button
               onClick={() => setImportStep('mapping')}
-              className="px-5 py-2.5 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-850 text-xs font-bold text-gray-800 dark:text-gray-300 rounded-xl transition-all cursor-pointer"
+              className="w-full md:w-auto px-5 py-2.5 border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-850 text-xs font-bold text-gray-850 dark:text-gray-300 rounded-xl transition-all cursor-pointer text-center"
             >
               Back to Mapping
             </button>
 
-            <button
-              onClick={executeBulkImport}
-              disabled={totalImportCount === 0}
-              className="px-6 py-2.5 bg-blue-600 dark:bg-blue-600 disabled:bg-gray-700 text-white dark:text-black font-extrabold text-xs rounded-xl hover:bg-blue-700 dark:hover:bg-blue-700 transition-all flex items-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none"
-            >
-              <Check className="w-4 h-4" />
-              Confirm Import ({totalImportCount} products)
-            </button>
+            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+              {/* Option 1: Import matched only */}
+              {matchedCount > 0 && (
+                <button
+                  onClick={() => executeBulkImport('matched_only')}
+                  className="px-5 py-2.5 bg-emerald-600 dark:bg-emerald-600 text-white font-extrabold text-xs rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-500/10"
+                >
+                  <Check className="w-4 h-4" />
+                  Import Matched Only ({matchedCount} items)
+                </button>
+              )}
+
+              {/* Option 2: Import matched & queue unmatched as pending */}
+              {unmatchedCount > 0 && (
+                <button
+                  onClick={() => executeBulkImport('queue_unmatched')}
+                  className="px-5 py-2.5 bg-blue-600 dark:bg-blue-600 text-white dark:text-black font-extrabold text-xs rounded-xl hover:bg-blue-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10"
+                >
+                  <Clock className="w-4 h-4" />
+                  Queue {unmatchedCount} Unmatched & Import Matched
+                </button>
+              )}
+
+              {/* Option 3: Interactive enrichment flow */}
+              {unmatchedCount > 0 && createdCount > 0 && (
+                <button
+                  onClick={() => executeBulkImport('all')}
+                  className="px-5 py-2.5 bg-indigo-600 dark:bg-indigo-650 text-white font-extrabold text-xs rounded-xl hover:bg-indigo-700 transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-indigo-500/10"
+                >
+                  <Camera className="w-4 h-4" />
+                  Enrich Unmatched Now & Import All
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </div>
