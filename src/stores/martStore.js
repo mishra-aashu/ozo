@@ -1034,6 +1034,65 @@ export const useMartStore = create((set, get) => {
       }
     },
 
+    // Import unmatched rows as pending products
+    importPendingProducts: async (rows) => {
+      const { currentMart } = get()
+      if (!currentMart) {
+        toast.error('No active mart selected')
+        return { success: false, error: 'No active mart selected' }
+      }
+
+      try {
+        set({ isLoadingInventory: true })
+        const payload = rows.map(r => ({
+          mart_id: currentMart.id,
+          barcode: r.identifier || r.barcode,
+          name: r.name,
+          brand: r.brand || '',
+          unit: r.unit || '1 unit',
+          stock_quantity: parseInt(r.stock_quantity) || 0,
+          mart_price: r.mart_price !== null && r.mart_price !== undefined ? parseFloat(r.mart_price) : null,
+          mart_mrp: r.mart_mrp !== null && r.mart_mrp !== undefined ? parseFloat(r.mart_mrp) : null,
+          raw_csv_data: r,
+          enrich_status: 'pending'
+        }))
+
+        const { error } = await supabase
+          .from('mart_pending_products')
+          .insert(payload)
+
+        if (error) throw error
+
+        toast.success(`Successfully added ${rows.length} products to pending list!`)
+        set({ isLoadingInventory: false })
+        return { success: true }
+      } catch (error) {
+        console.error('Import pending products error:', error)
+        toast.error('Failed to save pending products: ' + error.message)
+        set({ isLoadingInventory: false })
+        return { success: false, error }
+      }
+    },
+
+    // Fetch pending products for the current mart
+    fetchPendingProducts: async () => {
+      const { currentMart } = get()
+      if (!currentMart) return []
+      try {
+        const { data, error } = await supabase
+          .from('mart_pending_products')
+          .select('*')
+          .eq('mart_id', currentMart.id)
+          .eq('enrich_status', 'pending')
+          .order('created_at', { ascending: false })
+        if (error) throw error
+        return data
+      } catch (err) {
+        console.error('Fetch pending products error:', err)
+        return []
+      }
+    },
+
     // Fetch Mart Onboarding / Application
     fetchMartApplication: async () => {
       try {
