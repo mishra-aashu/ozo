@@ -272,7 +272,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const toggleTorch = async () => {
     try {
       const track = streamRef.current?.getVideoTracks()[0]
-      if (track && hasTorch) {
+      if (track) {
         const newTorchState = !isTorchOn
         await track.applyConstraints({
           advanced: [{ torch: newTorchState }]
@@ -281,6 +281,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
       }
     } catch (err) {
       console.error('Failed to toggle torch:', err)
+      toast.error('Torch not supported on this device/browser')
     }
   }
 
@@ -1032,7 +1033,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                         </span>
                       </div>
                     )}
-                    {hasTorch && (
+                    {isCameraActive && (
                       <button
                         onClick={toggleTorch}
                         type="button"
