@@ -1275,11 +1275,15 @@ const InventoryView = () => {
                               setEnrichmentProduct(product)
                               setIsEnrichmentModalOpen(true)
                             }}
-                            className="flex items-center justify-center gap-1.5 flex-1 py-1.5 bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-200 dark:border-slate-700/50 rounded-xl text-gray-700 dark:text-gray-300 transition-all text-xs font-bold shrink-0 cursor-pointer"
-                            title="Capture photo"
+                            className={`flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-xl transition-all text-xs font-bold shrink-0 cursor-pointer ${
+                              product.image_url && !imageErrors[product.id]
+                                ? 'bg-gray-50 hover:bg-gray-100 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-250 dark:border-slate-700/50 text-gray-700 dark:text-gray-300'
+                                : 'bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/20 dark:hover:bg-rose-900/30 border border-rose-250 dark:border-rose-900/40 text-rose-600 dark:text-rose-400 font-extrabold shadow-sm'
+                            }`}
+                            title={product.image_url && !imageErrors[product.id] ? "Update photo" : "Add missing product photo (required)"}
                           >
-                            <Camera className="w-3.5 h-3.5 text-gray-550" />
-                            <span>Update Photo</span>
+                            <Camera className={`w-3.5 h-3.5 ${product.image_url && !imageErrors[product.id] ? 'text-gray-550 dark:text-gray-400' : 'text-rose-500 animate-pulse'}`} />
+                            <span>{product.image_url && !imageErrors[product.id] ? 'Update Photo' : 'Add Photo ⚠️'}</span>
                           </button>
 
                           {/* Status Toggle Button */}
