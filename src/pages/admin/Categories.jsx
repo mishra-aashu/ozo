@@ -25,6 +25,7 @@ import * as LucideIcons from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import ImageUpload from '../../components/ImageUpload'
+import ConfirmModal from '../../components/ConfirmModal'
 
 // Helper to generate unique slugs (if needed, though categories usually have fixed slugs)
 const generateSlug = (name) => {
@@ -115,6 +116,7 @@ const Categories = () => {
   const [editingCategory, setEditingCategory] = useState(null)
   const [isIconPickerOpen, setIsIconPickerOpen] = useState(false)
   const [iconPickerTab, setIconPickerTab] = useState('emoji') // 'emoji' | 'lucide'
+  const [confirmDeleteCategory, setConfirmDeleteCategory] = useState(null)
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -472,12 +474,13 @@ WHERE id = '${editingCategory.id}';`
     }
   }
 
-  // Delete Category
-  const handleDelete = async (category) => {
-    // Check if category has subcategories or is used in products
-    const confirmDelete = window.confirm(`Kya aap category "${category.name}" ko sachme delete karna chahte hain?`)
-    if (!confirmDelete) return
+  // Delete Category (opens custom confirmation modal)
+  const handleDelete = (category) => {
+    setConfirmDeleteCategory(category)
+  }
 
+  // Actual logic to delete category after confirmation
+  const executeDeleteCategory = async (category) => {
     const key = `delete-${category.id}`
     if (pendingActions[key]) return
 
@@ -504,6 +507,7 @@ WHERE id = '${editingCategory.id}';`
       console.error('Delete category error:', error)
       toast.error(error.message || 'Category delete nahi ho payi.', { id: toastId })
     } finally {
+      setConfirmDeleteCategory(null)
       setPendingActions(prev => {
         const copy = { ...prev }
         delete copy[key]
@@ -1330,6 +1334,19 @@ WHERE id = '${editingCategory.id}';`
           />
         </div>
       )}
+
+      {/* Delete Category Custom Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmDeleteCategory !== null}
+        onClose={() => setConfirmDeleteCategory(null)}
+        onConfirm={() => executeDeleteCategory(confirmDeleteCategory)}
+        title="Delete Category"
+        message={`Are you sure you want to delete the category "${confirmDeleteCategory?.name || ''}"? This action cannot be undone and may affect linked items.`}
+        confirmText="Delete Category"
+        cancelText="Cancel"
+        isDanger={true}
+        isLoading={confirmDeleteCategory && pendingActions[`delete-${confirmDeleteCategory.id}`]}
+      />
     </div>
   )
 }

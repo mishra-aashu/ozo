@@ -30,6 +30,7 @@ import * as LucideIcons from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import ImageUpload from '../../components/ImageUpload'
+import ConfirmModal from '../../components/ConfirmModal'
 
 // Helper to format ISO date to datetime-local value (YYYY-MM-DDTHH:MM)
 const formatToDatetimeLocal = (isoString) => {
@@ -73,6 +74,7 @@ const Offers = () => {
 
   // Image Upload State
   const [isUploadingImage, setIsUploadingImage] = useState(false)
+  const [confirmDeleteOffer, setConfirmDeleteOffer] = useState(null)
 
   // Form State
   const [formData, setFormData] = useState({
@@ -459,11 +461,13 @@ WHERE id = '${editingOffer.id}';`
     }
   }
 
-  // Delete Offer
-  const handleDelete = async (offer) => {
-    const confirmDelete = window.confirm(`Kya aap offer "${offer.title}" ko sachme delete karna chahte hain?`)
-    if (!confirmDelete) return
+  // Delete Offer (opens custom confirmation modal)
+  const handleDelete = (offer) => {
+    setConfirmDeleteOffer(offer)
+  }
 
+  // Actual logic to delete offer after confirmation
+  const executeDeleteOffer = async (offer) => {
     const key = `delete-${offer.id}`
     if (pendingActions[key]) return
 
@@ -484,6 +488,7 @@ WHERE id = '${editingOffer.id}';`
       console.error('Delete offer error:', error)
       toast.error(error.message || 'Offer delete nahi ho paya.', { id: toastId })
     } finally {
+      setConfirmDeleteOffer(null)
       setPendingActions(prev => {
         const copy = { ...prev }
         delete copy[key]
@@ -1607,6 +1612,19 @@ WHERE id = '${editingOffer.id}';`
           </>
         )}
       </AnimatePresence>
+
+      {/* Delete Offer Custom Confirmation Modal */}
+      <ConfirmModal
+        isOpen={confirmDeleteOffer !== null}
+        onClose={() => setConfirmDeleteOffer(null)}
+        onConfirm={() => executeDeleteOffer(confirmDeleteOffer)}
+        title="Delete Offer"
+        message={`Are you sure you want to delete the offer "${confirmDeleteOffer?.title || ''}"? This action cannot be undone and will remove it from all user-facing banners and screens.`}
+        confirmText="Delete Offer"
+        cancelText="Cancel"
+        isDanger={true}
+        isLoading={confirmDeleteOffer && pendingActions[`delete-${confirmDeleteOffer.id}`]}
+      />
     </div>
   )
 }
