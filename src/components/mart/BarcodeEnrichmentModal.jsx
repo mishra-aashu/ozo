@@ -189,9 +189,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
         if (error) throw error
       }
 
-      // Proceed to Step 2 (Photo Mode Selection Screen)
+      // Proceed to Step 2 (Photo Mode Selection Screen or direct Camera if on Mobile)
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
       setStep(2)
-      setMode('select')
+      if (isMobile) {
+        setMode('webcam')
+      } else {
+        setMode('select')
+      }
     } catch (err) {
       console.error('Error saving product info:', err)
       toast.error('Failed to save product details: ' + err.message)
@@ -365,7 +370,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
           price: parseFloat(editedProduct.price) || 0,
           mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
           enrichment_status: 'merchant_upload',
-          enrichment_source: 'merchant_webcam'
+          enrichment_source: /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768 ? 'merchant_phone' : 'merchant_webcam'
         })
         .match(matchQuery)
         .select()
@@ -553,23 +558,29 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-slate-950/85 backdrop-blur-sm p-4 animate-fadeIn">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-slate-950/85 backdrop-blur-sm p-0 sm:p-4 animate-fadeIn">
       {/* Hidden canvas for capturing */}
       <canvas ref={canvasRef} className="hidden" />
 
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl transition-all duration-300">
+      <div className="relative w-full h-[100dvh] sm:h-auto sm:max-h-[90vh] sm:max-w-lg bg-white dark:bg-slate-900 border-0 sm:border border-gray-200 dark:border-slate-800 rounded-none sm:rounded-3xl overflow-hidden shadow-2xl transition-all duration-300 flex flex-col">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-900 bg-gray-50/50 dark:bg-slate-950/50">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-slate-900 bg-gray-50/50 dark:bg-slate-950/50 shrink-0">
           <div className="flex items-center gap-3">
             {step === 2 && (
               <button 
                 onClick={() => {
-                  if (mode !== 'select') {
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+                  if (isMobile) {
                     stopCamera()
-                    setMode('select')
-                  } else {
                     setStep(1)
+                  } else {
+                    if (mode !== 'select') {
+                      stopCamera()
+                      setMode('select')
+                    } else {
+                      setStep(1)
+                    }
                   }
                 }}
                 className="p-1.5 rounded-lg bg-gray-100 dark:bg-slate-900 hover:bg-gray-250 dark:hover:bg-slate-850 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors cursor-pointer"
@@ -581,7 +592,11 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               <h3 className="font-bold text-gray-900 dark:text-white text-base">
                 {step === 1 && 'Step 1: Product Details'}
                 {step === 2 && mode === 'select' && 'Step 2: Select Photo Method'}
-                {step === 2 && mode === 'webcam' && 'Webcam Photo Capture'}
+                {step === 2 && mode === 'webcam' && (
+                  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+                    ? 'Capture Product Photos' 
+                    : 'Webcam Photo Capture'
+                )}
                 {step === 2 && mode === 'phone_qr' && 'Phone Camera QR Sync'}
               </h3>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate max-w-[280px]">
@@ -601,8 +616,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             STEP 1: PRODUCT INFO DETAILS FORM
            ========================================== */}
         {step === 1 && (
-          <div className="p-6 space-y-5 bg-white dark:bg-slate-900">
-            <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 flex gap-3">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden bg-white dark:bg-slate-900">
+            <div className="p-6 space-y-5 flex-1 overflow-y-auto">
+              <div className="p-4 rounded-2xl bg-indigo-50/50 dark:bg-indigo-500/5 border border-indigo-100 dark:border-indigo-500/10 flex gap-3">
               <div className="w-9 h-9 rounded-xl bg-indigo-100 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
                 <Layers className="w-5 h-5" />
               </div>
@@ -768,9 +784,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 />
               </div>
             </div>
+          </div>
 
-            {/* Step 1 Footer */}
-            <div className="border-t border-gray-100 dark:border-slate-850 pt-4 flex justify-between items-center mt-6">
+          {/* Step 1 Footer */}
+          <div className="border-t border-gray-100 dark:border-slate-850 p-5 bg-gray-50/50 dark:bg-slate-950/50 flex justify-between items-center shrink-0">
               <button
                 type="button"
                 onClick={onClose}
@@ -803,8 +820,8 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 {/* ==========================================
             STEP 2: OPTION CHOOSE METHOD SCREEN
            ========================================== */}
-         {step === 2 && mode === 'select' && (
-          <div className="p-6 bg-white dark:bg-slate-900">
+        {step === 2 && mode === 'select' && (
+          <div className="p-6 bg-white dark:bg-slate-900 flex-1 overflow-y-auto">
             <div className="mb-6 p-4 rounded-2xl bg-amber-50/50 dark:bg-slate-900/40 border border-amber-100 dark:border-slate-850">
               <h4 className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-orange-400 mb-1">Photo Enrichment Required</h4>
               <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
@@ -832,7 +849,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
               {/* Option B: Mobile via QR */}
               <button
-                onClick={startPhoneCaptureSession}
+                onClick={() => {
+                  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768;
+                  if (isMobile) {
+                    setMode('webcam')
+                  } else {
+                    startPhoneCaptureSession()
+                  }
+                }}
                 disabled={creatingSession}
                 className="w-full p-4 bg-gray-50/50 hover:bg-gray-100/70 dark:bg-slate-800/40 dark:hover:bg-slate-800/85 border border-gray-200 dark:border-slate-850 hover:border-gray-300 dark:hover:border-slate-700 rounded-2xl transition-all duration-200 active:scale-[0.99] disabled:opacity-50 cursor-pointer text-left flex items-center justify-between group"
               >
@@ -846,9 +870,17 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                   </div>
                   <div>
                     <h5 className="font-bold text-gray-900 dark:text-white text-sm">
-                      {creatingSession ? 'Creating sync session...' : 'Use Mobile Phone Camera'}
+                      {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+                        ? 'Use Device Camera'
+                        : creatingSession 
+                          ? 'Creating sync session...' 
+                          : 'Use Mobile Phone Camera'}
                     </h5>
-                    <p className="text-xs text-gray-500 dark:text-gray-450 mt-0.5">Scan QR code to capture HD photos from your phone camera</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-450 mt-0.5">
+                      {/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth < 768
+                        ? 'Capture photos directly using your phone camera'
+                        : 'Scan QR code to capture HD photos from your phone camera'}
+                    </p>
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-gray-400 dark:text-gray-600 group-hover:text-gray-600 dark:group-hover:text-gray-400 transition-colors" />
@@ -861,9 +893,10 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
             STEP 2: WEBCAM CAPTURE SCREEN
            ========================================== */}
         {step === 2 && mode === 'webcam' && (
-          <div className="p-6 bg-white dark:bg-slate-900">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-500">
+          <div className="flex-1 flex flex-col justify-between overflow-hidden bg-white dark:bg-slate-900">
+            <div className="p-6 space-y-4 flex-1 overflow-y-auto">
+              <div className="mb-4 flex items-center justify-between">
+                <span className="text-xs font-black uppercase tracking-widest text-blue-600 dark:text-blue-500">
                 Step {webcamStep + 1} of 3: {WEBCAM_STEPS[webcamStep].title}
               </span>
               <span className="text-xs text-gray-500 dark:text-gray-400 font-bold">
@@ -874,15 +907,36 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               {WEBCAM_STEPS[webcamStep].desc}
             </p>
 
-            <div className="relative aspect-video bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
+            <div className="relative h-[380px] xs:h-[460px] sm:h-auto sm:aspect-video w-full max-w-md mx-auto bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
               {!webcamPhotos[webcamStep] ? (
                 isCameraActive ? (
-                  <video 
-                    ref={videoRef} 
-                    className="w-full h-full object-cover" 
-                    playsInline 
-                    muted 
-                  />
+                  <>
+                    <video 
+                      ref={videoRef} 
+                      className="w-full h-full object-cover" 
+                      playsInline 
+                      muted 
+                    />
+                    {/* Visual Guideline Overlay */}
+                    <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
+                      {webcamStep !== 2 ? (
+                        /* Product outline */
+                        <div className="w-[70%] h-[75%] border-2 border-dashed border-white/60 dark:border-white/40 rounded-3xl flex items-center justify-center bg-black/10">
+                          <span className="text-[10px] text-white/85 font-black uppercase tracking-widest bg-black/50 px-2.5 py-0.5 rounded-md backdrop-blur-xs">
+                            Align Product
+                          </span>
+                        </div>
+                      ) : (
+                        /* Barcode outline */
+                        <div className="w-[85%] h-[40%] border-2 border-dashed border-indigo-500/80 rounded-2xl flex flex-col items-center justify-center bg-indigo-950/15 relative">
+                          <div className="absolute w-full h-0.5 bg-red-500 animate-pulse top-1/2 -translate-y-1/2 shadow-[0_0_8px_#ef4444]" />
+                          <span className="text-[9px] text-white font-black uppercase tracking-widest bg-indigo-650 px-2.5 py-0.5 rounded-md absolute bottom-2">
+                            Align Barcode
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </>
                 ) : (
                   <div className="flex flex-col items-center justify-center text-gray-450 dark:text-gray-500 p-4">
                     <Loader2 className="w-7 h-7 animate-spin text-blue-550 mb-2" />
@@ -948,9 +1002,12 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 </div>
               ))}
             </div>
+          </div>
 
-            {/* Footer Buttons */}
-            <div className="flex items-center justify-between gap-4 mt-6">
+          {/* Footer Buttons */}
+          <div className="border-t border-gray-100 dark:border-slate-850 p-5 bg-gray-50/50 dark:bg-slate-950/50 flex items-center justify-between gap-4 shrink-0">
+            {/* Left Area (Back) */}
+            <div className="flex-1 flex justify-start">
               <button 
                 type="button"
                 onClick={handleWebcamPrev}
@@ -959,68 +1016,72 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               >
                 Back
               </button>
+            </div>
 
-              <div className="flex items-center gap-3">
-                {!webcamPhotos[webcamStep] ? (
-                  <>
-                    <label className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-250 dark:border-slate-850 cursor-pointer flex items-center gap-2">
-                      <Upload className="w-3.5 h-3.5" />
-                      Upload
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={handleFileChange} 
-                        className="hidden" 
-                      />
-                    </label>
-
-                    <button
-                      onClick={capturePhoto}
-                      disabled={!isCameraActive}
-                      className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 transition-all active:scale-[0.97] cursor-pointer"
-                    >
-                      <Camera className="w-4 h-4" />
-                      Capture
-                    </button>
-                  </>
+            {/* Center Area (Primary Action: Capture, Next Step, or Save) */}
+            <div className="flex justify-center">
+              {!webcamPhotos[webcamStep] ? (
+                <button
+                  type="button"
+                  onClick={capturePhoto}
+                  disabled={!isCameraActive}
+                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-full flex items-center justify-center transition-all active:scale-[0.85] cursor-pointer shadow-[0_10px_28px_rgba(99,102,241,0.45)] border-[6px] border-white dark:border-slate-900 w-20 h-20 shrink-0 relative -top-8 -mb-8 z-20"
+                  title="Capture photo"
+                >
+                  <Camera className="w-8 h-8" />
+                </button>
+              ) : (
+                webcamStep === 2 ? (
+                  <button
+                    onClick={handleWebcamSave}
+                    className="bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-700 hover:to-emerald-600 text-white text-xs font-black px-6 py-2.5 rounded-full shadow-lg shadow-emerald-500/20 flex items-center gap-2 cursor-pointer"
+                  >
+                    Save Images
+                  </button>
                 ) : (
-                  <>
-                    <button
-                      onClick={retakePhoto}
-                      className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-250 dark:border-slate-850 flex items-center gap-2 cursor-pointer"
-                    >
-                      <RotateCcw className="w-3.5 h-3.5" />
-                      Retake
-                    </button>
+                  <button
+                    onClick={handleWebcamNext}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black px-6 py-2.5 rounded-full flex items-center gap-2 cursor-pointer shadow-lg shadow-indigo-500/20"
+                  >
+                    Next Step
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                )
+              )}
+            </div>
 
-                    {webcamStep === 2 ? (
-                      <button
-                        onClick={handleWebcamSave}
-                        className="bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white text-xs font-black px-6 py-2.5 rounded-xl shadow-lg shadow-blue-500/10 flex items-center gap-2 cursor-pointer"
-                      >
-                        Save Images
-                      </button>
-                    ) : (
-                      <button
-                        onClick={handleWebcamNext}
-                        className="bg-blue-600 hover:bg-blue-700 text-white text-xs font-black px-5 py-2.5 rounded-xl flex items-center gap-2 cursor-pointer"
-                      >
-                        Next Step
-                        <ChevronRight className="w-4 h-4" />
-                      </button>
-                    )}
-                  </>
-                )}
-              </div>
+            {/* Right Area (Secondary Action: Upload or Retake) */}
+            <div className="flex-1 flex justify-end">
+              {!webcamPhotos[webcamStep] ? (
+                <label className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-250 dark:border-slate-850 cursor-pointer flex items-center gap-2">
+                  <Upload className="w-3.5 h-3.5" />
+                  Upload
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleFileChange} 
+                    className="hidden" 
+                  />
+                </label>
+              ) : (
+                <button
+                  onClick={retakePhoto}
+                  className="bg-gray-150 hover:bg-gray-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-gray-700 dark:text-gray-300 text-xs font-bold px-4 py-2.5 rounded-xl border border-gray-250 dark:border-slate-850 flex items-center gap-2 cursor-pointer"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  Retake
+                </button>
+              )}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* ==========================================
             STEP 2: PHONE QR SCAN SCREEN
            ========================================== */}
         {step === 2 && mode === 'phone_qr' && (
-          <div className="p-6 bg-white dark:bg-slate-900 flex flex-col items-center">
+          <div className="p-6 bg-white dark:bg-slate-900 flex flex-col items-center flex-1 overflow-y-auto w-full">
             {/* Inline Scanner Line Animation Styles */}
             <style>{`
               @keyframes qr-scan-pulse {
