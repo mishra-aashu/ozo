@@ -20,7 +20,8 @@ import {
   Tag,
   Package,
   Layers,
-  Search
+  Search,
+  SunDim
 } from 'lucide-react'
 import QRCode from 'react-qr-code'
 import { uploadCatalogImage } from '../../lib/supabase'
@@ -79,6 +80,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const [cameraError, setCameraError] = useState(null)
   const [webcamUploading, setWebcamUploading] = useState(false)
   const [webcamProgress, setWebcamProgress] = useState('')
+  const [isTooDark, setIsTooDark] = useState(false)
 
   // State for Phone Capture
   const [sessionId, setSessionId] = useState(null)
@@ -263,6 +265,53 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
     }
     return () => stopCamera()
   }, [mode, webcamStep])
+
+  // Brightness check loop for low-lighting warning & lock
+  useEffect(() => {
+    if (!isCameraActive || webcamPhotos[webcamStep]) {
+      setIsTooDark(false)
+      return
+    }
+
+    const checkBrightness = () => {
+      if (!videoRef.current) return
+      const video = videoRef.current
+      if (video.readyState < 2) return
+
+      // Create an offscreen small canvas for performance
+      const canvas = document.createElement('canvas')
+      canvas.width = 40
+      canvas.height = 30
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      try {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height)
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height).data
+        let totalLuminance = 0
+        for (let i = 0; i < imgData.length; i += 4) {
+          const r = imgData[i]
+          const g = imgData[i + 1]
+          const b = imgData[i + 2]
+          // Standard relative luminance formula
+          const luminance = 0.299 * r + 0.587 * g + 0.114 * b
+          totalLuminance += luminance
+        }
+        const avgBrightness = totalLuminance / (imgData.length / 4)
+        
+        // Threshold: 65 is optimized for clear product photos
+        setIsTooDark(avgBrightness < 65)
+      } catch (err) {
+        console.warn('Error reading brightness:', err)
+      }
+    }
+
+    const interval = setInterval(checkBrightness, 600)
+    return () => {
+      clearInterval(interval)
+      setIsTooDark(false)
+    }
+  }, [isCameraActive, webcamStep, webcamPhotos])
 
   const capturePhoto = () => {
     if (!videoRef.current || !canvasRef.current) return
@@ -917,6 +966,14 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                       playsInline 
                       muted 
                     />
+                    {isTooDark && (
+                      <div className="absolute inset-x-4 top-4 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg animate-pulse z-10 select-none text-center">
+                        <SunDim className="w-4 h-4 animate-spin text-amber-300 shrink-0" />
+                        <span className="text-[10px] font-black uppercase tracking-wider">
+                          Too Dark! Move product to a brighter area
+                        </span>
+                      </div>
+                    )}
                     {/* Visual Guideline Overlay */}
                     <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center p-4">
                       {webcamStep !== 2 ? (
@@ -1024,9 +1081,13 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 <button
                   type="button"
                   onClick={capturePhoto}
-                  disabled={!isCameraActive}
-                  className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white rounded-full flex items-center justify-center transition-all active:scale-[0.85] cursor-pointer shadow-[0_10px_28px_rgba(99,102,241,0.45)] border-[6px] border-white dark:border-slate-900 w-20 h-20 shrink-0 relative -top-8 -mb-8 z-20"
-                  title="Capture photo"
+                  disabled={!isCameraActive || isTooDark}
+                  className={`transition-all active:scale-[0.85] rounded-full flex items-center justify-center border-[6px] w-20 h-20 shrink-0 relative -top-8 -mb-8 z-20 ${
+                    isTooDark 
+                      ? 'bg-rose-900/20 border-rose-950/40 text-rose-500/50 cursor-not-allowed shadow-none'
+                      : 'bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white border-white dark:border-slate-900 shadow-[0_10px_28px_rgba(99,102,241,0.45)] cursor-pointer'
+                  }`}
+                  title={isTooDark ? "Capture locked: Lighting is too dark" : "Capture photo"}
                 >
                   <Camera className="w-8 h-8" />
                 </button>
