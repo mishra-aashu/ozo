@@ -52,6 +52,7 @@ export default function PhoneCapture() {
   const [uploadProgress, setUploadProgress] = useState('')
   const [completed, setCompleted] = useState(false)
   const [isTooDark, setIsTooDark] = useState(false)
+  const [triggerShake, setTriggerShake] = useState(false)
 
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -279,6 +280,15 @@ export default function PhoneCapture() {
 
   // 4. Capture Frame
   const capturePhoto = () => {
+    if (isTooDark) {
+      if (navigator.vibrate) {
+        navigator.vibrate([150, 100, 150])
+      }
+      setTriggerShake(true)
+      setTimeout(() => setTriggerShake(false), 500)
+      return
+    }
+
     if (!videoRef.current || !canvasRef.current) return
 
     const video = videoRef.current
@@ -471,6 +481,16 @@ export default function PhoneCapture() {
 
   return (
     <div className="h-[100dvh] overflow-hidden bg-slate-950 text-white flex flex-col justify-between">
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          15%, 45%, 75% { transform: translateX(-6px); }
+          30%, 60%, 90% { transform: translateX(6px); }
+        }
+        .shake-element {
+          animation: shake 0.4s ease-in-out;
+        }
+      `}</style>
       {/* Hidden canvas for capturing frames */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -530,7 +550,9 @@ export default function PhoneCapture() {
                   muted 
                 />
                 {isTooDark && (
-                  <div className="absolute inset-x-4 top-16 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg animate-pulse z-10 select-none text-center">
+                  <div className={`absolute inset-x-4 top-16 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg z-10 select-none text-center ${
+                    triggerShake ? 'shake-element' : 'animate-pulse'
+                  }`}>
                     <SunDim className="w-4 h-4 animate-spin text-amber-350 shrink-0" />
                     <span className="text-[10px] font-black uppercase tracking-wider">
                       Too Dark! Move product to a brighter area
@@ -641,7 +663,7 @@ export default function PhoneCapture() {
               {/* Center: iOS/Android-style Camera Shutter Button */}
               <button 
                 onClick={capturePhoto}
-                disabled={!isCameraActive || syncing || isTooDark}
+                disabled={!isCameraActive || syncing}
                 className={`w-16 h-16 rounded-full border-4 flex items-center justify-center transition-all focus:outline-none ${
                   isTooDark 
                     ? 'border-rose-900 bg-rose-950/40 text-rose-500 cursor-not-allowed shadow-none'

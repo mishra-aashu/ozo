@@ -81,6 +81,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const [webcamUploading, setWebcamUploading] = useState(false)
   const [webcamProgress, setWebcamProgress] = useState('')
   const [isTooDark, setIsTooDark] = useState(false)
+  const [triggerShake, setTriggerShake] = useState(false)
 
   // State for Phone Capture
   const [sessionId, setSessionId] = useState(null)
@@ -314,6 +315,15 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   }, [isCameraActive, webcamStep, webcamPhotos])
 
   const capturePhoto = () => {
+    if (isTooDark) {
+      if (navigator.vibrate) {
+        navigator.vibrate([150, 100, 150])
+      }
+      setTriggerShake(true)
+      setTimeout(() => setTriggerShake(false), 500)
+      return
+    }
+
     if (!videoRef.current || !canvasRef.current) return
 
     const video = videoRef.current
@@ -608,6 +618,16 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 dark:bg-slate-950/85 backdrop-blur-sm p-0 sm:p-4 animate-fadeIn">
+      <style>{`
+        @keyframes shake {
+          0%, 100% { transform: translateX(0); }
+          15%, 45%, 75% { transform: translateX(-6px); }
+          30%, 60%, 90% { transform: translateX(6px); }
+        }
+        .shake-element {
+          animation: shake 0.4s ease-in-out;
+        }
+      `}</style>
       {/* Hidden canvas for capturing */}
       <canvas ref={canvasRef} className="hidden" />
 
@@ -967,7 +987,9 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                       muted 
                     />
                     {isTooDark && (
-                      <div className="absolute inset-x-4 top-4 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg animate-pulse z-10 select-none text-center">
+                      <div className={`absolute inset-x-4 top-4 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg z-10 select-none text-center ${
+                        triggerShake ? 'shake-element' : 'animate-pulse'
+                      }`}>
                         <SunDim className="w-4 h-4 animate-spin text-amber-300 shrink-0" />
                         <span className="text-[10px] font-black uppercase tracking-wider">
                           Too Dark! Move product to a brighter area
@@ -1081,7 +1103,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 <button
                   type="button"
                   onClick={capturePhoto}
-                  disabled={!isCameraActive || isTooDark}
+                  disabled={!isCameraActive}
                   className={`transition-all active:scale-[0.85] rounded-full flex items-center justify-center border-[6px] w-20 h-20 shrink-0 relative -top-8 -mb-8 z-20 ${
                     isTooDark 
                       ? 'bg-rose-900/20 border-rose-950/40 text-rose-500/50 cursor-not-allowed shadow-none'
