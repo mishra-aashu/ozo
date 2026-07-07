@@ -956,7 +956,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
               {WEBCAM_STEPS[webcamStep].desc}
             </p>
 
-            <div className="relative h-[380px] xs:h-[460px] sm:h-auto sm:aspect-video w-full max-w-md mx-auto bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
+            <div className="relative h-[440px] xs:h-[520px] sm:h-auto sm:aspect-video w-full max-w-2xl mx-auto bg-gray-100 dark:bg-slate-950 border border-gray-200 dark:border-slate-850 rounded-2xl overflow-hidden shadow-inner flex items-center justify-center">
               {!webcamPhotos[webcamStep] ? (
                 isCameraActive ? (
                   <>
