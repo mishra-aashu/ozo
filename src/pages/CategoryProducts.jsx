@@ -589,7 +589,7 @@ const CategoryProducts = () => {
             : `bg-white/95 dark:bg-[#0d0d0d]/95 bg-gradient-to-br ${bannerGradient}`
         }`} 
         style={{ 
-          top: 'var(--header-height, 0px)',
+          top: '0px',
           transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s'
         }}
       >
@@ -870,7 +870,7 @@ const CategoryProducts = () => {
             <motion.div 
               variants={sidebarVariants}
               className="lg:hidden w-[72px] xs:w-[84px] sm:w-[96px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-1 border-r border-gray-100 dark:border-white/5"
-              style={{ maxHeight: 'calc(100vh - var(--header-height, 60px) - 60px)', position: 'sticky', top: 'calc(var(--header-height, 60px) + 8px)' }}
+              style={{ maxHeight: 'calc(100vh - 60px)', position: 'sticky', top: '8px' }}
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
@@ -960,8 +960,8 @@ const CategoryProducts = () => {
               className="card p-6 sticky border border-gray-100 dark:border-white/5 shadow-sm space-y-4 transition-all duration-300" 
               style={{ 
                 top: isScrolled
-                  ? (showFiltersScrolled ? 'calc(var(--header-height, 60px) + 165px)' : 'calc(var(--header-height, 60px) + 65px)')
-                  : 'calc(var(--header-height, 60px) + 160px)',
+                  ? (showFiltersScrolled ? '165px' : '65px')
+                  : '160px',
                 transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s'
               }}
             >
