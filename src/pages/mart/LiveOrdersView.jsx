@@ -415,7 +415,7 @@ const LiveOrdersView = () => {
   }, [activeSubTab, selectedOrderId, selectedOrder]);
 
   return (
-    <div className="flex-1 flex overflow-hidden h-full pb-16 lg:pb-0">
+    <div className="flex-1 flex overflow-hidden h-full pb-0">
       {/* Left Sidebar - Order Stages */}
       <div className={`w-full lg:w-[380px] border-r border-gray-200 dark:border-slate-800 flex flex-col bg-white dark:bg-slate-900 ${selectedOrderId ? 'hidden lg:flex' : 'flex'}`}>
         {/* Tabs header */}
