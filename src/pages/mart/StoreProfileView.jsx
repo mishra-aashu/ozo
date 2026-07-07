@@ -164,7 +164,7 @@ const StoreProfileView = () => {
   if (!currentMart) return null
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 dark:bg-slate-950 scrollbar-hide pb-16 lg:pb-6">
+    <div className="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 bg-gray-50 dark:bg-slate-950 scrollbar-hide pb-4 lg:pb-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-200 dark:border-slate-850">
           <div>

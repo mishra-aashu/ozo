@@ -329,12 +329,12 @@ const MartDashboard = () => {
           <Link to="/" className="p-1.5 md:p-2 hover:bg-gray-150 dark:hover:bg-slate-800 rounded-xl transition-all cursor-pointer text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white flex items-center justify-center" title="Back to Home">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <div className="bg-gradient-to-tr from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-750 p-2 md:p-2.5 rounded-xl shadow-lg shadow-blue-500/10">
+          <div className="hidden sm:block bg-gradient-to-tr from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-750 p-2 md:p-2.5 rounded-xl shadow-lg shadow-blue-500/10 shrink-0">
             <Store className="w-5 h-5 md:w-6 md:h-6 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-1.5 sm:gap-2">
-              <h1 className="text-sm sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white truncate max-w-[85px] sm:max-w-none" title="OZO Mart Portal">
+              <h1 className="text-sm sm:text-xl font-bold tracking-tight text-gray-900 dark:text-white truncate max-w-[120px] sm:max-w-none" title="OZO Mart Portal">
                 <span className="sm:hidden">OZO Mart</span>
                 <span className="hidden sm:inline">OZO Mart Portal</span>
               </h1>
@@ -359,9 +359,9 @@ const MartDashboard = () => {
                 </span>
               )}
             </div>
-            <div className="text-[10px] sm:text-sm text-gray-550 dark:text-slate-400 mt-0.5 flex items-center gap-1 max-w-[140px] sm:max-w-none">
+            <div className="text-[10px] sm:text-sm text-gray-550 dark:text-slate-400 mt-0.5 flex items-center gap-1 max-w-[180px] sm:max-w-none">
               <span className="hidden sm:inline">Supermarket Counter:</span>
-              <span className="text-blue-600 dark:text-blue-400 font-semibold truncate max-w-[100px] sm:max-w-none" title={currentMart?.name || martApplication?.store_name || profile?.full_name || 'My Mart'}>
+              <span className="text-blue-600 dark:text-blue-400 font-semibold truncate max-w-[120px] sm:max-w-none" title={currentMart?.name || martApplication?.store_name || profile?.full_name || 'My Mart'}>
                 {currentMart?.name || martApplication?.store_name || profile?.full_name || 'My Mart'}
               </span>
             </div>
