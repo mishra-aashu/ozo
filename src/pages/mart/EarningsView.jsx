@@ -475,8 +475,9 @@ const EarningsView = () => {
       {/* Workspace Split */}
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-6 w-full min-w-0 mb-8 items-start">
         {/* Left Panel: History List */}
-        <div className={`w-full lg:w-[380px] xl:w-[420px] border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl flex flex-col shadow-sm shrink-0 ${selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900 flex items-center gap-3">
+        <div className={`w-full lg:w-[380px] xl:w-[420px] flex flex-col shrink-0 ${selectedPastOrderId ? 'hidden lg:flex' : 'flex'}`}>
+          {/* Search container - its own card */}
+          <div className="p-4 border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-900 rounded-2xl mb-4 shadow-sm flex items-center gap-3">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -484,21 +485,22 @@ const EarningsView = () => {
                 placeholder="Search by Order # or Customer..."
                 value={pastSearchQuery}
                 onChange={(e) => setPastSearchQuery(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-slate-950 border border-gray-200 dark:border-slate-800 focus:border-blue-500 dark:focus:border-blue-500 rounded-xl pl-9 pr-4 py-2 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-400 outline-none transition-all"
               />
             </div>
           </div>
 
-          <div className="divide-y divide-gray-150 dark:divide-slate-800 w-full">
+          {/* Cards container */}
+          <div className="space-y-3.5 w-full">
             {isLoadingPastOrders ? (
-              <div className="h-full flex items-center justify-center p-8">
+              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm flex items-center justify-center">
                 <div className="flex flex-col items-center gap-3">
                   <RefreshCw className="w-8 h-8 text-blue-500 dark:text-blue-500 animate-spin" />
                   <p className="text-xs text-gray-550 font-bold uppercase tracking-wider">Loading history...</p>
                 </div>
               </div>
             ) : filteredPastOrders.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8 text-gray-500">
+              <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl p-8 shadow-sm flex flex-col items-center justify-center text-center text-gray-500">
                 <ShoppingBag className="w-12 h-12 text-gray-300 dark:text-gray-800 mb-2" />
                 <p className="text-sm font-bold text-gray-800 dark:text-gray-300">No past orders found</p>
                 <p className="text-xs text-gray-400 dark:text-gray-555 mt-0.5">Completed and cancelled orders will show up here.</p>
@@ -522,8 +524,10 @@ const EarningsView = () => {
                   <button
                     key={order.id}
                     onClick={() => setSelectedPastOrderId(order.id)}
-                    className={`w-full text-left p-4 transition-all flex items-start gap-4 hover:bg-gray-50 dark:hover:bg-slate-900 cursor-pointer ${
-                      isSelected ? 'bg-blue-50/30 dark:bg-blue-600/5 border-l-4 border-l-blue-500 dark:border-l-blue-500' : ''
+                    className={`w-full text-left p-4 rounded-2xl border transition-all flex items-start gap-4 shadow-sm hover:shadow-md cursor-pointer ${
+                      isSelected 
+                        ? 'bg-blue-50/20 dark:bg-blue-600/5 border-blue-500 dark:border-blue-500 ring-1 ring-blue-500/20' 
+                        : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 hover:border-gray-300 dark:hover:border-slate-700'
                     }`}
                   >
                     <div className="flex-1 min-w-0 space-y-1.5">
