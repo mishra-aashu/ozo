@@ -200,7 +200,7 @@ export default function PhoneCapture() {
   const toggleTorch = async () => {
     try {
       const track = streamRef.current?.getVideoTracks()[0]
-      if (track && hasTorch) {
+      if (track) {
         const newTorchState = !isTorchOn
         await track.applyConstraints({
           advanced: [{ torch: newTorchState }]
@@ -209,6 +209,7 @@ export default function PhoneCapture() {
       }
     } catch (err) {
       console.error('Failed to toggle torch:', err)
+      toast.error('Torch not supported on this device/browser')
     }
   }
 
@@ -595,7 +596,7 @@ export default function PhoneCapture() {
                     </span>
                   </div>
                 )}
-                {hasTorch && (
+                {isCameraActive && (
                   <button
                     onClick={toggleTorch}
                     type="button"
