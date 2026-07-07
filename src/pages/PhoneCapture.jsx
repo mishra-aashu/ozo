@@ -12,7 +12,9 @@ import {
   Check,
   ChevronRight,
   ArrowLeft,
-  SunDim
+  SunDim,
+  Zap,
+  ZapOff
 } from 'lucide-react'
 import { supabase, uploadCatalogImage } from '../lib/supabase'
 import toast from 'react-hot-toast'
@@ -53,6 +55,8 @@ export default function PhoneCapture() {
   const [completed, setCompleted] = useState(false)
   const [isTooDark, setIsTooDark] = useState(false)
   const [triggerShake, setTriggerShake] = useState(false)
+  const [hasTorch, setHasTorch] = useState(false)
+  const [isTorchOn, setIsTorchOn] = useState(false)
 
   const videoRef = useRef(null)
   const canvasRef = useRef(null)
@@ -160,6 +164,20 @@ export default function PhoneCapture() {
       }
       streamRef.current = stream
       setIsCameraActive(true)
+
+      // Query track capabilities for flashlight support
+      const track = stream.getVideoTracks()[0]
+      if (track) {
+        setTimeout(() => {
+          try {
+            const capabilities = track.getCapabilities?.() || {}
+            setHasTorch(!!capabilities.torch)
+            setIsTorchOn(false)
+          } catch (err) {
+            console.warn('Could not query track capabilities:', err)
+          }
+        }, 500)
+      }
     } catch (err) {
       console.error('Camera access error:', err)
       setCameraError('Camera access denied. Please upload files manually or grant camera permissions.')
@@ -174,6 +192,24 @@ export default function PhoneCapture() {
       streamRef.current = null
     }
     setIsCameraActive(false)
+    setHasTorch(false)
+    setIsTorchOn(false)
+  }
+
+  // Flashlight / Torch Toggle
+  const toggleTorch = async () => {
+    try {
+      const track = streamRef.current?.getVideoTracks()[0]
+      if (track && hasTorch) {
+        const newTorchState = !isTorchOn
+        await track.applyConstraints({
+          advanced: [{ torch: newTorchState }]
+        })
+        setIsTorchOn(newTorchState)
+      }
+    } catch (err) {
+      console.error('Failed to toggle torch:', err)
+    }
   }
 
   // Synchronize stream to video element when active
@@ -549,7 +585,7 @@ export default function PhoneCapture() {
                   playsInline 
                   muted 
                 />
-                {isTooDark && (
+                 {isTooDark && (
                   <div className={`absolute inset-x-4 top-16 bg-rose-600/90 backdrop-blur-sm text-white px-3 py-2 rounded-xl border border-rose-500/30 flex items-center justify-center gap-2 shadow-lg z-10 select-none text-center ${
                     triggerShake ? 'shake-element' : 'animate-pulse'
                   }`}>
@@ -558,6 +594,20 @@ export default function PhoneCapture() {
                       Too Dark! Move product to a brighter area
                     </span>
                   </div>
+                )}
+                {hasTorch && (
+                  <button
+                    onClick={toggleTorch}
+                    type="button"
+                    className={`absolute bottom-4 right-4 z-20 w-10 h-10 rounded-full flex items-center justify-center backdrop-blur-md border transition-all active:scale-90 ${
+                      isTorchOn 
+                        ? 'bg-amber-500 border-amber-400 text-slate-950 shadow-[0_0_15px_rgba(245,158,11,0.5)]' 
+                        : 'bg-slate-950/65 border-white/15 text-white hover:bg-slate-900/80'
+                    }`}
+                    title={isTorchOn ? "Turn off flashlight" : "Turn on flashlight"}
+                  >
+                    {isTorchOn ? <Zap className="w-5 h-5 fill-current" /> : <ZapOff className="w-5 h-5" />}
+                  </button>
                 )}
               </>
             ) : (
