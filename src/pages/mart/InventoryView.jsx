@@ -83,6 +83,8 @@ const InventoryView = () => {
   const [categories, setCategories] = useState([])
   const [isLoadingCategories, setIsLoadingCategories] = useState(false)
 
+  const [imageErrors, setImageErrors] = useState({})
+
   const [catalogForm, setCatalogForm] = useState({
     stock_quantity: '0',
     mart_price: '',
@@ -964,11 +966,12 @@ const InventoryView = () => {
                           {/* Details */}
                           <td className="p-4">
                             <div className="flex items-center gap-3">
-                              {product.image_url ? (
+                              {product.image_url && !imageErrors[product.id] ? (
                                 <img 
                                   src={product.image_url} 
                                   alt={product.name} 
                                   className="w-10 h-10 object-contain bg-gray-100 dark:bg-slate-880 rounded-lg p-1 cursor-zoom-in transition-transform duration-200 hover:scale-105 active:scale-95"
+                                  onError={() => setImageErrors(prev => ({ ...prev, [product.id]: true }))}
                                   onMouseEnter={(e) => {
                                     const rect = e.currentTarget.getBoundingClientRect()
                                     setHoveredImage({ url: product.image_url, name: product.name, rect })
@@ -976,8 +979,8 @@ const InventoryView = () => {
                                   onMouseLeave={() => setHoveredImage(null)}
                                 />
                               ) : (
-                                <div className="w-10 h-10 bg-gray-155 dark:bg-slate-880 rounded-lg flex items-center justify-center text-gray-500 text-xs">
-                                  No Img
+                                <div className="w-10 h-10 bg-amber-50 dark:bg-amber-950/20 rounded-lg flex items-center justify-center border border-amber-200 dark:border-amber-900/40 text-amber-600 dark:text-amber-500" title="Missing photo - Enrich required">
+                                  <AlertTriangle className="w-5 h-5" />
                                 </div>
                               )}
                               <div>
@@ -1150,15 +1153,16 @@ const InventoryView = () => {
                         <div className="flex items-start gap-3.5">
                           {/* Product Image */}
                           <div className="relative shrink-0">
-                            {product.image_url ? (
+                            {product.image_url && !imageErrors[product.id] ? (
                               <img
                                 src={product.image_url}
                                 alt={product.name}
-                                className="w-14 h-14 object-contain bg-gray-50 dark:bg-slate-850 rounded-xl p-1.5 border border-gray-100 dark:border-slate-800"
+                                className="w-14 h-14 object-contain bg-gray-50 dark:bg-slate-855 rounded-xl p-1.5 border border-gray-100 dark:border-slate-800"
+                                onError={() => setImageErrors(prev => ({ ...prev, [product.id]: true }))}
                               />
                             ) : (
-                              <div className="w-14 h-14 bg-gray-100 dark:bg-slate-850 rounded-xl flex items-center justify-center text-gray-400 text-[10px] shrink-0 font-bold border border-gray-100 dark:border-slate-800">
-                                No Img
+                              <div className="w-14 h-14 bg-amber-50 dark:bg-amber-950/20 rounded-xl flex items-center justify-center border border-amber-200 dark:border-amber-900/40 text-amber-600 dark:text-amber-500 shrink-0 shadow-inner" title="Missing photo - Click capture to add">
+                                <AlertTriangle className="w-6 h-6 animate-pulse" />
                               </div>
                             )}
                             {/* Stock Indicator Dot */}
@@ -1415,11 +1419,16 @@ const InventoryView = () => {
                             }}
                             className="flex items-center gap-3 p-3 hover:bg-blue-50/40 dark:hover:bg-blue-600/[0.03] cursor-pointer transition-colors"
                           >
-                            {p.image_url ? (
-                              <img src={p.image_url} alt={p.name} className="w-8 h-8 object-contain rounded bg-gray-50 dark:bg-slate-850 p-0.5" />
+                            {p.image_url && !imageErrors[p.id] ? (
+                              <img 
+                                src={p.image_url} 
+                                alt={p.name} 
+                                className="w-8 h-8 object-contain rounded bg-gray-50 dark:bg-slate-850 p-0.5" 
+                                onError={() => setImageErrors(prev => ({ ...prev, [p.id]: true }))}
+                              />
                             ) : (
-                              <div className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
-                                <Package className="w-4 h-4" />
+                              <div className="w-8 h-8 rounded bg-amber-50 dark:bg-amber-955/20 flex items-center justify-center border border-amber-200 dark:border-amber-900/30 text-amber-600 dark:text-amber-500 shrink-0" title="Missing photo">
+                                <AlertTriangle className="w-4 h-4" />
                               </div>
                             )}
                             <div className="flex-1 min-w-0">
@@ -1441,11 +1450,16 @@ const InventoryView = () => {
                   {/* Selected Product Card */}
                   {selectedCatalogProduct && (
                     <div className="border border-blue-500/20 bg-blue-600/[0.02] rounded-xl p-4 flex items-center gap-4">
-                      {selectedCatalogProduct.image_url ? (
-                        <img src={selectedCatalogProduct.image_url} alt={selectedCatalogProduct.name} className="w-12 h-12 object-contain rounded bg-white dark:bg-slate-800 p-1" />
+                      {selectedCatalogProduct.image_url && !imageErrors[selectedCatalogProduct.id] ? (
+                        <img 
+                          src={selectedCatalogProduct.image_url} 
+                          alt={selectedCatalogProduct.name} 
+                          className="w-12 h-12 object-contain rounded bg-white dark:bg-slate-805 p-1" 
+                          onError={() => setImageErrors(prev => ({ ...prev, [selectedCatalogProduct.id]: true }))}
+                        />
                       ) : (
-                        <div className="w-12 h-12 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-gray-400">
-                          <Package className="w-6 h-6" />
+                        <div className="w-12 h-12 rounded bg-amber-50 dark:bg-amber-955/20 flex items-center justify-center border border-amber-200 dark:border-amber-900/30 text-amber-600 dark:text-amber-500 shrink-0" title="Missing photo - Click capture to add">
+                          <AlertTriangle className="w-5 h-5 animate-pulse" />
                         </div>
                       )}
                       <div className="flex-1 min-w-0">
