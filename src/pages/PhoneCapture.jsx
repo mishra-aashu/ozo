@@ -511,9 +511,9 @@ export default function PhoneCapture() {
       </header>
 
       {/* Main Stream Area */}
-      <main className="flex-1 flex flex-col justify-center p-4 min-h-0">
+      <main className="flex-1 flex flex-col justify-center px-2 py-3 min-h-0">
         {/* Viewport Frame - aspect-[3/4] for a taller, larger preview */}
-        <div className="relative aspect-[3/4] w-full max-w-sm max-h-[calc(100dvh-230px)] mx-auto bg-slate-900 border border-slate-800 rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center">
+        <div className="relative aspect-[3/4] w-full max-w-md md:max-w-lg max-h-[calc(100dvh-170px)] mx-auto bg-slate-900 border border-slate-800 rounded-[32px] overflow-hidden shadow-2xl flex items-center justify-center">
           {/* Top Instruction Guide Overlay (Floating inside camera) */}
           <div className="absolute top-4 left-4 right-4 z-10 px-3 py-2 bg-slate-950/85 backdrop-blur-md rounded-2xl border border-white/5 text-center shadow-lg">
             <p className="text-[11px] text-gray-200 font-medium leading-relaxed">
