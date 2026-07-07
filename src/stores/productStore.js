@@ -50,7 +50,7 @@ const buildProductQuery = (supabaseClient, citySlug, fields = '*', includeUnavai
 }
 
 // Helper to format products and apply overrides
-const formatProductsWithCity = (data, citySlug, includeUnavailable = true) => {
+const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allowMissingImage = false) => {
   if (!data) return []
   const formatted = data.map(product => {
     if (!product) return null
@@ -66,10 +66,9 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true) => {
 
     const isAdminOrMart = typeof window !== 'undefined' && 
       (window.location.pathname.includes('/admin') || 
-       window.location.pathname.includes('/mart') ||
-       window.location.pathname.includes('/product/'));
+       window.location.pathname.includes('/mart'));
 
-    if (isImageMissing && !isAdminOrMart) {
+    if (isImageMissing && !isAdminOrMart && !allowMissingImage) {
       return null
     }
 
@@ -488,7 +487,7 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
-      const formatted = formatProductsWithCity([data], citySlug, true)
+      const formatted = formatProductsWithCity([data], citySlug, true, true)
       const product = formatted[0]
 
       set({ 
@@ -697,8 +696,7 @@ export const useProductStore = create((set, get) => ({
 
             const isAdminOrMart = typeof window !== 'undefined' && 
               (window.location.pathname.includes('/admin') || 
-               window.location.pathname.includes('/mart') ||
-               window.location.pathname.includes('/product/'));
+               window.location.pathname.includes('/mart'));
 
             if (isImageMissing && !isAdminOrMart) return null;
 
@@ -755,8 +753,7 @@ export const useProductStore = create((set, get) => ({
 
           const isAdminOrMart = typeof window !== 'undefined' && 
             (window.location.pathname.includes('/admin') || 
-             window.location.pathname.includes('/mart') ||
-             window.location.pathname.includes('/product/'));
+             window.location.pathname.includes('/mart'));
 
           if (isImageMissing && !isAdminOrMart) return null;
 

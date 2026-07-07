@@ -38,6 +38,7 @@ import { useProductStore } from '../stores/productStore'
 import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore'
 import { useLocationStore } from '../stores/locationStore'
+import { isProductImageMissing } from '../utils/productUtils'
 import { findMatchingActiveCityForDetails } from '../components/LocationPromptModal'
 import { useTranslation } from '../hooks/useTranslation'
 import ProductCard from '../components/ProductCard'
@@ -582,6 +583,9 @@ const Home = () => {
             if (product.category && product.category.is_active === false) {
               return null;
             }
+            if (isProductImageMissing(product)) {
+              return null;
+            }
             const pca = citySlug && Array.isArray(product.product_city_availability)
               ? product.product_city_availability[0]
               : (citySlug && product.product_city_availability ? product.product_city_availability : null);
@@ -721,6 +725,9 @@ const Home = () => {
           if (product.category && product.category.is_active === false) {
             return null
           }
+          if (isProductImageMissing(product)) {
+            return null
+          }
           const pca = selectedCitySlug && Array.isArray(product.product_city_availability)
             ? product.product_city_availability[0]
             : (selectedCitySlug && product.product_city_availability ? product.product_city_availability : null)
@@ -831,6 +838,7 @@ const Home = () => {
       // Format product pricing and availability
       let formatted = (products || [])
         .filter(product => !(product.category && product.category.is_active === false))
+        .filter(product => !isProductImageMissing(product))
         .map(product => {
           let isAvailable = product.is_available;
           let isUpcoming = product.is_upcoming || false;
@@ -947,6 +955,9 @@ const Home = () => {
             if (product.category && product.category.is_active === false) {
               return null
             }
+            if (isProductImageMissing(product)) {
+              return null
+            }
             const pca = selectedCitySlug && Array.isArray(product.product_city_availability)
               ? product.product_city_availability[0]
               : (selectedCitySlug && product.product_city_availability ? product.product_city_availability : null)
@@ -1037,6 +1048,9 @@ const Home = () => {
       if (data && data.length > 0) {
         const formatted = data.map(product => {
           if (product.category && product.category.is_active === false) {
+            return null
+          }
+          if (isProductImageMissing(product)) {
             return null
           }
           const pca = selectedCitySlug && Array.isArray(product.product_city_availability)
