@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useCartStore } from '../stores/cartStore'
 import { supabase } from '../lib/supabase'
 import ProductCard from './ProductCard'
+import { isProductImageMissing } from '../utils/productUtils'
 
 // Complementary categories map for cross-selling recommendations
 const COMPLEMENTARY_CATEGORIES = {
@@ -93,6 +94,7 @@ const fetchProductsDirect = async (options = {}) => {
       success: true,
       data: (data || [])
         .filter(product => !(product.category && product.category.is_active === false))
+        .filter(product => !isProductImageMissing(product))
         .map(product => ({
           ...product,
           price: parseFloat(product.price),
@@ -141,7 +143,7 @@ export default function SuggestedProducts({
     // If initialProducts is provided (e.g. from ProductDetail), use it directly
     if (Array.isArray(initialProducts)) {
       const excluded = new Set([productId, ...excludeProductIds].filter(Boolean))
-      const filtered = initialProducts.filter(p => p && !excluded.has(p.id))
+      const filtered = initialProducts.filter(p => p && !excluded.has(p.id) && !isProductImageMissing(p))
       const sortedFiltered = [...filtered].sort((a, b) => {
         const aOOS = !a?.is_available || a?.quantity_available === 0;
         const bOOS = !b?.is_available || b?.quantity_available === 0;
@@ -270,6 +272,7 @@ export default function SuggestedProducts({
             if (!error && data) {
               const formatted = data
                 .filter(product => !(product.category && product.category.is_active === false))
+                .filter(product => !isProductImageMissing(product))
                 .map(product => ({
                   ...product,
                   price: parseFloat(product.price),

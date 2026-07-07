@@ -164,8 +164,7 @@ export function useProductPagination() {
 
           const isAdminOrMart = typeof window !== 'undefined' && 
             (window.location.pathname.includes('/admin') || 
-             window.location.pathname.includes('/mart') ||
-             window.location.pathname.includes('/product/'));
+             window.location.pathname.includes('/mart'));
 
           if (isImageMissing && !isAdminOrMart) return null;
 
