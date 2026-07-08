@@ -92,3 +92,6 @@ BEGIN
   );
 END;
 $$;
+
+-- Create trigram index on products.name for performance optimization
+CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON public.products USING GIN (name gin_trgm_ops);
