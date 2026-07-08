@@ -2280,6 +2280,18 @@ const InventoryView = () => {
           }}
         />
       )}
+
+      {isEnenrichingPendingModalOpen && enrichingPendingProduct && (
+        <BarcodeEnrichmentModal
+          barcode={enrichingPendingProduct.barcode}
+          product={enrichingPendingProduct}
+          onClose={() => {
+            setIsEnenrichingPendingModalOpen(false)
+            setEnenrichingPendingProduct(null)
+          }}
+          onComplete={handleEnrichPendingComplete}
+        />
+      )}
     </div>
   )
 }
