@@ -131,7 +131,7 @@ export default function SortDropdown({ sortBy, onChange, isCompact }) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute right-0 mt-2 w-full md:w-[320px] bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border border-gray-100 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
+            className="absolute right-0 mt-2 w-[240px] xs:w-[280px] md:w-[320px] bg-white/95 dark:bg-[#121212]/95 backdrop-blur-md border border-gray-100 dark:border-white/10 rounded-2xl shadow-2xl z-50 overflow-hidden"
           >
             <div className="p-2 max-h-[360px] overflow-y-auto scrollbar-hide space-y-0.5">
               {sortOptions.map((option) => {
