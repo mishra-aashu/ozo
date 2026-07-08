@@ -427,6 +427,87 @@ const ProductDetail = () => {
 
   const [variants, setVariants] = useState([])
   const [activeImage, setActiveImage] = useState(null)
+  const [isDark, setIsDark] = useState(false)
+  const [imageBgColor, setImageBgColor] = useState(null)
+
+  // Listen to dark mode changes
+  useEffect(() => {
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkDark()
+    const observer = new MutationObserver(checkDark)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  // Callback to detect background color of product image on load
+  const handleImageLoad = useCallback((e) => {
+    const img = e.target
+    if (!img) return
+
+    // If it's a data url, ignore
+    if (img.src && img.src.startsWith('data:')) return
+
+    try {
+      const canvas = document.createElement('canvas')
+      canvas.width = 10
+      canvas.height = 10
+      const ctx = canvas.getContext('2d')
+      if (!ctx) return
+
+      const tempImg = new Image()
+      tempImg.crossOrigin = 'anonymous'
+      tempImg.src = img.src
+      tempImg.onload = () => {
+        try {
+          ctx.drawImage(tempImg, 0, 0, 10, 10)
+          const corners = [
+            ctx.getImageData(0, 0, 1, 1).data,
+            ctx.getImageData(9, 0, 1, 1).data,
+            ctx.getImageData(0, 9, 1, 1).data,
+            ctx.getImageData(9, 9, 1, 1).data
+          ]
+
+          // Check if corners are white/off-white (opaque)
+          const isWhite = corners.every(c => c[0] > 240 && c[1] > 240 && c[2] > 240 && c[3] > 10)
+          if (isWhite) {
+            setImageBgColor('#ffffff')
+          } else {
+            const isTransparent = corners.every(c => c[3] < 30)
+            if (isTransparent) {
+              setImageBgColor('transparent')
+            } else {
+              let r = 0, g = 0, b = 0, a = 0
+              corners.forEach(c => {
+                r += c[0]; g += c[1]; b += c[2]; a += c[3]
+              })
+              r = Math.round(r / 4)
+              g = Math.round(g / 4)
+              b = Math.round(b / 4)
+              a = a / 4
+
+              if (a > 100) {
+                setImageBgColor(`rgb(${r}, ${g}, ${b})`)
+              } else {
+                setImageBgColor('transparent')
+              }
+            }
+          }
+        } catch (err) {
+          // Fallback
+        }
+      }
+      tempImg.onerror = () => {
+        const isProduct = img.src?.includes('ibb.co') || img.src?.includes('freeimage') || img.src?.includes('imagekit')
+        if (isProduct) {
+          setImageBgColor('#ffffff')
+        }
+      }
+    } catch (err) {
+      // Swallowed
+    }
+  }, [])
 
   // Track current loading session id to discard stale fetch results (e.g. from aborted requests in Strict Mode)
   const loadIdRef = useRef(0)
@@ -448,6 +529,7 @@ const ProductDetail = () => {
     }
 
     setActiveImage(result.data.image_url)
+    setImageBgColor(null)
 
     // Track recently viewed product
     try {
@@ -836,7 +918,14 @@ const ProductDetail = () => {
                      </button>
                  </div>
 
-                 <div className="w-full aspect-square bg-gray-50 dark:bg-[#181818] flex items-center justify-center p-8 relative">
+                 <div className={`w-full aspect-square flex items-center justify-center p-8 relative transition-colors duration-300 ${
+                    (!imageBgColor || (isDark && imageBgColor !== '#ffffff')) ? 'bg-gray-50 dark:bg-[#181818]' : ''
+                  }`}
+                  style={{ 
+                    backgroundColor: imageBgColor === '#ffffff' 
+                      ? (isDark ? '#f3f4f6' : '#ffffff') 
+                      : (imageBgColor || undefined) 
+                  }}>
                     <button 
                       onClick={() => setIsImageModalOpen(true)}
                       className="w-full h-full block cursor-zoom-in focus:outline-none"
@@ -853,6 +942,8 @@ const ProductDetail = () => {
                           isOutOfStock ? 'grayscale opacity-50 contrast-75' : ''
                         }`}
                         containerClassName="w-full h-full"
+                         onLoad={handleImageLoad}
+                         style={{ mixBlendMode: (isDark && imageBgColor === '#ffffff') ? 'multiply' : undefined }}
                       />
                     </button>
                     
@@ -889,7 +980,10 @@ const ProductDetail = () => {
                    .map((imgUrl, index) => (
                      <button
                        key={index}
-                       onClick={() => setActiveImage(imgUrl)}
+                        onClick={() => {
+                          setActiveImage(imgUrl)
+                          setImageBgColor(null)
+                        }}
                        className={`w-20 h-20 rounded-2xl overflow-hidden border-2 bg-white dark:bg-[#111111] p-2 flex items-center justify-center transition-all ${
                          (activeImage || currentProduct?.image_url) === imgUrl
                            ? 'border-ozo-red shadow-lg scale-105'
@@ -1687,7 +1781,14 @@ const ProductDetail = () => {
               </div>
 
               {/* Image Container */}
-              <div className="w-full aspect-square bg-gray-50 dark:bg-[#1c1c1c] rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex items-center justify-center overflow-hidden">
+              <div className={`w-full aspect-square rounded-3xl p-6 border border-gray-100 dark:border-white/5 flex items-center justify-center overflow-hidden transition-colors duration-300 ${
+                  (!imageBgColor || (isDark && imageBgColor !== '#ffffff')) ? 'bg-gray-50 dark:bg-[#1c1c1c]' : ''
+                }`}
+                style={{ 
+                  backgroundColor: imageBgColor === '#ffffff' 
+                    ? (isDark ? '#f3f4f6' : '#ffffff') 
+                    : (imageBgColor || undefined) 
+                }}>
                 <OptimizedImage 
                   src={activeImage || currentProduct?.image_url} 
                   slug={currentProduct?.slug}
@@ -1696,6 +1797,7 @@ const ProductDetail = () => {
                   quality={90}
                   className="w-full h-full object-contain max-h-[60vh]"
                   containerClassName="w-full h-full"
+                  style={{ mixBlendMode: (isDark && imageBgColor === '#ffffff') ? 'multiply' : undefined }}
                 />
               </div>
             </motion.div>
