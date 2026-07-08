@@ -434,8 +434,8 @@ const Home = () => {
   }, [city, address, coordinates, addressDetails, activeCities, selectedCitySlug, setSelectedCitySlug, navigate])
   const categories = useProductStore(state => state.categories)
   const offers = useProductStore(state => state.offers)
-  const featuredProducts = useProductStore(state => state.featuredProducts)
-  const bestsellerProducts = useProductStore(state => state.bestsellerProducts)
+  const storeFeaturedProducts = useProductStore(state => state.featuredProducts)
+  const storeBestsellerProducts = useProductStore(state => state.bestsellerProducts)
   const fetchFeaturedProducts = useProductStore(state => state.fetchFeaturedProducts)
   const fetchBestsellerProducts = useProductStore(state => state.fetchBestsellerProducts)
   const fetchCategories = useProductStore(state => state.fetchCategories)
@@ -452,6 +452,25 @@ const Home = () => {
   const cartItems = useCartStore(useShallow(state => state.items))
   const deliveryConfig = useCartStore(state => state.deliveryConfig)
   const launchConfig = useCartStore(state => state.launchConfig)
+
+  const featuredProducts = useMemo(() => {
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+      const isOOS = !p.is_available || isQtyOOS;
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+    };
+    return (storeFeaturedProducts || []).filter(p => !isUpcoming(p));
+  }, [storeFeaturedProducts, launchConfig]);
+
+  const bestsellerProducts = useMemo(() => {
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+      const isOOS = !p.is_available || isQtyOOS;
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+    };
+    return (storeBestsellerProducts || []).filter(p => !isUpcoming(p));
+  }, [storeBestsellerProducts, launchConfig]);
+
   const freeAbove = deliveryConfig?.free_above ?? 99
 
   const [notifiedProducts, setNotifiedProducts] = useState(() => {
@@ -1475,18 +1494,27 @@ const Home = () => {
       }
     ];
 
-    return (stealDealsData && stealDealsData.length > 0)
-      ? getOnePerCategory(stealDealsData, shuffleSeed, 4)
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+      const isOOS = !p.is_available || isQtyOOS;
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+    };
+
+    const filteredDeals = (stealDealsData || []).filter(p => !isUpcoming(p));
+    const filteredBestsellers = (bestsellerProducts || []).filter(p => !isUpcoming(p));
+
+    return (filteredDeals.length > 0)
+      ? getOnePerCategory(filteredDeals, shuffleSeed, 4)
       : (
-        (bestsellerProducts || []).length >= 4 
-          ? getOnePerCategory(bestsellerProducts, shuffleSeed, 4).map(p => ({
+        filteredBestsellers.length >= 4 
+          ? getOnePerCategory(filteredBestsellers, shuffleSeed, 4).map(p => ({
               ...p,
               mrp: (p?.mrp && p.mrp > p.price) ? p.mrp : Math.round((p?.price || 0) * 1.25),
               discount_percentage: p?.discount_percentage || 20
              }))
           : seededSort(fallbackDeals, shuffleSeed)
       );
-  }, [stealDealsData, bestsellerProducts, shuffleSeed]);
+  }, [stealDealsData, bestsellerProducts, shuffleSeed, launchConfig]);
 
   // Computed / fallback fresh mandi arrivals
   const displayMandi = useMemo(() => {
@@ -1500,8 +1528,14 @@ const Home = () => {
     ];
 
     if (mandiProductsData && mandiProductsData.length > 0) {
+      const isUpcoming = (p) => {
+        const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+        const isOOS = !p.is_available || isQtyOOS;
+        return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+      };
+      const filteredMandi = mandiProductsData.filter(p => !isUpcoming(p));
       const stealDealsIds = new Set(displayStealDeals.map(p => p.id));
-      const filtered = mandiProductsData.filter(p => !stealDealsIds.has(p.id));
+      const filtered = filteredMandi.filter(p => !stealDealsIds.has(p.id));
 
       const inStock = filtered.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
       const outOfStock = filtered.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
@@ -1518,7 +1552,7 @@ const Home = () => {
     }
 
     return seededSort(fallbackMandi, shuffleSeed);
-  }, [mandiProductsData, displayStealDeals, shuffleSeed]);
+  }, [mandiProductsData, displayStealDeals, shuffleSeed, launchConfig]);
 
   useEffect(() => {
     const el = mandiScrollRef.current
@@ -1652,8 +1686,15 @@ const Home = () => {
     ];
 
     if (summerSpecialsProductsData && summerSpecialsProductsData.length > 0) {
-      const inStock = summerSpecialsProductsData.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-      const outOfStock = summerSpecialsProductsData.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
+      const isUpcoming = (p) => {
+        const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+        const isOOS = !p.is_available || isQtyOOS;
+        return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+      };
+      const filteredSummer = summerSpecialsProductsData.filter(p => !isUpcoming(p));
+
+      const inStock = filteredSummer.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
+      const outOfStock = filteredSummer.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
 
       const shuffledInStock = seededSort(inStock, shuffleSeed);
       const shuffledOutOfStock = seededSort(outOfStock, shuffleSeed);
@@ -1666,7 +1707,7 @@ const Home = () => {
     }
 
     return seededSort(fallbackSummer, shuffleSeed);
-  }, [summerSpecialsProductsData, shuffleSeed]);
+  }, [summerSpecialsProductsData, shuffleSeed, launchConfig]);
 
   // Automatic smooth scrolling for Summer Specials
   useEffect(() => {
@@ -1765,11 +1806,17 @@ const Home = () => {
     ];
 
     if (budgetProductsData && budgetProductsData.length > 0) {
+      const isUpcoming = (p) => {
+        const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+        const isOOS = !p.is_available || isQtyOOS;
+        return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+      };
+      const filteredBudget = budgetProductsData.filter(p => !isUpcoming(p));
       const excludedIds = new Set([
         ...displayStealDeals.map(p => p.id),
         ...displayMandi.map(p => p.id)
       ]);
-      const filtered = budgetProductsData.filter(p => !excludedIds.has(p.id));
+      const filtered = filteredBudget.filter(p => !excludedIds.has(p.id));
 
       const inStock = filtered.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
       const outOfStock = filtered.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
@@ -1781,7 +1828,7 @@ const Home = () => {
     }
 
     return mixCategories(fallbackBudget, shuffleSeed, 12);
-  }, [budgetProductsData, displayStealDeals, displayMandi, shuffleSeed]);
+  }, [budgetProductsData, displayStealDeals, displayMandi, shuffleSeed, launchConfig]);
 
   const features = [
     {
@@ -1888,36 +1935,30 @@ const Home = () => {
 
     return result.slice(0, 10);
   }, [bestsellerProducts, featuredProducts, displayStealDeals, displayMandi, displayBudgetProducts, shuffleSeed]);
+  const filteredCategoryProducts = useMemo(() => {
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
+      const isOOS = !p.is_available || isQtyOOS;
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
+    };
+    return (categoryProducts || []).filter(p => !isUpcoming(p));
+  }, [categoryProducts, launchConfig]);
 
   const displayedFeaturedProducts = useMemo(() => {
-    const baseList = selectedFeaturedCategory === 'all' ? featuredProducts : categoryProducts;
+    const baseList = selectedFeaturedCategory === 'all' ? featuredProducts : filteredCategoryProducts;
     if (!baseList || baseList.length === 0) return [];
 
     if (selectedFeaturedCategory === 'all') {
-      const excludedIds = new Set([
-        ...displayStealDeals.map(p => p.id),
-        ...displayMandi.map(p => p.id),
-        ...displayBudgetProducts.map(p => p.id),
-        ...displayBestsellers.map(p => p.id)
-      ]);
-      const filtered = baseList.filter(p => !excludedIds.has(p.id));
-
-      const inStock = filtered.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-      const outOfStock = filtered.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
+      const inStock = baseList.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
+      const outOfStock = baseList.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
 
       const shuffledInStock = seededSort(inStock, shuffleSeed);
       let result = [...shuffledInStock, ...outOfStock];
 
-      if (result.length < 15 && baseList.length > 0) {
-        const duplicates = baseList.filter(p => excludedIds.has(p.id));
-        const shuffledDuplicates = seededSort(duplicates, shuffleSeed);
-        result = [...result, ...shuffledDuplicates];
-      }
-
       // Pad with bestsellerProducts or other products if we have fewer than 15 items to prevent empty spaces in rows
       if (result.length < 15) {
         const existingIds = new Set(result.map(p => p.id));
-        const candidates = (bestsellerProducts || []).filter(p => p.is_available && !existingIds.has(p.id) && !excludedIds.has(p.id));
+        const candidates = (bestsellerProducts || []).filter(p => p.is_available && !existingIds.has(p.id));
         const shuffledCandidates = seededSort(candidates, shuffleSeed);
         result = [...result, ...shuffledCandidates];
       }
@@ -1925,8 +1966,8 @@ const Home = () => {
       return result.slice(0, 15);
     }
 
-    return baseList;
-  }, [selectedFeaturedCategory, featuredProducts, categoryProducts, displayStealDeals, displayMandi, displayBudgetProducts, displayBestsellers, shuffleSeed]);
+    return baseList.slice(0, 15);
+  }, [selectedFeaturedCategory, featuredProducts, filteredCategoryProducts, bestsellerProducts, shuffleSeed]);
 
   const parentCats = useMemo(() => categories.filter(c => !c.parent_id), [categories]);
 
@@ -2493,7 +2534,7 @@ const Home = () => {
                     <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
                       Freshly Sourced <span className="text-gradient">This Morning.</span>
                     </h3>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400 font-bold mt-1">Freshly sourced from the local farms to your doorstep</p>
+                    <p className="hidden sm:block text-xs text-zinc-500 dark:text-zinc-400 font-bold mt-1">Freshly sourced from the local farms to your doorstep</p>
                   </div>
                   <Link to="/category/vegetables" className="text-xs text-ozo-red font-black uppercase tracking-wider hover:underline flex items-center gap-1 flex-shrink-0 whitespace-nowrap mt-1">
                     View All <ChevronRight size={14} />
@@ -2660,7 +2701,7 @@ const Home = () => {
                       <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
                         Pocket-Friendly Bites / <span className="text-gradient">Under ₹50.</span>
                       </h3>
-                      <p className="text-xs text-zinc-500 dark:text-zinc-400 font-bold mt-1">Super cheap snacks, ice creams, and daily essentials for your cart</p>
+                      <p className="hidden sm:block text-xs text-zinc-500 dark:text-zinc-400 font-bold mt-1">Super cheap snacks, ice creams, and daily essentials for your cart</p>
                     </div>
                     <Link to="/products" className="text-xs text-ozo-red font-black uppercase tracking-wider hover:underline flex items-center gap-1 flex-shrink-0 whitespace-nowrap mt-1">
                       View All <ChevronRight size={14} />
