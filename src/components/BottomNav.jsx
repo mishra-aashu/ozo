@@ -129,58 +129,59 @@ const BottomNav = () => {
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
             exit={{ opacity: 0, y: 40, scale: 0.95, x: '-50%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 360 }}
-            className="fixed bottom-[88px] md:bottom-6 left-1/2 w-[calc(100%-2rem)] max-w-[360px] bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-[1.25rem] py-2 px-3.5 flex items-center justify-between shadow-[0_10px_20px_rgba(249,115,22,0.25)] z-50 border border-white/10"
+            className="fixed bottom-[88px] md:bottom-6 left-1/2 w-max max-w-[calc(100%-2rem)] bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full py-2.5 pl-4 pr-2.5 flex items-center shadow-[0_8px_20px_rgba(249,115,22,0.25)] z-50 border border-white/10"
           >
             <Link
               to={`/order/${activeOrder.id}`}
-              className="flex items-center justify-between w-full"
+              className="flex items-center gap-3 w-full"
             >
-              <div className="flex items-center gap-2.5">
-                {activeOrder.order_items && activeOrder.order_items.length > 0 ? (
-                  <div className="flex items-center -space-x-2.5 flex-shrink-0 mr-1">
-                    {activeOrder.order_items.slice(0, 3).map((item, idx) => (
-                      <div
-                        key={item.id || idx}
-                        className="w-8 h-8 rounded-lg overflow-hidden border border-white/40 bg-white shadow-md shrink-0 flex items-center justify-center"
-                        style={{ zIndex: 10 - idx }}
-                      >
-                        {item.product_image ? (
-                          <img
-                            src={item.product_image}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <ShoppingCart className="w-3.5 h-3.5 text-zinc-400" />
-                        )}
-                      </div>
-                    ))}
-                    {activeOrder.order_items.length > 3 && (
-                      <div className="w-8 h-8 rounded-lg bg-orange-700 text-[9px] font-black flex items-center justify-center border border-white/40 shadow-md shrink-0 text-white z-0">
-                        +{activeOrder.order_items.length - 3}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shadow-inner shrink-0">
-                    {['preparing', 'preparation', 'PREPARING'].some(s => activeOrder.status?.toUpperCase()?.includes(s)) ? (
-                      <Clock className="w-4 h-4 text-white animate-pulse" />
-                    ) : (
-                      <Bike className="w-4 h-4 text-white animate-bounce-slow" />
-                    )}
-                  </div>
-                )}
-                <div className="text-left">
-                  <p className="text-[8px] font-black text-orange-100 uppercase tracking-widest leading-none mb-0.5">Active Order</p>
-                  <p className="text-xs font-black text-white leading-none">
-                    {getStatusText(activeOrder.status)}
-                  </p>
+              {activeOrder.order_items && activeOrder.order_items.length > 0 ? (
+                <div className="flex items-center -space-x-5 flex-shrink-0 mr-0.5">
+                  {activeOrder.order_items.slice(0, 3).map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white shadow-md shrink-0 flex items-center justify-center"
+                      style={{ zIndex: idx }}
+                    >
+                      {item.product_image ? (
+                        <img
+                          src={item.product_image}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ShoppingCart className="w-4 h-4 text-zinc-400" />
+                      )}
+                    </div>
+                  ))}
+                  {activeOrder.order_items.length > 3 && (
+                    <div 
+                      className="w-10 h-10 rounded-full bg-orange-700 text-[11px] font-black flex items-center justify-center border-2 border-white shadow-md shrink-0 text-white"
+                      style={{ zIndex: 3 }}
+                    >
+                      +{activeOrder.order_items.length - 3}
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shadow-inner shrink-0">
+                  {['preparing', 'preparation', 'PREPARING'].some(s => activeOrder.status?.toUpperCase()?.includes(s)) ? (
+                    <Clock className="w-5 h-5 text-white animate-pulse" />
+                  ) : (
+                    <Bike className="w-5 h-5 text-white animate-bounce-slow" />
+                  )}
+                </div>
+              )}
               
-              <div className="flex items-center gap-1 bg-white/20 hover:bg-white/30 active:scale-95 transition-all px-3 py-1.5 rounded-xl border border-white/15">
-                <span className="text-[9px] font-black uppercase tracking-wider">Track</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+              <div className="text-left pr-2">
+                <p className="text-sm font-black text-white leading-tight">Track Order</p>
+                <p className="text-[11px] font-bold text-orange-100 leading-none mt-0.5">
+                  {getStatusText(activeOrder.status)}
+                </p>
+              </div>
+
+              <div className="w-10 h-10 rounded-full bg-black/15 flex items-center justify-center shrink-0">
+                <ChevronRight className="w-5 h-5 text-white" />
               </div>
             </Link>
           </motion.div>
@@ -193,54 +194,55 @@ const BottomNav = () => {
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
             exit={{ opacity: 0, y: 40, scale: 0.95, x: '-50%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 360 }}
-            className={`fixed ${shouldShowActiveOrder ? 'bottom-[154px] md:bottom-20' : 'bottom-[88px] md:bottom-6'} left-1/2 w-[calc(100%-2rem)] max-w-[360px] bg-gradient-to-r from-[#00b564] to-emerald-600 text-white rounded-[1.25rem] py-2 px-3.5 flex items-center justify-between shadow-[0_10px_20px_rgba(0,185,100,0.2)] z-50 border border-white/10`}
+            className={`fixed ${shouldShowActiveOrder ? 'bottom-[154px] md:bottom-20' : 'bottom-[88px] md:bottom-6'} left-1/2 w-max max-w-[calc(100%-2rem)] bg-[#0c831f] text-white rounded-full py-2.5 pl-4 pr-2.5 flex items-center shadow-[0_8px_20px_rgba(12,131,31,0.25)] z-50 border border-white/10`}
           >
             <Link
               to="/cart"
-              className="flex items-center justify-between w-full"
+              className="flex items-center gap-3 w-full"
             >
-              <div className="flex items-center gap-2.5">
-                {cartItems && cartItems.length > 0 ? (
-                  <div className="flex items-center -space-x-2.5 flex-shrink-0 mr-1">
-                    {cartItems.slice(0, 3).map((item, idx) => (
-                      <div
-                        key={item.id || item.productId || idx}
-                        className="w-8 h-8 rounded-lg overflow-hidden border border-white/40 bg-white shadow-md shrink-0 flex items-center justify-center"
-                        style={{ zIndex: 10 - idx }}
-                      >
-                        {item.image ? (
-                          <img
-                            src={item.image}
-                            alt=""
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <ShoppingCart className="w-3.5 h-3.5 text-zinc-400" />
-                        )}
-                      </div>
-                    ))}
-                    {cartItems.length > 3 && (
-                      <div className="w-8 h-8 rounded-lg bg-emerald-700 text-[9px] font-black flex items-center justify-center border border-white/40 shadow-md shrink-0 text-white z-0">
-                        +{cartItems.length - 3}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center shadow-inner shrink-0">
-                    <ShoppingCart className="w-4 h-4 text-white" />
-                  </div>
-                )}
-                <div className="text-left">
-                  <p className="text-[8px] font-black text-emerald-100 uppercase tracking-widest leading-none mb-0.5">Your Cart</p>
-                  <p className="text-xs font-black text-white leading-none">
-                    {totalItems} Item{totalItems > 1 ? 's' : ''} <span className="text-emerald-250 mx-1">•</span> ₹{subtotal}
-                  </p>
+              {cartItems && cartItems.length > 0 ? (
+                <div className="flex items-center -space-x-5 flex-shrink-0 mr-0.5">
+                  {cartItems.slice(0, 3).map((item, idx) => (
+                    <div
+                      key={item.id || item.productId || idx}
+                      className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white shadow-md shrink-0 flex items-center justify-center"
+                      style={{ zIndex: idx }}
+                    >
+                      {item.image ? (
+                        <img
+                          src={item.image}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <ShoppingCart className="w-4 h-4 text-zinc-400" />
+                      )}
+                    </div>
+                  ))}
+                  {cartItems.length > 3 && (
+                    <div 
+                      className="w-10 h-10 rounded-full bg-emerald-700 text-[11px] font-black flex items-center justify-center border-2 border-white shadow-md shrink-0 text-white"
+                      style={{ zIndex: 3 }}
+                    >
+                      +{cartItems.length - 3}
+                    </div>
+                  )}
                 </div>
-              </div>
+              ) : (
+                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shadow-inner shrink-0">
+                  <ShoppingCart className="w-5 h-5 text-white" />
+                </div>
+              )}
               
-              <div className="flex items-center gap-1 bg-white/20 hover:bg-white/30 active:scale-95 transition-all px-3 py-1.5 rounded-xl border border-white/15">
-                <span className="text-[9px] font-black uppercase tracking-wider">View Cart</span>
-                <ChevronRight className="w-3.5 h-3.5" />
+              <div className="text-left pr-2">
+                <p className="text-sm font-black text-white leading-tight">View cart</p>
+                <p className="text-[11px] font-bold text-white/85 leading-none mt-0.5">
+                  {totalItems} item{totalItems > 1 ? 's' : ''} {subtotal > 0 && `• ₹${subtotal}`}
+                </p>
+              </div>
+
+              <div className="w-10 h-10 rounded-full bg-black/15 flex items-center justify-center shrink-0">
+                <ChevronRight className="w-5 h-5 text-white" />
               </div>
             </Link>
           </motion.div>
