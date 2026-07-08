@@ -301,16 +301,104 @@ const ImageUpload = ({
   }
 
   // Render Section
-  if (multiple) {
-    const urls = Array.isArray(value) ? value : (value ? [value] : [])
-    return (
-      <div className={`space-y-3 ${className}`}>
-        {label && (
-          <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider block">
-            {label} ({urls.length}/{limit})
-          </span>
-        )}
-        <div className="flex flex-wrap gap-3">
+  const urls = multiple 
+    ? (Array.isArray(value) ? value : (value ? [value] : []))
+    : (value ? [value] : [])
+
+  return (
+    <div className={`space-y-3 ${className}`}>
+      {label && (
+        <label className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider block">
+          {label} {multiple && `(${urls.length}/${limit})`}
+        </label>
+      )}
+
+      {/* Show single preview if not multiple and we have a value */}
+      {!multiple && urls.length > 0 ? (
+        <div className="relative rounded-2xl overflow-hidden border border-gray-200/80 dark:border-white/10 h-44 group bg-gray-50 dark:bg-white/5">
+          <img src={urls[0]} alt="Uploaded preview" className="w-full h-full object-contain" />
+          {localUploading ? (
+            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10 animate-fadeIn">
+              <Loader2 className="w-8 h-8 animate-spin text-white" />
+              <span className="text-xs font-bold text-white">Uploading to ImgBB...</span>
+            </div>
+          ) : (
+            !disabled && (
+              <button
+                type="button"
+                onClick={() => handleRemove(urls[0])}
+                className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )
+          )}
+        </div>
+      ) : (
+        /* Large Dropzone (Visible when single and no value, or multiple and below limit) */
+        (!multiple || urls.length < limit) && (
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            onClick={() => {
+              if (disabled || localUploading) return
+              if (cameraOnly) {
+                setShowCamera(true)
+                startCamera(facingMode)
+              } else {
+                fileInputRef.current?.click()
+              }
+            }}
+            className={`border-dashed border-2 rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 ${
+              isDragging
+                ? 'border-ozo-red bg-red-500/5'
+                : 'border-gray-300 dark:border-white/10 hover:border-gray-400 hover:bg-gray-50/50 dark:hover:bg-white/[0.01]'
+            } ${disabled || localUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+          >
+            {!cameraOnly && (
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                accept="image/*"
+                multiple={multiple}
+                capture={capture}
+                className="hidden"
+                disabled={disabled || localUploading}
+              />
+            )}
+            <div className="flex flex-col items-center justify-center gap-2">
+              {localUploading ? (
+                <>
+                  <Loader2 className="w-8 h-8 animate-spin text-ozo-red" />
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-350">Uploading image...</p>
+                </>
+              ) : cameraOnly ? (
+                <>
+                  <Camera className="w-8 h-8 text-gray-400" />
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Click to <span className="text-ozo-red">capture live photo</span>
+                  </p>
+                  <p className="text-xs text-gray-450">Live camera capture only.</p>
+                </>
+              ) : (
+                <>
+                  <Upload className="w-8 h-8 text-gray-400" />
+                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+                    Drag and drop your image{multiple && '(s)'} here, or <span className="text-ozo-red">browse</span>
+                  </p>
+                  <p className="text-xs text-gray-450">Supports PNG, JPG, JPEG, WEBP files.</p>
+                </>
+              )}
+            </div>
+          </div>
+        )
+      )}
+
+      {/* Show thumbnails gallery below ONLY if multiple is true and we have urls */}
+      {multiple && urls.length > 0 && (
+        <div className="flex flex-wrap gap-3 mt-2">
           {urls.map((url, idx) => (
             <div key={idx} className="relative w-20 h-20 rounded-2xl overflow-hidden border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#1a1a1a]">
               <img src={url} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
@@ -325,140 +413,11 @@ const ImageUpload = ({
               )}
             </div>
           ))}
-
           {localUploading && (
             <div className="w-20 h-20 rounded-2xl border border-gray-200 dark:border-white/10 bg-gray-50 dark:bg-[#1a1a1a] flex items-center justify-center">
               <Loader2 className="w-5 h-5 animate-spin text-ozo-red" />
             </div>
           )}
-
-          {urls.length < limit && !localUploading && (
-            cameraOnly ? (
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCamera(true)
-                  startCamera(facingMode)
-                }}
-                className="flex flex-col items-center justify-center w-20 h-20 rounded-2xl border border-dashed cursor-pointer transition-colors bg-gray-50/50 dark:bg-white/5 border-gray-300 dark:border-white/20 hover:border-ozo-red dark:hover:border-ozo-red group"
-              >
-                <Camera size={20} className="text-gray-400 group-hover:text-ozo-red transition-colors" />
-                <span className="text-[10px] text-gray-450 mt-1 group-hover:text-ozo-red transition-colors font-bold">Capture</span>
-              </button>
-            ) : (
-              <label className={`flex flex-col items-center justify-center w-20 h-20 rounded-2xl border border-dashed cursor-pointer transition-colors bg-gray-50/50 dark:bg-white/5 group ${
-                isDragging ? 'border-ozo-red bg-red-500/5' : 'border-gray-300 dark:border-white/20 hover:border-ozo-red dark:hover:border-ozo-red'
-              }`}
-                onDragOver={handleDragOver}
-                onDragLeave={handleDragLeave}
-                onDrop={handleDrop}
-              >
-                <Camera size={20} className="text-gray-400 group-hover:text-ozo-red transition-colors" />
-                <span className="text-[10px] text-gray-450 mt-1 group-hover:text-ozo-red transition-colors font-bold">Add Photo</span>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  capture={capture}
-                  onChange={handleFileChange}
-                  className="hidden"
-                  disabled={disabled}
-                />
-              </label>
-            )
-          )}
-        </div>
-
-        {/* Render Live Camera Modal */}
-        {renderCameraModal()}
-      </div>
-    )
-  }
-
-  // Visual layout for single image
-  return (
-    <div className={`space-y-2 ${className}`}>
-      {label && (
-        <label className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider block">
-          {label}
-        </label>
-      )}
-      
-      {value ? (
-        <div className="relative rounded-2xl overflow-hidden border border-gray-200/80 dark:border-white/10 h-44 group bg-gray-50 dark:bg-white/5">
-          <img src={value} alt="Uploaded preview" className="w-full h-full object-contain" />
-          {localUploading ? (
-            <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10 animate-fadeIn">
-              <Loader2 className="w-8 h-8 animate-spin text-white" />
-              <span className="text-xs font-bold text-white">Uploading to ImgBB...</span>
-            </div>
-          ) : (
-            !disabled && (
-              <button
-                type="button"
-                onClick={() => handleRemove(value)}
-                className="absolute top-2 right-2 p-1.5 bg-black/70 hover:bg-black text-white rounded-full transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )
-          )}
-        </div>
-      ) : (
-        <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          onClick={() => {
-            if (disabled || localUploading) return
-            if (cameraOnly) {
-              setShowCamera(true)
-              startCamera(facingMode)
-            } else {
-              fileInputRef.current?.click()
-            }
-          }}
-          className={`border-dashed border-2 rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 ${
-            isDragging
-              ? 'border-ozo-red bg-red-500/5'
-              : 'border-gray-300 dark:border-white/10 hover:border-gray-400 hover:bg-gray-50/50 dark:hover:bg-white/[0.01]'
-          } ${disabled || localUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
-        >
-          {!cameraOnly && (
-            <input
-              type="file"
-              ref={fileInputRef}
-              onChange={handleFileChange}
-              accept="image/*"
-              capture={capture}
-              className="hidden"
-              disabled={disabled || localUploading}
-            />
-          )}
-          <div className="flex flex-col items-center justify-center gap-2">
-            {localUploading ? (
-              <>
-                <Loader2 className="w-8 h-8 animate-spin text-ozo-red" />
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-350">Uploading image...</p>
-              </>
-            ) : cameraOnly ? (
-              <>
-                <Camera className="w-8 h-8 text-gray-400 group-hover:text-ozo-red transition-colors" />
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Click to <span className="text-ozo-red">capture live photo</span>
-                </p>
-                <p className="text-xs text-gray-450">Live camera capture only.</p>
-              </>
-            ) : (
-              <>
-                <Upload className="w-8 h-8 text-gray-400" />
-                <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                  Drag and drop your image here, or <span className="text-ozo-red">browse</span>
-                </p>
-                <p className="text-xs text-gray-450">Supports PNG, JPG, JPEG, WEBP files.</p>
-              </>
-            )}
-          </div>
         </div>
       )}
 
