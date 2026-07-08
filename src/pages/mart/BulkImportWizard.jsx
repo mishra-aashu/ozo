@@ -331,7 +331,9 @@ export default function BulkImportWizard({
       setImportStep('mapping')
     }
     reader.readAsText(file)
-  }  const runProductMatching = async () => {
+  }
+
+  const runProductMatching = async () => {
     setIsMatching(true)
     try {
       const identifierIndex = csvHeaders.indexOf(columnMapping.product_identifier)
