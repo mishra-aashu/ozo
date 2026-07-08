@@ -20,6 +20,9 @@ export default function OptimizedImage({
   style = {},
   slug = '',
   fetchPriority,
+  onLoad: externalOnLoad,
+  onError: externalOnError,
+  loading,
   ...props
 }) {
   const [currentSrc, setCurrentSrc] = useState('')
@@ -64,7 +67,7 @@ export default function OptimizedImage({
     }
   }, [src, slug, width, quality])
 
-  const handleError = () => {
+  const handleError = (e) => {
     if (status === 'optimizing') {
       // If src is blocked/invalid, skip it and go straight to placeholder
       if (!src || isBlockedUrl(src)) {
@@ -83,6 +86,10 @@ export default function OptimizedImage({
       // If even the fallback fails, stop to prevent infinite loops
       setImageLoading(false)
     }
+
+    if (externalOnError) {
+      externalOnError(e)
+    }
   }
 
   const handleLoad = (e) => {
@@ -93,7 +100,6 @@ export default function OptimizedImage({
     if (imgUrl && !imgUrl.startsWith('data:') && status !== 'fallback') {
       const tempImg = new Image()
       tempImg.crossOrigin = 'anonymous'
-      tempImg.src = imgUrl
       tempImg.onload = () => {
         try {
           const canvas = document.createElement('canvas')
@@ -145,10 +151,11 @@ export default function OptimizedImage({
           setDetectedBg('#ffffff')
         }
       }
+      tempImg.src = imgUrl
     }
 
-    if (props.onLoad) {
-      props.onLoad(e)
+    if (externalOnLoad) {
+      externalOnLoad(e)
     }
   }
 
@@ -156,8 +163,11 @@ export default function OptimizedImage({
                             fallbackSrc.includes('unsplash.com/photo-1619566636858-adf3ef46400b');
   const showSvgPlaceholder = (!src && !slug && !imageLoading) || (status === 'fallback' && isDefaultFallback);
 
+  // Separate container styles from image-only styles
+  const { backgroundColor, ...restStyle } = style || {}
+
   // Compute container background based on detectedBg and isDark
-  let computedBg = style.backgroundColor
+  let computedBg = backgroundColor
   if (detectedBg === '#ffffff') {
     computedBg = isDark ? '#f3f4f6' : '#ffffff'
   } else if (detectedBg && detectedBg !== 'transparent') {
@@ -166,14 +176,13 @@ export default function OptimizedImage({
 
   // Compute image style (multiply blend mode for solid backgrounds in dark mode)
   const imageStyle = {
-    ...props.style,
     mixBlendMode: (isDark && detectedBg === '#ffffff') ? 'multiply' : undefined
   }
 
   return (
     <div 
       className={`relative overflow-hidden ${containerClassName}`} 
-      style={{ ...style, backgroundColor: computedBg }}
+      style={{ ...restStyle, backgroundColor: computedBg }}
     >
       {/* Loading Shimmer Overlay */}
       {showLoader && imageLoading && (
@@ -195,6 +204,7 @@ export default function OptimizedImage({
           <img
             src={currentSrc}
             alt={alt}
+            loading={loading}
             onLoad={handleLoad}
             onError={handleError}
             className={`${className} transition-opacity duration-300 ${
@@ -209,4 +219,3 @@ export default function OptimizedImage({
     </div>
   )
 }
-
