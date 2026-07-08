@@ -17,7 +17,8 @@ import {
   ChevronUp,
   Trash2,
   User,
-  Users
+  Users,
+  MoreVertical
 } from 'lucide-react'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findMatchingActiveCity, findCityByPincode } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
@@ -42,7 +43,11 @@ const SelectLocation = () => {
     fetchUserAddresses, 
     addUserAddress,
     deleteUserAddress,
-    isLoading 
+    isLoading,
+    localities,
+    landmarks,
+    galis,
+    fetchHierarchicalData
   } = useLocationStore(useShallow(state => ({
     address: state.address,
     setAddress: state.setAddress,
@@ -54,7 +59,11 @@ const SelectLocation = () => {
     fetchUserAddresses: state.fetchUserAddresses,
     addUserAddress: state.addUserAddress,
     deleteUserAddress: state.deleteUserAddress,
-    isLoading: state.isLoading
+    isLoading: state.isLoading,
+    localities: state.localities || [],
+    landmarks: state.landmarks || [],
+    galis: state.galis || [],
+    fetchHierarchicalData: state.fetchHierarchicalData
   })))
   const { isAuthenticated, profile } = useAuthStore(useShallow(state => ({
     isAuthenticated: state.isAuthenticated,
@@ -64,10 +73,12 @@ const SelectLocation = () => {
   const [recipientType, setRecipientType] = useState(null)
   
   const [searchQuery, setSearchQuery] = useState('')
+  const [isSearchActive, setIsSearchActive] = useState(false)
   const [showForm, setShowForm] = useState(false)
   const [showMapPicker, setShowMapPicker] = useState(false)
   const [editingAddressId, setEditingAddressId] = useState(null)
   const [addressToDelete, setAddressToDelete] = useState(null)
+  const [activeMenuId, setActiveMenuId] = useState(null)
 
   const [formData, setFormData] = useState(() => {
     const nearestCity = useLocationStore.getState().nearestCity
@@ -94,10 +105,11 @@ const SelectLocation = () => {
   useEffect(() => {
     const controller = new AbortController()
     fetchUserAddresses({ signal: controller.signal })
+    fetchHierarchicalData()
     return () => {
       controller.abort()
     }
-  }, [fetchUserAddresses])
+  }, [fetchUserAddresses, fetchHierarchicalData])
 
   const handleMapLocationSelect = (loc) => {
     if (loc.isManualSelect) {
@@ -379,6 +391,259 @@ const SelectLocation = () => {
     )
   })
 
+  // Filter localities, landmarks, and galis from database matching search query
+  const dbMatches = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim()
+    if (!query) return []
+
+    const matches = []
+
+    // 1. Search localities
+    localities.forEach(loc => {
+      const lat = parseFloat(loc.latitude)
+      const lng = parseFloat(loc.longitude)
+      if (!isNaN(lat) && !isNaN(lng)) {
+        if (
+          (loc.name || '').toLowerCase().includes(query) ||
+          (loc.name_hi || '').toLowerCase().includes(query)
+        ) {
+          matches.push({
+            id: `loc-${loc.id}`,
+            name: loc.name,
+            name_hi: loc.name_hi,
+            type: 'Locality / Area',
+            lat,
+            lng,
+            city: 'Aurangabad'
+          })
+        }
+      }
+    })
+
+    // 2. Search landmarks
+    landmarks.forEach(lm => {
+      const lat = parseFloat(lm.latitude)
+      const lng = parseFloat(lm.longitude)
+      if (!isNaN(lat) && !isNaN(lng)) {
+        if (
+          (lm.name || '').toLowerCase().includes(query) ||
+          (lm.name_hi || '').toLowerCase().includes(query)
+        ) {
+          const parentLoc = localities.find(l => l.id === lm.locality_id)
+          const parentName = parentLoc ? `, ${parentLoc.name}` : ''
+          matches.push({
+            id: `lm-${lm.id}`,
+            name: lm.name,
+            name_hi: lm.name_hi,
+            type: 'Landmark',
+            lat,
+            lng,
+            description: `Near ${lm.name}${parentName}`,
+            city: 'Aurangabad'
+          })
+        }
+      }
+    })
+
+    // 3. Search galis
+    galis.forEach(g => {
+      const lat = parseFloat(g.latitude)
+      const lng = parseFloat(g.longitude)
+      if (!isNaN(lat) && !isNaN(lng)) {
+        if (
+          (g.name || '').toLowerCase().includes(query) ||
+          (g.name_hi || '').toLowerCase().includes(query)
+        ) {
+          const parentLoc = localities.find(l => l.id === g.locality_id)
+          const parentName = parentLoc ? `, ${parentLoc.name}` : ''
+          matches.push({
+            id: `gali-${g.id}`,
+            name: g.name,
+            name_hi: g.name_hi,
+            type: g.type === 'apartment' ? 'Apartment/Building' : 'Street / Gali',
+            lat,
+            lng,
+            description: `${g.name}${parentName}`,
+            city: 'Aurangabad'
+          })
+        }
+      }
+    })
+
+    return matches.slice(0, 15)
+  }, [searchQuery, localities, landmarks, galis])
+
+  const handleSelectDbMatch = async (match) => {
+    const displayName = match.name_hi 
+      ? `${match.name} (${match.name_hi})` 
+      : match.name;
+    
+    const fullAddressText = match.description 
+      ? `${match.description}, ${match.city}` 
+      : `${displayName}, ${match.city}`;
+
+    setCoordinates({ lat: match.lat, lng: match.lng })
+    setAddress(fullAddressText)
+    
+    await useLocationStore.getState().updateNearestCitySlug(match.lat, match.lng)
+    
+    toast.success(`Location set to ${displayName}`)
+    navigate(-1)
+  }
+
+  if (isSearchActive) {
+    return (
+      <div 
+        className="fixed inset-0 z-[100] flex flex-col items-center justify-start pt-[12vh] px-2.5 cursor-default"
+        onClick={() => {
+          setIsSearchActive(false)
+          setSearchQuery('')
+        }}
+      >
+        {/* Backdrop (subtle overlay) */}
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/10 dark:bg-black/30 backdrop-blur-[2px]"
+        />
+
+        {/* Floating Search Bar + Suggestions Container */}
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 10 }}
+          transition={{ type: 'spring', duration: 0.3 }}
+          onClick={(e) => e.stopPropagation()}
+          className="relative w-full max-w-[500px] z-10 flex flex-col gap-3"
+        >
+          {/* The Search input + Close button Row */}
+          <div className="flex items-center gap-2 w-full">
+            {/* Search Input Container */}
+            <div className="relative flex-1 bg-white dark:bg-[#0d0d0d] rounded-[1.8rem] border border-gray-100 dark:border-white/5 shadow-xl group flex items-center">
+              <Search className="absolute left-3.5 w-4 h-4 text-ozo-red" />
+              <input
+                type="text"
+                autoFocus
+                placeholder="Search for area, street name..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-10 pr-9 py-3 bg-transparent border-none focus:outline-none transition-all text-xs font-bold text-gray-900 dark:text-white placeholder:text-gray-400"
+              />
+              {searchQuery && (
+                <button 
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 w-5 h-5 rounded-full bg-gray-200/50 dark:bg-white/10 flex items-center justify-center text-gray-550 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-white/20"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Close Button */}
+            <button 
+              type="button"
+              onClick={() => {
+                setIsSearchActive(false)
+                setSearchQuery('')
+              }}
+              className="w-9 h-9 rounded-full bg-white dark:bg-[#0d0d0d] shadow-xl border border-gray-100 dark:border-white/5 flex items-center justify-center text-gray-500 dark:text-gray-300 hover:bg-gray-55 dark:hover:bg-white/5 active:scale-95 transition-all flex-shrink-0"
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          {/* Suggestions Dropdown (Only show when there is a search query and we have results) */}
+          {searchQuery.trim() !== '' && (dbMatches.length > 0 || filteredAddresses.length > 0) && (
+            <div className="w-full bg-white dark:bg-[#0d0d0d] rounded-[2rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-y-auto max-h-[50vh] p-4 space-y-4 scrollbar-hide">
+              {/* Database Matches Section */}
+              {dbMatches.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-[9px] font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em] px-2">Streets & Localities</h3>
+                  <div className="space-y-1.5">
+                    {dbMatches.map((match) => (
+                      <div
+                        key={match.id}
+                        onClick={() => handleSelectDbMatch(match)}
+                        className="w-full flex items-center justify-between p-3 bg-gray-55 dark:bg-white/5 rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-left group cursor-pointer gap-3"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-ozo-red/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 transition-all">
+                            <MapPin size={14} className="text-ozo-red" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <span className="font-black text-gray-955 dark:text-white capitalize text-xs font-sans">
+                                {match.name} {match.name_hi && <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 font-sans">({match.name_hi})</span>}
+                              </span>
+                              <span className="text-[6px] uppercase tracking-wider font-black text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded-full shrink-0">
+                                {match.type}
+                              </span>
+                            </div>
+                            <p className="text-[9px] text-ozo-gray dark:text-gray-500 font-semibold truncate mt-0.5">
+                              {match.description || `${match.name}, Aurangabad`}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" size={12} />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Saved Addresses Section */}
+              {filteredAddresses.length > 0 && (
+                <div className="space-y-2">
+                  <h3 className="text-[9px] font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em] px-2">Saved Addresses</h3>
+                  <div className="space-y-1.5">
+                    {filteredAddresses.map((addr) => {
+                      const Icon = getIcon(addr.label || addr.title || '')
+                      return (
+                        <div
+                          key={addr.id}
+                          onClick={() => handleSelect(addr)}
+                          className="w-full flex items-center justify-between p-3 bg-gray-55 dark:bg-white/5 rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-left group cursor-pointer gap-3"
+                        >
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 transition-all">
+                              <Icon size={14} className="text-ozo-gray dark:text-gray-400 group-hover:text-ozo-red transition-colors" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <span className="font-black text-gray-900 dark:text-white capitalize text-xs">{addr.label || addr.title}</span>
+                              <p className="text-[9px] text-ozo-gray dark:text-gray-500 font-semibold truncate mt-0.5">
+                                {addr.address_line1}, {addr.city}
+                              </p>
+                            </div>
+                          </div>
+                          <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" size={12} />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* No Results Card */}
+          {searchQuery.trim() !== '' && dbMatches.length === 0 && filteredAddresses.length === 0 && (
+            <div className="w-full bg-white dark:bg-[#0d0d0d] rounded-[2rem] shadow-2xl border border-gray-100 dark:border-white/5 p-6 text-center space-y-2">
+              <div className="w-10 h-10 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center text-gray-400 mx-auto">
+                <Search size={20} />
+              </div>
+              <div>
+                <p className="text-xs font-black text-gray-800 dark:text-gray-250">No results found</p>
+                <p className="text-[10px] text-gray-550 font-bold mt-0.5">Try searching with another keyword</p>
+              </div>
+            </div>
+          )}
+        </motion.div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#080808] flex flex-col transition-colors duration-300 text-gray-800 dark:text-white">
       {/* Sticky Header */}
@@ -546,8 +811,13 @@ const SelectLocation = () => {
                   type="text"
                   placeholder="Search for area, street name..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-14 pr-6 py-5 bg-white dark:bg-white/5 border-2 border-transparent rounded-[1.5rem] focus:bg-white dark:focus:bg-white/10 focus:outline-none focus:border-ozo-red/20 transition-all text-sm font-bold text-gray-900 dark:text-white placeholder:text-gray-400 shadow-sm focus:shadow-xl"
+                  onFocus={() => setIsSearchActive(true)}
+                  onClick={() => setIsSearchActive(true)}
+                  onChange={(e) => {
+                    setIsSearchActive(true)
+                    setSearchQuery(e.target.value)
+                  }}
+                  className="w-full pl-14 pr-6 py-5 bg-white dark:bg-white/5 border-2 border-transparent rounded-[1.5rem] focus:bg-white dark:focus:bg-white/10 focus:outline-none focus:border-ozo-red/20 transition-all text-sm font-bold text-gray-900 dark:text-white placeholder:text-gray-400 shadow-sm focus:shadow-xl cursor-pointer"
                 />
               </div>
 
@@ -599,6 +869,44 @@ const SelectLocation = () => {
                 </div>
                 <ChevronRight className="ml-auto opacity-40 group-hover:translate-x-1 transition-all" />
               </button>
+
+              {/* Database Matches Section */}
+              {searchQuery && dbMatches.length > 0 && (
+                <div className="space-y-4 animate-fade-in">
+                  <div className="flex items-center justify-between px-2">
+                    <h3 className="text-xs font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em]">Streets & Localities ({dbMatches.length})</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {dbMatches.map((match) => (
+                      <div
+                        key={match.id}
+                        onClick={() => handleSelectDbMatch(match)}
+                        className="w-full flex items-center justify-between p-4 bg-white dark:bg-white/5 rounded-[2rem] hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-left group border border-gray-100 dark:border-white/5 hover:shadow-lg cursor-pointer gap-4"
+                      >
+                        <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                          <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-ozo-red/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 group-hover:shadow-md transition-all">
+                            <MapPin size={20} className="text-ozo-red" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-black text-gray-950 dark:text-white capitalize">
+                                {match.name} {match.name_hi && <span className="text-xs font-medium text-gray-400 dark:text-gray-500">({match.name_hi})</span>}
+                              </p>
+                              <span className="text-[8px] uppercase tracking-wider font-black text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-full shrink-0">
+                                {match.type}
+                              </span>
+                            </div>
+                            <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1">
+                              {match.description || `${match.name}, Aurangabad`}
+                            </p>
+                          </div>
+                        </div>
+                        <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Saved Addresses Section */}
               <div className="space-y-4">
@@ -663,50 +971,91 @@ const SelectLocation = () => {
                         <div
                           key={addr.id}
                           onClick={() => handleSelect(addr)}
-                          className="w-full flex items-center gap-5 p-5 bg-white dark:bg-white/5 rounded-[2rem] hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-left group border border-gray-100 dark:border-white/5 hover:shadow-lg cursor-pointer"
+                          className="w-full flex items-center justify-between p-4 bg-white dark:bg-white/5 rounded-[2rem] hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-left group border border-gray-100 dark:border-white/5 hover:shadow-lg cursor-pointer gap-4 relative"
                         >
-                          <div className="w-14 h-14 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-md transition-all">
-                            <Icon size={24} className="text-ozo-gray dark:text-gray-400 group-hover:text-ozo-red transition-colors" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <p className="font-black text-gray-900 dark:text-white capitalize">{addr.label || addr.title}</p>
-                              {addr.latitude && addr.longitude && (
-                                <span className="text-[8px] uppercase tracking-wider font-black text-ozo-red bg-red-50 dark:bg-ozo-red/10 px-2 py-0.5 rounded-full border border-ozo-red/15 flex items-center gap-1">
-                                  <MapPin size={8} /> Pinned
-                                </span>
-                              )}
+                          <div className="flex items-center gap-3.5 min-w-0 flex-1">
+                            <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-md transition-all">
+                              <Icon size={20} className="text-ozo-gray dark:text-gray-400 group-hover:text-ozo-red transition-colors" />
                             </div>
-                            
-                            {(parsed.receiverName || parsed.receiverPhone) && (
-                              <p className="text-[10px] font-bold text-ozo-red dark:text-red-400 mt-0.5 flex items-center gap-1">
-                                <User size={10} className="shrink-0" />
-                                <span>{parsed.receiverName} {parsed.receiverPhone && `(${parsed.receiverPhone})`}</span>
-                              </p>
-                            )}
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <p className="font-black text-gray-900 dark:text-white capitalize">{addr.label || addr.title}</p>
+                                {addr.latitude && addr.longitude && (
+                                  <span className="text-[8px] uppercase tracking-wider font-black text-ozo-red bg-red-50 dark:bg-ozo-red/10 px-2 py-0.5 rounded-full border border-ozo-red/15 flex items-center gap-1 shrink-0">
+                                    <MapPin size={8} /> Pinned
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {(parsed.receiverName || parsed.receiverPhone) && (
+                                <div className="inline-flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-ozo-red dark:text-red-400 mt-1.5 bg-red-50/50 dark:bg-ozo-red/5 px-2 py-1 rounded-lg w-fit max-w-full">
+                                  <User size={10} className="shrink-0" />
+                                  <span className="break-words">{parsed.receiverName}</span>
+                                  {parsed.receiverPhone && (
+                                    <span className="opacity-70 font-semibold break-all">({parsed.receiverPhone})</span>
+                                  )}
+                                </div>
+                              )}
 
-                            <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium truncate mt-0.5">{addr.address_line1}, {addr.city}</p>
+                              <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1 break-words">{addr.address_line1}, {addr.city}</p>
+                            </div>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <span 
-                              onClick={(e) => handleOpenEditForm(addr, e)}
-                              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all"
-                              title="Edit Address"
-                            >
-                              <EditIcon size={16} className="text-gray-400 hover:text-ozo-red" />
-                            </span>
-                            <span 
+                          <div className="relative flex items-center gap-1.5 flex-shrink-0">
+                            <button 
                               onClick={(e) => {
                                 e.stopPropagation()
-                                setAddressToDelete(addr.id)
+                                setActiveMenuId(activeMenuId === addr.id ? null : addr.id)
                               }}
-                              className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all"
-                              title="Delete Address"
+                              className="p-2 hover:bg-gray-150 dark:hover:bg-white/10 rounded-xl transition-all text-gray-455 hover:text-ozo-red"
+                              title="More Options"
                             >
-                              <Trash2 size={16} className="text-gray-400 hover:text-ozo-red" />
-                            </span>
-                            <ChevronRight size={20} className="text-gray-300 dark:text-gray-700 group-hover:translate-x-1 transition-all" />
+                              <MoreVertical size={18} />
+                            </button>
+
+                            <AnimatePresence>
+                              {activeMenuId === addr.id && (
+                                <>
+                                  <div 
+                                    className="fixed inset-0 z-45" 
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setActiveMenuId(null)
+                                    }}
+                                  />
+                                  <motion.div
+                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                    transition={{ duration: 0.15 }}
+                                    className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl border border-gray-100 dark:border-white/5 py-1.5 z-50 overflow-hidden"
+                                  >
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setActiveMenuId(null)
+                                        handleOpenEditForm(addr, e)
+                                      }}
+                                      className="w-full px-4 py-2.5 text-left text-xs font-bold text-gray-700 dark:text-gray-250 hover:bg-gray-55 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
+                                    >
+                                      <EditIcon size={14} className="text-gray-400" />
+                                      <span>Edit Address</span>
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        setActiveMenuId(null)
+                                        setAddressToDelete(addr.id)
+                                      }}
+                                      className="w-full px-4 py-2.5 text-left text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 flex items-center gap-2 transition-colors border-t border-gray-100 dark:border-white/5"
+                                    >
+                                      <Trash2 size={14} className="text-red-400" />
+                                      <span>Delete</span>
+                                    </button>
+                                  </motion.div>
+                                </>
+                              )}
+                            </AnimatePresence>
                           </div>
                         </div>
                       )
