@@ -73,7 +73,7 @@ const MainLayout = () => {
       {!hideHeader && <Header />}
 
       {/* Main Content */}
-      <main className={`flex-1 ${hideHeaderFooter ? '' : 'pb-28 md:pb-8'} w-full max-w-full overflow-x-clip relative`}>
+      <main className={`flex-1 ${hideHeaderFooter || isCategoryPage ? '' : 'pb-28 md:pb-8'} w-full max-w-full overflow-x-clip relative`}>
         <Outlet />
       </main>
       
