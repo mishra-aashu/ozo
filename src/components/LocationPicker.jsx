@@ -18,7 +18,7 @@ import {
   Users,
   MoreVertical
 } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findMatchingActiveCity, findCityByPincode } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
@@ -964,37 +964,42 @@ const LocationPicker = ({ isOpen, onClose }) => {
 
                   {/* Suggestions Dropdown */}
                   {searchQuery.trim() !== '' && (dbMatches.length > 0 || filteredAddresses.length > 0) && (
-                    <div className="w-full bg-white dark:bg-[#0d0d0d] rounded-[2rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-y-auto max-h-[50vh] p-4 space-y-4 scrollbar-hide">
+                    <div className="w-full bg-white dark:bg-[#0d0d0d] rounded-[1.8rem] shadow-2xl border border-gray-100 dark:border-white/5 overflow-y-auto max-h-[50vh] p-3 space-y-3 scrollbar-hide">
                       {/* Database Matches Section */}
                       {dbMatches.length > 0 && (
-                        <div className="space-y-2">
-                          <h3 className="text-[9px] font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em] px-2">Streets & Localities</h3>
-                          <div className="space-y-1.5">
+                        <div className="space-y-1">
+                          <h3 className="text-[9px] font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em] px-2.5 pb-1">Streets & Localities</h3>
+                          <div className="space-y-0.5">
                             {dbMatches.map((match) => (
                               <div
                                 key={match.id}
                                 onClick={() => handleSelectDbMatch(match)}
-                                className="w-full flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-left group cursor-pointer gap-3"
+                                className="w-full flex items-center justify-between p-2.5 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all text-left group cursor-pointer gap-2.5"
                               >
-                                <div className="flex items-center gap-3 min-w-0 flex-1">
-                                  <div className="w-8 h-8 rounded-xl bg-red-50 dark:bg-ozo-red/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 transition-all">
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <div className="w-8 h-8 rounded-full bg-red-50 dark:bg-ozo-red/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 transition-all">
                                     <MapPin size={14} className="text-ozo-red" />
                                   </div>
                                   <div className="min-w-0 flex-1">
-                                    <div className="flex items-center gap-1.5 flex-wrap">
-                                      <span className="font-black text-gray-955 dark:text-white capitalize text-xs font-sans">
-                                        {match.name} {match.name_hi && <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 font-sans">({match.name_hi})</span>}
+                                    <div className="flex items-baseline gap-1.5 min-w-0">
+                                      <span className="font-bold text-gray-800 dark:text-white capitalize text-xs font-sans truncate">
+                                        {match.name}
                                       </span>
-                                      <span className="text-[6px] uppercase tracking-wider font-black text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 rounded-full shrink-0">
-                                        {match.type}
-                                      </span>
+                                      {match.name_hi && (
+                                        <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500 font-sans truncate">
+                                          ({match.name_hi})
+                                        </span>
+                                      )}
                                     </div>
-                                    <p className="text-[9px] text-ozo-gray dark:text-gray-500 font-semibold truncate mt-0.5">
-                                      {match.description || `${match.name}, Aurangabad`}
+                                    <p className="text-[9.5px] text-gray-550 dark:text-gray-400 font-semibold truncate mt-0.5">
+                                      <span className="text-ozo-red/80 font-black uppercase text-[8px] tracking-wider mr-1">
+                                        {match.type === 'gali' ? 'Street' : match.type === 'landmark' ? 'Landmark' : 'Area'}
+                                      </span>
+                                      • {match.description || `${match.name}, Aurangabad`}
                                     </p>
                                   </div>
                                 </div>
-                                <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" size={12} />
+                                <ChevronRight className="opacity-30 group-hover:translate-x-1 transition-transform shrink-0" size={12} />
                               </div>
                             ))}
                           </div>
@@ -1003,29 +1008,29 @@ const LocationPicker = ({ isOpen, onClose }) => {
 
                       {/* Saved Addresses Section */}
                       {filteredAddresses.length > 0 && (
-                        <div className="space-y-2">
-                          <h3 className="text-[9px] font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em] px-2">Saved Addresses</h3>
-                          <div className="space-y-1.5">
+                        <div className="space-y-1">
+                          <h3 className="text-[9px] font-black text-ozo-gray dark:text-gray-500 uppercase tracking-[0.2em] px-2.5 pb-1">Saved Addresses</h3>
+                          <div className="space-y-0.5">
                             {filteredAddresses.map((addr) => {
                               const Icon = getIcon(addr.label || addr.title || '')
                               return (
                                 <div
                                   key={addr.id}
                                   onClick={() => handleSelect(addr)}
-                                  className="w-full flex items-center justify-between p-3 bg-gray-55 dark:bg-white/5 rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-left group cursor-pointer gap-3"
+                                  className="w-full flex items-center justify-between p-2.5 hover:bg-gray-55 dark:hover:bg-white/5 rounded-xl transition-all text-left group cursor-pointer gap-2.5"
                                 >
-                                  <div className="flex items-center gap-3 min-w-0 flex-1">
-                                    <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 transition-all">
+                                  <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                    <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/5 transition-all">
                                       <Icon size={14} className="text-ozo-gray dark:text-gray-400 group-hover:text-ozo-red transition-colors" />
                                     </div>
                                     <div className="min-w-0 flex-1">
-                                      <span className="font-black text-gray-900 dark:text-white capitalize text-xs">{addr.label || addr.title}</span>
-                                      <p className="text-[9px] text-ozo-gray dark:text-gray-500 font-semibold truncate mt-0.5">
+                                      <span className="font-bold text-gray-800 dark:text-white capitalize text-xs">{addr.label || addr.title}</span>
+                                      <p className="text-[9.5px] text-gray-555 dark:text-gray-450 font-semibold truncate mt-0.5">
                                         {addr.address_line1}, {addr.city}
                                       </p>
                                     </div>
                                   </div>
-                                  <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" size={12} />
+                                  <ChevronRight className="opacity-30 group-hover:translate-x-1 transition-transform shrink-0" size={12} />
                                 </div>
                               )
                             })}
