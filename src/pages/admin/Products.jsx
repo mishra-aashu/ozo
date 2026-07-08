@@ -190,6 +190,7 @@ const Products = () => {
     description: '',
     isAvailable: true,
     imageUrl: '',
+    images: [],
     isUpcoming: false
   })
   
@@ -240,7 +241,11 @@ const Products = () => {
     const description = formData.description ? `'${formData.description.trim().replace(/'/g, "''")}'` : 'NULL'
     const isAvailable = formData.isAvailable ? 'true' : 'false'
     const isUpcoming = formData.isUpcoming ? 'true' : 'false'
-    const imageUrl = formData.imageUrl ? `'${formData.imageUrl.trim().replace(/'/g, "''")}'` : 'NULL'
+    const mainImageUrl = formData.images && formData.images.length > 0 ? formData.images[0] : (formData.imageUrl || '')
+    const imageUrl = mainImageUrl ? `'${mainImageUrl.trim().replace(/'/g, "''")}'` : 'NULL'
+    const imagesSql = formData.images && formData.images.length > 0
+      ? `ARRAY[${formData.images.map(img => `'${img.trim().replace(/'/g, "''")}'`).join(', ')}]`
+      : 'NULL'
 
     if (editingProduct) {
       return `UPDATE public.products
@@ -259,6 +264,7 @@ SET
   is_available = ${isAvailable},
   is_upcoming = ${isUpcoming},
   image_url = ${imageUrl},
+  images = ${imagesSql},
   updated_at = NOW()
 WHERE id = '${editingProduct.id}';`
     } else {
@@ -276,7 +282,8 @@ WHERE id = '${editingProduct.id}';`
   description, 
   is_available, 
   is_upcoming,
-  image_url
+  image_url,
+  images
 ) VALUES (
   '${name}', 
   '${slug}', 
@@ -291,7 +298,8 @@ WHERE id = '${editingProduct.id}';`
   ${description}, 
   ${isAvailable}, 
   ${isUpcoming},
-  ${imageUrl}
+  ${imageUrl},
+  ${imagesSql}
 );`
     }
   }
@@ -675,7 +683,7 @@ WHERE id = '${editingProduct.id}';`
         const { formData: draftFormData, editingProduct: draftEditingProduct } = JSON.parse(savedDraft)
         
         // Only load if the form actually has some unsaved changes (e.g. name or price is filled)
-        if (draftFormData && (draftFormData.name || draftFormData.price || draftFormData.description || draftFormData.imageUrl)) {
+        if (draftFormData && (draftFormData.name || draftFormData.price || draftFormData.description || draftFormData.imageUrl || (draftFormData.images && draftFormData.images.length > 0))) {
           setFormData(draftFormData)
           setEditingProduct(draftEditingProduct)
           setIsDrawerOpen(true)
@@ -717,7 +725,8 @@ WHERE id = '${editingProduct.id}';`
 
     setSubmitting(true)
     try {
-      let finalImageUrl = formData.imageUrl || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'
+      const mainImage = (formData.images && formData.images.length > 0) ? formData.images[0] : (formData.imageUrl || '')
+      let finalImageUrl = mainImage || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=600'
 
       const productPayload = {
         name: formData.name,
@@ -734,7 +743,8 @@ WHERE id = '${editingProduct.id}';`
         description: formData.description || null,
         is_available: formData.isAvailable,
         is_upcoming: formData.isUpcoming,
-        image_url: finalImageUrl
+        image_url: finalImageUrl,
+        images: formData.images || []
       }
 
       if (editingProduct) {
@@ -890,6 +900,7 @@ WHERE id = '${editingProduct.id}';`
       description: '',
       isAvailable: true,
       imageUrl: '',
+      images: [],
       slug: '',
       isUpcoming: false
     })
@@ -916,6 +927,7 @@ WHERE id = '${editingProduct.id}';`
       description: product.description || '',
       isAvailable: product.is_available,
       imageUrl: product.image_url || '',
+      images: product.images || (product.image_url ? [product.image_url] : []),
       isUpcoming: product.is_upcoming || false
     })
     setDrawerTab('form')
@@ -939,6 +951,7 @@ WHERE id = '${editingProduct.id}';`
       description: product.description || '',
       isAvailable: product.is_available,
       imageUrl: product.image_url || '',
+      images: product.images || (product.image_url ? [product.image_url] : []),
       isUpcoming: product.is_upcoming || false
     })
     setDrawerTab('form')
@@ -2311,12 +2324,14 @@ WHERE id = '${editingProduct.id}';`
                   />
                 </div>
 
-                {/* Product Image Upload */}
+                {/* Product Images Upload */}
                 <ImageUpload
-                  value={formData.imageUrl}
-                  onChange={(url) => setFormData(prev => ({ ...prev, imageUrl: url }))}
+                  value={formData.images}
+                  onChange={(urls) => setFormData(prev => ({ ...prev, images: urls, imageUrl: urls[0] || '' }))}
+                  multiple={true}
+                  limit={5}
                   customNamePrefix={formData.name || 'product'}
-                  label="Product Image"
+                  label="Product Images"
                   disabled={submitting}
                   onUploadingStateChange={setIsUploadingImage}
                 />
