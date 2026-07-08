@@ -70,7 +70,7 @@ export const sortOptions = [
   }
 ]
 
-export default function SortDropdown({ sortBy, onChange }) {
+export default function SortDropdown({ sortBy, onChange, isCompact }) {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef(null)
 
@@ -89,19 +89,25 @@ export default function SortDropdown({ sortBy, onChange }) {
   }, [])
 
   return (
-    <div className="relative inline-block w-full md:w-64" ref={dropdownRef}>
+    <div className={`relative inline-block ${isCompact ? 'w-auto' : 'w-full md:w-64'}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full bg-white dark:bg-[#1a1a1a] border border-ozo-gray-lighter dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-bold text-gray-700 dark:text-gray-200 hover:border-ozo-red dark:hover:border-ozo-red/50 hover:shadow-sm focus:outline-none transition-all duration-300"
+        className={`flex items-center justify-between w-full bg-white dark:bg-[#1a1a1a] border border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red dark:hover:border-ozo-red/50 hover:shadow-sm focus:outline-none transition-all duration-300 ${
+          isCompact
+            ? 'px-2 py-1.5 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200'
+            : 'px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200'
+        }`}
       >
-        <div className="flex items-center gap-2">
-          <activeOption.icon className="w-4 h-4 text-ozo-red" />
-          <span className="truncate">Sort: {activeOption.label}</span>
+        <div className="flex items-center gap-1.5 min-w-0">
+          <activeOption.icon className={`text-ozo-red flex-shrink-0 ${isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} />
+          <span className="truncate">{isCompact ? activeOption.label.replace('Alphabetical: ', '') : `Sort: ${activeOption.label}`}</span>
         </div>
         <ChevronDown
-          className={`w-4 h-4 text-ozo-gray dark:text-gray-400 transition-transform duration-300 ${
+          className={`text-ozo-gray dark:text-gray-400 transition-transform duration-300 flex-shrink-0 ml-1.5 ${
+            isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'
+          } ${
             isOpen ? 'rotate-180 text-ozo-red' : ''
           }`}
         />

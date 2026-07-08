@@ -583,7 +583,7 @@ const CategoryProducts = () => {
       />
       <motion.div 
         variants={headerVariants}
-        className={`flex-shrink-0 relative lg:sticky z-30 transition-all duration-300 border-b border-ozo-gray-lighter/30 dark:border-white/5 ${
+        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b border-ozo-gray-lighter/30 dark:border-white/5 ${
           isScrolled 
             ? 'bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur-md shadow-lg' 
             : `bg-white/95 dark:bg-[#0d0d0d]/95 bg-gradient-to-br ${bannerGradient}`
@@ -610,21 +610,29 @@ const CategoryProducts = () => {
           </div>
         </div>
 
-        <div className={`container-custom relative z-10 transition-all duration-300 ${isScrolled ? 'py-2 md:py-2.5' : 'py-4 md:py-5'}`}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className={`container-custom relative z-10 transition-all duration-300 ${isScrolled ? 'py-1.5 md:py-2' : 'py-4 md:py-5'}`}>
+          <div className={`flex transition-all duration-300 ${
+            isScrolled 
+              ? 'flex-row items-center justify-between gap-2 w-full' 
+              : 'flex-col md:flex-row md:items-center justify-between gap-4'
+          }`}>
             {/* Left Back Arrow and Title info */}
-            <div className="flex items-start gap-3 w-full md:w-auto">
+            <div className={`flex items-center transition-all duration-300 ${
+              isScrolled 
+                ? 'gap-1.5 flex-1 min-w-0 md:w-auto md:items-start md:gap-3' 
+                : 'gap-3 w-full md:w-auto items-start'
+            }`}>
               <button
                 onClick={() => navigate('/')}
                 className={`btn-icon rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm ${
-                  isScrolled ? 'p-1.5 mt-0.5' : 'p-2 mt-1'
+                  isScrolled ? 'p-1' : 'p-2 mt-1'
                 }`}
               >
-                <ChevronLeft size={isScrolled ? 18 : 20} />
+                <ChevronLeft size={isScrolled ? 16 : 20} />
               </button>
               <div className="flex-1 min-w-0">
                 <h1 className={`font-black text-gray-900 dark:text-white uppercase tracking-tight truncate transition-all duration-300 ${
-                  isScrolled ? 'text-lg md:text-xl' : 'text-xl md:text-2xl'
+                  isScrolled ? 'text-xs xs:text-sm md:text-xl' : 'text-xl md:text-2xl'
                 }`}>
                   {currentCategory ? renderTitle(currentCategory.name) : 'Loading Category...'}
                 </h1>
@@ -644,7 +652,7 @@ const CategoryProducts = () => {
                 </div>
 
                 <p className={`font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider transition-all duration-300 ${
-                  isScrolled ? 'text-[9px] mt-0' : 'text-[10px] md:text-xs mt-1'
+                  isScrolled ? 'text-[0px] h-0 overflow-hidden md:text-[9px] md:h-auto' : 'text-[10px] md:text-xs mt-1'
                 }`}>
                   {isProductsLoading ? 'Fetching products...' : `Showing ${filteredAndSortedProducts.length} items`}
                 </p>
@@ -652,7 +660,11 @@ const CategoryProducts = () => {
             </div>
 
             {/* Right Controls */}
-            <div className="flex items-center justify-between md:justify-end gap-3 w-full md:w-auto">
+            <div className={`flex items-center justify-end transition-all duration-300 ${
+              isScrolled 
+                ? 'gap-1.5 w-auto md:gap-3' 
+                : 'justify-between md:justify-end gap-3 w-full md:w-auto'
+            }`}>
               {/* Desktop Filters Toggle Button when scrolled */}
               <button
                 onClick={() => setShowFiltersScrolled(!showFiltersScrolled)}
@@ -700,14 +712,18 @@ const CategoryProducts = () => {
               {/* Filters Toggle Button (triggers sheet on mobile) */}
               <button
                 onClick={() => setShowMobileFilters(true)}
-                className="flex lg:hidden items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-sm transition-all border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50"
+                className={`flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 ${
+                  isScrolled 
+                    ? 'gap-1 px-2 py-1.5 rounded-lg text-xs font-bold' 
+                    : 'gap-2 px-4 py-2.5 rounded-xl text-sm font-bold'
+                }`}
               >
-                <SlidersHorizontal size={16} />
+                <SlidersHorizontal size={isScrolled ? 12 : 16} />
                 Filters
               </button>
 
               {/* Sorting Select Option */}
-              <SortDropdown sortBy={sortBy} onChange={setSortBy} />
+              <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={isScrolled} />
             </div>
           </div>
 
@@ -869,23 +885,28 @@ const CategoryProducts = () => {
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-[72px] xs:w-[84px] sm:w-[96px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-1 border-r border-gray-100 dark:border-white/5"
-              style={{ maxHeight: 'calc(100vh - 60px)', position: 'sticky', top: '8px' }}
+              className="lg:hidden w-[60px] xs:w-[72px] sm:w-[84px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5"
+              style={{ 
+                maxHeight: isScrolled ? 'calc(100vh - 60px)' : 'calc(100vh - 140px)', 
+                position: 'sticky', 
+                top: isScrolled ? '54px' : '136px',
+                transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s'
+              }}
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
                 <button
                   onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
-                  className={`w-full relative flex flex-col items-center gap-1 p-1.5 rounded-xl text-center transition-all border duration-300 ${
+                  className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 ${
                     slug === currentParentInfo.slug
                       ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                       : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
                   }`}
                 >
                   {slug === currentParentInfo.slug && (
-                    <div className="absolute right-0 top-2 bottom-2 w-[3px] bg-ozo-red rounded-l-full" />
+                    <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
                   )}
-                  <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                  <div className={`w-7 h-7 xs:w-9 xs:h-9 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                     slug === currentParentInfo.slug
                       ? 'border-ozo-red shadow-md'
                       : 'border-gray-100 dark:border-white/5'
@@ -897,10 +918,10 @@ const CategoryProducts = () => {
                         className="w-full h-full object-contain p-0.5 select-none"
                       />
                     ) : (
-                      <Box size={15} className="text-gray-400 dark:text-gray-500" />
+                      <Box size={13} className="text-gray-400 dark:text-gray-500" />
                     )}
                   </div>
-                  <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
+                  <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                     All
                   </span>
                 </button>
@@ -915,16 +936,16 @@ const CategoryProducts = () => {
                     <button
                       key={sub.id}
                       onClick={() => navigate(`/category/${sub.slug}`)}
-                      className={`w-full relative flex flex-col items-center gap-1 p-1.5 rounded-xl text-center transition-all border duration-300 ${
+                      className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 ${
                         isSelected
                           ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                           : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
                       }`}
                     >
                       {isSelected && (
-                        <div className="absolute right-0 top-2 bottom-2 w-[3px] bg-ozo-red rounded-l-full" />
+                        <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
                       )}
-                      <div className={`w-8 h-8 xs:w-10 xs:h-10 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                      <div className={`w-7 h-7 xs:w-9 xs:h-9 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                         isSelected
                           ? 'border-ozo-red shadow-md'
                           : 'border-gray-100 dark:border-white/5'
@@ -936,12 +957,12 @@ const CategoryProducts = () => {
                             className="w-full h-full object-contain p-0.5 select-none"
                           />
                         ) : isEmoji ? (
-                          <span className="text-base xs:text-lg">{sub.icon}</span>
+                          <span className="text-[13px] xs:text-base">{sub.icon}</span>
                         ) : (
-                          <IconComponent size={15} className="text-gray-400 dark:text-gray-500" />
+                          <IconComponent size={13} className="text-gray-400 dark:text-gray-500" />
                         )}
                       </div>
-                      <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
+                      <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                         {sub.name}
                       </span>
                     </button>
