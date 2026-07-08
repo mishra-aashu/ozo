@@ -585,7 +585,7 @@ const CategoryProducts = () => {
       initial="hidden"
       animate="visible"
       variants={pageVariants}
-      className="flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible"
+      className="flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible"
     >
       <SEO
         title={`Buy ${catName} Online | OZO Mart Aurangabad`}
@@ -595,22 +595,24 @@ const CategoryProducts = () => {
       />
       <motion.div 
         variants={headerVariants}
-        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b border-ozo-gray-lighter/30 dark:border-white/5 ${
+        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b border-ozo-gray-lighter/30 dark:border-white/5 transform-gpu will-change-[transform,opacity,background-color] ${
           isScrolled 
             ? 'bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur-md shadow-lg' 
             : `bg-white/95 dark:bg-[#0d0d0d]/95 bg-gradient-to-br ${bannerGradient}`
         }`} 
         style={{ 
           top: '0px',
-          transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s'
+          transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s',
+          transform: 'translate3d(0,0,0)',
+          backfaceVisibility: 'hidden'
         }}
       >
         {/* Floating Background Icon / Emoji wrapper with clipping */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div 
-            className="absolute right-6 -bottom-6 opacity-[0.06] dark:opacity-[0.03] transition-all duration-500"
+            className="absolute right-6 -bottom-6 opacity-[0.06] dark:opacity-[0.03] transition-all duration-500 transform-gpu will-change-transform"
             style={{
-              transform: isScrolled ? 'scale(0.8) translateY(-20px)' : 'scale(1.5)',
+              transform: isScrolled ? 'translate3d(0, -20px, 0) scale(0.8)' : 'translate3d(0, 0, 0) scale(1.5)',
               opacity: isScrolled ? 0 : 0.06
             }}
           >
@@ -622,42 +624,65 @@ const CategoryProducts = () => {
           </div>
         </div>
 
-        <div 
-          className="container-custom relative z-10 transition-all duration-300"
+        <motion.div 
+          layout
+          transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+          className="container-custom relative z-10 transform-gpu will-change-[transform,padding]"
           style={{
             paddingTop: `calc(env(safe-area-inset-top, 0px) + ${isScrolled ? '0.375rem' : '1rem'})`,
-            paddingBottom: isScrolled ? '0.375rem' : '1.25rem'
+            paddingBottom: isScrolled ? '0.375rem' : '1.25rem',
+            transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
           }}
         >
-          <div className={`flex transition-all duration-300 ${
-            isScrolled 
-              ? 'flex-row items-center justify-between gap-2 w-full' 
-              : 'flex-col md:flex-row md:items-center justify-between gap-4'
-          }`}>
-            {/* Left Back Arrow and Title info */}
-            <div className={`flex items-center transition-all duration-300 ${
+          <motion.div 
+            layout
+            transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+            className={`flex transform-gpu will-change-transform ${
               isScrolled 
-                ? 'gap-1.5 flex-1 min-w-0 md:w-auto md:items-start md:gap-3' 
-                : 'gap-3 w-full md:w-auto items-start'
-            }`}>
-              <button
+                ? 'flex-row items-center justify-between gap-2 w-full' 
+                : 'flex-col md:flex-row md:items-center justify-between gap-4'
+            }`}
+          >
+            {/* Left Back Arrow and Title info */}
+            <motion.div 
+              layout
+              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              className={`flex items-center transform-gpu will-change-transform ${
+                isScrolled 
+                  ? 'gap-1.5 flex-1 min-w-0 md:w-auto md:items-start md:gap-3' 
+                  : 'gap-3 w-full md:w-auto items-start'
+              }`}
+            >
+              <motion.button
+                layout
+                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
                 onClick={() => navigate('/')}
-                className={`btn-icon rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm ${
+                className={`btn-icon rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm transform-gpu will-change-transform ${
                   isScrolled ? 'p-1' : 'p-2 mt-1'
                 }`}
               >
                 <ChevronLeft size={isScrolled ? 16 : 20} />
-              </button>
-              <div className="flex-1 min-w-0">
-                <h1 className={`font-black text-gray-900 dark:text-white uppercase tracking-tight truncate transition-all duration-300 ${
-                  isScrolled ? 'text-xs xs:text-sm md:text-xl' : 'text-xl md:text-2xl'
-                }`}>
+              </motion.button>
+              <motion.div 
+                layout
+                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                className="flex-1 min-w-0 transform-gpu will-change-transform"
+              >
+                <motion.h1 
+                  layout="position"
+                  transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                  className={`font-black text-gray-900 dark:text-white uppercase tracking-tight truncate transition-all duration-300 transform-gpu will-change-[transform,font-size] ${
+                    isScrolled ? 'text-xs xs:text-sm md:text-xl' : 'text-xl md:text-2xl'
+                  }`}
+                >
                   {currentCategory ? renderTitle(currentCategory.name) : 'Loading Category...'}
-                </h1>
+                </motion.h1>
                 
                 {/* Collapsible Category Description */}
-                <div 
-                  className="transition-all duration-300 overflow-hidden hidden md:block"
+                <motion.div 
+                  layout="position"
+                  transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                  className="transition-all duration-300 overflow-hidden hidden md:block transform-gpu will-change-[max-height,opacity]"
                   style={{
                     maxHeight: isScrolled ? '0px' : '150px',
                     opacity: isScrolled ? 0 : 1,
@@ -667,26 +692,36 @@ const CategoryProducts = () => {
                   <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">
                     {currentCategory?.description || `Browse fresh and premium-grade segment items handpicked just for you. Guaranteed delivery at your doorstep in Aurangabad within 30 minutes.`}
                   </p>
-                </div>
+                </motion.div>
 
-                <p className={`font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider transition-all duration-300 ${
-                  isScrolled ? 'text-[0px] h-0 overflow-hidden md:text-[9px] md:h-auto' : 'text-[10px] md:text-xs mt-1'
-                }`}>
+                <motion.p 
+                  layout="position"
+                  transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                  className={`font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider transition-all duration-300 transform-gpu will-change-[transform,height,opacity] ${
+                    isScrolled ? 'text-[0px] h-0 overflow-hidden md:text-[9px] md:h-auto' : 'text-[10px] md:text-xs mt-1'
+                  }`}
+                >
                   {isProductsLoading ? 'Fetching products...' : `Showing ${filteredAndSortedProducts.length} items`}
-                </p>
-              </div>
-            </div>
+                </motion.p>
+              </motion.div>
+            </motion.div>
 
             {/* Right Controls */}
-            <div className={`flex items-center justify-end transition-all duration-300 ${
-              isScrolled 
-                ? 'gap-1.5 w-auto md:gap-3' 
-                : 'justify-between md:justify-end gap-3 w-full md:w-auto'
-            }`}>
+            <motion.div 
+              layout
+              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              className={`flex items-center justify-end transform-gpu will-change-transform ${
+                isScrolled 
+                  ? 'gap-1.5 w-auto md:gap-3' 
+                  : 'justify-between md:justify-end gap-3 w-full md:w-auto'
+              }`}
+            >
               {/* Desktop Filters Toggle Button when scrolled */}
-              <button
+              <motion.button
+                layout
+                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
                 onClick={() => setShowFiltersScrolled(!showFiltersScrolled)}
-                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all border ${
+                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all border transform-gpu will-change-transform ${
                   showFiltersScrolled
                     ? 'bg-gradient-ozo text-white border-transparent shadow-sm'
                     : 'bg-white/50 dark:bg-white/5 text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/30'
@@ -701,10 +736,14 @@ const CategoryProducts = () => {
                     {(priceLimit < maxCategoryPrice ? 1 : 0) + (inStockOnly ? 1 : 0) + (bestsellerOnly ? 1 : 0) + (featuredOnly ? 1 : 0)}
                   </span>
                 )}
-              </button>
+              </motion.button>
 
               {/* View toggles for larger devices */}
-              <div className="hidden sm:flex items-center bg-gray-100 dark:bg-white/5 p-1 rounded-xl">
+              <motion.div 
+                layout
+                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                className="hidden sm:flex items-center bg-gray-100 dark:bg-white/5 p-1 rounded-xl transform-gpu will-change-transform"
+              >
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
@@ -725,12 +764,14 @@ const CategoryProducts = () => {
                 >
                   <List size={18} />
                 </button>
-              </div>
+              </motion.div>
 
               {/* Filters Toggle Button (triggers sheet on mobile) */}
-              <button
+              <motion.button
+                layout
+                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
                 onClick={() => setShowMobileFilters(true)}
-                className={`flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 ${
+                className={`flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 transform-gpu will-change-transform ${
                   isScrolled 
                     ? 'gap-1 px-2 py-1.5 rounded-lg text-xs font-bold' 
                     : 'gap-1.5 px-2.5 py-1.5 xs:px-4 xs:py-2.5 rounded-lg xs:rounded-xl text-xs xs:text-sm font-bold'
@@ -738,12 +779,18 @@ const CategoryProducts = () => {
               >
                 <SlidersHorizontal size={isScrolled ? 12 : 16} />
                 <span className={isScrolled ? 'hidden sm:inline' : ''}>Filters</span>
-              </button>
+              </motion.button>
 
               {/* Sorting Select Option */}
-              <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={isScrolled} />
-            </div>
-          </div>
+              <motion.div 
+                layout
+                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+                className="transform-gpu will-change-transform"
+              >
+                <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={isScrolled} />
+              </motion.div>
+            </motion.div>
+          </motion.div>
 
           {/* Subcategory Chips Navigation Bar - Desktop Only */}
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
@@ -890,7 +937,7 @@ const CategoryProducts = () => {
               </button>
             )}
           </div>
-        </div>
+        </motion.div>
       </motion.div>
 
       <div className="container-custom flex-1 min-h-0 py-2 md:py-6 flex flex-col">
@@ -903,13 +950,13 @@ const CategoryProducts = () => {
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-[60px] xs:w-[72px] sm:w-[84px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full"
+              className="lg:hidden w-[60px] xs:w-[72px] sm:w-[84px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full transform-gpu will-change-[transform,scroll-position]"
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
                 <button
                   onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
-                  className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 ${
+                  className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 transform-gpu will-change-transform ${
                     slug === currentParentInfo.slug
                       ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                       : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
@@ -956,12 +1003,12 @@ const CategoryProducts = () => {
                   const isEmoji = sub.icon && sub.icon.codePointAt(0) > 127
                   const IconComponent = isEmoji ? null : resolveCategoryIcon(sub)
                   const subFallback = getCategoryFallbackImage(sub.slug, sub.name)
- 
+
                   return (
                     <button
                       key={sub.id}
                       onClick={() => navigate(`/category/${sub.slug}`)}
-                      className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 ${
+                      className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 transform-gpu will-change-transform ${
                         isSelected
                           ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                           : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
@@ -1163,7 +1210,7 @@ const CategoryProducts = () => {
           <motion.div 
             ref={productsContainerRef} 
             variants={contentVariants}
-            className="flex-1 min-w-0 pb-24 lg:pb-6 px-1 py-1 h-full overflow-y-auto no-scrollbar lg:overflow-visible"
+            className="flex-1 min-w-0 pb-24 lg:pb-6 px-1 py-1 h-full overflow-y-auto no-scrollbar lg:overflow-visible transform-gpu will-change-[transform,scroll-position]"
           >
             {isListingSoon ? (
               <ComingSoonSection category={currentCategory} />
@@ -1209,7 +1256,7 @@ const CategoryProducts = () => {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className={`grid ${
+                    className={`grid transform-gpu will-change-transform ${
                       viewMode === 'grid'
                         ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4'
                         : 'grid-cols-1'
