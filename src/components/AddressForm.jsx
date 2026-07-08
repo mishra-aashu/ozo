@@ -753,31 +753,31 @@ export default function AddressForm({
           </span>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex gap-2 min-w-0">
           <input
             type="text"
-            placeholder="Paste Google Maps or WhatsApp Live Location Link..."
+            placeholder="Paste Google Maps or WhatsApp Live link..."
             value={pastedLink}
             onChange={(e) => setPastedLink(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleLocateLink(); } }}
             disabled={isResolving}
-            className="flex-1 px-3.5 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/25 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-medium"
+            className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/25 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-medium"
           />
           <button
             type="button"
             onClick={handleLocateLink}
             disabled={isResolving || !pastedLink}
-            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20"
+            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20 shrink-0"
           >
             {isResolving ? (
               <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                Snapping...
+                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                <span className="shrink-0">Snapping...</span>
               </>
             ) : (
               <>
-                <Navigation size={12} className="rotate-45" />
-                Snap
+                <Navigation size={12} className="rotate-45 shrink-0" />
+                <span className="shrink-0">Snap</span>
               </>
             )}
           </button>
