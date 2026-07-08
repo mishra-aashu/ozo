@@ -137,7 +137,7 @@ const BottomNav = () => {
             >
               {activeOrder.order_items && activeOrder.order_items.length > 0 ? (
                 <div className="flex items-center -space-x-5 flex-shrink-0 mr-0.5">
-                  {activeOrder.order_items.slice(0, 3).map((item, idx) => (
+                  {activeOrder.order_items.slice(0, 2).map((item, idx) => (
                     <div
                       key={item.id || idx}
                       className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white shadow-md shrink-0 flex items-center justify-center"
@@ -154,14 +154,6 @@ const BottomNav = () => {
                       )}
                     </div>
                   ))}
-                  {activeOrder.order_items.length > 3 && (
-                    <div 
-                      className="w-10 h-10 rounded-full bg-orange-700 text-[11px] font-black flex items-center justify-center border-2 border-white shadow-md shrink-0 text-white"
-                      style={{ zIndex: 3 }}
-                    >
-                      +{activeOrder.order_items.length - 3}
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shadow-inner shrink-0">
@@ -202,7 +194,7 @@ const BottomNav = () => {
             >
               {cartItems && cartItems.length > 0 ? (
                 <div className="flex items-center -space-x-5 flex-shrink-0 mr-0.5">
-                  {cartItems.slice(0, 3).map((item, idx) => (
+                  {cartItems.slice(0, 2).map((item, idx) => (
                     <div
                       key={item.id || item.productId || idx}
                       className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white shadow-md shrink-0 flex items-center justify-center"
@@ -219,14 +211,6 @@ const BottomNav = () => {
                       )}
                     </div>
                   ))}
-                  {cartItems.length > 3 && (
-                    <div 
-                      className="w-10 h-10 rounded-full bg-emerald-700 text-[11px] font-black flex items-center justify-center border-2 border-white shadow-md shrink-0 text-white"
-                      style={{ zIndex: 3 }}
-                    >
-                      +{cartItems.length - 3}
-                    </div>
-                  )}
                 </div>
               ) : (
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shadow-inner shrink-0">
