@@ -528,11 +528,37 @@ export const storageHelpers = {
 // =============================================
 
 export const uploadToImgbb = async (file, customName = null) => {
+  const errors = []
+  
+  // Determine standard file extension and construct renaming structure if needed
+  let filename = (file instanceof File && file.name) ? file.name : `image_${Date.now()}.jpg`
+  if (customName) {
+    const ext = filename.split('.').pop()
+    filename = customName.endsWith(`.${ext}`) ? customName : `${customName}.${ext}`
+  }
+
+  const getBase64 = (f) => {
+    return new Promise((resolve, reject) => {
+      if (typeof f === 'string') {
+        if (f.startsWith('data:')) {
+          return resolve(f.split(',')[1])
+        }
+        return resolve(f)
+      }
+      const reader = new FileReader()
+      reader.readAsDataURL(f)
+      reader.onload = () => {
+        const base64String = reader.result.split(',')[1]
+        resolve(base64String)
+      }
+      reader.onerror = (err) => reject(err)
+    })
+  }
+
+  // --- METHOD 1: ImgBB via local /api/upload-image ---
   try {
     const formData = new FormData()
     if (customName && file instanceof File) {
-      const ext = file.name.split('.').pop()
-      const filename = customName.endsWith(`.${ext}`) ? customName : `${customName}.${ext}`
       const renamedFile = new File([file], filename, { type: file.type })
       formData.append('image', renamedFile)
       formData.append('name', customName)
@@ -545,34 +571,117 @@ export const uploadToImgbb = async (file, customName = null) => {
     
     const url = '/api/upload-image'
     
-    // Add 8-second timeout controller to prevent hanging
+    // Add 15-second timeout for the first attempt
     const controller = new AbortController()
-    const timeoutId = setTimeout(() => controller.abort(), 8000)
+    const timeoutId = setTimeout(() => controller.abort(), 15000)
 
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        body: formData,
-        signal: controller.signal
-      })
-      clearTimeout(timeoutId)
-      
-      const result = await response.json()
-      if (result.success && result.data && result.data.url) {
-        return { url: result.data.url, data: result.data, error: null }
-      } else {
-        throw new Error(result.error?.message || 'Failed to upload image to imgbb')
-      }
-    } catch (fetchErr) {
-      clearTimeout(timeoutId)
-      if (fetchErr.name === 'AbortError') {
-        throw new Error('Image upload timed out after 8 seconds')
-      }
-      throw fetchErr
+    const response = await fetch(url, {
+      method: 'POST',
+      body: formData,
+      signal: controller.signal
+    })
+    clearTimeout(timeoutId)
+    
+    const result = await response.json()
+    if (result.success && result.data && result.data.url) {
+      console.log('[Upload System] ImgBB upload succeeded:', result.data.url)
+      return { url: result.data.url, data: result.data, error: null }
+    } else {
+      throw new Error(result.error?.message || 'Failed to upload image to imgbb')
     }
-  } catch (error) {
-    console.error('Imgbb upload error:', error)
-    return { url: null, data: null, error }
+  } catch (err) {
+    const errMsg = err.name === 'AbortError' ? 'ImgBB timed out' : err.message
+    console.warn('[Upload System] ImgBB upload failed. Attempting Freeimage.host fallback...', errMsg)
+    errors.push(`ImgBB: ${errMsg}`)
+  }
+
+  // --- METHOD 2: Freeimage.host (Direct Client-Side) ---
+  try {
+    const freeimageKey = import.meta.env.VITE_FREEIMAGE_API_KEY
+    if (!freeimageKey) {
+      throw new Error('VITE_FREEIMAGE_API_KEY not configured')
+    }
+
+    console.log('[Upload System] Attempting direct upload to Freeimage.host...')
+    const base64Data = await getBase64(file)
+    const payload = new URLSearchParams({
+      key: freeimageKey,
+      action: 'upload',
+      source: base64Data,
+      format: 'json'
+    })
+
+    const freeimageRes = await fetch('https://freeimage.host/api/1/upload', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      body: payload.toString()
+    })
+
+    if (!freeimageRes.ok) {
+      const errText = await freeimageRes.text()
+      throw new Error(`Freeimage.host rejected: ${errText}`)
+    }
+
+    const resJson = await freeimageRes.json()
+    if (resJson.image && resJson.image.url) {
+      console.log('[Upload System] Direct Freeimage.host upload succeeded:', resJson.image.url)
+      return { url: resJson.image.url, data: resJson, error: null }
+    } else {
+      throw new Error('Freeimage.host returned no URL')
+    }
+  } catch (err) {
+    console.warn('[Upload System] Freeimage.host upload failed. Trying ImageKit...', err.message)
+    errors.push(`Freeimage: ${err.message}`)
+  }
+
+  // --- METHOD 3: ImageKit (via imagekit-auth Edge Function) ---
+  try {
+    console.log('[Upload System] Requesting ImageKit auth signature...')
+    const { data: authData, error: authError } = await supabase.functions.invoke('imagekit-auth')
+    if (authError || !authData) {
+      throw authError || new Error('No auth details returned from Edge Function')
+    }
+
+    const { signature, expire, token } = authData
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('fileName', filename)
+    formData.append('publicKey', import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY || 'public_e6aAVXZkPBwJl0S...')
+    formData.append('signature', signature)
+    formData.append('expire', expire.toString())
+    formData.append('token', token)
+    formData.append('folder', '/ozo-general-uploads')
+
+    console.log('[Upload System] Uploading directly to ImageKit API...')
+    const imagekitRes = await fetch('https://upload.imagekit.io/api/v1/files/upload', {
+      method: 'POST',
+      body: formData
+    })
+
+    if (!imagekitRes.ok) {
+      const errText = await imagekitRes.text()
+      throw new Error(`ImageKit API rejected: ${errText}`)
+    }
+
+    const imagekitData = await imagekitRes.json()
+    if (imagekitData && imagekitData.url) {
+      console.log('[Upload System] ImageKit upload succeeded:', imagekitData.url)
+      return { url: imagekitData.url, data: imagekitData, error: null }
+    } else {
+      throw new Error('ImageKit upload returned no URL')
+    }
+  } catch (err) {
+    console.warn('[Upload System] ImageKit upload failed.', err.message)
+    errors.push(`ImageKit: ${err.message}`)
+  }
+
+  console.error('[Upload System] All upload backends failed.')
+  return { 
+    url: null, 
+    data: null, 
+    error: new Error(`Image upload failed on all configured channels: ${errors.join(' | ')}`) 
   }
 }
 
