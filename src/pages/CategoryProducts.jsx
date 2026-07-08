@@ -621,7 +621,13 @@ const CategoryProducts = () => {
           </div>
         </div>
 
-        <div className={`container-custom relative z-10 transition-all duration-300 ${isScrolled ? 'py-1.5 md:py-2' : 'py-4 md:py-5'}`}>
+        <div 
+          className="container-custom relative z-10 transition-all duration-300"
+          style={{
+            paddingTop: `calc(env(safe-area-inset-top, 0px) + ${isScrolled ? '0.375rem' : '1rem'})`,
+            paddingBottom: isScrolled ? '0.375rem' : '1.25rem'
+          }}
+        >
           <div className={`flex transition-all duration-300 ${
             isScrolled 
               ? 'flex-row items-center justify-between gap-2 w-full' 
@@ -726,11 +732,11 @@ const CategoryProducts = () => {
                 className={`flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 ${
                   isScrolled 
                     ? 'gap-1 px-2 py-1.5 rounded-lg text-xs font-bold' 
-                    : 'gap-2 px-4 py-2.5 rounded-xl text-sm font-bold'
+                    : 'gap-1.5 px-2.5 py-1.5 xs:px-4 xs:py-2.5 rounded-lg xs:rounded-xl text-xs xs:text-sm font-bold'
                 }`}
               >
                 <SlidersHorizontal size={isScrolled ? 12 : 16} />
-                Filters
+                <span className={isScrolled ? 'hidden sm:inline' : ''}>Filters</span>
               </button>
 
               {/* Sorting Select Option */}

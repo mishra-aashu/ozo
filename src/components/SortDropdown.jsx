@@ -97,12 +97,22 @@ export default function SortDropdown({ sortBy, onChange, isCompact }) {
         className={`flex items-center justify-between w-full bg-white dark:bg-[#1a1a1a] border border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red dark:hover:border-ozo-red/50 hover:shadow-sm focus:outline-none transition-all duration-300 ${
           isCompact
             ? 'px-2 py-1.5 rounded-lg text-xs font-bold text-gray-700 dark:text-gray-200'
-            : 'px-4 py-2.5 rounded-xl text-sm font-bold text-gray-700 dark:text-gray-200'
+            : 'px-2.5 py-1.5 xs:px-4 xs:py-2.5 rounded-lg xs:rounded-xl text-xs xs:text-sm font-bold text-gray-700 dark:text-gray-200'
         }`}
       >
         <div className="flex items-center gap-1.5 min-w-0">
           <activeOption.icon className={`text-ozo-red flex-shrink-0 ${isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'}`} />
-          <span className="truncate">{isCompact ? activeOption.label.replace('Alphabetical: ', '') : `Sort: ${activeOption.label}`}</span>
+          <span className="truncate">
+            <span className="hidden sm:inline">Sort: </span>
+            {activeOption.value === 'random' ? (
+              <>
+                <span className="sm:hidden">Default</span>
+                <span className="hidden sm:inline">Default (Random)</span>
+              </>
+            ) : (
+              activeOption.label.replace('Alphabetical: ', '')
+            )}
+          </span>
         </div>
         <ChevronDown
           className={`text-ozo-gray dark:text-gray-400 transition-transform duration-300 flex-shrink-0 ml-1.5 ${
