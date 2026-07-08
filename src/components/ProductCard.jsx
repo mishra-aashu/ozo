@@ -483,24 +483,24 @@ function ProductCard({ product, variant = 'default' }) {
         }
         navigate(productLink)
       }}
-      className="product-card relative group flex flex-col h-full bg-white dark:bg-[#0c0c0e] border border-gray-150/50 dark:border-white/[0.04] rounded-2xl sm:rounded-[2.25rem] overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer"
+      className="product-card relative group flex flex-col h-full bg-white dark:bg-[#0c0c0e] border border-gray-150/50 dark:border-white/[0.04] rounded-xl sm:rounded-[2.25rem] overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer"
     >
       {/* Badges (Discount, Featured, Bestseller) */}
-      <div className="absolute top-2.5 left-2.5 z-10 flex flex-col gap-1.5 items-start">
+      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
         {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
-          <span className="bg-gradient-to-r from-amber-400 to-yellow-300 dark:from-amber-500 dark:to-yellow-400 text-red-800 dark:text-red-950 font-black text-[9px] sm:text-[10px] px-2.5 py-0.5 sm:py-1 rounded-lg shadow-sm border border-amber-300/30 select-none uppercase tracking-wider">
+          <span className="bg-gradient-to-r from-amber-400 to-yellow-300 dark:from-amber-500 dark:to-yellow-400 text-red-800 dark:text-red-950 font-black text-[8px] sm:text-[10px] px-1.5 py-0.5 sm:py-1 rounded-md shadow-sm border border-amber-300/30 select-none uppercase tracking-wider">
             {discountPercentage}% OFF
           </span>
         )}
         {selectedProduct.is_featured && (
-          <span className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-[9px] sm:text-[10px] font-black px-2.5 py-0.5 sm:py-1 rounded-lg flex items-center gap-1 shadow-sm uppercase tracking-wider">
-            <Zap className="w-2.5 h-2.5 fill-white" />
+          <span className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:py-1 rounded-md flex items-center gap-1 shadow-sm uppercase tracking-wider">
+            <Zap className="w-2 h-2 fill-white" />
             FEATURED
           </span>
         )}
         {selectedProduct.is_bestseller && (
-          <span className="bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950 text-[9px] sm:text-[10px] font-black px-2.5 py-0.5 sm:py-1 rounded-lg flex items-center gap-1 shadow-sm uppercase tracking-wider">
-            <TrendingUp className="w-2.5 h-2.5" />
+          <span className="bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:py-1 rounded-md flex items-center gap-1 shadow-sm uppercase tracking-wider">
+            <TrendingUp className="w-2 h-2" />
             BESTSELLER
           </span>
         )}
@@ -510,7 +510,7 @@ function ProductCard({ product, variant = 'default' }) {
       <button
         onClick={handleToggleWishlist}
         aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
-        className="absolute top-2.5 right-2.5 z-10 p-2 bg-white/70 dark:bg-black/40 backdrop-blur-md hover:bg-white dark:hover:bg-black/60 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-250/30 dark:border-white/10"
+        className="absolute top-2 right-2 z-10 p-1.5 bg-white/70 dark:bg-black/40 backdrop-blur-md hover:bg-white dark:hover:bg-black/60 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-250/30 dark:border-white/10"
       >
         <motion.div
           animate={{
@@ -519,7 +519,7 @@ function ProductCard({ product, variant = 'default' }) {
           transition={{ duration: 0.3 }}
         >
           <Heart
-            className={`w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 ${
+            className={`w-3 h-3 sm:w-4.5 sm:h-4.5 ${
               isFavorite ? 'fill-ozo-red text-ozo-red' : 'text-gray-500 dark:text-gray-400 hover:text-ozo-red'
             } transition-colors`}
           />
@@ -532,28 +532,28 @@ function ProductCard({ product, variant = 'default' }) {
           onClick={toggleAvailability}
           disabled={isUpdating}
           aria-label="Toggle availability"
-          className="absolute top-12 sm:top-14 right-2.5 z-10 p-2 bg-white/70 dark:bg-black/40 backdrop-blur-md hover:bg-white dark:hover:bg-black/60 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-250/30 dark:border-white/10 flex items-center justify-center hover:scale-105 active:scale-95 text-gray-400 hover:text-ozo-red"
+          className="absolute top-10 sm:top-14 right-2 z-10 p-1.5 bg-white/70 dark:bg-black/40 backdrop-blur-md hover:bg-white dark:hover:bg-black/60 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-250/30 dark:border-white/10 flex items-center justify-center hover:scale-105 active:scale-95 text-gray-400 hover:text-ozo-red"
           title="Toggle Availability (Admin)"
         >
           {isUpdating ? (
-            <Loader2 className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 animate-spin text-ozo-red" />
+            <Loader2 className="w-3 h-3 sm:w-4.5 sm:h-4.5 animate-spin text-ozo-red" />
           ) : selectedProduct.is_available ? (
-            <Eye className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-ozo-green" />
+            <Eye className="w-3 h-3 sm:w-4.5 sm:h-4.5 text-ozo-green" />
           ) : (
-            <EyeOff className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 text-ozo-red" />
+            <EyeOff className="w-3 h-3 sm:w-4.5 sm:h-4.5 text-ozo-red" />
           )}
         </button>
       )}
 
       {/* Product Image */}
-      <Link to={productLink} className="block relative aspect-square overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-t-2xl sm:rounded-t-[2.25rem] border-b border-gray-100 dark:border-white/[0.02]">
+      <Link to={productLink} className="block relative aspect-square overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-t-xl sm:rounded-t-[2.25rem] border-b border-gray-100 dark:border-white/[0.02]">
         <OptimizedImage
           src={selectedProduct.image_url}
           slug={selectedProduct.slug}
           alt={selectedProduct.name}
           width={300}
           loading="lazy"
-          className={`w-full h-full object-contain p-3 sm:p-5 group-hover:scale-105 transition-transform duration-500 ${
+          className={`w-full h-full object-contain p-1.5 sm:p-5 group-hover:scale-105 transition-transform duration-500 ${
             !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
           }`}
           containerClassName="w-full h-full"
@@ -561,15 +561,15 @@ function ProductCard({ product, variant = 'default' }) {
 
         {(!selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0)) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/5 pointer-events-none select-none">
-            <div className="flex flex-col items-center gap-1.5">
+            <div className="flex flex-col items-center gap-1">
               {isUpcoming ? (
-                <div className="bg-amber-500 text-white font-black text-[10px] px-3 py-1.5 rounded-xl shadow-lg tracking-wider uppercase flex items-center gap-1.5 border border-white/10">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <div className="bg-amber-500 text-white font-black text-[9px] px-2.5 py-1 rounded-xl shadow-lg tracking-wider uppercase flex items-center gap-1 border border-white/10">
+                  <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
                   Listing Soon
                 </div>
               ) : (
-                <div className="bg-ozo-red/90 text-white font-black text-[10px] px-3 py-1.5 rounded-xl shadow-lg tracking-wider uppercase flex items-center gap-1.5 border border-white/10">
-                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                <div className="bg-ozo-red/90 text-white font-black text-[9px] px-2.5 py-1 rounded-xl shadow-lg tracking-wider uppercase flex items-center gap-1 border border-white/10">
+                  <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
                   OUT OF STOCK
                 </div>
               )}
@@ -586,30 +586,30 @@ function ProductCard({ product, variant = 'default' }) {
       </Link>
 
       {/* Product Details */}
-      <div className="product-card-body flex flex-col flex-1 p-3 sm:p-4">
+      <div className="product-card-body flex flex-col flex-1 p-2 sm:p-4">
         {/* Delivery Time & Info */}
-        <div className="flex items-center gap-1.5 mb-1.5">
-          <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-            <Clock className="w-2.5 h-2.5 text-amber-500 fill-amber-500/20" />
+        <div className="flex items-center gap-1 mb-1">
+          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-[8px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+            <Clock className="w-2 h-2 text-amber-500 fill-amber-500/20" />
             <span>30 mins</span>
           </div>
           {selectedProduct.rating && (
-            <div className="flex items-center gap-1 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-full">
-              <Star className="w-2.5 h-2.5 fill-emerald-600 text-emerald-600 dark:fill-emerald-400 dark:text-emerald-400" />
-              <span className="text-[9px] font-black text-emerald-600 dark:text-emerald-400">{selectedProduct.rating}</span>
+            <div className="flex items-center gap-1 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-full">
+              <Star className="w-2 h-2 fill-emerald-600 text-emerald-600 dark:fill-emerald-400 dark:text-emerald-400" />
+              <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400">{selectedProduct.rating}</span>
             </div>
           )}
         </div>
 
         {/* Product Name */}
-        <Link to={productLink} className="block min-h-[30px] sm:min-h-[36px] mb-1">
-          <h3 className="font-extrabold text-[12px] sm:text-[14px] line-clamp-2 leading-tight text-gray-800 dark:text-gray-100 group-hover:text-ozo-red transition-colors break-words">
+        <Link to={productLink} className="block min-h-[26px] sm:min-h-[36px] mb-1">
+          <h3 className="font-extrabold text-[10.5px] sm:text-[13.5px] line-clamp-2 leading-tight text-gray-800 dark:text-gray-100 group-hover:text-ozo-red transition-colors break-words">
             {product.name}
           </h3>
         </Link>
 
         {/* Unit */}
-        <p className="text-[9px] sm:text-[11px] font-semibold text-gray-400 dark:text-gray-400 mb-2">{selectedProduct.unit || 'per pc'}</p>
+        <p className="text-[8px] sm:text-[10px] font-semibold text-gray-400 dark:text-gray-400 mb-1.5">{selectedProduct.unit || 'per pc'}</p>
 
         {/* Variant Selector Pills */}
         {hasVariants && product.variants.length > 1 && (
@@ -638,22 +638,22 @@ function ProductCard({ product, variant = 'default' }) {
         )}
 
         {/* Price & Add Section */}
-        <div className="mt-auto pt-2 border-t border-gray-100 dark:border-white/[0.04]">
+        <div className="mt-auto pt-1.5 border-t border-gray-100 dark:border-white/[0.04]">
           <div className="flex items-center justify-between gap-1">
             {/* Price Info (Left) */}
             <div className="flex flex-col flex-1 min-w-0">
               <span className={`font-black text-gray-900 dark:text-white leading-tight ${
                 selectedProduct?.price && String(selectedProduct.price).length > 3
-                  ? 'text-[11px] xs:text-[12px] sm:text-[15px]'
-                  : 'text-[13px] sm:text-[15px]'
+                  ? 'text-[10px] xs:text-[11.5px] sm:text-[14px]'
+                  : 'text-[11.5px] sm:text-[14px]'
               }`}>
                 {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
               </span>
               {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
-                <span className={`text-gray-455 dark:text-gray-450 line-through leading-none mt-1 font-semibold ${
+                <span className={`text-gray-455 dark:text-gray-450 line-through leading-none mt-0.5 font-semibold ${
                   String(selectedProduct.mrp).length > 3
-                    ? 'text-[10px] xs:text-[11px] sm:text-[13px]'
-                    : 'text-[11px] sm:text-[13px]'
+                    ? 'text-[9px] xs:text-[10px] sm:text-[12px]'
+                    : 'text-[10px] sm:text-[12px]'
                 }`}>
                   ₹{selectedProduct.mrp}
                 </span>
@@ -661,23 +661,23 @@ function ProductCard({ product, variant = 'default' }) {
             </div>
 
             {/* Add Button (Right) */}
-            <div className="w-[52px] xs:w-[60px] sm:w-[72px] flex-shrink-0 relative">
+            <div className="w-[48px] xs:w-[56px] sm:w-[68px] flex-shrink-0 relative">
               {quantity > 0 ? (
-                <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-lg py-1 px-1 shadow-md shadow-emerald-600/10">
+                <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-lg py-0.5 px-0.5 sm:py-1 sm:px-1 shadow-md shadow-emerald-600/10">
                   <button
                     onClick={handleDecrement}
                     aria-label="Decrease quantity"
                     className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-90"
                   >
-                    <Minus className="w-2.5 h-2.5 sm:w-3.5 h-3.5 stroke-[3px] text-white" />
+                    <Minus className="w-2 h-2 sm:w-3 h-3 stroke-[3px] text-white" />
                   </button>
-                  <span className="font-black text-[10px] sm:text-xs select-none text-white">{quantity}</span>
+                  <span className="font-black text-[9.5px] sm:text-xs select-none text-white">{quantity}</span>
                   <button
                     onClick={handleIncrement}
                     aria-label="Increase quantity"
                     className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-95"
                   >
-                    <Plus className="w-2.5 h-2.5 sm:w-3.5 h-3.5 stroke-[3px] text-white" />
+                    <Plus className="w-2 h-2 sm:w-3 h-3 stroke-[3px] text-white" />
                   </button>
                 </div>
               ) : !selectedProduct?.is_available || isQtyOOS ? (
@@ -688,14 +688,14 @@ function ProductCard({ product, variant = 'default' }) {
                 <button
                   onClick={handleAddToCart}
                   disabled={!selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price}
-                  className={`w-full py-1 sm:py-1.5 rounded-lg font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
+                  className={`w-full py-1 sm:py-1.5 rounded-lg font-black text-[9.5px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
                     !selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
                       : 'bg-ozo-red hover:bg-red-600 text-white hover:shadow-lg hover:shadow-red-600/20 active:scale-95'
                   }`}
                 >
                   {isAdding ? (
-                    <span className="font-black text-[10px] text-white">...</span>
+                    <span className="font-black text-[9.5px] text-white">...</span>
                   ) : (
                     <>
                       <span className="text-white">ADD</span>
