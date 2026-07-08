@@ -25,9 +25,24 @@ export default function OptimizedImage({
   const [currentSrc, setCurrentSrc] = useState('')
   const [status, setStatus] = useState('optimizing') // 'optimizing' | 'original' | 'fallback'
   const [imageLoading, setImageLoading] = useState(true)
+  const [isDark, setIsDark] = useState(false)
+  const [detectedBg, setDetectedBg] = useState(null)
+
+  // Listen to dark mode changes
+  useEffect(() => {
+    const checkDark = () => {
+      setIsDark(document.documentElement.classList.contains('dark'))
+    }
+    checkDark()
+    const observer = new MutationObserver(checkDark)
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+    return () => observer.disconnect()
+  }, [])
 
   // Reset states when source URL or slug changes
   useEffect(() => {
+    setDetectedBg(null)
+    
     if (slug) {
       // SEO Friendly Local Domain Image Proxy URL
       // Only pass fallback if src is a real, non-blocked URL
@@ -70,16 +85,96 @@ export default function OptimizedImage({
     }
   }
 
-  const handleLoad = () => {
+  const handleLoad = (e) => {
     setImageLoading(false)
+
+    // CORS Safe Client-side background color detection
+    const imgUrl = e.target.src
+    if (imgUrl && !imgUrl.startsWith('data:') && status !== 'fallback') {
+      const tempImg = new Image()
+      tempImg.crossOrigin = 'anonymous'
+      tempImg.src = imgUrl
+      tempImg.onload = () => {
+        try {
+          const canvas = document.createElement('canvas')
+          canvas.width = 10
+          canvas.height = 10
+          const ctx = canvas.getContext('2d')
+          if (ctx) {
+            ctx.drawImage(tempImg, 0, 0, 10, 10)
+            const corners = [
+              ctx.getImageData(0, 0, 1, 1).data,
+              ctx.getImageData(9, 0, 1, 1).data,
+              ctx.getImageData(0, 9, 1, 1).data,
+              ctx.getImageData(9, 9, 1, 1).data
+            ]
+            
+            const isWhite = corners.every(c => c[0] > 240 && c[1] > 240 && c[2] > 240 && c[3] > 10)
+            if (isWhite) {
+              setDetectedBg('#ffffff')
+            } else {
+              const isTransparent = corners.every(c => c[3] < 30)
+              if (isTransparent) {
+                setDetectedBg('transparent')
+              } else {
+                let r = 0, g = 0, b = 0, a = 0
+                corners.forEach(c => {
+                  r += c[0]; g += c[1]; b += c[2]; a += c[3]
+                })
+                r = Math.round(r / 4)
+                g = Math.round(g / 4)
+                b = Math.round(b / 4)
+                a = a / 4
+                
+                if (a > 100) {
+                  setDetectedBg(`rgb(${r}, ${g}, ${b})`)
+                } else {
+                  setDetectedBg('transparent')
+                }
+              }
+            }
+          }
+        } catch (err) {
+          // Swallow canvas errors
+        }
+      }
+      tempImg.onerror = () => {
+        // Fallback: guess white background for remote product images
+        const isProduct = src?.includes('ibb.co') || src?.includes('freeimage') || src?.includes('imagekit') || slug
+        if (isProduct) {
+          setDetectedBg('#ffffff')
+        }
+      }
+    }
+
+    if (props.onLoad) {
+      props.onLoad(e)
+    }
   }
 
   const isDefaultFallback = fallbackSrc.includes('unsplash.com/photo-1542838132-92c53300491e') || 
                             fallbackSrc.includes('unsplash.com/photo-1619566636858-adf3ef46400b');
   const showSvgPlaceholder = (!src && !slug && !imageLoading) || (status === 'fallback' && isDefaultFallback);
 
+  // Compute container background based on detectedBg and isDark
+  let computedBg = style.backgroundColor
+  if (detectedBg === '#ffffff') {
+    computedBg = isDark ? '#f3f4f6' : '#ffffff'
+  } else if (detectedBg && detectedBg !== 'transparent') {
+    computedBg = detectedBg
+  }
+
+  // Compute image style (multiply blend mode for solid backgrounds in dark mode)
+  const imageStyle = {
+    ...props.style,
+    mixBlendMode: (isDark && detectedBg === '#ffffff') ? 'multiply' : undefined
+  }
+
   return (
-    <div className={`relative overflow-hidden ${containerClassName}`} style={style}>
+    <div 
+      className={`relative overflow-hidden ${containerClassName}`} 
+      style={{ ...style, backgroundColor: computedBg }}
+    >
       {/* Loading Shimmer Overlay */}
       {showLoader && imageLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-150 dark:bg-white/5">
@@ -106,6 +201,7 @@ export default function OptimizedImage({
               imageLoading ? 'opacity-0' : 'opacity-100'
             }`}
             fetchpriority={fetchPriority}
+            style={imageStyle}
             {...props}
           />
         )
