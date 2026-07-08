@@ -303,7 +303,7 @@ const categoryFallbackImages = {
   'spiritual':           '/images/products/thekua.png',
 };
 
-const getCategoryFallbackImage = (slug, name) => {
+export const getCategoryFallbackImage = (slug, name) => {
   const cleanSlug = (slug || '')?.toLowerCase();
   const cleanName = (name || '')?.toLowerCase();
   const key = Object.keys(categoryFallbackImages).find(k => 
