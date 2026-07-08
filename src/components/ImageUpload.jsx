@@ -160,7 +160,12 @@ const ImageUpload = ({
       
       const url = await processFile(file)
       if (url) {
-        onChange(url)
+        if (multiple) {
+          const currentUrls = Array.isArray(value) ? value : (value ? [value] : [])
+          onChange([...currentUrls, url])
+        } else {
+          onChange(url)
+        }
         closeCamera()
       }
     } catch (err) {
