@@ -18,7 +18,7 @@ import { useProductStore } from '../stores/productStore'
 import { useTranslation } from '../hooks/useTranslation'
 import ProductCard from '../components/ProductCard'
 import SortDropdown, { sortOptions } from '../components/SortDropdown'
-import { resolveCategoryIcon, getGradient, isCategoryListingSoon } from '../components/CategoryChip'
+import { resolveCategoryIcon, getGradient, isCategoryListingSoon, getCategoryFallbackImage } from '../components/CategoryChip'
 import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import { useProductPagination } from '../hooks/useProductPagination'
 import ProductSkeleton from '../components/ProductSkeleton'
@@ -223,6 +223,7 @@ const CategoryProducts = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [showFiltersScrolled, setShowFiltersScrolled] = useState(false)
   const productsContainerRef = useRef(null)
+  const [brokenImages, setBrokenImages] = useState({})
 
 
   // Fetch initial category list if empty
@@ -922,27 +923,40 @@ const CategoryProducts = () => {
                       ? 'border-ozo-red shadow-md'
                       : 'border-gray-100 dark:border-white/5'
                   }`}>
-                    {currentParentInfo.image_url ? (
+                    {currentParentInfo.image_url && !brokenImages[currentParentInfo.image_url] ? (
                       <img 
                         src={currentParentInfo.image_url} 
                         alt="All" 
+                        onError={() => setBrokenImages(prev => ({ ...prev, [currentParentInfo.image_url]: true }))}
                         className="w-full h-full object-contain p-0.5 select-none"
                       />
-                    ) : (
-                      <Box size={13} className="text-gray-400 dark:text-gray-500" />
-                    )}
+                    ) : (() => {
+                      const parentFallback = getCategoryFallbackImage(currentParentInfo.slug, currentParentInfo.name);
+                      if (parentFallback && !brokenImages[parentFallback]) {
+                        return (
+                          <img 
+                            src={parentFallback} 
+                            alt="All" 
+                            onError={() => setBrokenImages(prev => ({ ...prev, [parentFallback]: true }))}
+                            className="w-full h-full object-contain p-0.5 select-none"
+                          />
+                        )
+                      }
+                      return <Box size={13} className="text-gray-400 dark:text-gray-500" />
+                    })()}
                   </div>
                   <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                     All
                   </span>
                 </button>
-
+ 
                 {/* Subcategory buttons */}
                 {currentParentInfo.subcategories.map((sub) => {
                   const isSelected = slug === sub.slug
                   const isEmoji = sub.icon && sub.icon.codePointAt(0) > 127
                   const IconComponent = isEmoji ? null : resolveCategoryIcon(sub)
-
+                  const subFallback = getCategoryFallbackImage(sub.slug, sub.name)
+ 
                   return (
                     <button
                       key={sub.id}
@@ -961,10 +975,18 @@ const CategoryProducts = () => {
                           ? 'border-ozo-red shadow-md'
                           : 'border-gray-100 dark:border-white/5'
                       }`}>
-                        {sub.image_url ? (
+                        {sub.image_url && !brokenImages[sub.image_url] ? (
                           <img 
                             src={sub.image_url} 
                             alt={sub.name} 
+                            onError={() => setBrokenImages(prev => ({ ...prev, [sub.image_url]: true }))}
+                            className="w-full h-full object-contain p-0.5 select-none"
+                          />
+                        ) : subFallback && !brokenImages[subFallback] ? (
+                          <img 
+                            src={subFallback} 
+                            alt={sub.name} 
+                            onError={() => setBrokenImages(prev => ({ ...prev, [subFallback]: true }))}
                             className="w-full h-full object-contain p-0.5 select-none"
                           />
                         ) : isEmoji ? (
@@ -1044,15 +1066,27 @@ const CategoryProducts = () => {
                             }}
                             className="flex items-center gap-3 flex-1 text-left"
                           >
-                            {parent.image_url ? (
+                            {parent.image_url && !brokenImages[parent.image_url] ? (
                               <img 
                                 src={parent.image_url} 
                                 alt={parent.name} 
+                                onError={() => setBrokenImages(prev => ({ ...prev, [parent.image_url]: true }))}
                                 className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
                               />
-                            ) : (
-                              <CatIcon size={20} className={isParentActive ? 'text-ozo-red' : 'text-gray-400 dark:text-gray-500'} strokeWidth={1.8} />
-                            )}
+                            ) : (() => {
+                              const parentFallback = getCategoryFallbackImage(parent.slug, parent.name);
+                              if (parentFallback && !brokenImages[parentFallback]) {
+                                return (
+                                  <img 
+                                    src={parentFallback} 
+                                    alt={parent.name} 
+                                    onError={() => setBrokenImages(prev => ({ ...prev, [parentFallback]: true }))}
+                                    className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
+                                  />
+                                )
+                              }
+                              return <CatIcon size={20} className={isParentActive ? 'text-ozo-red' : 'text-gray-400 dark:text-gray-500'} strokeWidth={1.8} />
+                            })()}
                             <span className="text-[14px] font-bold whitespace-normal break-words leading-tight flex-1">{parent.name}</span>
                           </button>
                           
@@ -1090,15 +1124,27 @@ const CategoryProducts = () => {
                                       : 'bg-transparent text-gray-655 dark:text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:text-ozo-red dark:hover:text-white'
                                   }`}
                                 >
-                                  {child.image_url ? (
+                                  {child.image_url && !brokenImages[child.image_url] ? (
                                     <img 
                                       src={child.image_url} 
                                       alt={child.name} 
+                                      onError={() => setBrokenImages(prev => ({ ...prev, [child.image_url]: true }))}
                                       className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
                                     />
-                                  ) : (
-                                    <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${isChildActive ? 'bg-ozo-red' : 'bg-gray-300 dark:bg-gray-600'}`} />
-                                  )}
+                                  ) : (() => {
+                                    const childFallback = getCategoryFallbackImage(child.slug, child.name);
+                                    if (childFallback && !brokenImages[childFallback]) {
+                                      return (
+                                        <img 
+                                          src={childFallback} 
+                                          alt={child.name} 
+                                          onError={() => setBrokenImages(prev => ({ ...prev, [childFallback]: true }))}
+                                          className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
+                                        />
+                                      )
+                                    }
+                                    return <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${isChildActive ? 'bg-ozo-red' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                  })()}
                                   <span className="font-bold text-xs whitespace-normal break-words leading-tight flex-1">{child.name}</span>
                                 </button>
                               )
