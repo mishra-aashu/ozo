@@ -369,7 +369,7 @@ export default function BulkImportWizard({
         if (val === undefined || val === null || val.toString().trim() === '') return 0
         const cleaned = val.toString().trim()
           .replace(/[,\s]/g, '')
-          .replace(/[A-Za-5]/g, '')
+          .replace(/[A-Za-z]/g, '')
         const num = parseInt(cleaned, 10)
         return isNaN(num) ? 0 : num
       }
