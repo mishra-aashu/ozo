@@ -427,15 +427,26 @@ const CategoryProducts = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const currentScrollY = window.scrollY
+      const mobileScrollY = productsContainerRef.current ? productsContainerRef.current.scrollTop : 0
+      const currentScrollY = window.innerWidth >= 1024 ? window.scrollY : mobileScrollY
       // Disable sticky header collapse if the product list is small to prevent layout jitter loop
       const hasEnoughItems = filteredAndSortedProducts.length >= 6
       setIsScrolled(currentScrollY > 50 && hasEnoughItems)
     }
 
     window.addEventListener('scroll', handleScroll, { passive: true })
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [filteredAndSortedProducts.length])
+    const prodEl = productsContainerRef.current
+    if (prodEl) {
+      prodEl.addEventListener('scroll', handleScroll, { passive: true })
+    }
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (prodEl) {
+        prodEl.removeEventListener('scroll', handleScroll)
+      }
+    }
+  }, [filteredAndSortedProducts.length, productsContainerRef.current])
 
   // Title formatter helper
   const renderTitle = (titleString) => {
@@ -573,7 +584,7 @@ const CategoryProducts = () => {
       initial="hidden"
       animate="visible"
       variants={pageVariants}
-      className="flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity]"
+      className="flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible"
     >
       <SEO
         title={`Buy ${catName} Online | OZO Mart Aurangabad`}
@@ -875,23 +886,17 @@ const CategoryProducts = () => {
         </div>
       </motion.div>
 
-      <div className="container-custom py-2 md:py-6 flex flex-col">
+      <div className="container-custom flex-1 min-h-0 py-2 md:py-6 flex flex-col">
         {/* Breadcrumb path */}
         <Breadcrumb items={breadcrumbItems} className="hidden md:flex mb-6" />
 
         {/* Main Grid containing filters and products */}
-        <div className="flex gap-2 md:gap-8">
+        <div className="flex gap-2 md:gap-8 flex-1 min-h-0 h-full lg:h-auto">
           {/* Sidebar - Mobile/Tablet Subcategories */}
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-[60px] xs:w-[72px] sm:w-[84px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5"
-              style={{ 
-                maxHeight: isScrolled ? 'calc(100vh - 60px)' : 'calc(100vh - 140px)', 
-                position: 'sticky', 
-                top: isScrolled ? '54px' : '136px',
-                transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), max-height 0.3s'
-              }}
+              className="lg:hidden w-[60px] xs:w-[72px] sm:w-[84px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full"
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
@@ -1106,7 +1111,7 @@ const CategoryProducts = () => {
           <motion.div 
             ref={productsContainerRef} 
             variants={contentVariants}
-            className="flex-1 min-w-0 pb-24 lg:pb-6 px-1 py-1"
+            className="flex-1 min-w-0 pb-24 lg:pb-6 px-1 py-1 h-full overflow-y-auto no-scrollbar lg:overflow-visible"
           >
             {isListingSoon ? (
               <ComingSoonSection category={currentCategory} />
