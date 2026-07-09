@@ -980,8 +980,23 @@ const Checkout = () => {
                     </div>
                   }
                   fallback={
-                    <div className="text-center py-8">
-                      <p className="text-sm text-ozo-gray dark:text-gray-400 font-bold mb-4">No addresses saved yet. Please add a new delivery address.</p>
+                    <div className="text-center py-8 px-4 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[2rem] bg-gray-50/30 dark:bg-white/5 flex flex-col items-center justify-center">
+                      <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-ozo-red/10 text-ozo-red flex items-center justify-center mb-3">
+                        <MapPin size={24} />
+                      </div>
+                      <p className="text-sm font-black text-gray-800 dark:text-white mb-1">No Addresses Saved Yet</p>
+                      <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold mb-4">Please add a delivery address to place your order.</p>
+                      <button 
+                        onClick={() => {
+                          setIsAddingAddress(true)
+                          setRecipientType(null)
+                          setShowMapPicker(false)
+                          setIsAddressDropdownOpen(false)
+                        }}
+                        className="px-5 py-2.5 bg-gradient-ozo text-white text-xs font-black rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5"
+                      >
+                        <Plus size={16} /> Add New Address
+                      </button>
                     </div>
                   }
                 >
@@ -1049,64 +1064,106 @@ const Checkout = () => {
                           className="overflow-hidden border-t border-dashed border-gray-200 dark:border-white/10 pt-4"
                         >
                           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {userAddresses
-                              .filter(addr => addr.id !== selectedAddress)
-                              .map((addr) => {
-                                const parsed = parseLandmark(addr.landmark)
+                            {(() => {
+                              const otherAddresses = userAddresses.filter(addr => addr.id !== selectedAddress)
+                              if (otherAddresses.length === 0) {
                                 return (
-                                  <div 
-                                    key={addr.id}
-                                    onClick={() => {
-                                      setSelectedAddress(addr.id)
-                                      setIsAddressDropdownOpen(false)
-                                    }}
-                                    className="relative p-4 md:p-5 rounded-[1.5rem] border-2 border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#1a1a1a] cursor-pointer transition-all"
-                                  >
-                                    <div className="flex items-start justify-between mb-3">
-                                       <div className="flex items-center gap-2">
-                                         <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg">
-                                           {addr.label}
-                                         </span>
-                                         {(() => {
-                                           const isServiceable = addr.latitude && addr.longitude
-                                             ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
-                                             : checkPincodeServiceable(addr.pincode, addr.city);
-                                           return !isServiceable && (
-                                             <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-black text-red-650 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded border border-red-200">
-                                               ⚠️ Non-Serviceable
-                                             </span>
-                                           );
-                                         })()}
-                                       </div>
-                                       <button
-                                         type="button"
-                                         onClick={(e) => {
-                                           e.stopPropagation()
-                                           setAddressToDelete(addr.id)
-                                         }}
-                                         className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
-                                         title="Delete Address"
-                                       >
-                                         <Trash2 size={14} />
-                                       </button>
-                                    </div>
-                                    
-                                    {(parsed.receiverName || parsed.receiverPhone) && (
-                                      <div className="flex items-center gap-1.5 text-[10px] font-black text-ozo-gray dark:text-gray-400 mb-1.5 bg-gray-50 dark:bg-white/5 px-2 py-0.5 rounded-md w-fit">
-                                        <span>👤 {parsed.receiverName}</span>
-                                        {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
-                                      </div>
-                                    )}
-                                    
-                                    <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{addr.address_line1}</p>
-                                    <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium leading-relaxed">
-                                      {addr.address_line2 && addr.address_line2 + ', '}
-                                      {parsed.landmark && `Near ${parsed.landmark}, `}
-                                      {addr.city}, {addr.state} - {addr.pincode}
-                                    </p>
+                                  <div className="col-span-full p-6 bg-gray-50/50 dark:bg-white/5 rounded-[1.5rem] border border-dashed border-gray-200 dark:border-white/10 text-center flex flex-col items-center justify-center">
+                                    <p className="text-sm font-black text-gray-700 dark:text-gray-300 mb-1">No other saved addresses</p>
+                                    <p className="text-xs text-ozo-gray dark:text-gray-500 font-bold mb-4">You can add another address to deliver to a different location.</p>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setIsAddingAddress(true)
+                                        setRecipientType(null)
+                                        setShowMapPicker(false)
+                                        setIsAddressDropdownOpen(false)
+                                      }}
+                                      className="px-4 py-2 bg-gradient-ozo text-white text-xs font-black rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5"
+                                    >
+                                      <Plus size={14} /> Add New Address
+                                    </button>
                                   </div>
                                 )
-                              })}
+                              }
+                              return (
+                                <>
+                                  {otherAddresses.map((addr) => {
+                                    const parsed = parseLandmark(addr.landmark)
+                                    return (
+                                      <div 
+                                        key={addr.id}
+                                        onClick={() => {
+                                          setSelectedAddress(addr.id)
+                                          setIsAddressDropdownOpen(false)
+                                        }}
+                                        className="relative p-4 md:p-5 rounded-[1.5rem] border-2 border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#1a1a1a] cursor-pointer transition-all"
+                                      >
+                                        <div className="flex items-start justify-between mb-3">
+                                           <div className="flex items-center gap-2">
+                                             <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg">
+                                               {addr.label}
+                                             </span>
+                                             {(() => {
+                                               const isServiceable = addr.latitude && addr.longitude
+                                                 ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
+                                                 : checkPincodeServiceable(addr.pincode, addr.city);
+                                               return !isServiceable && (
+                                                 <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-black text-red-650 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded border border-red-200">
+                                                   ⚠️ Non-Serviceable
+                                                 </span>
+                                               );
+                                             })()}
+                                           </div>
+                                           <button
+                                             type="button"
+                                             onClick={(e) => {
+                                               e.stopPropagation()
+                                               setAddressToDelete(addr.id)
+                                             }}
+                                             className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
+                                             title="Delete Address"
+                                           >
+                                             <Trash2 size={14} />
+                                           </button>
+                                        </div>
+                                        
+                                        {(parsed.receiverName || parsed.receiverPhone) && (
+                                          <div className="flex items-center gap-1.5 text-[10px] font-black text-ozo-gray dark:text-gray-400 mb-1.5 bg-gray-50 dark:bg-white/5 px-2 py-0.5 rounded-md w-fit">
+                                            <span>👤 {parsed.receiverName}</span>
+                                            {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
+                                          </div>
+                                        )}
+                                        
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{addr.address_line1}</p>
+                                        <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium leading-relaxed">
+                                          {addr.address_line2 && addr.address_line2 + ', '}
+                                          {parsed.landmark && `Near ${parsed.landmark}, `}
+                                          {addr.city}, {addr.state} - {addr.pincode}
+                                        </p>
+                                      </div>
+                                    )
+                                  })}
+
+                                  {/* Add New Address Card inside Grid */}
+                                  <div 
+                                    onClick={() => {
+                                      setIsAddingAddress(true)
+                                      setRecipientType(null)
+                                      setShowMapPicker(false)
+                                      setIsAddressDropdownOpen(false)
+                                    }}
+                                    className="relative p-5 rounded-[1.5rem] border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-white/5 cursor-pointer transition-all flex flex-col items-center justify-center min-h-[140px] text-center group"
+                                  >
+                                    <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-ozo-red/10 text-ozo-red flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                      <Plus size={20} />
+                                    </div>
+                                    <p className="text-sm font-black text-gray-800 dark:text-white">Add New Address</p>
+                                    <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold mt-1">Deliver to another location</p>
+                                  </div>
+                                </>
+                              )
+                            })()}
                           </div>
                         </motion.div>
                       )}
@@ -1315,7 +1372,7 @@ const Checkout = () => {
                   </button>
                </div>
                
-               <div className="divide-y divide-gray-150/50 dark:divide-white/5 mb-6 max-h-[320px] overflow-y-auto pr-2 scrollbar-thin">
+               <div className="divide-y divide-gray-150/50 dark:divide-white/5 mb-6 max-h-[320px] overflow-y-auto scrollbar-hide">
                  {items.map((item) => {
                    const isItemOutOfStock = !item.isAvailable || item.quantityAvailable <= 0;
                    const isItemInsufficient = item.isAvailable && item.quantityAvailable > 0 && item.quantity > item.quantityAvailable;
