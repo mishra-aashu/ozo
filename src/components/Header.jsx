@@ -579,16 +579,16 @@ const Header = () => {
                               <h3 className="text-xs font-black text-ozo-gray dark:text-gray-400 uppercase tracking-wider mb-3">
                                 🔥 Trending Searches
                               </h3>
-                              <div className="grid grid-cols-2 gap-2">
+                              <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                                 {trendingSearches.map((item) => (
                                   <button
                                     key={item.name}
                                     type="button"
                                     onClick={() => handleTrendingClick(item.name)}
-                                    className="flex items-center gap-2.5 px-4 py-3 bg-gray-50 dark:bg-white/5 hover:bg-red-50/50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 hover:border-ozo-red/20 rounded-xl text-left transition-all duration-300 group"
+                                    className="flex items-center gap-2 md:gap-2.5 px-3 py-2.5 md:px-4 md:py-3 bg-gray-50 dark:bg-white/5 hover:bg-red-50/50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 hover:border-ozo-red/20 rounded-xl text-left transition-all duration-300 group"
                                   >
-                                    <span className="text-lg group-hover:scale-125 transition-transform duration-300">{item.icon}</span>
-                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 group-hover:text-ozo-red transition-colors duration-300">{item.name}</span>
+                                    <span className="text-base md:text-lg group-hover:scale-125 transition-transform duration-300">{item.icon}</span>
+                                    <span className="text-xs md:text-sm font-bold text-gray-700 dark:text-gray-300 group-hover:text-ozo-red transition-colors duration-300 truncate">{item.name}</span>
                                   </button>
                                 ))}
                               </div>
