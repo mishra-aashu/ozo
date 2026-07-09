@@ -256,9 +256,12 @@ const Search = () => {
                   ))}
                 </div>
               ) : searchResults.length > 0 ? (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
-                  {searchResults.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                <div 
+                  key={searchTerm}
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
+                >
+                  {searchResults.map((product, idx) => (
+                    <ProductCard key={product.id} product={product} index={idx} />
                   ))}
                 </div>
               ) : (

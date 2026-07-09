@@ -25,7 +25,7 @@ import toast from 'react-hot-toast'
 import OptimizedImage from './OptimizedImage'
 import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
 
-function ProductCard({ product, variant = 'default' }) {
+function ProductCard({ product, variant = 'default', index }) {
   const navigate = useNavigate()
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
   const categorySlug = product.category?.slug || product.category_slug || 'item'
@@ -208,15 +208,27 @@ function ProductCard({ product, variant = 'default' }) {
   }
 
   const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: {
+    hidden: { 
+      opacity: 0, 
+      y: 40,
+      scale: 0.94,
+      filter: 'blur(12px)'
+    },
+    visible: (index) => ({
       opacity: 1,
       y: 0,
+      scale: 1,
+      filter: 'blur(0px)',
       transition: {
-        duration: 0.4,
-        ease: 'easeOut',
+        type: 'spring',
+        stiffness: 100,
+        damping: 16,
+        mass: 0.9,
+        delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0,
+        filter: { duration: 0.4, ease: 'easeOut', delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0 },
+        opacity: { duration: 0.35, ease: 'easeOut', delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0 }
       },
-    },
+    }),
     hover: {
       y: -8,
       transition: {
@@ -276,6 +288,7 @@ function ProductCard({ product, variant = 'default' }) {
   if (variant === 'horizontal') {
     return (
       <motion.div
+        custom={index}
         variants={cardVariants}
         initial="hidden"
         animate="visible"
@@ -469,6 +482,7 @@ function ProductCard({ product, variant = 'default' }) {
   // Default card variant
   return (
     <motion.div
+      custom={index}
       variants={cardVariants}
       initial="hidden"
       animate="visible"
