@@ -25,7 +25,8 @@ import {
   X,
   User,
   Users,
-  Heart
+  Heart,
+  Phone
 } from 'lucide-react'
 import { useCartStore } from '../stores/cartStore'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findCityByPincode } from '../stores/locationStore'
@@ -1054,10 +1055,12 @@ const Checkout = () => {
                           onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
                           className="relative p-5 md:p-6 rounded-[2rem] border-2 border-ozo-red/45 bg-gradient-to-br from-red-50/40 to-transparent dark:from-ozo-red/10 dark:to-transparent cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-ozo-red/5 group"
                         >
-                          <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0 space-y-2">
-                              {/* Top Row: Label & Status */}
-                              <div className="flex flex-wrap items-center gap-2">
+                          <div className="flex flex-col gap-4 w-full">
+                            
+                            {/* ROW 1: Home Badge & Actions Group */}
+                            <div className="flex justify-between items-center w-full">
+                              {/* Left: Badge & Serviceability */}
+                              <div className="flex items-center gap-2">
                                 <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 bg-gray-900 dark:bg-white/10 text-white rounded-lg shadow-sm">
                                   {activeAddr.label}
                                 </span>
@@ -1073,53 +1076,66 @@ const Checkout = () => {
                                   );
                                 })()}
                               </div>
+                              
+                              {/* Right: Action Buttons Group */}
+                              <div className="flex items-center gap-2">
+                                {/* Edit Button */}
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEditAddressInit(activeAddr)
+                                  }}
+                                  className="flex items-center gap-1.5 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3 rounded-full text-xs font-black text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red transition-all hover:scale-105 active:scale-95"
+                                  title="Edit Address"
+                                >
+                                  <Pencil size={12} />
+                                  <span>Edit</span>
+                                </button>
+                                
+                                {/* Change Button */}
+                                <div className="flex items-center gap-1.5 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3.5 rounded-full text-xs font-black text-ozo-red transition-all hover:scale-105 active:scale-95">
+                                  <span>Change</span>
+                                  {isAddressDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                                </div>
+                              </div>
+                            </div>
 
-                              {/* Recipient Details Row */}
+                            {/* ROW 2 & 3: Unified Content Block with Perfect Left Baseline */}
+                            <div className="flex flex-col gap-2 pl-0.5">
+                              {/* User Detail Line */}
                               {(parsed.receiverName || parsed.receiverPhone) && (
                                 <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white font-black">
                                   <User size={14} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
-                                  <span>{parsed.receiverName}</span>
+                                  <span>{parsed.receiverName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
                                   {parsed.receiverPhone && (
-                                    <span className="text-xs text-ozo-gray dark:text-gray-400 font-medium">
-                                      • {parsed.receiverPhone}
-                                    </span>
+                                    <>
+                                      <span className="text-gray-300 dark:text-gray-700 font-normal">|</span>
+                                      <Phone size={12} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                      <span className="text-xs text-ozo-gray dark:text-gray-450 font-bold">
+                                        {parsed.receiverPhone}
+                                      </span>
+                                    </>
                                   )}
                                 </div>
                               )}
 
-                              {/* Address Text */}
-                              <div className="space-y-1 pt-0.5">
-                                <p className="text-sm font-black text-gray-950 dark:text-white leading-snug">
-                                  {activeAddr.address_line1}
-                                </p>
-                                <p className="text-xs text-ozo-gray dark:text-gray-450 font-bold leading-relaxed">
-                                  {activeAddr.address_line2 && activeAddr.address_line2 + ', '}
-                                  {parsed.landmark && `Near ${parsed.landmark}, `}
-                                  {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
-                                </p>
+                              {/* Address Details Group */}
+                              <div className="flex items-start gap-2 pt-0.5">
+                                <MapPin size={14} className="text-ozo-red dark:text-red-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex flex-col gap-0.5">
+                                  <h4 className="text-sm font-black text-gray-950 dark:text-white leading-snug">
+                                    {activeAddr.address_line1}
+                                  </h4>
+                                  <p className="text-xs text-ozo-gray dark:text-gray-450 font-bold leading-relaxed max-w-[90%]">
+                                    {activeAddr.address_line2 && activeAddr.address_line2 + ', '}
+                                    {parsed.landmark && `Near ${parsed.landmark}, `}
+                                    {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
+                                  </p>
+                                </div>
                               </div>
                             </div>
-                            
-                            {/* Actions Column */}
-                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleEditAddressInit(activeAddr)
-                                }}
-                                className="flex items-center gap-1.5 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3 rounded-full text-xs font-black text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red transition-all hover:scale-105 active:scale-95"
-                                title="Edit Address"
-                              >
-                                <Pencil size={12} />
-                                <span>Edit</span>
-                              </button>
-                              
-                              <div className="flex items-center gap-1 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3.5 rounded-full text-xs font-black text-ozo-red transition-all group-hover:scale-105 active:scale-95">
-                                <span>Change</span>
-                                {isAddressDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                              </div>
-                            </div>
+
                           </div>
                         </div>
                       )
