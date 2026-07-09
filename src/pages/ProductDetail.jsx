@@ -1117,7 +1117,7 @@ const ProductDetail = () => {
 
 
               {/* Price Section */}
-              <div className="bg-white dark:bg-[#111111] p-4 sm:p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-premium mb-8">
+              <div className="bg-white dark:bg-[#111111] p-4 sm:p-6 lg:p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-premium mb-8">
                 <div className="flex items-end gap-4 mb-1">
                   <span className="text-4xl font-black text-gray-900 dark:text-white">
                     {currentProduct?.price 
@@ -1137,7 +1137,7 @@ const ProductDetail = () => {
                 )}
                 <p className="text-xs text-ozo-gray mb-6">Inclusive of all taxes</p>
 
-                <div className="flex items-center gap-2 sm:gap-4 w-full">
+                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full">
                   {isOutOfStock ? (
                     <div className="w-full flex flex-col gap-2">
                       {isUpcoming ? (
@@ -1181,17 +1181,17 @@ const ProductDetail = () => {
                         <button 
                           onClick={handleDecrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <Minus size={18} className="sm:w-5 sm:h-5 w-4.5 h-4.5 stroke-[3px]" />
                         </button>
-                        <span className="w-8 sm:w-12 text-center font-black text-lg sm:text-xl">
+                        <span className="w-8 sm:w-10 text-center font-black text-lg sm:text-xl">
                           {cartQuantity > 0 ? cartQuantity : quantity}
                         </span>
                         <button 
                           onClick={handleIncrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                         >
                           <Plus size={18} className="sm:w-5 sm:h-5 w-4.5 h-4.5 stroke-[3px]" />
                         </button>
@@ -1200,7 +1200,7 @@ const ProductDetail = () => {
                       <button 
                         onClick={cartQuantity > 0 ? () => navigate('/cart') : handleAddToCart}
                         disabled={!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)}
-                        className={`flex-1 h-14 bg-gradient-ozo text-white rounded-2xl font-black text-sm lg:text-base xl:text-lg shadow-ozo hover:shadow-ozo-lg transition-all active:scale-95 flex items-center justify-center gap-2 px-3 lg:px-6 ${
+                        className={`flex-1 min-w-[140px] sm:min-w-[150px] h-14 bg-gradient-ozo text-white rounded-2xl font-black text-sm lg:text-base xl:text-lg shadow-ozo hover:shadow-ozo-lg transition-all active:scale-95 flex items-center justify-center gap-2 px-3 sm:px-4 lg:px-6 ${
                           (!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)) ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
@@ -1244,337 +1244,337 @@ const ProductDetail = () => {
                     </div>
                  </div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              {/* Product Details Tabs */}
-              <div className="mb-10">
-                <div className="flex gap-8 border-b border-gray-100 dark:border-white/5 mb-6">
-                  {['description', 'details', 'reviews'].map((tab) => (
-                    <button
-                      key={tab}
-                      onClick={() => setActiveTab(tab)}
-                      className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative ${
-                        activeTab === tab ? 'text-ozo-red' : 'text-ozo-gray hover:text-gray-900 dark:hover:text-white'
-                      }`}
-                    >
-                      {tab === 'reviews' ? `reviews (${totalReviewsCount})` : tab}
-                      {activeTab === tab && (
-                        <motion.div 
-                          layoutId="tab-indicator"
-                          className="absolute bottom-0 left-0 right-0 h-1 bg-ozo-red rounded-full" 
-                        />
-                      )}
-                    </button>
-                  ))}
-                </div>
-                
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-ozo-gray dark:text-gray-400 leading-relaxed font-medium"
+        {/* Product Details Tabs (now outside the columns grid to span across the page) */}
+          <div className="mt-12 mb-10 max-w-5xl">
+            <div className="flex gap-6 sm:gap-8 border-b border-gray-100 dark:border-white/5 mb-6 overflow-x-auto scrollbar-none whitespace-nowrap">
+              {['description', 'details', 'reviews'].map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-4 text-xs font-black uppercase tracking-[0.2em] transition-all relative flex-shrink-0 ${
+                    activeTab === tab ? 'text-ozo-red' : 'text-ozo-gray hover:text-gray-900 dark:hover:text-white'
+                  }`}
                 >
-                  {activeTab === 'description' && (
-                    <div className="space-y-4">
-                      <p>{currentProduct?.description || 'Experience the finest quality items delivered straight to your door. Freshness you can taste, convenience you can trust.'}</p>
-                      <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
-                        {getProductHighlights(currentProduct).map((highlight, idx) => (
-                          <li key={idx} className="flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full ${highlight.color || 'bg-ozo-red'}`} />
-                            {highlight.text}
-                          </li>
+                  {tab === 'reviews' ? `reviews (${totalReviewsCount})` : tab}
+                  {activeTab === tab && (
+                    <motion.div 
+                      layoutId="tab-indicator"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-ozo-red rounded-full" 
+                    />
+                  )}
+                </button>
+              ))}
+            </div>
+            
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-ozo-gray dark:text-gray-400 leading-relaxed font-medium"
+            >
+              {activeTab === 'description' && (
+                <div className="space-y-4">
+                  <p>{currentProduct?.description || 'Experience the finest quality items delivered straight to your door. Freshness you can taste, convenience you can trust.'}</p>
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    {getProductHighlights(currentProduct).map((highlight, idx) => (
+                      <li key={idx} className="flex items-center gap-2">
+                        <div className={`w-1.5 h-1.5 rounded-full ${highlight.color || 'bg-ozo-red'}`} />
+                        {highlight.text}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {activeTab === 'details' && (
+                <div className="space-y-3 text-sm">
+                  <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
+                    <span className="font-bold">Shelf Life</span>
+                    <span>{getShelfLifeString(currentProduct)}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
+                    <span className="font-bold">Unit</span>
+                    <span>{currentProduct?.unit || '1 unit'}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
+                    <span className="font-bold">Brand</span>
+                    <span>{currentProduct?.brand || 'Ozo Fresh'}</span>
+                  </div>
+                </div>
+              )}
+              {activeTab === 'reviews' && (
+                <div className="space-y-8 text-left">
+                  {/* Rating Stats Summary */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-3xl bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                    {/* Average Rating */}
+                    <div className="flex flex-col items-center justify-center text-center">
+                      <p className="text-5xl font-black text-gray-900 dark:text-white mb-2">{averageRating}</p>
+                      <div className="flex gap-1 mb-2">
+                        {[...Array(5)].map((_, i) => (
+                          <Star 
+                            key={i} 
+                            size={18} 
+                            className={`${
+                              i < Math.round(Number(averageRating))
+                                ? 'fill-yellow-400 text-yellow-400' 
+                                : 'text-gray-300 dark:text-gray-600'
+                            }`} 
+                          />
                         ))}
-                      </ul>
+                      </div>
+                      <p className="text-xs text-ozo-gray font-medium">Based on {totalReviewsCount} {totalReviewsCount === 1 ? 'rating' : 'ratings'}</p>
                     </div>
-                  )}
-                  {activeTab === 'details' && (
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
-                        <span className="font-bold">Shelf Life</span>
-                        <span>{getShelfLifeString(currentProduct)}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
-                        <span className="font-bold">Unit</span>
-                        <span>{currentProduct?.unit || '1 unit'}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
-                        <span className="font-bold">Brand</span>
-                        <span>{currentProduct?.brand || 'Ozo Fresh'}</span>
-                      </div>
-                    </div>
-                  )}
-                  {activeTab === 'reviews' && (
-                    <div className="space-y-8 text-left">
-                      {/* Rating Stats Summary */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 p-6 rounded-3xl bg-gray-50/50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
-                        {/* Average Rating */}
-                        <div className="flex flex-col items-center justify-center text-center">
-                          <p className="text-5xl font-black text-gray-900 dark:text-white mb-2">{averageRating}</p>
-                          <div className="flex gap-1 mb-2">
-                            {[...Array(5)].map((_, i) => (
-                              <Star 
-                                key={i} 
-                                size={18} 
-                                className={`${
-                                  i < Math.round(Number(averageRating))
-                                    ? 'fill-yellow-400 text-yellow-400' 
-                                    : 'text-gray-300 dark:text-gray-600'
-                                }`} 
-                              />
-                            ))}
-                          </div>
-                          <p className="text-xs text-ozo-gray font-medium">Based on {totalReviewsCount} {totalReviewsCount === 1 ? 'rating' : 'ratings'}</p>
-                        </div>
 
-                        {/* Rating Breakdown Progress Bars */}
-                        <div className="md:col-span-2 space-y-2.5">
-                          {ratingDistribution.map(({ stars, percentage, count }) => (
-                            <div key={stars} className="flex items-center gap-3 text-xs">
-                              <span className="w-12 font-bold flex items-center gap-1 justify-end">
-                                {stars} <Star size={12} className="fill-yellow-400 text-yellow-400 inline" />
-                              </span>
-                              <div className="flex-1 h-2 bg-gray-200/60 dark:bg-white/10 rounded-full overflow-hidden">
-                                <div 
-                                  className="h-full bg-ozo-red rounded-full" 
-                                  style={{ width: `${percentage}%` }}
+                    {/* Rating Breakdown Progress Bars */}
+                    <div className="md:col-span-2 space-y-2.5">
+                      {ratingDistribution.map(({ stars, percentage, count }) => (
+                        <div key={stars} className="flex items-center gap-3 text-xs">
+                          <span className="w-12 font-bold flex items-center gap-1 justify-end">
+                            {stars} <Star size={12} className="fill-yellow-400 text-yellow-400 inline" />
+                          </span>
+                          <div className="flex-1 h-2 bg-gray-200/60 dark:bg-white/10 rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-ozo-red rounded-full" 
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                          <span className="w-12 text-right text-ozo-gray font-medium">{percentage}% ({count})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Review List */}
+                  <div className="space-y-6">
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                      Customer Reviews ({totalReviewsCount})
+                    </h3>
+
+                    {reviewsLoading ? (
+                      <div className="flex flex-col items-center justify-center py-10 space-y-3">
+                        <Loader2 className="animate-spin text-ozo-red" size={32} />
+                        <span className="text-xs text-ozo-gray">Loading reviews...</span>
+                      </div>
+                    ) : reviews.length === 0 ? (
+                      <div className="text-center py-10 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl">
+                        <p className="text-sm font-medium text-ozo-gray mb-2">No reviews yet for this product.</p>
+                        <p className="text-xs text-ozo-gray/60">Be the first to share your thoughts and help others make a decision!</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-gray-100 dark:divide-white/5 space-y-6">
+                        {reviews.map((review) => (
+                          <div key={review.id} className="pt-6 first:pt-0 space-y-3">
+                            {/* User Meta */}
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex items-center gap-3">
+                                <OptimizedImage 
+                                  src={review.user?.avatar_url} 
+                                  alt={review.user?.full_name || 'User'} 
+                                  width={80}
+                                  fallbackSrc="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"
+                                  className="w-full h-full object-cover"
+                                  containerClassName="w-10 h-10 rounded-full border border-gray-100 dark:border-white/10 flex-shrink-0"
                                 />
-                              </div>
-                              <span className="w-12 text-right text-ozo-gray font-medium">{percentage}% ({count})</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Review List */}
-                      <div className="space-y-6">
-                        <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">
-                          Customer Reviews ({totalReviewsCount})
-                        </h3>
-
-                        {reviewsLoading ? (
-                          <div className="flex flex-col items-center justify-center py-10 space-y-3">
-                            <Loader2 className="animate-spin text-ozo-red" size={32} />
-                            <span className="text-xs text-ozo-gray">Loading reviews...</span>
-                          </div>
-                        ) : reviews.length === 0 ? (
-                          <div className="text-center py-10 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl">
-                            <p className="text-sm font-medium text-ozo-gray mb-2">No reviews yet for this product.</p>
-                            <p className="text-xs text-ozo-gray/60">Be the first to share your thoughts and help others make a decision!</p>
-                          </div>
-                        ) : (
-                          <div className="divide-y divide-gray-100 dark:divide-white/5 space-y-6">
-                            {reviews.map((review) => (
-                              <div key={review.id} className="pt-6 first:pt-0 space-y-3">
-                                {/* User Meta */}
-                                <div className="flex items-start justify-between gap-4">
-                                  <div className="flex items-center gap-3">
-                                    <OptimizedImage 
-                                      src={review.user?.avatar_url} 
-                                      alt={review.user?.full_name || 'User'} 
-                                      width={80}
-                                      fallbackSrc="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100"
-                                      className="w-full h-full object-cover"
-                                      containerClassName="w-10 h-10 rounded-full border border-gray-100 dark:border-white/10 flex-shrink-0"
-                                    />
-                                    <div>
-                                      <div className="flex items-center gap-2 flex-wrap">
-                                        <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-none">
-                                          {review.user?.full_name || 'Ozo Customer'}
-                                        </h4>
-                                        {review.is_verified && (
-                                          <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-500 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-green-500/20">
-                                            <ShieldCheck size={10} className="fill-green-500/15" /> Verified Purchase
-                                          </span>
-                                        )}
-                                      </div>
-                                      <p className="text-[10px] text-ozo-gray mt-1">
-                                        {new Date(review.created_at).toLocaleDateString(undefined, { 
-                                          year: 'numeric', 
-                                          month: 'long', 
-                                          day: 'numeric' 
-                                        })}
-                                      </p>
-                                    </div>
+                                <div>
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <h4 className="font-bold text-sm text-gray-900 dark:text-white leading-none">
+                                      {review.user?.full_name || 'Ozo Customer'}
+                                    </h4>
+                                    {review.is_verified && (
+                                      <span className="inline-flex items-center gap-1 bg-green-500/10 text-green-500 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-green-500/20">
+                                        <ShieldCheck size={10} className="fill-green-500/15" /> Verified Purchase
+                                      </span>
+                                    )}
                                   </div>
-
-                                  {/* Star Rating Display */}
-                                  <div className="flex gap-0.5">
-                                    {[...Array(5)].map((_, i) => (
-                                      <Star 
-                                        key={i} 
-                                        size={14} 
-                                        className={`${
-                                          i < review.rating 
-                                            ? 'fill-yellow-400 text-yellow-400' 
-                                            : 'text-gray-200 dark:text-gray-700'
-                                        }`} 
-                                      />
-                                    ))}
-                                  </div>
+                                  <p className="text-[10px] text-ozo-gray mt-1">
+                                    {new Date(review.created_at).toLocaleDateString(undefined, { 
+                                      year: 'numeric', 
+                                      month: 'long', 
+                                      day: 'numeric' 
+                                    })}
+                                  </p>
                                 </div>
-
-                                {/* Review Text */}
-                                <p 
-                                  className="text-sm font-medium text-gray-700 dark:text-gray-300 leading-relaxed"
-                                  style={{ paddingLeft: '3.25rem' }}
-                                >
-                                  {review.review_text}
-                                </p>
-
-                                {/* Review Images Grid */}
-                                {(review.is_image_approved === true || review.user_id === user?.id || isAdmin) && Array.isArray(review?.images) && review.images.length > 0 && (
-                                  <div 
-                                    className="flex gap-2 flex-wrap pt-1"
-                                    style={{ paddingLeft: '3.25rem' }}
-                                  >
-                                    {review.images.map((url, imgIdx) => (
-                                      <a 
-                                        key={imgIdx} 
-                                        href={url} 
-                                        target="_blank" 
-                                        rel="noopener noreferrer"
-                                        className="relative group block w-20 h-20 rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 hover:border-ozo-red transition-all cursor-zoom-in"
-                                      >
-                                        <OptimizedImage 
-                                          src={url} 
-                                          alt={`Review upload ${imgIdx + 1}`} 
-                                          width={160}
-                                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                                          containerClassName="w-full h-full"
-                                        />
-                                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                                          <Eye size={16} className="text-white" />
-                                        </div>
-                                      </a>
-                                    ))}
-                                  </div>
-                                )}
-
-                                {review.user_id === user?.id && !review.is_image_approved && Array.isArray(review?.images) && review.images.length > 0 && (
-                                  <div className="flex items-center gap-1.5 mt-1" style={{ paddingLeft: '3.25rem' }}>
-                                    <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">
-                                      <AlertCircle size={10} /> Image under moderation (Only you can see this)
-                                    </span>
-                                  </div>
-                                )}
-
-                                {/* Official Admin Reply */}
-                                {review.reply_text && (
-                                  <div className="relative mt-3" style={{ marginLeft: '3.25rem' }}>
-                                    {/* Connecting Thread Line */}
-                                    <div className="absolute right-full mr-3 -top-10 bottom-1/2 w-5 border-l-2 border-b-2 border-red-500/20 dark:border-red-500/30 rounded-bl-xl pointer-events-none" />
-                                    
-                                    <div className="p-3 bg-red-500/5 dark:bg-red-500/[0.02] border border-red-500/10 dark:border-red-500/20 rounded-2xl space-y-1 max-w-lg">
-                                      <div className="flex items-center gap-1.5">
-                                        <span className="text-xs font-black text-red-600 dark:text-red-400">ozoofficial</span>
-                                        <span className="w-3.5 h-3.5 rounded-full bg-red-600 text-white flex items-center justify-center text-[8px] font-black shadow-sm">✓</span>
-                                        <span className="text-[10px] text-gray-400 font-medium ml-1">
-                                          replying to @{review.user?.full_name || 'customer'}
-                                        </span>
-                                      </div>
-                                      <p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-relaxed">
-                                        {review.reply_text}
-                                      </p>
-                                    </div>
-                                  </div>
-                                )}
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
 
-                      {/* Review Submission Form */}
-                      <div className="border-t border-gray-100 dark:border-white/5 pt-8 space-y-6">
-                        <div className="flex flex-col gap-1">
-                          <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">
-                            Write a Review
-                          </h3>
-                          <p className="text-xs text-ozo-gray">Share your experience with this product with other buyers</p>
-                        </div>
-
-                        {!isAuthenticated ? (
-                          <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl bg-gray-50/30 dark:bg-white/[0.01]">
-                            <p className="text-sm text-ozo-gray mb-4 font-medium">Please login to write a review for this product</p>
-                            <Link to="/auth" className="btn btn-primary px-6 text-xs uppercase tracking-wider font-black">
-                              Sign In / Register
-                            </Link>
-                          </div>
-                        ) : (
-                          <form onSubmit={handleSubmitReview} className="space-y-5">
-                            {/* Rating Selector */}
-                            <div className="flex flex-col gap-2">
-                              <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Overall Rating</span>
-                              <div className="flex gap-1.5">
-                                {[1, 2, 3, 4, 5].map((stars) => (
-                                  <button
-                                    type="button"
-                                    key={stars}
-                                    onClick={() => setNewRating(stars)}
-                                    className="focus:outline-none transition-transform hover:scale-110"
-                                  >
-                                    <Star 
-                                      size={24} 
-                                      className={`${
-                                        stars <= newRating 
-                                          ? 'fill-yellow-400 text-yellow-400' 
-                                          : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'
-                                      }`} 
-                                    />
-                                  </button>
+                              {/* Star Rating Display */}
+                              <div className="flex gap-0.5">
+                                {[...Array(5)].map((_, i) => (
+                                  <Star 
+                                    key={i} 
+                                    size={14} 
+                                    className={`${
+                                      i < review.rating 
+                                        ? 'fill-yellow-400 text-yellow-400' 
+                                        : 'text-gray-200 dark:text-gray-700'
+                                    }`} 
+                                  />
                                 ))}
                               </div>
                             </div>
 
                             {/* Review Text */}
-                            <div className="flex flex-col gap-2">
-                              <label htmlFor="review-text" className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Your Review</label>
-                              <textarea
-                                id="review-text"
-                                ref={detailTextareaRef}
-                                rows={4}
-                                value={newReviewText}
-                                onChange={(e) => setNewReviewText(e.target.value)}
-                                maxLength={1000}
-                                placeholder="What did you like or dislike? How was the quality?"
-                                className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-transparent px-4 py-3 text-sm focus:border-ozo-red focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 font-medium resize-none overflow-hidden"
-                              />
-                            </div>
-
-                            {/* Image Uploader */}
-                            <ImageUpload
-                              value={reviewImageUrls}
-                              onChange={setReviewImageUrls}
-                              multiple={true}
-                              limit={5}
-                              customNamePrefix={`review_${currentProduct?.id}`}
-                              label="Add Photos"
-                              disabled={isSubmittingReview}
-                            />
-
-                            {/* Submit Button */}
-                            <button
-                              type="submit"
-                              disabled={isSubmittingReview}
-                              className="btn btn-primary flex items-center justify-center gap-2 px-8 py-3 text-xs uppercase tracking-wider font-black disabled:opacity-50 disabled:cursor-not-allowed"
+                            <p 
+                              className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 leading-relaxed"
+                              style={{ paddingLeft: '3.25rem' }}
                             >
-                              {isSubmittingReview ? (
-                                <>
-                                  <Loader2 size={16} className="animate-spin" /> Submitting...
-                                </>
-                              ) : (
-                                'Submit Review'
-                              )}
-                            </button>
-                          </form>
-                        )}
+                              {review.review_text}
+                            </p>
+
+                            {/* Review Images Grid */}
+                            {(review.is_image_approved === true || review.user_id === user?.id || isAdmin) && Array.isArray(review?.images) && review.images.length > 0 && (
+                              <div 
+                                className="flex gap-2 flex-wrap pt-1"
+                                style={{ paddingLeft: '3.25rem' }}
+                              >
+                                {review.images.map((url, imgIdx) => (
+                                  <a 
+                                    key={imgIdx} 
+                                    href={url} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="relative group block w-20 h-20 rounded-2xl overflow-hidden border border-gray-100 dark:border-white/5 hover:border-ozo-red transition-all cursor-zoom-in"
+                                  >
+                                    <OptimizedImage 
+                                      src={url} 
+                                      alt={`Review upload ${imgIdx + 1}`} 
+                                      width={160}
+                                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                      containerClassName="w-full h-full"
+                                    />
+                                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                      <Eye size={16} className="text-white" />
+                                    </div>
+                                  </a>
+                                ))}
+                              </div>
+                            )}
+
+                            {review.user_id === user?.id && !review.is_image_approved && Array.isArray(review?.images) && review.images.length > 0 && (
+                              <div className="flex items-center gap-1.5 mt-1" style={{ paddingLeft: '3.25rem' }}>
+                                <span className="inline-flex items-center gap-1 bg-amber-500/10 text-amber-500 text-[10px] font-black uppercase px-2 py-0.5 rounded-full border border-amber-500/20">
+                                  <AlertCircle size={10} /> Image under moderation (Only you can see this)
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Official Admin Reply */}
+                            {review.reply_text && (
+                              <div className="relative mt-3" style={{ marginLeft: '3.25rem' }}>
+                                {/* Connecting Thread Line */}
+                                <div className="absolute right-full mr-3 -top-10 bottom-1/2 w-5 border-l-2 border-b-2 border-red-500/20 dark:border-red-500/30 rounded-bl-xl pointer-events-none" />
+                                
+                                <div className="p-3 bg-red-500/5 dark:bg-red-500/[0.02] border border-red-500/10 dark:border-red-500/20 rounded-2xl space-y-1 max-w-lg">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="text-xs font-black text-red-600 dark:text-red-400">ozoofficial</span>
+                                    <span className="w-3.5 h-3.5 rounded-full bg-red-600 text-white flex items-center justify-center text-[8px] font-black shadow-sm">✓</span>
+                                    <span className="text-[10px] text-gray-400 font-medium ml-1">
+                                      replying to @{review.user?.full_name || 'customer'}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs font-medium text-gray-700 dark:text-gray-300 leading-relaxed">
+                                    {review.reply_text}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
                       </div>
+                    )}
+                  </div>
+
+                  {/* Review Submission Form */}
+                  <div className="border-t border-gray-100 dark:border-white/5 pt-8 space-y-6">
+                    <div className="flex flex-col gap-1">
+                      <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider">
+                        Write a Review
+                      </h3>
+                      <p className="text-xs text-ozo-gray">Share your experience with this product with other buyers</p>
                     </div>
-                  )}
-                </motion.div>
-              </div>
-            </div>
+
+                    {!isAuthenticated ? (
+                      <div className="flex flex-col items-center justify-center py-8 px-4 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl bg-gray-50/30 dark:bg-white/[0.01]">
+                        <p className="text-sm text-ozo-gray mb-4 font-medium">Please login to write a review for this product</p>
+                        <Link to="/auth" className="btn btn-primary px-6 text-xs uppercase tracking-wider font-black">
+                          Sign In / Register
+                        </Link>
+                      </div>
+                    ) : (
+                      <form onSubmit={handleSubmitReview} className="space-y-5">
+                        {/* Rating Selector */}
+                        <div className="flex flex-col gap-2">
+                          <span className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Overall Rating</span>
+                          <div className="flex gap-1.5">
+                            {[1, 2, 3, 4, 5].map((stars) => (
+                              <button
+                                type="button"
+                                key={stars}
+                                onClick={() => setNewRating(stars)}
+                                className="focus:outline-none transition-transform hover:scale-110"
+                              >
+                                <Star 
+                                  size={24} 
+                                  className={`${
+                                    stars <= newRating 
+                                      ? 'fill-yellow-400 text-yellow-400' 
+                                      : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'
+                                  }`} 
+                                />
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Review Text */}
+                        <div className="flex flex-col gap-2">
+                          <label htmlFor="review-text" className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider">Your Review</label>
+                          <textarea
+                            id="review-text"
+                            ref={detailTextareaRef}
+                            rows={4}
+                            value={newReviewText}
+                            onChange={(e) => setNewReviewText(e.target.value)}
+                            maxLength={1000}
+                            placeholder="What did you like or dislike? How was the quality?"
+                            className="w-full rounded-2xl border border-gray-200 dark:border-white/10 bg-transparent px-4 py-3 text-sm focus:border-ozo-red focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 font-medium resize-none overflow-hidden"
+                          />
+                        </div>
+
+                        {/* Image Uploader */}
+                        <ImageUpload
+                          value={reviewImageUrls}
+                          onChange={setReviewImageUrls}
+                          multiple={true}
+                          limit={5}
+                          customNamePrefix={`review_${currentProduct?.id}`}
+                          label="Add Photos"
+                          disabled={isSubmittingReview}
+                        />
+
+                        {/* Submit Button */}
+                        <button
+                          type="submit"
+                          disabled={isSubmittingReview}
+                          className="btn btn-primary flex items-center justify-center gap-2 px-8 py-3 text-xs uppercase tracking-wider font-black disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          {isSubmittingReview ? (
+                            <>
+                              <Loader2 size={16} className="animate-spin" /> Submitting...
+                            </>
+                          ) : (
+                            'Submit Review'
+                          )}
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </div>
-        </div>
 
         {/* Related Products Section */}
         <SuggestedProducts
