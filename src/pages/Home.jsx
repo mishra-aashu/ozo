@@ -2071,10 +2071,11 @@ const Home = () => {
                 : (offer.subtitle || offer.description);
 
               return (
-                <SwiperSlide key={offer.id}>
+                <SwiperSlide key={offer.id} className="transform-gpu">
                   <Link 
                     to={getBannerLink(offer)} 
-                    className="relative block w-full h-full group cursor-pointer overflow-hidden rounded-[2rem] md:rounded-[2.5rem]"
+                    className="relative block w-full h-full group cursor-pointer overflow-hidden rounded-[2rem] md:rounded-[2.5rem] transform-gpu"
+                    style={{ backfaceVisibility: 'hidden' }}
                   >
                     <OptimizedImage
                       src={offer.image_url}
@@ -2083,7 +2084,8 @@ const Home = () => {
                       quality={85}
                       loading={index < 3 ? "eager" : "lazy"}
                       fetchPriority={index < 3 ? "high" : "low"}
-                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                      className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 transform-gpu"
+                      style={{ willChange: 'transform' }}
                       containerClassName="w-full h-full"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-8">
@@ -2098,7 +2100,8 @@ const Home = () => {
                           {subtitleText}
                         </p>
                         <div 
-                          className="group relative w-fit flex items-center gap-2 bg-white text-gray-900 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold hover:bg-ozo-red hover:text-white transition-all transform hover:scale-[1.02] active:scale-[0.98] overflow-hidden shadow-lg"
+                          className="group relative w-fit flex items-center gap-2 bg-white text-gray-900 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold hover:bg-ozo-red hover:text-white transition-all transform-gpu hover:scale-[1.02] active:scale-[0.98] overflow-hidden shadow-lg"
+                          style={{ willChange: 'transform' }}
                         >
                           <span className="relative z-10 text-[10px] sm:text-xs">Order Now</span>
                           <ArrowRight size={12} className="relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
