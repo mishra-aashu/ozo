@@ -658,7 +658,11 @@ const Header = () => {
                     <span className="hidden lg:block text-sm font-bold text-gray-800 dark:text-gray-200">
                       {profile?.full_name?.split(' ')[0] || 'User'}
                     </span>
-                    <ChevronDown className="w-4 h-4 hidden lg:block text-ozo-gray dark:text-gray-400" />
+                    <ChevronDown 
+                      className={`w-3.5 h-3.5 text-ozo-gray dark:text-gray-400 transition-transform duration-300 ${
+                        isProfileOpen ? 'rotate-180' : ''
+                      }`} 
+                    />
                   </button>
 
                   {/* Profile Dropdown */}
