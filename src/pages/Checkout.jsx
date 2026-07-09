@@ -102,6 +102,7 @@ const Checkout = () => {
   const userAddresses = useLocationStore(state => state.userAddresses)
   const fetchUserAddresses = useLocationStore(state => state.fetchUserAddresses)
   const addUserAddress = useLocationStore(state => state.addUserAddress)
+  const updateUserAddress = useLocationStore(state => state.updateUserAddress)
   const deleteUserAddress = useLocationStore(state => state.deleteUserAddress)
   const { placeOrder, isPlacingOrder } = useOrderStore(useShallow(state => ({
     placeOrder: state.placeOrder,
@@ -112,6 +113,7 @@ const Checkout = () => {
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState('cod')
   const [isAddingAddress, setIsAddingAddress] = useState(false)
+  const [editingAddressId, setEditingAddressId] = useState(null)
   const [showMapPicker, setShowMapPicker] = useState(false)
   const [addressToDelete, setAddressToDelete] = useState(null)
   const [isShieldOpen, setIsShieldOpen] = useState(false)
@@ -126,6 +128,35 @@ const Checkout = () => {
   const [pendingOrderId, setPendingOrderId] = useState(null)
   const [recipientType, setRecipientType] = useState(null)
   const [isCharitySelected, setIsCharitySelected] = useState(false)
+
+  const handleEditAddressInit = (addr) => {
+    const parsed = parseLandmark(addr.landmark)
+    setEditingAddressId(addr.id)
+    setNewAddress({
+      label: addr.label || 'Home',
+      address_line1: addr.address_line1 || '',
+      address_line2: addr.address_line2 || '',
+      city: addr.city || '',
+      state: addr.state || '',
+      pincode: addr.pincode || '',
+      landmark: parsed.landmark || '',
+      receiver_name: parsed.receiverName || '',
+      receiver_phone: parsed.receiverPhone || '',
+      notes: parsed.notes || '',
+      latitude: addr.latitude || null,
+      longitude: addr.longitude || null,
+      google_maps_url: addr.google_maps_url || '',
+      locality_id: addr.locality_id || null,
+      landmark_id: addr.landmark_id || null,
+      gali_id: addr.gali_id || null
+    })
+    setRecipientType('other')
+    setIsAddingAddress(true)
+    setShowMapPicker(false)
+    setIsAddressDropdownOpen(false)
+    // Scroll to top of the page smoothly so the user starts from the top of the address form
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const baseTotal = subtotal + deliveryFee + platformFee - discount
   const charityDonationAmount = parseFloat(platformConfig?.charity_amount) || 10
@@ -828,9 +859,13 @@ const Checkout = () => {
       gali_id: newAddress.gali_id || null
     }
 
-    const result = await addUserAddress(payload)
+    const result = editingAddressId 
+      ? await updateUserAddress(editingAddressId, payload)
+      : await addUserAddress(payload)
+
     if (result) {
       setIsAddingAddress(false)
+      setEditingAddressId(null)
       setShowMapPicker(false)
       setSelectedAddress(result.id)
       setRecipientType(null) // Reset recipient toggle state
@@ -853,6 +888,8 @@ const Checkout = () => {
         landmark_id: null,
         gali_id: null
       })
+      // Scroll to the top of the page smoothly so the user sees the updated address card
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     }
   }
 
@@ -954,7 +991,13 @@ const Checkout = () => {
                 </div>
                 <button 
                    onClick={() => {
-                    setIsAddingAddress(!isAddingAddress)
+                    if (isAddingAddress) {
+                      setIsAddingAddress(false)
+                      setEditingAddressId(null)
+                      window.scrollTo({ top: 0, behavior: 'smooth' })
+                    } else {
+                      setIsAddingAddress(true)
+                    }
                     setRecipientType(null)
                     setShowMapPicker(false)
                     setIsAddressDropdownOpen(false)
@@ -962,7 +1005,7 @@ const Checkout = () => {
                   className="flex items-center gap-2 text-ozo-red font-black text-sm hover:underline"
                 >
                   <Plus size={18} />
-                  {isAddingAddress ? 'Show List' : 'Add New'}
+                  {isAddingAddress ? (editingAddressId ? 'Cancel Edit' : 'Show List') : 'Add New'}
                 </button>
               </div>
 
@@ -1009,44 +1052,72 @@ const Checkout = () => {
                       return (
                         <div 
                           onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
-                          className="relative p-4 md:p-5 rounded-[1.5rem] border-2 border-ozo-red bg-red-50/20 dark:bg-ozo-red/5 ring-4 ring-ozo-red/10 cursor-pointer transition-all hover:bg-red-50/30"
+                          className="relative p-5 md:p-6 rounded-[2rem] border-2 border-ozo-red/45 bg-gradient-to-br from-red-50/40 to-transparent dark:from-ozo-red/10 dark:to-transparent cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-ozo-red/5 group"
                         >
                           <div className="flex items-start justify-between gap-4">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 mb-3">
-                                <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-900 dark:bg-white/10 text-white rounded-lg">
+                            <div className="flex-1 min-w-0 space-y-2">
+                              {/* Top Row: Label & Status */}
+                              <div className="flex flex-wrap items-center gap-2">
+                                <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 bg-gray-900 dark:bg-white/10 text-white rounded-lg shadow-sm">
                                   {activeAddr.label}
                                 </span>
+                                
                                 {(() => {
                                   const isServiceable = activeAddr.latitude && activeAddr.longitude
                                     ? checkDeliveryZoneStatus(activeAddr.latitude, activeAddr.longitude, useCartStore.getState())
                                     : checkPincodeServiceable(activeAddr.pincode, activeAddr.city);
                                   return !isServiceable && (
-                                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-black text-red-600 bg-red-50 dark:bg-red-950/20 px-3 py-1 rounded-full border border-red-200">
+                                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-black text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/30 animate-pulse">
                                       ⚠️ Non-Serviceable
                                     </span>
                                   );
                                 })()}
-                                {(parsed.receiverName || parsed.receiverPhone) && (
-                                  <div className="flex items-center gap-1.5 text-[10px] font-black text-ozo-red dark:text-red-400 bg-red-50/50 dark:bg-ozo-red/5 px-2 py-0.5 rounded-md w-fit">
-                                    <span>👤 {parsed.receiverName}</span>
-                                    {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
-                                  </div>
-                                )}
                               </div>
-                              <p className="text-sm font-black text-gray-900 dark:text-white mb-1">{activeAddr.address_line1}</p>
-                              <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold leading-relaxed">
-                                {activeAddr.address_line2 && activeAddr.address_line2 + ', '}
-                                {parsed.landmark && `Near ${parsed.landmark}, `}
-                                {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
-                              </p>
+
+                              {/* Recipient Details Row */}
+                              {(parsed.receiverName || parsed.receiverPhone) && (
+                                <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white font-black">
+                                  <User size={14} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                  <span>{parsed.receiverName}</span>
+                                  {parsed.receiverPhone && (
+                                    <span className="text-xs text-ozo-gray dark:text-gray-400 font-medium">
+                                      • {parsed.receiverPhone}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+
+                              {/* Address Text */}
+                              <div className="space-y-1 pt-0.5">
+                                <p className="text-sm font-black text-gray-950 dark:text-white leading-snug">
+                                  {activeAddr.address_line1}
+                                </p>
+                                <p className="text-xs text-ozo-gray dark:text-gray-450 font-bold leading-relaxed">
+                                  {activeAddr.address_line2 && activeAddr.address_line2 + ', '}
+                                  {parsed.landmark && `Near ${parsed.landmark}, `}
+                                  {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
+                                </p>
+                              </div>
                             </div>
                             
-                            {/* Dropdown Action Controls */}
-                            <div className="flex flex-col items-end gap-3 flex-shrink-0">
-                              <div className="flex items-center gap-1 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-150 dark:border-white/5 py-1 px-3 rounded-full text-xs font-black text-ozo-red transition-all hover:scale-105">
+                            {/* Actions Column */}
+                            <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2 flex-shrink-0">
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleEditAddressInit(activeAddr)
+                                }}
+                                className="flex items-center gap-1.5 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3 rounded-full text-xs font-black text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red transition-all hover:scale-105 active:scale-95"
+                                title="Edit Address"
+                              >
+                                <Pencil size={12} />
+                                <span>Edit</span>
+                              </button>
+                              
+                              <div className="flex items-center gap-1 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3.5 rounded-full text-xs font-black text-ozo-red transition-all group-hover:scale-105 active:scale-95">
                                 <span>Change</span>
-                                {isAddressDropdownOpen ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                                {isAddressDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                               </div>
                             </div>
                           </div>
@@ -1115,22 +1186,36 @@ const Checkout = () => {
                                                );
                                              })()}
                                            </div>
-                                           <button
-                                             type="button"
-                                             onClick={(e) => {
-                                               e.stopPropagation()
-                                               setAddressToDelete(addr.id)
-                                             }}
-                                             className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
-                                             title="Delete Address"
-                                           >
-                                             <Trash2 size={14} />
-                                           </button>
+                                           <div className="flex items-center gap-1">
+                                             <button
+                                               type="button"
+                                               onClick={(e) => {
+                                                 e.stopPropagation()
+                                                 handleEditAddressInit(addr)
+                                               }}
+                                               className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
+                                               title="Edit Address"
+                                             >
+                                               <Pencil size={14} />
+                                              </button>
+                                             <button
+                                               type="button"
+                                               onClick={(e) => {
+                                                 e.stopPropagation()
+                                                 setAddressToDelete(addr.id)
+                                               }}
+                                               className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
+                                               title="Delete Address"
+                                             >
+                                               <Trash2 size={14} />
+                                             </button>
+                                           </div>
                                         </div>
                                         
                                         {(parsed.receiverName || parsed.receiverPhone) && (
                                           <div className="flex items-center gap-1.5 text-[10px] font-black text-ozo-gray dark:text-gray-400 mb-1.5 bg-gray-50 dark:bg-white/5 px-2 py-0.5 rounded-md w-fit">
-                                            <span>👤 {parsed.receiverName}</span>
+                                            <User size={10} className="text-ozo-gray dark:text-gray-400 flex-shrink-0" />
+                                            <span>{parsed.receiverName}</span>
                                             {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
                                           </div>
                                         )}
@@ -1273,8 +1358,8 @@ const Checkout = () => {
                         />
 
                         <div className="flex gap-4">
-                           <button type="submit" className="btn btn-primary px-10">Save Address</button>
-                           <button type="button" onClick={() => { setIsAddingAddress(false); setShowMapPicker(false); }} className="px-10 font-bold text-ozo-gray">Cancel</button>
+                           <button type="submit" className="btn btn-primary px-10">{editingAddressId ? 'Update Address' : 'Save Address'}</button>
+                           <button type="button" onClick={() => { setIsAddingAddress(false); setEditingAddressId(null); setShowMapPicker(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="px-10 font-bold text-ozo-gray">Cancel</button>
                         </div>
                       </div>
                     )}
