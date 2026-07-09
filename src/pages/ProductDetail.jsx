@@ -877,9 +877,9 @@ const ProductDetail = () => {
       </div>
 
       <div className="container-custom pb-12">
-        <div className="flex flex-col md:flex-row gap-8 lg:gap-16 xl:gap-20">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-16 xl:gap-20">
           {/* Left: Product Image */}
-          <div className="w-full md:w-[55%] lg:w-1/2 xl:w-[55%] flex-shrink-0">
+          <div className="md:col-span-7 lg:col-span-6 xl:col-span-7">
              <motion.div 
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
@@ -1004,7 +1004,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Right: Product Info */}
-          <div className="w-full md:w-[45%] lg:w-1/2 xl:w-[45%] flex flex-col">
+          <div className="md:col-span-5 lg:col-span-6 xl:col-span-5 flex flex-col">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 <span className="px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red text-[10px] font-black uppercase tracking-widest rounded-lg border border-ozo-red/10">
@@ -1200,7 +1200,7 @@ const ProductDetail = () => {
                       <button 
                         onClick={cartQuantity > 0 ? () => navigate('/cart') : handleAddToCart}
                         disabled={!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)}
-                        className={`flex-1 h-14 bg-gradient-ozo text-white rounded-2xl font-black text-sm sm:text-lg shadow-ozo hover:shadow-ozo-lg transition-all active:scale-95 flex items-center justify-center gap-2 px-3 sm:px-6 ${
+                        className={`flex-1 h-14 bg-gradient-ozo text-white rounded-2xl font-black text-sm lg:text-base xl:text-lg shadow-ozo hover:shadow-ozo-lg transition-all active:scale-95 flex items-center justify-center gap-2 px-3 lg:px-6 ${
                           (!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)) ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
