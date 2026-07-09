@@ -641,10 +641,10 @@ const Header = () => {
             </form>
 
             {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-3 flex-shrink-0">
+            <div className="hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-3 flex-shrink-0 relative">
               {/* Auth Button/Profile */}
               {isAuthenticated ? (
-                <div className="relative" ref={profileDropdownRef}>
+                <div ref={profileDropdownRef}>
                   <button
                     onClick={() => setIsProfileOpen(!isProfileOpen)}
                     className="flex items-center gap-2 p-1 md:pr-3 rounded-2xl hover:bg-ozo-gray-bg dark:hover:bg-white/5 transition-all duration-300"
