@@ -979,10 +979,10 @@ const Checkout = () => {
         <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Main Checkout Flow */}
-          <div className="md:col-span-7 lg:col-span-8 space-y-6">
+          <div className="md:col-span-7 lg:col-span-8 space-y-6 md:space-y-10 lg:space-y-12">
             
             {/* Step 1: Delivery Address */}
-            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-white/5">
+            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                    <div className="w-12 h-12 bg-green-50 dark:bg-ozo-green/10 text-ozo-green rounded-2xl flex items-center justify-center">
@@ -1053,9 +1053,9 @@ const Checkout = () => {
                       return (
                         <div 
                           onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
-                          className="relative p-5 md:p-6 rounded-[2rem] border-2 border-ozo-red/45 bg-gradient-to-br from-red-50/40 to-transparent dark:from-ozo-red/10 dark:to-transparent cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-ozo-red/5 group"
+                          className="relative p-5 md:p-8 rounded-[2rem] border-2 border-ozo-red/45 bg-gradient-to-br from-red-50/40 to-transparent dark:from-ozo-red/10 dark:to-transparent cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-ozo-red/5 group"
                         >
-                          <div className="flex flex-col gap-4 w-full">
+                          <div className="flex flex-col gap-4 md:gap-6 w-full">
                             
                             {/* ROW 1: Home Badge & Actions Group */}
                             <div className="flex justify-between items-center w-full">
@@ -1385,15 +1385,15 @@ const Checkout = () => {
             </section>
 
             {/* Step 2: Payment Method */}
-            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-white/5">
-              <div className="flex items-center gap-4 mb-6">
+            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
+              <div className="flex items-center gap-4 mb-6 md:mb-8">
                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center">
                     <CreditCard size={24} />
                  </div>
                  <h2 className="text-xl font-black">{t?.('payment_method') || 'Payment Method'}</h2>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 md:space-y-6">
                 {availablePaymentMethods.length === 0 ? (
                   <div className="p-5 text-center text-sm font-bold text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-150 dark:border-red-950/30 rounded-2xl">
                     No payment methods currently available. Please contact support.
@@ -1403,7 +1403,7 @@ const Checkout = () => {
                   <div 
                     key={method.id}
                     onClick={() => setPaymentMethod(method.id)}
-                    className={`relative p-4 md:p-5 rounded-[1.5rem] border-2 cursor-pointer transition-all ${
+                    className={`relative p-4 md:p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all ${
                       paymentMethod === method.id 
                       ? 'border-ozo-red bg-red-50/20 dark:bg-ozo-red/5 ring-4 ring-ozo-red/10 shadow-sm' 
                       : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#1a1a1a]'
