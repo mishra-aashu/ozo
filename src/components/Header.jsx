@@ -298,8 +298,8 @@ const Header = () => {
       }
       
       // Fallback
-      const isMobile = window.innerWidth < 768
-      const height = isMobile ? '76px' : '80px'
+      const isDesktop = window.innerWidth >= 1024
+      const height = isDesktop ? '80px' : '124px'
       document.documentElement.style.setProperty('--header-height', height)
     }
 
@@ -429,8 +429,8 @@ const Header = () => {
         <div className="container-custom">
           <div className="flex items-center justify-between gap-1.5 xs:gap-3 md:gap-4">
             
-            {/* Logo + Location Column/Row */}
-            <div className="flex items-center gap-2 xs:gap-3 min-w-0 md:flex-initial">
+             {/* Logo + Location Column/Row */}
+            <div className="flex items-center gap-1.5 md:gap-2.5 min-w-0 md:flex-shrink-0">
               <Link to="/" className="flex items-center gap-1.5 xs:gap-2 flex-shrink-0 group">
                 <OzoLogo
                   size="sm"
@@ -450,7 +450,7 @@ const Header = () => {
                   }
                 }}
                 aria-label="Select Delivery Location"
-                className={`hidden md:flex items-center translate-y-[2.5px] lg:translate-y-0 gap-1 xs:gap-2 px-1.5 xs:px-3 py-1 xs:py-1.5 rounded-xl xs:rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group max-w-[240px] lg:max-w-[280px] ${
+                className={`hidden lg:flex items-center translate-y-[2.5px] lg:translate-y-0 gap-1 lg:gap-2 px-1.5 lg:px-3 py-1 lg:py-1.5 rounded-xl lg:rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group max-w-[240px] lg:max-w-[280px] ${
                   isLocationServiceable 
                     ? 'bg-gray-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border-gray-100 dark:border-white/5 hover:border-ozo-red/20 dark:hover:border-ozo-red/20' 
                     : 'bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-900/40 hover:border-red-300 dark:hover:border-red-800'
@@ -490,7 +490,7 @@ const Header = () => {
             <form 
               ref={searchDropdownRef}
               onSubmit={handleSearchSubmit}
-              className="flex-1 max-w-md lg:max-w-xl relative hidden md:block"
+              className="flex-1 min-w-[200px] md:min-w-[240px] lg:min-w-[320px] max-w-md lg:max-w-xl relative hidden md:block"
             >
               <div className="relative group">
                 <div className="absolute inset-0 bg-gradient-ozo opacity-0 group-focus-within:opacity-5 blur-xl transition-opacity duration-500 rounded-3xl pointer-events-none" />
@@ -505,143 +505,143 @@ const Header = () => {
                   onFocus={() => setShowSearch(true)}
                   className="w-full pl-14 pr-6 py-3.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-[1.5rem] focus:bg-white dark:focus:bg-[#1a1a1a] focus:outline-none focus:ring-4 focus:ring-ozo-red/10 focus:border-ozo-red transition-all duration-500 text-sm font-bold text-gray-800 dark:text-white placeholder:text-gray-400 shadow-sm focus:shadow-xl"
                 />
-              </div>
 
-              {/* Search Results Dropdown */}
-              <AnimatePresence>
-                {showSearch && (
-                  <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 max-h-[32rem] overflow-hidden z-50"
-                  >
-                    <div className="overflow-y-auto max-h-[30rem] scrollbar-hide">
-                      {isSearchLoading ? (
-                        <div className="p-4 space-y-3">
-                          {[1, 2, 3].map((n) => (
-                            <div key={n} className="flex items-center gap-4 p-3 animate-pulse">
-                              <div className="w-14 h-14 bg-gray-100 dark:bg-white/5 rounded-xl flex-shrink-0" />
-                              <div className="flex-1 space-y-2">
-                                <div className="h-4 bg-gray-100 dark:bg-white/5 rounded w-2/3" />
-                                <div className="h-3 bg-gray-100 dark:bg-white/5 rounded w-1/3" />
+                {/* Search Results Dropdown */}
+                <AnimatePresence>
+                  {showSearch && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 10 }}
+                      className="absolute top-full left-0 right-0 mt-3 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 max-h-[32rem] overflow-hidden z-50"
+                    >
+                      <div className="overflow-y-auto max-h-[30rem] scrollbar-hide">
+                        {isSearchLoading ? (
+                          <div className="p-4 space-y-3">
+                            {[1, 2, 3].map((n) => (
+                              <div key={n} className="flex items-center gap-4 p-3 animate-pulse">
+                                <div className="w-14 h-14 bg-gray-100 dark:bg-white/5 rounded-xl flex-shrink-0" />
+                                <div className="flex-1 space-y-2">
+                                  <div className="h-4 bg-gray-100 dark:bg-white/5 rounded w-2/3" />
+                                  <div className="h-3 bg-gray-100 dark:bg-white/5 rounded w-1/3" />
+                                </div>
+                                <div className="w-12 h-4 bg-gray-100 dark:bg-white/5 rounded" />
                               </div>
-                              <div className="w-12 h-4 bg-gray-100 dark:bg-white/5 rounded" />
-                            </div>
-                          ))}
-                        </div>
-                      ) : searchQuery.trim() === '' ? (
-                        <div className="p-5 space-y-6">
-                          {/* Search History */}
-                          {searchHistory.length > 0 && (
-                            <div>
-                              <div className="flex items-center justify-between mb-3">
-                                <h3 className="text-xs font-black text-ozo-gray dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
-                                  <History size={13} className="text-ozo-red animate-pulse" />
-                                  Recent Searches
-                                </h3>
-                                <button
-                                  type="button"
-                                  onClick={clearSearchHistory}
-                                  className="text-[10px] font-bold text-ozo-red hover:underline uppercase tracking-wider"
-                                >
-                                  Clear All
-                                </button>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {searchHistory.map((item) => (
-                                  <div
-                                    key={item}
-                                    className="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl px-3 py-1.5 border border-gray-150/10 dark:border-white/5 transition-all duration-200"
+                            ))}
+                          </div>
+                        ) : searchQuery.trim() === '' ? (
+                          <div className="p-5 space-y-6">
+                            {/* Search History */}
+                            {searchHistory.length > 0 && (
+                              <div>
+                                <div className="flex items-center justify-between mb-3">
+                                  <h3 className="text-xs font-black text-ozo-gray dark:text-gray-400 uppercase tracking-wider flex items-center gap-1.5">
+                                    <History size={13} className="text-ozo-red animate-pulse" />
+                                    Recent Searches
+                                  </h3>
+                                  <button
+                                    type="button"
+                                    onClick={clearSearchHistory}
+                                    className="text-[10px] font-bold text-ozo-red hover:underline uppercase tracking-wider"
                                   >
-                                    <button
-                                      type="button"
-                                      onClick={() => handleHistoryClick(item)}
-                                      className="text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-ozo-red transition-colors"
+                                    Clear All
+                                  </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {searchHistory.map((item) => (
+                                    <div
+                                      key={item}
+                                      className="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl px-3 py-1.5 border border-gray-150/10 dark:border-white/5 transition-all duration-200"
                                     >
-                                      {item}
-                                    </button>
-                                    <button
-                                      type="button"
-                                      onClick={() => removeSearchQuery(item)}
-                                      aria-label="Remove search history item"
-                                      className="p-0.5 hover:bg-gray-205 dark:hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-ozo-red flex items-center justify-center"
-                                    >
-                                      <X size={10} />
-                                    </button>
-                                  </div>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleHistoryClick(item)}
+                                        className="text-xs font-bold text-gray-700 dark:text-gray-300 hover:text-ozo-red transition-colors"
+                                      >
+                                        {item}
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => removeSearchQuery(item)}
+                                        aria-label="Remove search history item"
+                                        className="p-0.5 hover:bg-gray-205 dark:hover:bg-white/10 rounded-full transition-colors text-gray-400 hover:text-ozo-red flex items-center justify-center"
+                                      >
+                                        <X size={10} />
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Trending Searches */}
+                            <div>
+                              <h3 className="text-xs font-black text-ozo-gray dark:text-gray-400 uppercase tracking-wider mb-3">
+                                🔥 Trending Searches
+                              </h3>
+                              <div className="grid grid-cols-2 gap-2">
+                                {trendingSearches.map((item) => (
+                                  <button
+                                    key={item.name}
+                                    type="button"
+                                    onClick={() => handleTrendingClick(item.name)}
+                                    className="flex items-center gap-2.5 px-4 py-3 bg-gray-50 dark:bg-white/5 hover:bg-red-50/50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 hover:border-ozo-red/20 rounded-xl text-left transition-all duration-300 group"
+                                  >
+                                    <span className="text-lg group-hover:scale-125 transition-transform duration-300">{item.icon}</span>
+                                    <span className="text-sm font-bold text-gray-700 dark:text-gray-300 group-hover:text-ozo-red transition-colors duration-300">{item.name}</span>
+                                  </button>
                                 ))}
                               </div>
                             </div>
-                          )}
-
-                          {/* Trending Searches */}
-                          <div>
-                            <h3 className="text-xs font-black text-ozo-gray dark:text-gray-400 uppercase tracking-wider mb-3">
-                              🔥 Trending Searches
-                            </h3>
-                            <div className="grid grid-cols-2 gap-2">
-                              {trendingSearches.map((item) => (
-                                <button
-                                  key={item.name}
-                                  type="button"
-                                  onClick={() => handleTrendingClick(item.name)}
-                                  className="flex items-center gap-2.5 px-4 py-3 bg-gray-50 dark:bg-white/5 hover:bg-red-50/50 dark:hover:bg-white/10 border border-gray-100 dark:border-white/5 hover:border-ozo-red/20 rounded-xl text-left transition-all duration-300 group"
-                                >
-                                  <span className="text-lg group-hover:scale-125 transition-transform duration-300">{item.icon}</span>
-                                  <span className="text-sm font-bold text-gray-700 dark:text-gray-300 group-hover:text-ozo-red transition-colors duration-300">{item.name}</span>
-                                </button>
-                              ))}
-                            </div>
                           </div>
-                        </div>
-                      ) : searchResults.length > 0 ? (
-                        <div className="p-2">
-                          {searchResults.map((product) => (
-                            <button
-                              key={product.id}
-                              type="button"
-                              onClick={() => handleSearchSelect(product)}
-                              className="flex items-center gap-4 p-3 hover:bg-red-50/50 dark:hover:bg-white/5 rounded-xl transition-all duration-200 w-full text-left group"
-                            >
-                              <div className="w-14 h-14 rounded-lg overflow-hidden border border-gray-100 dark:border-white/5 flex-shrink-0">
-                                <OptimizedImage
-                                  src={product.image_url}
-                                  slug={product.slug}
-                                  alt={product.name}
-                                  width={100}
-                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                                  containerClassName="w-full h-full"
-                                />
-                              </div>
-                              <div className="flex-1">
-                                <p className="font-bold text-gray-800 dark:text-white line-clamp-1">{product.name}</p>
-                                <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">{product.unit}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-black text-gray-900 dark:text-white">₹{product.price}</p>
-                                {product.mrp > product.price && (
-                                  <p className="text-[10px] text-ozo-gray dark:text-gray-400 line-through decoration-ozo-red/50">₹{product.mrp}</p>
-                                )}
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="p-8 text-center">
-                          <p className="text-3xl mb-2">🔍</p>
-                          <p className="font-bold text-gray-800 dark:text-white">No results found</p>
-                          <p className="text-xs text-ozo-gray dark:text-gray-400 mt-1">We couldn't find anything matching "{searchQuery}"</p>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                        ) : searchResults.length > 0 ? (
+                          <div className="p-2">
+                            {searchResults.map((product) => (
+                              <button
+                                key={product.id}
+                                type="button"
+                                onClick={() => handleSearchSelect(product)}
+                                className="flex items-center gap-4 p-3 hover:bg-red-50/50 dark:hover:bg-white/5 rounded-xl transition-all duration-200 w-full text-left group"
+                              >
+                                <div className="w-14 h-14 rounded-lg overflow-hidden border border-gray-100 dark:border-white/5 flex-shrink-0">
+                                  <OptimizedImage
+                                    src={product.image_url}
+                                    slug={product.slug}
+                                    alt={product.name}
+                                    width={100}
+                                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                                    containerClassName="w-full h-full"
+                                  />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="font-bold text-gray-800 dark:text-white line-clamp-1">{product.name}</p>
+                                  <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">{product.unit}</p>
+                                </div>
+                                <div className="text-right">
+                                  <p className="font-black text-gray-900 dark:text-white">₹{product.price}</p>
+                                  {product.mrp > product.price && (
+                                    <p className="text-[10px] text-ozo-gray dark:text-gray-400 line-through decoration-ozo-red/50">₹{product.mrp}</p>
+                                  )}
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="p-8 text-center">
+                            <p className="text-3xl mb-2">🔍</p>
+                            <p className="font-bold text-gray-800 dark:text-white">No results found</p>
+                            <p className="text-xs text-ozo-gray dark:text-gray-400 mt-1">We couldn't find anything matching "{searchQuery}"</p>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </form>
 
             {/* Desktop Actions */}
-            <div className="hidden md:flex items-center gap-1 md:gap-3 flex-shrink-0">
+            <div className="hidden md:flex items-center gap-1 md:gap-1.5 lg:gap-3 flex-shrink-0">
               {/* Auth Button/Profile */}
               {isAuthenticated ? (
                 <div className="relative" ref={profileDropdownRef}>
@@ -733,7 +733,7 @@ const Header = () => {
               <div className="relative group">
                 <button
                   onClick={toggleTheme}
-                  className="p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-red dark:hover:text-ozo-red transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center"
+                  className="p-1.5 md:p-2 lg:p-2.5 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-red dark:hover:text-ozo-red transition-all duration-300 shadow-sm hover:shadow-md active:scale-95 flex items-center justify-center"
                   aria-label="Toggle Theme"
                 >
                   <AnimatePresence mode="wait">
@@ -768,7 +768,7 @@ const Header = () => {
               <Link
                 to="/wishlist"
                 aria-label="Wishlist"
-                className="relative p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-ozo-red/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-red dark:hover:text-ozo-red-light transition-all duration-300 group"
+                className="relative p-1.5 md:p-2 lg:p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-ozo-red/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-red dark:hover:text-ozo-red-light transition-all duration-300 group"
               >
                 <Heart size={24} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
                 {wishlistItems.length > 0 && (
@@ -783,7 +783,7 @@ const Header = () => {
                 <Link
                   to="/notifications"
                   aria-label="Notifications"
-                  className="relative p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-ozo-red/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-red dark:hover:text-ozo-red-light transition-all duration-300 group"
+                  className="relative p-1.5 md:p-2 lg:p-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-ozo-red/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-red dark:hover:text-ozo-red-light transition-all duration-300 group"
                 >
                   <Bell size={24} strokeWidth={2} className="group-hover:scale-110 transition-transform" />
                   {unreadCount > 0 && (
@@ -798,7 +798,7 @@ const Header = () => {
               <Link
                 to="/cart"
                 aria-label="Cart"
-                className="relative p-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-ozo-green/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-green dark:hover:text-ozo-green transition-all duration-300 group"
+                className="relative p-1.5 md:p-2 lg:p-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-ozo-green/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-green dark:hover:text-ozo-green transition-all duration-300 group"
               >
                 <ShoppingCart size={24} className="group-hover:scale-110 transition-transform" />
                 {totalItems > 0 && (
@@ -848,14 +848,14 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Location Selector (Mobile Only - Second Row) */}
-          <div className="mt-2.5 md:hidden">
+          {/* Location Selector (Mobile / Tablet - Second Row) */}
+          <div className="mt-2.5 lg:hidden">
             <button 
               onClick={() => {
                 navigate('/select-location')
               }}
               aria-label="Select Delivery Location"
-              className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group ${
+              className={`w-full md:max-w-[280px] flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group ${
                 isLocationServiceable
                   ? 'bg-gray-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border-gray-100 dark:border-white/5 hover:border-ozo-red/20 dark:hover:border-ozo-red/20'
                   : 'bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-900/40 hover:border-red-300 dark:hover:border-red-800'
