@@ -1460,8 +1460,8 @@ const Checkout = () => {
           </div>
 
           {/* Order Summary Sidebar */}
-          <div className="md:col-span-5 lg:col-span-4 space-y-6 sticky top-36">
-            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 shadow-xl border border-gray-100 dark:border-white/5">
+          <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-36 z-30">
+            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 md:p-8 shadow-xl border border-gray-100 dark:border-white/5">
                <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-black">Order Summary</h3>
                   <button 
