@@ -281,6 +281,14 @@ const MART_COLOR_PRESETS = [
 
 const Home = () => {
   const [shuffleSeed] = useState(() => Math.random())
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth)
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
   const navigate = useNavigate()
   const { city } = useParams()
   const { t } = useTranslation()
@@ -1979,9 +1987,18 @@ const Home = () => {
     ...(typeof displayBudgetProducts !== 'undefined' ? displayBudgetProducts : [])
   ], [featuredProducts, displayBestsellers, displayStealDeals, displayMandi, displayBudgetProducts])
 
+  const responsiveLimit = useMemo(() => {
+    if (windowWidth >= 1280) return 9
+    if (windowWidth >= 1024) return 8
+    if (windowWidth >= 768) return 12
+    if (windowWidth >= 640) return 10
+    if (windowWidth >= 475) return 8
+    return 9
+  }, [windowWidth])
+
   const gridCategories = useMemo(() => {
-    return showAllCategories ? parentCats : parentCats.slice(0, 9)
-  }, [showAllCategories, parentCats])
+    return showAllCategories ? parentCats : parentCats.slice(0, responsiveLimit)
+  }, [showAllCategories, parentCats, responsiveLimit])
 
   const handleCategoryClick = useCallback((cat) => {
     navigate(`/category/${cat.slug}`)
@@ -2135,7 +2152,7 @@ const Home = () => {
                     onCategoryClick={handleCategoryClick}
                   />
                   
-                  {parentCats.length > 9 && (
+                  {parentCats.length > responsiveLimit && (
                     <div className="flex justify-center mt-6">
                       <motion.button
                         whileHover={{ scale: 1.05, y: -2 }}
