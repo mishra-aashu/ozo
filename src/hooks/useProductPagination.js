@@ -128,11 +128,42 @@ export function useProductPagination() {
         query = query.in('category_id', categoryIds);
       }
 
-      if (options.featured) {
+      let isFeaturedFilter = !!options.featured;
+      let isBestsellerFilter = !!options.bestseller;
+
+      if (isFeaturedFilter) {
+        try {
+          const { count, error: countErr } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_featured', true);
+          if (!countErr && count === 0) {
+            isFeaturedFilter = false;
+          }
+        } catch (e) {
+          console.warn('[useProductPagination] Featured count check failed:', e);
+        }
+      }
+
+      if (isBestsellerFilter) {
+        try {
+          const { count, error: countErr } = await supabase
+            .from('products')
+            .select('*', { count: 'exact', head: true })
+            .eq('is_bestseller', true);
+          if (!countErr && count === 0) {
+            isBestsellerFilter = false;
+          }
+        } catch (e) {
+          console.warn('[useProductPagination] Bestseller count check failed:', e);
+        }
+      }
+
+      if (isFeaturedFilter) {
         query = query.eq('is_featured', true);
       }
 
-      if (options.bestseller) {
+      if (isBestsellerFilter) {
         query = query.eq('is_bestseller', true);
       }
 

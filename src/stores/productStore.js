@@ -344,7 +344,14 @@ export const useProductStore = create((set, get) => ({
             is_active
           )
         `)
-        fallbackQuery = fallbackQuery.limit(50).abortSignal(signal)
+        fallbackQuery = fallbackQuery
+          .eq('is_available', true)
+          .or('quantity_available.gt.0,quantity_available.is.null')
+          .not('image_url', 'is', null)
+          .not('image_url', 'ilike', '%raw.githubusercontent.com%')
+          .not('image_url', 'ilike', '%logo_transparent.png%')
+          .limit(50)
+          .abortSignal(signal)
         const { data: fallbackData, error: fallbackError } = await fallbackQuery
         if (!fallbackError && fallbackData) {
           products = formatProductsWithCity(fallbackData, citySlug)
@@ -418,7 +425,14 @@ export const useProductStore = create((set, get) => ({
             is_active
           )
         `)
-        fallbackQuery = fallbackQuery.limit(50).abortSignal(signal)
+        fallbackQuery = fallbackQuery
+          .eq('is_available', true)
+          .or('quantity_available.gt.0,quantity_available.is.null')
+          .not('image_url', 'is', null)
+          .not('image_url', 'ilike', '%raw.githubusercontent.com%')
+          .not('image_url', 'ilike', '%logo_transparent.png%')
+          .limit(50)
+          .abortSignal(signal)
         const { data: fallbackData, error: fallbackError } = await fallbackQuery
         if (!fallbackError && fallbackData) {
           products = formatProductsWithCity(fallbackData, citySlug)
