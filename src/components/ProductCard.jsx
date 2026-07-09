@@ -236,8 +236,8 @@ function ProductCard({ product, variant = 'default' }) {
           alt={selectedProduct.name}
           width={150}
           loading="lazy"
-          className="w-full h-full object-cover rounded-xl shadow-md"
-          containerClassName="w-20 h-20 rounded-xl"
+          className="w-full h-full object-contain p-1.5 rounded-xl shadow-sm bg-gray-50/50 dark:bg-white/[0.02]"
+          containerClassName="w-20 h-20 rounded-xl border border-gray-100 dark:border-white/5"
         />
         <div className="flex-1">
           <h4 className="font-black text-sm line-clamp-1 text-gray-800 dark:text-white break-words">{selectedProduct?.name}</h4>
@@ -298,10 +298,10 @@ function ProductCard({ product, variant = 'default' }) {
             alt={selectedProduct.name}
             width={250}
             loading="lazy"
-            className={`w-full h-full object-cover group-hover/img:scale-110 transition-transform duration-500 ${
+            className={`w-full h-full object-contain p-3 group-hover/img:scale-110 transition-transform duration-500 bg-gray-50/50 dark:bg-white/[0.02] ${
               !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
             }`}
-            containerClassName="w-32 h-32 rounded-2xl"
+            containerClassName="w-32 h-32 rounded-2xl border border-gray-100 dark:border-white/5"
           />
           {(!selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0)) && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/5 pointer-events-none select-none">
