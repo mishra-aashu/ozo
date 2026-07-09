@@ -938,10 +938,10 @@ const Checkout = () => {
       </div>
 
       <div className="container-custom py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-8 items-start">
           
           {/* Main Checkout Flow */}
-          <div className="lg:col-span-8 space-y-6">
+          <div className="md:col-span-7 lg:col-span-8 space-y-6">
             
             {/* Step 1: Delivery Address */}
             <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 shadow-sm border border-gray-100 dark:border-white/5">
@@ -1048,7 +1048,7 @@ const Checkout = () => {
                           exit={{ opacity: 0, height: 0 }}
                           className="overflow-hidden border-t border-dashed border-gray-200 dark:border-white/10 pt-4"
                         >
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             {userAddresses
                               .filter(addr => addr.id !== selectedAddress)
                               .map((addr) => {
@@ -1302,7 +1302,7 @@ const Checkout = () => {
           </div>
 
           {/* Order Summary Sidebar */}
-          <div className="lg:col-span-4 space-y-6 sticky top-36">
+          <div className="md:col-span-5 lg:col-span-4 space-y-6 sticky top-36">
             <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 shadow-xl border border-gray-100 dark:border-white/5">
                <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-black">Order Summary</h3>
