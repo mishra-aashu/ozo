@@ -145,6 +145,12 @@ export default function BulkControlPanel({
         FROM jsonb_each((SELECT previous_states FROM public.bulk_operation_logs WHERE id = '${logId}')) AS tmp(key, val)
         WHERE p.id::text = tmp.key;
 
+        UPDATE public.mart_inventory AS mi
+        SET
+          is_available = (tmp.val->>'is_available')::boolean
+        FROM jsonb_each((SELECT previous_states FROM public.bulk_operation_logs WHERE id = '${logId}')) AS tmp(key, val)
+        WHERE mi.product_id::text = tmp.key;
+
         UPDATE public.bulk_operation_logs SET is_undone = true WHERE id = '${logId}';
       `
       await runSql(undoSql)
@@ -209,7 +215,15 @@ export default function BulkControlPanel({
       }
 
       // 2. Perform the update
-      const updateSql = `UPDATE public.products SET is_available = ${markInStock ? 'true' : 'false'}, updated_at = NOW() WHERE ${whereClause};`
+      const updateSql = `
+        UPDATE public.mart_inventory 
+        SET is_available = ${markInStock ? 'true' : 'false'} 
+        WHERE product_id IN (SELECT id FROM public.products WHERE ${whereClause});
+
+        UPDATE public.products 
+        SET is_available = ${markInStock ? 'true' : 'false'}, updated_at = NOW() 
+        WHERE ${whereClause};
+      `
       await runSql(updateSql)
 
       // 3. Save logs
@@ -447,10 +461,26 @@ export default function BulkControlPanel({
       let successMsg = ''
 
       if (bulkAction === 'oos-off') {
-        sql = `UPDATE public.products SET is_available = false, updated_at = NOW() WHERE ${where};`
+        sql = `
+          UPDATE public.mart_inventory 
+          SET is_available = false 
+          WHERE product_id IN (SELECT id FROM public.products WHERE ${where});
+
+          UPDATE public.products 
+          SET is_available = false, updated_at = NOW() 
+          WHERE ${where};
+        `
         successMsg = 'Emergency: Products Out of Stock mark ho gaye!'
       } else if (bulkAction === 'oos-on') {
-        sql = `UPDATE public.products SET is_available = true, updated_at = NOW() WHERE ${where};`
+        sql = `
+          UPDATE public.mart_inventory 
+          SET is_available = true 
+          WHERE product_id IN (SELECT id FROM public.products WHERE ${where});
+
+          UPDATE public.products 
+          SET is_available = true, updated_at = NOW() 
+          WHERE ${where};
+        `
         successMsg = 'Success: Products wapas In Stock ho gaye!'
       } else if (bulkAction === 'price-adj') {
         const pct = parseFloat(bulkPercent)
