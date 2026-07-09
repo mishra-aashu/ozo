@@ -718,7 +718,7 @@ export default function SearchedPage() {
                 ) : sortedProducts.length > 0 ? (
                   <div className="space-y-8">
                     <div 
-                      key={`${sortBy}_${filterInStock}_${filterBestseller}_${filterFeatured}`}
+                      key={`${sortBy}_${filterBestseller}_${filterFeatured}`}
                       className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
                     >
                       {sortedProducts.map((product, idx) => (
