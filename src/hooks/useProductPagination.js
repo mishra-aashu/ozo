@@ -45,151 +45,132 @@ export function useProductPagination() {
     }
 
     try {
-      let query;
-      
-      // If a search query is active, use fuzzy & full-text search RPC
-      if (options.search) {
-        query = supabase.rpc('search_products_fuzzy', { 
-          search_term: options.search,
-          similarity_threshold: 0.2
-        }).select(`
-          *,
-          category:categories (
-            id,
-            name,
-            slug,
-            parent_id,
-            is_active
-          )
-        `);
+      const runQuery = async (applyFeatured, applyBestseller) => {
+        let query;
+        
+        // If a search query is active, use fuzzy & full-text search RPC
+        if (options.search) {
+          query = supabase.rpc('search_products_fuzzy', { 
+            search_term: options.search,
+            similarity_threshold: 0.2
+          }).select(`
+            *,
+            category:categories (
+              id,
+              name,
+              slug,
+              parent_id,
+              is_active
+            )
+          `);
 
-        // Fetch spelling suggestion in parallel for page 1
-        if (!isLoadMore) {
-          try {
-            const { data: suggestionData } = await supabase.rpc('get_spelling_suggestion', { 
-              search_term: options.search 
-            });
-            if (queryKeyRef.current === filterKey) {
-              setSpellingSuggestion(suggestionData || null);
+          // Fetch spelling suggestion in parallel for page 1
+          if (!isLoadMore) {
+            try {
+              const { data: suggestionData } = await supabase.rpc('get_spelling_suggestion', { 
+                search_term: options.search 
+              });
+              if (queryKeyRef.current === filterKey) {
+                setSpellingSuggestion(suggestionData || null);
+              }
+            } catch (sErr) {
+              console.error('[useProductPagination] Spelling suggestion error:', sErr);
             }
-          } catch (sErr) {
-            console.error('[useProductPagination] Spelling suggestion error:', sErr);
           }
+        } else {
+          query = supabase.from('products').select(`
+            *,
+            category:categories (
+              id,
+              name,
+              slug,
+              parent_id,
+              is_active
+            )
+          `);
         }
-      } else {
-        query = supabase.from('products').select(`
-          *,
-          category:categories (
-            id,
-            name,
-            slug,
-            parent_id,
-            is_active
-          )
-        `);
-      }
 
-      // 1. Filter by category slug (resolving subcategories) if provided
-      if (options.categorySlug) {
-        // Find category id
-        const { data: category } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('slug', options.categorySlug)
-          .eq('is_active', true)
-          .single();
+        // 1. Filter by category slug (resolving subcategories) if provided
+        if (options.categorySlug) {
+          // Find category id
+          const { data: category } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('slug', options.categorySlug)
+            .eq('is_active', true)
+            .single();
 
-        if (category) {
-          // Find subcategories
+          if (category) {
+            // Find subcategories
+            const { data: subcategories } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('parent_id', category.id)
+              .eq('is_active', true);
+
+            let categoryIds = [category.id];
+            if (subcategories && subcategories.length > 0) {
+              categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
+            }
+            query = query.in('category_id', categoryIds);
+          }
+        } else if (options.categoryId) {
+          // Find subcategories for this parent category ID
           const { data: subcategories } = await supabase
             .from('categories')
             .select('id')
-            .eq('parent_id', category.id)
+            .eq('parent_id', options.categoryId)
             .eq('is_active', true);
 
-          let categoryIds = [category.id];
+          let categoryIds = [options.categoryId];
           if (subcategories && subcategories.length > 0) {
             categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
           }
           query = query.in('category_id', categoryIds);
         }
-      } else if (options.categoryId) {
-        // Find subcategories for this parent category ID
-        const { data: subcategories } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('parent_id', options.categoryId)
-          .eq('is_active', true);
 
-        let categoryIds = [options.categoryId];
-        if (subcategories && subcategories.length > 0) {
-          categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
+        if (applyFeatured) {
+          query = query.eq('is_featured', true);
         }
-        query = query.in('category_id', categoryIds);
-      }
 
-      let isFeaturedFilter = !!options.featured;
-      let isBestsellerFilter = !!options.bestseller;
-
-      if (isFeaturedFilter) {
-        try {
-          const { count, error: countErr } = await supabase
-            .from('products')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_featured', true);
-          if (!countErr && count === 0) {
-            isFeaturedFilter = false;
-          }
-        } catch (e) {
-          console.warn('[useProductPagination] Featured count check failed:', e);
+        if (applyBestseller) {
+          query = query.eq('is_bestseller', true);
         }
-      }
 
-      if (isBestsellerFilter) {
-        try {
-          const { count, error: countErr } = await supabase
-            .from('products')
-            .select('*', { count: 'exact', head: true })
-            .eq('is_bestseller', true);
-          if (!countErr && count === 0) {
-            isBestsellerFilter = false;
-          }
-        } catch (e) {
-          console.warn('[useProductPagination] Bestseller count check failed:', e);
+        // Ordering: Use standard order if explicitly specified, otherwise preserve relevance-based FTS search order
+        if (!options.search) {
+          query = query
+            .order('is_available', { ascending: false })
+            .order('is_upcoming', { ascending: true });
         }
-      }
 
-      if (isFeaturedFilter) {
-        query = query.eq('is_featured', true);
-      }
+        if (options.sortBy && options.sortBy !== 'relevance') {
+          const ascending = options.ascending !== undefined ? options.ascending : true;
+          query = query.order(options.sortBy, { ascending });
+        } else if (!options.search) {
+          const sortBy = options.sortBy || 'name';
+          const ascending = options.ascending !== undefined ? options.ascending : true;
+          query = query.order(sortBy, { ascending });
+        }
 
-      if (isBestsellerFilter) {
-        query = query.eq('is_bestseller', true);
-      }
+        // Range (Limit & Offset)
+        const from = currentOffset;
+        const to = from + PAGINATION_LIMIT - 1;
+        query = query.range(from, to);
 
-      // Ordering: Use standard order if explicitly specified, otherwise preserve relevance-based FTS search order
-      if (!options.search) {
-        query = query
-          .order('is_available', { ascending: false })
-          .order('is_upcoming', { ascending: true });
-      }
+        return await query;
+      };
 
-      if (options.sortBy && options.sortBy !== 'relevance') {
-        const ascending = options.ascending !== undefined ? options.ascending : true;
-        query = query.order(options.sortBy, { ascending });
-      } else if (!options.search) {
-        const sortBy = options.sortBy || 'name';
-        const ascending = options.ascending !== undefined ? options.ascending : true;
-        query = query.order(sortBy, { ascending });
-      }
-
-      // Range (Limit & Offset)
-      const from = currentOffset;
-      const to = from + PAGINATION_LIMIT - 1;
-      query = query.range(from, to);
-
-      const { data, error } = await query;
+      let { data, error } = await runQuery(!!options.featured, !!options.bestseller);
       if (error) throw error;
+
+      // Fallback: If query returned no products and bestseller/featured filter was applied, run it again without them
+      if ((!data || data.length === 0) && (options.featured || options.bestseller)) {
+        const fallbackRes = await runQuery(false, false);
+        if (!fallbackRes.error) {
+          data = fallbackRes.data;
+        }
+      }
 
       // Base format: filter inactive categories, parse numerics
       let formatted = (data || [])
