@@ -2734,8 +2734,8 @@ const Home = () => {
                         <div key={i} className="h-72 bg-gray-100 dark:bg-white/5 rounded-3xl animate-pulse" />
                       ))
                     ) : (
-                      displayBudgetProducts.slice(0, 8).map((product) => (
-                        <ProductCard key={product.id} product={product} />
+                      displayBudgetProducts.slice(0, 8).map((product, idx) => (
+                        <ProductCard key={product.id} product={product} index={idx} />
                       ))
                     )}
                   </div>
@@ -2771,8 +2771,8 @@ const Home = () => {
                 <div key={i} className="h-80 bg-white dark:bg-white/5 rounded-3xl animate-pulse" />
               ))
             ) : (
-              displayBestsellers.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              displayBestsellers.map((product, idx) => (
+                <ProductCard key={product.id} product={product} index={idx} />
               ))
             )}
           </div>
@@ -2834,6 +2834,7 @@ const Home = () => {
           />
 
           <div
+            key={selectedFeaturedCategory}
             className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
           >
             {(isFeaturedLoading || isHomeDataLoading || isCategoryProductsLoading) ? (
@@ -2845,8 +2846,8 @@ const Home = () => {
                 No products found in this category.
               </div>
             ) : (
-              displayedFeaturedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+              displayedFeaturedProducts.map((product, idx) => (
+                <ProductCard key={product.id} product={product} index={idx} />
               ))
             )}
           </div>

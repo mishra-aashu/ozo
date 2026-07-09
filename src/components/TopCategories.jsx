@@ -170,14 +170,7 @@ const TopCategories = memo(({ selectedCategory, onSelectCategory }) => {
                           <button
                             onClick={() => {
                               onSelectCategory(parent.id);
-                              if (!hasSubs) {
-                                setIsDrawerOpen(false);
-                              } else {
-                                setExpandedParents(prev => ({
-                                  ...prev,
-                                  [parent.id]: !prev[parent.id]
-                                }));
-                              }
+                              setIsDrawerOpen(false);
                             }}
                             className="flex items-center gap-3 flex-1 text-left"
                           >

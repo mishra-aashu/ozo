@@ -609,11 +609,15 @@ const Products = () => {
                 </div>
               }
             >
-              <div className={`grid ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'} gap-3 sm:gap-6`}>
-                {groupedProducts?.map((product) => (
+              <div 
+                key={`${selectedCategory}_${filterParam}_${viewMode}`}
+                className={`grid ${viewMode === 'grid' ? 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4' : 'grid-cols-1'} gap-3 sm:gap-6`}
+              >
+                {groupedProducts?.map((product, idx) => (
                   <ProductCard
                     key={product?.id}
                     product={product}
+                    index={idx}
                     variant={viewMode === 'list' ? 'horizontal' : 'default'}
                   />
                 ))}

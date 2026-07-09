@@ -1253,6 +1253,7 @@ const CategoryProducts = () => {
                 >
                   {/* Actual products grid list rendering */}
                   <motion.div
+                    key={`${slug}_${viewMode}_${priceLimit}_${inStockOnly}_${bestsellerOnly}_${featuredOnly}_${sortBy}`}
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
@@ -1262,10 +1263,11 @@ const CategoryProducts = () => {
                         : 'grid-cols-1'
                     } gap-1.5 xs:gap-2 sm:gap-6`}
                   >
-                    {groupedProducts.map((product) => (
+                    {groupedProducts.map((product, idx) => (
                       <ProductCard
                         key={product.id}
                         product={product}
+                        index={idx}
                         variant={viewMode === 'grid' ? 'default' : 'horizontal'}
                       />
                     ))}
@@ -1479,14 +1481,7 @@ const CategoryProducts = () => {
                             <button
                               onClick={() => {
                                 navigate(`/category/${parent.slug}`)
-                                if (hasSubs) {
-                                  setExpandedParents(prev => ({
-                                    ...prev,
-                                    [parent.id]: !prev[parent.id]
-                                  }))
-                                } else {
-                                  setShowMobileFilters(false)
-                                }
+                                setShowMobileFilters(false)
                               }}
                               className="flex items-center gap-2.5 flex-1 text-left font-bold"
                             >
