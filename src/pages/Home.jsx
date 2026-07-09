@@ -1927,21 +1927,21 @@ const Home = () => {
     const shuffledInStock = seededSort(inStock, shuffleSeed);
 
     let result = [...shuffledInStock, ...outOfStock];
-    if (result.length < 10 && bestsellerProducts.length > 0) {
+    if (result.length < 9 && bestsellerProducts.length > 0) {
       const duplicates = bestsellerProducts.filter(p => excludedIds.has(p.id));
       const shuffledDuplicates = seededSort(duplicates, shuffleSeed);
       result = [...result, ...shuffledDuplicates];
     }
 
-    // Pad with featuredProducts or other products if we have fewer than 10 items to prevent empty spaces in rows
-    if (result.length < 10) {
+    // Pad with featuredProducts or other products if we have fewer than 9 items to prevent empty spaces in rows
+    if (result.length < 9) {
       const existingIds = new Set(result.map(p => p.id));
       const candidates = (featuredProducts || []).filter(p => p.is_available && !existingIds.has(p.id) && !excludedIds.has(p.id));
       const shuffledCandidates = seededSort(candidates, shuffleSeed);
       result = [...result, ...shuffledCandidates];
     }
 
-    return result.slice(0, 10);
+    return result.slice(0, 9);
   }, [bestsellerProducts, featuredProducts, displayStealDeals, displayMandi, displayBudgetProducts, shuffleSeed]);
   const filteredCategoryProducts = useMemo(() => {
     const isUpcoming = (p) => {
