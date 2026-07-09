@@ -659,9 +659,10 @@ const Header = () => {
                       {profile?.full_name?.split(' ')[0] || 'User'}
                     </span>
                     <ChevronDown 
-                      className={`w-3.5 h-3.5 text-ozo-gray dark:text-gray-400 transition-transform duration-300 ${
+                      className={`w-3.5 h-3.5 text-ozo-gray dark:text-gray-400 transition-transform duration-300 transform-gpu ${
                         isProfileOpen ? 'rotate-180' : ''
                       }`} 
+                      style={{ willChange: 'transform' }}
                     />
                   </button>
 
@@ -669,10 +670,12 @@ const Header = () => {
                   <AnimatePresence>
                     {isProfileOpen && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-ozo-gray-lighter dark:border-white/10 overflow-hidden z-50 p-2"
+                        exit={{ opacity: 0, y: 12, scale: 0.95 }}
+                        transition={{ type: 'spring', damping: 25, stiffness: 350 }}
+                        style={{ willChange: 'transform, opacity' }}
+                        className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-ozo-gray-lighter dark:border-white/10 overflow-hidden z-50 p-2 transform-gpu"
                       >
                         <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-xl mb-2 border border-gray-100/50 dark:border-white/5">
                           <UserAvatar 
