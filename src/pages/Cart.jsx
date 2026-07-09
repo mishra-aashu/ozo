@@ -460,8 +460,8 @@ const Cart = () => {
                         slug={item.slug}
                         alt={item.name}
                         width={200}
-                        className="w-full h-full object-cover"
-                        containerClassName="w-20 h-20 rounded-xl"
+                        className="w-full h-full object-contain p-1 bg-gray-50/50 dark:bg-white/[0.02]"
+                        containerClassName="w-20 h-20 rounded-xl border border-gray-100 dark:border-white/5"
                         fallbackSrc="https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200"
                       />
                     </Link>
@@ -823,8 +823,8 @@ const Cart = () => {
                     slug={itemToRemove.slug}
                     alt={itemToRemove.name}
                     width={100}
-                    className="w-full h-full object-cover"
-                    containerClassName="w-12 h-12 rounded-xl"
+                    className="w-full h-full object-contain p-0.5 bg-gray-50/50 dark:bg-white/[0.02]"
+                    containerClassName="w-12 h-12 rounded-xl border border-gray-100 dark:border-white/5"
                   />
                   <div className="text-left flex-1 min-w-0">
                     <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{itemToRemove.name}</p>
