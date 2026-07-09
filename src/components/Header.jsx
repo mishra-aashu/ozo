@@ -668,7 +668,7 @@ const Header = () => {
                         initial={{ opacity: 0, y: 10, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-3 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-ozo-gray-lighter dark:border-white/10 overflow-hidden z-50 p-2"
+                        className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-ozo-gray-lighter dark:border-white/10 overflow-hidden z-50 p-2"
                       >
                         <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-xl mb-2 border border-gray-100/50 dark:border-white/5">
                           <UserAvatar 
