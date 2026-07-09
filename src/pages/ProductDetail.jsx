@@ -877,9 +877,9 @@ const ProductDetail = () => {
       </div>
 
       <div className="container-custom pb-12">
-        <div className="flex flex-col lg:flex-row gap-10 lg:gap-20">
+        <div className="flex flex-col md:flex-row gap-8 lg:gap-16 xl:gap-20">
           {/* Left: Product Image */}
-          <div className="w-full lg:w-1/2 xl:w-[55%]">
+          <div className="w-full md:w-[55%] lg:w-1/2 xl:w-[55%] flex-shrink-0">
              <motion.div 
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
@@ -918,7 +918,7 @@ const ProductDetail = () => {
                      </button>
                  </div>
 
-                 <div className={`w-full aspect-square flex items-center justify-center p-8 relative transition-colors duration-300 ${
+                 <div className={`w-full aspect-square flex items-center justify-center p-4 sm:p-5 md:p-6 lg:p-8 relative transition-colors duration-300 ${
                     (!imageBgColor || (isDark && imageBgColor !== '#ffffff')) ? 'bg-gray-50 dark:bg-[#181818]' : ''
                   }`}
                   style={{ 
@@ -1004,7 +1004,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Right: Product Info */}
-          <div className="w-full lg:w-1/2 xl:w-[45%] flex flex-col">
+          <div className="w-full md:w-[45%] lg:w-1/2 xl:w-[45%] flex flex-col">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 <span className="px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red text-[10px] font-black uppercase tracking-widest rounded-lg border border-ozo-red/10">
@@ -1040,7 +1040,7 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              <h1 className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white mb-2 leading-tight break-words">
+              <h1 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 dark:text-white mb-2 leading-tight break-words">
                 {currentProduct?.name}
               </h1>
               <p className="text-xl font-bold text-ozo-gray dark:text-gray-400 mb-6">{currentProduct?.unit}</p>
