@@ -470,12 +470,9 @@ function App() {
           {/* Public Routes */}
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Home />} />
-            <Route path=":city" element={<Home />} />
             <Route path="products" element={<Products />} />
             <Route path="product/:category/:slug" element={<ProductDetail />} />
             <Route path="product/:slug" element={<ProductDetail />} />
-            <Route path=":city/:category/:slug" element={<ProductDetail />} />
-            <Route path=":city/:slug" element={<ProductDetail />} />
             <Route path="combo/:id" element={<ComboDetail />} />
             <Route path="categories" element={<Categories />} />
             <Route path="category/:slug" element={<CategoryProducts />} />
@@ -618,6 +615,11 @@ function App() {
                 </ProtectedRoute>
               }
             />
+
+            {/* Dynamic parameters routes placed last to prevent greeting static routes like auth/v1/callback */}
+            <Route path=":city" element={<Home />} />
+            <Route path=":city/:category/:slug" element={<ProductDetail />} />
+            <Route path=":city/:slug" element={<ProductDetail />} />
 
           </Route>
 
