@@ -353,10 +353,10 @@ export const useAuthStore = create(
       signInWithGoogle: async () => {
         try {
           set({ isLoading: true })
-          const { data, error } = await supabaseAdmin.auth.signInWithOAuth({
+          const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/auth`,
+              redirectTo: `${window.location.origin}/auth/v1/callback`,
             },
           })
 
