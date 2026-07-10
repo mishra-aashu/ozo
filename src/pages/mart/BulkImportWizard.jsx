@@ -199,12 +199,47 @@ export default function BulkImportWizard({
       product_unit: ''
     }
 
-    const serialHeaders = ['sr', 'srno', 'sno', 'slno', 'index', 'id', 'serial', 'sn']
+    const serialKeywords = [
+      'sr', 'srno', 'sno', 'slno', 'index', 'id', 'serial', 'sn', 
+      'serialnumber', 'no', 'number', 'sl', 'sno', 'sr_no', 'sl_no'
+    ]
+
+    const detectedSerialHeaders = new Set()
+
+    // 1. Detect by header name keyword
+    headers.forEach(h => {
+      const clean = h.toLowerCase().trim().replace(/[^a-z0-9_]/g, '')
+      if (serialKeywords.includes(clean)) {
+        detectedSerialHeaders.add(h)
+      }
+    })
+
+    // 2. Detect by column values (sequential integers: e.g. 1, 2, 3...)
+    if (rows && rows.length > 0) {
+      headers.forEach((h, colIdx) => {
+        const samples = rows.slice(0, 10).map(r => r[colIdx]).filter(Boolean)
+        if (samples.length > 1) {
+          const numericValues = samples.map(s => {
+            const cleaned = s.toString().trim().replace(/[,\s]/g, '')
+            return /^\d+$/.test(cleaned) ? parseInt(cleaned, 10) : NaN
+          })
+          if (numericValues.every(n => !isNaN(n))) {
+            const isSequential = numericValues.every((val, idx) => {
+              if (idx === 0) return true
+              return val === numericValues[idx - 1] + 1
+            })
+            if (isSequential) {
+              detectedSerialHeaders.add(h)
+            }
+          }
+        }
+      })
+    }
 
     headers.forEach(h => {
       const clean = h.toLowerCase().trim().replace(/[^a-z0-9_]/g, '')
 
-      if (serialHeaders.includes(clean)) return
+      if (detectedSerialHeaders.has(h)) return
 
       if (
         clean === 'barcode' || clean === 'ean' || clean === 'upc' || clean === 'ean13'
@@ -245,7 +280,7 @@ export default function BulkImportWizard({
       if (
         (clean === 'unit' || clean === 'weight' || clean === 'size' || clean === 'pack' || clean === 'measure' ||
         clean.includes('unit') || clean.includes('weight') || clean.includes('pack')) &&
-        !serialHeaders.includes(clean)
+        !detectedSerialHeaders.has(h)
       ) {
         if (!mapping.product_unit) mapping.product_unit = h
       }
@@ -259,7 +294,7 @@ export default function BulkImportWizard({
 
       headers.forEach(h => {
         const clean = h.toLowerCase().trim().replace(/[^a-z0-9_]/g, '')
-        if (serialHeaders.includes(clean)) return
+        if (detectedSerialHeaders.has(h)) return
 
         const samples = colSamples[h] || []
         if (samples.length === 0) return
@@ -279,30 +314,40 @@ export default function BulkImportWizard({
         }
 
         if (!mapping.stock_quantity && numericWithDecimals && !hasDecimals) {
-          const maxVal = Math.max(...samples.map(s => parseInt(s.toString().trim().replace(/[,\s]/g, ''), 10) || 0))
-          if (maxVal > 0 && maxVal < 10000) {
-            mapping.stock_quantity = h
+          const isPriceOrMrp = clean.includes('mrp') || clean.includes('price') || clean.includes('rate') || clean.includes('cost') || clean.includes('amount') || clean.includes('₹') || clean.includes('val')
+          if (!isPriceOrMrp) {
+            const maxVal = Math.max(...samples.map(s => parseInt(s.toString().trim().replace(/[,\s]/g, ''), 10) || 0))
+            if (maxVal > 0 && maxVal < 10000) {
+              mapping.stock_quantity = h
+            }
           }
         }
       })
     }
 
-    const nonSerialHeaders = headers.filter(h => {
-      const clean = h.toLowerCase().trim().replace(/[^a-z0-9_]/g, '')
-      return !serialHeaders.includes(clean)
-    })
+    const nonSerialHeaders = headers.filter(h => !detectedSerialHeaders.has(h))
 
     if (!mapping.product_identifier) {
       mapping.product_identifier = ''
     }
     if (!mapping.stock_quantity) {
-      const unmatched = nonSerialHeaders.find(h => 
-        h !== mapping.product_identifier && 
-        !h.toLowerCase().includes('price') && 
-        !h.toLowerCase().includes('mrp') &&
-        !h.toLowerCase().includes('name')
-      )
-      mapping.stock_quantity = unmatched || nonSerialHeaders[1] || headers[1] || ''
+      const unmatched = nonSerialHeaders.find(h => {
+        const clean = h.toLowerCase()
+        return h !== mapping.product_identifier && 
+          !clean.includes('price') && 
+          !clean.includes('mrp') &&
+          !clean.includes('rate') &&
+          !clean.includes('cost') &&
+          !clean.includes('amount') &&
+          !clean.includes('₹') &&
+          !clean.includes('val') &&
+          !clean.includes('name') &&
+          !clean.includes('brand') &&
+          !clean.includes('unit') &&
+          !clean.includes('barcode') &&
+          !clean.includes('code')
+      })
+      mapping.stock_quantity = unmatched || ''
     }
     
     if (mapping.stock_quantity === mapping.product_identifier && headers.length > 1) {
