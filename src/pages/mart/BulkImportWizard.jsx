@@ -379,7 +379,72 @@ export default function BulkImportWizard({
         return
       }
 
-      // Heuristic to detect the header row index (scanning up to the first 15 rows)
+      // Helper to clean leading/trailing colons
+      const cleanCell = (str) => {
+        if (!str) return ''
+        let cleaned = str.trim()
+        while (cleaned.startsWith(':')) {
+          cleaned = cleaned.substring(1).trim()
+        }
+        while (cleaned.endsWith(':')) {
+          cleaned = cleaned.substring(0, cleaned.length - 1).trim()
+        }
+        return cleaned
+      }
+
+      // Detect which columns should be split by ':' (e.g. "QTY. : M.R.P." or "9 : 10.00")
+      const numCols = parsed.reduce((max, r) => Math.max(max, r.length), 0)
+      const colsToSplit = new Set()
+
+      for (let colIdx = 0; colIdx < numCols; colIdx++) {
+        let hasBothSidesCount = 0
+        let hasColonCount = 0
+        let totalNonEmpty = 0
+
+        for (let rowIdx = 0; rowIdx < parsed.length; rowIdx++) {
+          const val = parsed[rowIdx][colIdx]
+          if (val === undefined || val === null) continue
+          const trimmed = val.trim()
+          if (!trimmed) continue
+
+          totalNonEmpty++
+          if (trimmed.includes(':')) {
+            hasColonCount++
+            const parts = trimmed.split(':')
+            if (parts[0].trim() && parts[1].trim()) {
+              hasBothSidesCount++
+            }
+          }
+        }
+
+        // If at least one row has content on both sides of a colon, and colons are present in > 30% of non-empty values
+        if (hasBothSidesCount > 0 && totalNonEmpty > 0 && (hasColonCount / totalNonEmpty) > 0.3) {
+          colsToSplit.add(colIdx)
+        }
+      }
+
+      // Reconstruct parsed rows, splitting detected columns and cleaning cells
+      const preprocessedParsed = parsed.map(row => {
+        const newRow = []
+        for (let colIdx = 0; colIdx < numCols; colIdx++) {
+          const val = row[colIdx] || ''
+          if (colsToSplit.has(colIdx)) {
+            const colonIdx = val.indexOf(':')
+            if (colonIdx === -1) {
+              newRow.push(cleanCell(val), '')
+            } else {
+              const left = val.substring(0, colonIdx)
+              const right = val.substring(colonIdx + 1)
+              newRow.push(cleanCell(left), cleanCell(right))
+            }
+          } else {
+            newRow.push(cleanCell(val))
+          }
+        }
+        return newRow
+      })
+
+      // Heuristic to detect the header row index (scanning up to the first 15 rows of preprocessedParsed)
       let headerRowIndex = 0
       let maxScore = -1
 
@@ -388,9 +453,9 @@ export default function BulkImportWizard({
         'qty', 'quantity', 'stock', 'mrp', 'price', 'rate', 'serial', 's.no'
       ]
 
-      for (let i = 0; i < Math.min(parsed.length, 15); i++) {
-        const row = parsed[i]
-        const nonEmptyCount = row.filter(cell => cell.trim() !== '').length
+      for (let i = 0; i < Math.min(preprocessedParsed.length, 15); i++) {
+        const row = preprocessedParsed[i]
+        const nonEmptyCount = row.filter(cell => cell !== '').length
         if (nonEmptyCount === 0) continue
 
         let keywordMatchCount = 0
@@ -409,8 +474,8 @@ export default function BulkImportWizard({
         }
       }
 
-      const rawHeaders = parsed[headerRowIndex]
-      const headers = rawHeaders.map((h, idx) => h.trim() || `Column ${idx + 1}`)
+      const rawHeaders = preprocessedParsed[headerRowIndex]
+      const headers = rawHeaders.map((h, idx) => h || `Column ${idx + 1}`)
 
       // Ensure headers are unique to avoid duplicate keys in React and state mapping conflicts
       const uniqueHeaders = []
@@ -430,7 +495,7 @@ export default function BulkImportWizard({
         uniqueHeaders.push(name)
       }
 
-      const dataRows = parsed.slice(headerRowIndex + 1).filter(r => r.some(cell => cell.trim() !== ''))
+      const dataRows = preprocessedParsed.slice(headerRowIndex + 1).filter(r => r.some(cell => cell !== ''))
 
       if (uniqueHeaders.length === 0) {
         toast.error('Could not find any headers in the CSV')
