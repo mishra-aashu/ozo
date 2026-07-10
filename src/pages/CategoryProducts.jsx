@@ -108,7 +108,7 @@ const ComingSoonSection = ({ category }) => {
 
         {/* Text */}
         <div className="space-y-3">
-          <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight">
+          <h2 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white uppercase tracking-tight font-display">
             Freshness is on its <span className="text-gradient">way!</span>
           </h2>
           <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 font-semibold leading-relaxed max-w-lg mx-auto">
@@ -135,7 +135,7 @@ const ComingSoonSection = ({ category }) => {
         {/* Notification and Request Section */}
         <div className="max-w-md mx-auto bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 p-6 rounded-2xl shadow-inner space-y-5">
           <div className="flex flex-col gap-3">
-            <h4 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+            <h4 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider font-display">
               {isSubscribed ? "🎉 You're on the list!" : "Get notified when stock arrives"}
             </h4>
             
@@ -628,7 +628,7 @@ const CategoryProducts = () => {
                 <ChevronLeft size={18} />
               </button>
               <div className="min-w-0 flex-1">
-                <h1 className="font-black text-gray-900 dark:text-white uppercase tracking-tight truncate text-sm xs:text-base md:text-xl leading-tight">
+                <h1 className="font-black text-gray-900 dark:text-white uppercase tracking-tight truncate text-sm xs:text-base md:text-xl leading-tight font-display">
                   {currentCategory ? renderTitle(currentCategory.name) : 'Loading Category...'}
                 </h1>
                 <p className="hidden md:block font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider text-[10px] md:text-xs mt-0.5">
@@ -818,19 +818,19 @@ const CategoryProducts = () => {
         {/* Category Banner Card - Desktop/Tablet Only */}
         <div className={`hidden md:block relative overflow-hidden rounded-[2rem] p-8 mb-6 bg-gradient-to-br ${bannerGradient} border border-ozo-gray-lighter/25 dark:border-white/5 shadow-sm`}>
           {/* Floating Background Icon / Emoji */}
-          <div className="absolute right-8 -bottom-8 opacity-[0.08] dark:opacity-[0.04] pointer-events-none select-none">
+          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.08] dark:opacity-[0.04] pointer-events-none select-none flex items-center justify-center">
             {iconEmoji ? (
-              <span className="text-[150px] leading-none block">{iconEmoji}</span>
+              <span className="text-[140px] leading-none block">{iconEmoji}</span>
             ) : (
-              IconComponent && <IconComponent size={220} className="text-current" />
+              IconComponent && <IconComponent size={200} className="text-current" />
             )}
           </div>
 
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-block text-[11px] font-black text-ozo-red dark:text-red-400 uppercase tracking-widest mb-2 px-2.5 py-1 rounded-full bg-ozo-red/10 dark:bg-red-500/10">
-              OZO Market
+            <span className="inline-block text-[11px] font-black text-ozo-red dark:text-red-400 uppercase tracking-widest mb-2 px-2.5 py-1 rounded-full bg-ozo-red/10 dark:bg-red-500/10 font-display">
+              OZO Mart
             </span>
-            <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-3">
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-3 font-display">
               {currentCategory ? currentCategory.name : 'Loading Category...'}
             </h1>
             <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
@@ -850,28 +850,31 @@ const CategoryProducts = () => {
                   : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
               }`}
             >
-              <Box size={14} className="inline-block" />
+              <Box size={14} className="flex-shrink-0" />
               <span>All {currentParentInfo.name}</span>
             </button>
-            {currentParentInfo.subcategories.map((sub) => (
-              <button
-                key={sub.id}
-                onClick={() => navigate(`/category/${sub.slug}`)}
-                className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
-                  slug === sub.slug
-                    ? 'bg-gradient-ozo text-white border-transparent shadow-md shadow-ozo-red/20 scale-105'
-                    : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
-                }`}
-              >
-                <span>{(() => {
-                  const isEmoji = sub.icon && sub.icon.codePointAt(0) > 127
-                  if (isEmoji) return sub.icon
-                  const IconComponent = resolveCategoryIcon(sub)
-                  return <IconComponent size={14} className="inline-block" />
-                })()}</span>
-                <span>{sub.name}</span>
-              </button>
-            ))}
+            {currentParentInfo.subcategories.map((sub) => {
+              const isEmoji = sub.icon && sub.icon.codePointAt(0) > 127
+              const IconComponent = isEmoji ? null : resolveCategoryIcon(sub)
+              return (
+                <button
+                  key={sub.id}
+                  onClick={() => navigate(`/category/${sub.slug}`)}
+                  className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
+                    slug === sub.slug
+                      ? 'bg-gradient-ozo text-white border-transparent shadow-md shadow-ozo-red/20 scale-105'
+                      : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
+                  }`}
+                >
+                  {isEmoji ? (
+                    <span className="text-sm leading-none flex items-center justify-center select-none">{sub.icon}</span>
+                  ) : (
+                    <IconComponent size={14} className="flex-shrink-0" />
+                  )}
+                  <span>{sub.name}</span>
+                </button>
+              )
+            })}
           </div>
         )}
 
@@ -988,7 +991,7 @@ const CategoryProducts = () => {
                 {/* All parent button */}
                 <button
                   onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
-                  className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 transform-gpu will-change-transform ${
+                  className={`w-full relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
                     slug === currentParentInfo.slug
                       ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                       : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
@@ -997,17 +1000,17 @@ const CategoryProducts = () => {
                   {slug === currentParentInfo.slug && (
                     <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
                   )}
-                  <div className={`w-7 h-7 xs:w-9 xs:h-9 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                  <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-xl overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                     slug === currentParentInfo.slug
-                      ? 'border-ozo-red shadow-md'
-                      : 'border-gray-100 dark:border-white/5'
+                      ? 'border-ozo-red shadow-md shadow-ozo-red/10'
+                      : 'border-gray-150/50 dark:border-white/5'
                   }`}>
                     {currentParentInfo.image_url && !brokenImages[currentParentInfo.image_url] ? (
                       <img 
                         src={currentParentInfo.image_url} 
                         alt="All" 
                         onError={() => setBrokenImages(prev => ({ ...prev, [currentParentInfo.image_url]: true }))}
-                        className="w-full h-full object-contain p-0.5 select-none"
+                        className="w-full h-full object-contain p-1 select-none"
                       />
                     ) : (() => {
                       const parentFallback = getCategoryFallbackImage(currentParentInfo.slug, currentParentInfo.name);
@@ -1017,11 +1020,11 @@ const CategoryProducts = () => {
                             src={parentFallback} 
                             alt="All" 
                             onError={() => setBrokenImages(prev => ({ ...prev, [parentFallback]: true }))}
-                            className="w-full h-full object-contain p-0.5 select-none"
+                            className="w-full h-full object-contain p-1 select-none"
                           />
                         )
                       }
-                      return <Box size={13} className="text-gray-400 dark:text-gray-500" />
+                      return <Box size={16} className="text-gray-400 dark:text-gray-500" />
                     })()}
                   </div>
                   <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
@@ -1040,7 +1043,7 @@ const CategoryProducts = () => {
                     <button
                       key={sub.id}
                       onClick={() => navigate(`/category/${sub.slug}`)}
-                      className={`w-full relative flex flex-col items-center gap-0.5 p-1 rounded-lg text-center transition-all border duration-300 transform-gpu will-change-transform ${
+                      className={`w-full relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
                         isSelected
                           ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                           : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
@@ -1049,29 +1052,29 @@ const CategoryProducts = () => {
                       {isSelected && (
                         <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
                       )}
-                      <div className={`w-7 h-7 xs:w-9 xs:h-9 rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                      <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-xl overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                         isSelected
-                          ? 'border-ozo-red shadow-md'
-                          : 'border-gray-100 dark:border-white/5'
+                          ? 'border-ozo-red shadow-md shadow-ozo-red/10'
+                          : 'border-gray-150/50 dark:border-white/5'
                       }`}>
                         {sub.image_url && !brokenImages[sub.image_url] ? (
                           <img 
                             src={sub.image_url} 
                             alt={sub.name} 
                             onError={() => setBrokenImages(prev => ({ ...prev, [sub.image_url]: true }))}
-                            className="w-full h-full object-contain p-0.5 select-none"
+                            className="w-full h-full object-contain p-1 select-none"
                           />
                         ) : subFallback && !brokenImages[subFallback] ? (
                           <img 
                             src={subFallback} 
                             alt={sub.name} 
                             onError={() => setBrokenImages(prev => ({ ...prev, [subFallback]: true }))}
-                            className="w-full h-full object-contain p-0.5 select-none"
+                            className="w-full h-full object-contain p-1 select-none"
                           />
                         ) : isEmoji ? (
-                          <span className="text-[13px] xs:text-base">{sub.icon}</span>
+                          <span className="text-[15px] xs:text-lg select-none">{sub.icon}</span>
                         ) : (
-                          <IconComponent size={13} className="text-gray-400 dark:text-gray-500" />
+                          <IconComponent size={16} className="text-gray-400 dark:text-gray-500" />
                         )}
                       </div>
                       <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
@@ -1097,7 +1100,7 @@ const CategoryProducts = () => {
               }}
             >
               <div>
-                <h3 className="font-extrabold text-[13px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4.5 flex items-center gap-2.5">
+                <h3 className="font-extrabold text-[13px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4.5 flex items-center gap-2.5 font-display">
                   <Filter size={16} className="text-ozo-red" />
                   All Categories
                 </h3>
@@ -1105,13 +1108,19 @@ const CategoryProducts = () => {
                   {/* All Products button */}
                   <button
                     onClick={() => navigate('/products')}
-                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all text-left border ${
+                    className={`w-full flex items-center gap-3.5 px-3 py-2 rounded-2xl transition-all text-left border ${
                       !slug || slug === 'all'
                         ? 'bg-gradient-to-r from-ozo-red/10 to-transparent border-ozo-red/20 text-ozo-red font-bold'
                         : 'bg-transparent text-gray-805 dark:text-gray-300 border-transparent hover:bg-gray-105/70 dark:hover:bg-white/5 hover:text-ozo-red dark:hover:text-white'
                     }`}
                   >
-                    <Box size={20} className={!slug || slug === 'all' ? 'text-ozo-red' : 'text-gray-400 dark:text-gray-500'} strokeWidth={2} />
+                    <div className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                      !slug || slug === 'all'
+                        ? 'border-ozo-red/30 dark:border-white/20 shadow-sm'
+                        : 'border-gray-150/50 dark:border-white/5'
+                    }`}>
+                      <Box size={18} className={!slug || slug === 'all' ? 'text-ozo-red' : 'text-gray-400 dark:text-gray-500'} strokeWidth={1.8} />
+                    </div>
                     <span className="text-[14px] font-bold flex-1">All Products</span>
                   </button>
 
@@ -1125,7 +1134,7 @@ const CategoryProducts = () => {
                     return (
                       <div key={parent.id} className="space-y-1">
                         <div
-                          className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl transition-all border ${
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-2xl transition-all border ${
                             isParentActive
                               ? 'bg-gradient-to-r from-ozo-red/10 to-transparent border-ozo-red/20 text-ozo-red font-bold'
                               : 'bg-transparent text-gray-805 dark:text-gray-300 border-transparent hover:bg-gray-105/70 dark:hover:bg-white/5 hover:text-ozo-red dark:hover:text-white'
@@ -1141,29 +1150,35 @@ const CategoryProducts = () => {
                                 }))
                               }
                             }}
-                            className="flex items-center gap-3 flex-1 text-left"
+                            className="flex items-center gap-3.5 flex-1 text-left"
                           >
-                            {parent.image_url && !brokenImages[parent.image_url] ? (
-                              <img 
-                                src={parent.image_url} 
-                                alt={parent.name} 
-                                onError={() => setBrokenImages(prev => ({ ...prev, [parent.image_url]: true }))}
-                                className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
-                              />
-                            ) : (() => {
-                              const parentFallback = getCategoryFallbackImage(parent.slug, parent.name);
-                              if (parentFallback && !brokenImages[parentFallback]) {
-                                return (
-                                  <img 
-                                    src={parentFallback} 
-                                    alt={parent.name} 
-                                    onError={() => setBrokenImages(prev => ({ ...prev, [parentFallback]: true }))}
-                                    className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
-                                  />
-                                )
-                              }
-                              return <CatIcon size={20} className={isParentActive ? 'text-ozo-red' : 'text-gray-400 dark:text-gray-500'} strokeWidth={1.8} />
-                            })()}
+                            <div className={`w-9 h-9 rounded-xl overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                              isParentActive 
+                                ? 'border-ozo-red/30 dark:border-white/20 shadow-sm' 
+                                : 'border-gray-150/50 dark:border-white/5'
+                            }`}>
+                              {parent.image_url && !brokenImages[parent.image_url] ? (
+                                <img 
+                                  src={parent.image_url} 
+                                  alt={parent.name} 
+                                  onError={() => setBrokenImages(prev => ({ ...prev, [parent.image_url]: true }))}
+                                  className="w-full h-full object-contain p-1 select-none"
+                                />
+                              ) : (() => {
+                                const parentFallback = getCategoryFallbackImage(parent.slug, parent.name);
+                                if (parentFallback && !brokenImages[parentFallback]) {
+                                  return (
+                                    <img 
+                                      src={parentFallback} 
+                                      alt={parent.name} 
+                                      onError={() => setBrokenImages(prev => ({ ...prev, [parentFallback]: true }))}
+                                      className="w-full h-full object-contain p-1 select-none"
+                                    />
+                                  )
+                                }
+                                return <CatIcon size={18} className={isParentActive ? 'text-ozo-red' : 'text-gray-400 dark:text-gray-500'} strokeWidth={1.8} />
+                              })()}
+                            </div>
                             <span className="text-[14px] font-bold whitespace-normal break-words leading-tight flex-1">{parent.name}</span>
                           </button>
                           
@@ -1201,27 +1216,33 @@ const CategoryProducts = () => {
                                       : 'bg-transparent text-gray-655 dark:text-gray-400 border-transparent hover:bg-gray-50 dark:hover:bg-white/5 hover:text-ozo-red dark:hover:text-white'
                                   }`}
                                 >
-                                  {child.image_url && !brokenImages[child.image_url] ? (
-                                    <img 
-                                      src={child.image_url} 
-                                      alt={child.name} 
-                                      onError={() => setBrokenImages(prev => ({ ...prev, [child.image_url]: true }))}
-                                      className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
-                                    />
-                                  ) : (() => {
-                                    const childFallback = getCategoryFallbackImage(child.slug, child.name);
-                                    if (childFallback && !brokenImages[childFallback]) {
-                                      return (
-                                        <img 
-                                          src={childFallback} 
-                                          alt={child.name} 
-                                          onError={() => setBrokenImages(prev => ({ ...prev, [childFallback]: true }))}
-                                          className="w-5 h-5 object-contain rounded-lg bg-white p-0.5 border border-gray-100 dark:border-white/5 flex-shrink-0"
-                                        />
-                                      )
-                                    }
-                                    return <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${isChildActive ? 'bg-ozo-red' : 'bg-gray-300 dark:bg-gray-600'}`} />
-                                  })()}
+                                  <div className={`w-7.5 h-7.5 rounded-lg overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                                    isChildActive 
+                                      ? 'border-ozo-red/30 dark:border-white/20' 
+                                      : 'border-gray-150/50 dark:border-white/5'
+                                  }`}>
+                                    {child.image_url && !brokenImages[child.image_url] ? (
+                                      <img 
+                                        src={child.image_url} 
+                                        alt={child.name} 
+                                        onError={() => setBrokenImages(prev => ({ ...prev, [child.image_url]: true }))}
+                                        className="w-full h-full object-contain p-0.5 select-none"
+                                      />
+                                    ) : (() => {
+                                      const childFallback = getCategoryFallbackImage(child.slug, child.name);
+                                      if (childFallback && !brokenImages[childFallback]) {
+                                        return (
+                                          <img 
+                                            src={childFallback} 
+                                            alt={child.name} 
+                                            onError={() => setBrokenImages(prev => ({ ...prev, [childFallback]: true }))}
+                                            className="w-full h-full object-contain p-0.5 select-none"
+                                          />
+                                        )
+                                      }
+                                      return <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 transition-colors ${isChildActive ? 'bg-ozo-red' : 'bg-gray-300 dark:bg-gray-600'}`} />
+                                    })()}
+                                  </div>
                                   <span className="font-bold text-xs whitespace-normal break-words leading-tight flex-1">{child.name}</span>
                                 </button>
                               )
@@ -1262,7 +1283,7 @@ const CategoryProducts = () => {
                       <div className="w-16 h-16 bg-gradient-to-br from-red-500/10 to-red-600/10 text-ozo-red rounded-full flex items-center justify-center mx-auto mb-5">
                         <ShoppingBag size={28} />
                       </div>
-                      <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2">
+                      <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight mb-2 font-display">
                         No Products Found
                       </h3>
                       <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-6 font-semibold leading-relaxed">
@@ -1341,7 +1362,7 @@ const CategoryProducts = () => {
             >
               {/* Header section inside drawer */}
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 dark:border-white/5">
-                <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                <h3 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2 font-display">
                   <SlidersHorizontal size={18} className="text-ozo-red" />
                   Refine Products
                 </h3>
@@ -1356,7 +1377,7 @@ const CategoryProducts = () => {
               <div className="space-y-6">
                 {/* Price range input inside drawer */}
                 <div>
-                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Price Range</h4>
+                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 font-display">Price Range</h4>
                   <div className="space-y-4">
                     <input
                       type="range"
@@ -1378,7 +1399,7 @@ const CategoryProducts = () => {
 
                 {/* Stock availability & Feature filters inside drawer */}
                 <div>
-                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Filters</h4>
+                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 font-display">Filters</h4>
                   <div className="space-y-3">
                     {/* In Stock */}
                     <label className="flex items-center gap-3 cursor-pointer group">
@@ -1446,7 +1467,7 @@ const CategoryProducts = () => {
 
                 {/* Sort options inside drawer */}
                 <div>
-                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Sort By</h4>
+                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 font-display">Sort By</h4>
                   <div className="grid grid-cols-2 gap-2">
                     {sortOptions.map((option) => {
                       const isActive = option.value === sortBy
@@ -1474,7 +1495,7 @@ const CategoryProducts = () => {
 
                 {/* Categories selector inside drawer */}
                 <div>
-                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">Segment Category</h4>
+                  <h4 className="font-black text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 font-display">Segment Category</h4>
                   <div className="space-y-2 max-h-[260px] overflow-y-auto pr-1">
                     {/* All Products button */}
                     <button
