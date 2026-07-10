@@ -26,19 +26,22 @@ const AuthCallback = () => {
         ) {
           hasHandled.current = true
 
-          // Give the auth store a moment to process the SIGNED_IN event and
-          // populate the profile (it does this in a setTimeout(…, 0)).
-          // We wait up to 4 seconds for the profile to appear.
-          let profile = useAuthStore.getState().profile
+          // Wait for the auth store to process the SIGNED_IN event and set
+          // both `user` (isAuthenticated) and `profile`.  The store now sets
+          // user immediately on SIGNED_IN, but the profile fetch is async.
+          // We poll up to 5 seconds for the profile to appear.  We also
+          // verify `isAuthenticated` so route guards at the destination
+          // won't bounce the user back to /auth.
+          let storeState = useAuthStore.getState()
           let attempts = 0
-          while (!profile && attempts < 8) {
+          while ((!storeState.isAuthenticated || !storeState.profile) && attempts < 10) {
             await new Promise((r) => setTimeout(r, 500))
-            profile = useAuthStore.getState().profile
+            storeState = useAuthStore.getState()
             attempts++
           }
 
           // Decide where to send the user
-          if (profile?.phone) {
+          if (storeState.profile?.phone) {
             navigate('/', { replace: true })
           } else {
             navigate('/complete-profile', { replace: true })
