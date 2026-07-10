@@ -11,6 +11,7 @@ RETURNS jsonb
 LANGUAGE plpgsql
 STABLE
 SECURITY DEFINER
+SET search_path = public, pg_temp
 AS $$
 DECLARE
   item jsonb;
@@ -41,11 +42,26 @@ BEGIN
       END IF;
     END IF;
 
-    -- 2. If not matched, try name match using trigram similarity
+    -- 2. Try exact name match
     IF confidence = 'none' AND item->>'name' IS NOT NULL AND item->>'name' != '' THEN
+      SELECT * INTO product
+      FROM public.products
+      WHERE name = item->>'name'
+      LIMIT 1;
+
+      IF FOUND THEN
+        confidence := 'high';
+      END IF;
+    END IF;
+
+    -- 3. If not matched, try name match using trigram similarity
+    IF confidence = 'none' AND item->>'name' IS NOT NULL AND item->>'name' != '' THEN
+      -- Set similarity threshold for the % operator locally
+      PERFORM set_config('pg_trgm.similarity_threshold', '0.4', true);
+
       SELECT p.id, similarity(p.name, item->>'name') INTO best_product_id, max_similarity
       FROM public.products p
-      WHERE similarity(p.name, item->>'name') > 0.4
+      WHERE p.name % (item->>'name')
       ORDER BY similarity(p.name, item->>'name') DESC
       LIMIT 1;
 
@@ -92,6 +108,10 @@ BEGIN
   );
 END;
 $$;
+
+-- Revoke default public execution and grant to authenticated/service_role
+REVOKE EXECUTE ON FUNCTION public.match_products_for_import(jsonb) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.match_products_for_import(jsonb) TO authenticated, service_role;
 
 -- Create trigram index on products.name for performance optimization
 CREATE INDEX IF NOT EXISTS idx_products_name_trgm ON public.products USING GIN (name gin_trgm_ops);
