@@ -887,7 +887,21 @@ const LiveOrdersView = () => {
                         <p className="text-sm font-black text-gray-955 dark:text-white mt-0.5 leading-relaxed">
                           {selectedOrder.address && (selectedOrder.address.address_line1 || selectedOrder.address.city) ? (
                             <>
-                              {selectedOrder.address.address_line1}
+                              {selectedOrder.address.address_line1 && selectedOrder.address.address_line1.startsWith('Location Link: ') ? (
+                                <>
+                                  Location Link:{' '}
+                                  <a
+                                    href={selectedOrder.google_maps_url || selectedOrder.address.google_maps_url || selectedOrder.address.address_line1.replace('Location Link: ', '')}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-ozo-red hover:underline break-all font-bold"
+                                  >
+                                    {selectedOrder.google_maps_url || selectedOrder.address.google_maps_url || selectedOrder.address.address_line1.replace('Location Link: ', '')}
+                                  </a>
+                                </>
+                              ) : (
+                                selectedOrder.address.address_line1
+                              )}
                               {selectedOrder.address.address_line2 && `, ${selectedOrder.address.address_line2}`}
                               {(selectedOrder.address.city || selectedOrder.address.state || selectedOrder.address.pincode) && (
                                 <>

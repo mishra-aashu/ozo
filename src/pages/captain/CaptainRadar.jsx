@@ -171,7 +171,22 @@ const OrderCard = React.memo(({ order, onAccept }) => {
           <div>
             <p className="text-xs text-gray-500 font-bold">DELIVERY DROP</p>
             <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 mt-0.5">
-              {order.address?.address_line1 || 'OZO customer locality'}
+              {order.address?.address_line1 && order.address.address_line1.startsWith('Location Link: ') ? (
+                <>
+                  Location Link:{' '}
+                  <a
+                    href={order.google_maps_url || order.address.google_maps_url || order.address.address_line1.replace('Location Link: ', '')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-ozo-red hover:underline break-all font-bold"
+                  >
+                    {order.google_maps_url || order.address.google_maps_url || order.address.address_line1.replace('Location Link: ', '')}
+                  </a>
+                </>
+              ) : (
+                order.address?.address_line1 || 'OZO customer locality'
+              )}
               {(() => {
                 const parsed = parseLandmark(order.address?.landmark);
                 return parsed.landmark ? ` (Near ${parsed.landmark})` : '';
@@ -818,7 +833,22 @@ const CaptainRadar = () => {
                         </p>
                       ) : (activeOrder.address?.address_line1 || activeOrder.address?.address_line2) ? (
                         <p className="text-sm font-semibold text-gray-850 dark:text-gray-300 mt-1 leading-relaxed">
-                          {activeOrder.address?.address_line1}
+                          {activeOrder.address?.address_line1 && activeOrder.address.address_line1.startsWith('Location Link: ') ? (
+                            <>
+                              Location Link:{' '}
+                              <a
+                                href={activeOrder.google_maps_url || activeOrder.address.google_maps_url || activeOrder.address.address_line1.replace('Location Link: ', '')}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(e) => e.stopPropagation()}
+                                className="text-ozo-red hover:underline break-all font-bold"
+                              >
+                                {activeOrder.google_maps_url || activeOrder.address.google_maps_url || activeOrder.address.address_line1.replace('Location Link: ', '')}
+                              </a>
+                            </>
+                          ) : (
+                            activeOrder.address?.address_line1
+                          )}
                           {activeOrder.address?.address_line2 && `, ${activeOrder.address.address_line2}`}
                           <br />
                           {activeOrder.address?.city && `${activeOrder.address.city} - `}{activeOrder.address?.pincode}

@@ -802,7 +802,25 @@ const LocationPicker = ({ isOpen, onClose }) => {
                                   </div>
                                 )}
                                 
-                                <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1 break-words">{addr.address_line1}, {addr.city}</p>
+                                <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1 break-words">
+                                  {addr.address_line1 && addr.address_line1.startsWith('Location Link: ') ? (
+                                    <>
+                                      Location Link:{' '}
+                                      <a
+                                        href={addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="text-ozo-red hover:underline break-all font-bold"
+                                      >
+                                        {addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                                      </a>
+                                    </>
+                                  ) : (
+                                    addr.address_line1
+                                  )}
+                                  {addr.city && `, ${addr.city}`}
+                                </p>
                               </div>
                             </div>
                             

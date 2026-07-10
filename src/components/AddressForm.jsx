@@ -961,7 +961,14 @@ export default function AddressForm({
               <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10 flex items-center justify-between gap-3 text-xs text-emerald-800 dark:text-emerald-350 font-semibold animate-in fade-in slide-in-from-top-1 duration-200">
                 <div className="min-w-0">
                   <p className="font-extrabold text-[11px] text-emerald-700 dark:text-emerald-400">Location Link Saved & Active</p>
-                  <p className="truncate font-mono text-[10px] opacity-80 mt-0.5">{formData.google_maps_url}</p>
+                  <a 
+                    href={formData.google_maps_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="truncate font-mono text-[10px] opacity-80 mt-0.5 block text-emerald-600 dark:text-emerald-450 hover:underline"
+                  >
+                    {formData.google_maps_url}
+                  </a>
                 </div>
                 <button
                   type="button"
