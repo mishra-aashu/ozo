@@ -302,7 +302,7 @@ function ProductCard({ product, variant = 'default', index }) {
           }
           navigate(productLink)
         }}
-        className="flex gap-5 p-5 bg-white dark:bg-white/5 rounded-3xl shadow-premium hover:shadow-ozo-lg transition-shadow border border-gray-100 dark:border-white/5 cursor-pointer transform-gpu will-change-transform"
+        className="flex gap-5 p-5 bg-white dark:bg-white/5 rounded-3xl shadow-premium hover:shadow-ozo-lg transition-shadow border border-gray-200/90 dark:border-white/10 cursor-pointer transform-gpu will-change-transform"
       >
         <Link to={productLink} className="flex-shrink-0 relative overflow-hidden rounded-2xl group/img">
           <OptimizedImage
@@ -497,7 +497,7 @@ function ProductCard({ product, variant = 'default', index }) {
         }
         navigate(productLink)
       }}
-      className="product-card relative group flex flex-row sm:flex-col items-center sm:items-stretch gap-3 p-3 bg-white dark:bg-[#0c0c0e] border border-gray-150/50 dark:border-white/[0.04] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
+      className="product-card relative group flex flex-row sm:flex-col items-center sm:items-stretch gap-3 p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
     >
       {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
       <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
