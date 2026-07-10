@@ -210,16 +210,31 @@ export const useAuthStore = create(
                 // Sync user to OneSignal push notification service
                 oneSignalLogin(session.user.id)
 
+                // ★ Set user + isAuthenticated IMMEDIATELY so route guards
+                // (ProtectedRoute, CompleteProfileRoute, PublicOnlyRoute) see
+                // the authenticated user right away.  Previously this was
+                // deferred until after ensureProfileExists() resolved, which
+                // left a multi-second window where user was null and the
+                // guards bounced users back to /auth.
+                const localProfile = get().profile
+                set({
+                  user: session.user,
+                  isAuthenticated: true,
+                  // Keep the cached profile (if any) so the UI isn't blank
+                  ...(localProfile && localProfile.id === session.user.id
+                    ? { profile: localProfile, isAdmin: localProfile?.role === 'admin' }
+                    : {}),
+                })
+
                 // Guard against concurrent profile fetches caused by rapid
                 // SIGNED_IN events (e.g. token refresh firing while the
                 // previous fetch is still in-flight).
                 if (profileFetchInProgress) return
                 profileFetchInProgress = true
 
-                // Defer async database queries to avoid client lock deadlocks
+                // Fetch fresh profile in the background
                 setTimeout(async () => {
                   try {
-                    const localProfile = get().profile
                     let profile = null
                     try {
                       profile = await ensureProfileExists(session.user)
@@ -230,21 +245,20 @@ export const useAuthStore = create(
                     // Merge: start with local profile, overwrite with fresh DB profile
                     // details only if the user ID matches.
                     // DB role always wins to prevent stale-cache role mismatch issues.
+                    const currentLocalProfile = get().profile
                     const finalProfile = profile
-                      ? (localProfile && localProfile.id === profile.id
+                      ? (currentLocalProfile && currentLocalProfile.id === profile.id
                           ? {
-                              ...localProfile,
+                              ...currentLocalProfile,
                               ...profile,
                               role: profile.role, // DB role always wins
-                              avatar_url: profile.avatar_url || localProfile.avatar_url || ''
+                              avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || ''
                             }
                           : profile)
-                      : localProfile
+                      : currentLocalProfile
 
                     set({
-                      user: session.user,
                       profile: finalProfile,
-                      isAuthenticated: true,
                       isAdmin: finalProfile?.role === 'admin',
                     })
 
