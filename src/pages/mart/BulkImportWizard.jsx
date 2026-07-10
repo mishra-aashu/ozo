@@ -145,6 +145,7 @@ export default function BulkImportWizard({
   const [isMatching, setIsMatching] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [photoModalData, setPhotoModalData] = useState(null)
+  const [isMappingVerified, setIsMappingVerified] = useState(false)
 
   const parseCSV = (text) => {
     const results = Papa.parse(text, {
@@ -1064,8 +1065,22 @@ export default function BulkImportWizard({
               {/* Live Mapping Preview */}
               {renderMappingPreview()}
 
-              {/* Warnings & Process Button */}
+              {/* Warnings, Verification & Process Button */}
               <div className="space-y-4">
+                {/* Verification Checkbox */}
+                <div className="bg-slate-50 dark:bg-slate-900 border border-gray-250 dark:border-slate-800 rounded-2xl p-4 flex items-start gap-3">
+                  <input
+                    id="confirm-mapping-checkbox"
+                    type="checkbox"
+                    checked={isMappingVerified}
+                    onChange={(e) => setIsMappingVerified(e.target.checked)}
+                    className="w-4 h-4 rounded text-blue-650 border-gray-300 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-blue-500 mt-0.5 cursor-pointer"
+                  />
+                  <label htmlFor="confirm-mapping-checkbox" className="text-xs text-gray-700 dark:text-gray-300 select-none cursor-pointer font-sans font-medium leading-relaxed">
+                    I have verified that all columns (including <span className="font-bold text-gray-900 dark:text-white">Stock Quantity</span>) are mapped correctly.
+                  </label>
+                </div>
+
                 {warnings.length > 0 && (
                   <div className="bg-amber-50 dark:bg-amber-500/5 border border-amber-500/10 rounded-2xl p-4 flex gap-3 text-xs leading-relaxed text-amber-800 dark:text-amber-300">
                     <AlertTriangle className="w-4 h-4 shrink-0 text-amber-500 mt-0.5 animate-pulse" />
@@ -1082,7 +1097,7 @@ export default function BulkImportWizard({
 
                 <button
                   onClick={runProductMatching}
-                  disabled={isMatching || !columnMapping.product_identifier}
+                  disabled={isMatching || !columnMapping.product_identifier || !isMappingVerified}
                   className="w-full py-3 bg-blue-600 dark:bg-blue-600 disabled:bg-gray-700 text-white dark:text-black font-extrabold rounded-xl hover:bg-blue-700 dark:hover:bg-blue-700 transition-all duration-300 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-500/10 dark:shadow-[0_4px_12px_rgba(0,255,102,0.2)] disabled:shadow-none font-sans text-xs uppercase tracking-wider"
                 >
                   {isMatching ? (
@@ -1477,9 +1492,6 @@ export default function BulkImportWizard({
         />
       )}
 
-
     </div>
   )
-
-
 }
