@@ -13,10 +13,23 @@ const WhatsAppIcon = ({ className = "w-4 h-4" }) => (
 )
 
 const GoogleMapsIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335" />
-    <path d="M12 12a3 3 0 100-6 3 3 0 000 6z" fill="#4285F4" />
-    <path d="M12 10.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="#FFFFFF" />
+  <svg className={className} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="maps-shape">
+        <rect x="10" y="10" width="100" height="100" rx="22" />
+      </clipPath>
+    </defs>
+    <g clipPath="url(#maps-shape)">
+      <rect x="10" y="10" width="100" height="100" fill="#34A853" />
+      <path d="M10 110 L110 110 L110 60 L60 60 Z" fill="#4285F4" />
+      <path d="M10 110 L110 30 L110 10 L85 10 L10 85 Z" fill="#FBBC05" />
+      <path d="M60 60 L110 110 L115 110 L75 60 Z" fill="#FFFFFF" />
+      <path d="M38 32 C30 32 25 37 25 45 C25 53 30 58 38 58 C45 58 49 54 50 48 L38 48 L38 42 L56 42 C56 52 48 64 38 64 C26 64 18 55 18 45 C18 35 26 26 38 26 C44 26 50 29 53 33 L47 38 C45 35 42 32 38 32 Z" fill="#FFFFFF" />
+    </g>
+    <g>
+      <path d="M85 10 C70 10 58 22 58 37 C58 56 85 85 85 85 C85 85 112 56 112 37 C112 22 100 10 85 10 Z" fill="#EA4335" />
+      <circle cx="85" cy="37" r="11" fill="#B71C1C" />
+    </g>
   </svg>
 )
 
@@ -836,23 +849,16 @@ export default function AddressForm({
           onClick={() => setShowLinkAutofill(!showLinkAutofill)}
           className="w-full flex items-center justify-between p-3.5 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-zinc-900/30 transition-all gap-2"
         >
-          <span className="flex items-center gap-2 min-w-0">
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] animate-pulse">
-              ⚡
-            </span>
-            <span className="truncate text-xs font-bold text-gray-700 dark:text-gray-250">
+          <span className="flex items-center gap-2.5 min-w-0">
+            <div className="flex items-center gap-1 shrink-0">
+              <WhatsAppIcon className="w-[18px] h-[18px]" />
+              <GoogleMapsIcon className="w-[18px] h-[18px]" />
+            </div>
+            <span className="truncate text-xs font-extrabold text-gray-700 dark:text-gray-200">
               Paste Location Link
             </span>
           </span>
           <div className="flex items-center gap-2 shrink-0">
-            <div className="flex items-center -space-x-1.5 mr-1">
-              <div className="bg-white dark:bg-zinc-800 p-0.5 rounded-full shadow-sm border border-gray-150 dark:border-white/10 z-10 flex items-center justify-center">
-                <WhatsAppIcon className="w-3.5 h-3.5" />
-              </div>
-              <div className="bg-white dark:bg-zinc-800 p-0.5 rounded-full shadow-sm border border-gray-150 dark:border-white/10 flex items-center justify-center">
-                <GoogleMapsIcon className="w-3.5 h-3.5" />
-              </div>
-            </div>
             <span className="text-[10px] bg-gray-200/50 dark:bg-white/10 px-1.5 py-0.5 rounded font-black text-gray-500 dark:text-zinc-400 uppercase tracking-wide">
               Optional
             </span>
