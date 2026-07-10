@@ -319,7 +319,12 @@ export const useProductStore = create((set, get) => ({
         query = query.eq('is_featured', true)
       }
 
-      query = query.limit(200).abortSignal(signal)
+      query = query
+        .not('image_url', 'is', null)
+        .not('image_url', 'ilike', '%raw.githubusercontent.com%')
+        .not('image_url', 'ilike', '%logo_transparent.png%')
+        .limit(200)
+        .abortSignal(signal)
       const { data, error } = await query
 
       if (error) throw error
@@ -401,6 +406,9 @@ export const useProductStore = create((set, get) => ({
         )
       `)
       .eq('is_bestseller', true)
+      .not('image_url', 'is', null)
+      .not('image_url', 'ilike', '%raw.githubusercontent.com%')
+      .not('image_url', 'ilike', '%logo_transparent.png%')
       .limit(50)
 
       query = query.abortSignal(signal)
@@ -549,29 +557,10 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
-      // Fetch representative product images from our custom view
-      let categoryImages = []
-      try {
-        const { data: imgData, error: imgError } = await supabase
-          .from('category_product_images')
-          .select('*')
-          .abortSignal(signal)
-        if (!imgError && imgData) {
-          categoryImages = imgData
-        }
-      } catch (imgErr) {
-        console.error('Failed to fetch category product images:', imgErr)
-      }
-
-      const imageMap = {}
-      categoryImages.forEach(item => {
-        imageMap[item.category_id] = item.image_url
-      })
-
-      // Map categories to use their representative product image if available
+      // Map categories directly from database categories table (which contains pre-populated image URLs)
       const categoriesWithImages = (data || []).map(cat => ({
         ...cat,
-        image_url: imageMap[cat.id] || cat.image_url
+        image_url: cat.image_url
       }))
 
       set({ 
