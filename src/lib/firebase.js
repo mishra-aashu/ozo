@@ -16,6 +16,32 @@ const firebaseConfig = {
 // Check if required configuration is present
 const hasConfig = firebaseConfig.apiKey && firebaseConfig.projectId
 
+// Safely resolve Firebase Messaging IndexedDB VersionError by resetting the database if version > 1
+if (typeof window !== 'undefined' && 'indexedDB' in window) {
+  try {
+    const dbName = 'firebase-messaging-database';
+    const req = indexedDB.open(dbName);
+    req.onsuccess = (e) => {
+      const db = e.target.result;
+      const version = db.version;
+      db.close();
+      if (version > 1) {
+        console.warn(`[Firebase] Detected legacy messaging DB version ${version} > 1. Resetting database...`);
+        indexedDB.deleteDatabase(dbName);
+      }
+    };
+    req.onerror = (e) => {
+      // If version mismatch error is encountered, delete the DB
+      if (e.target.error && e.target.error.name === 'VersionError') {
+        console.warn('[Firebase] Messaging DB VersionError detected. Resetting database...');
+        indexedDB.deleteDatabase(dbName);
+      }
+    };
+  } catch (err) {
+    console.error('[Firebase] Error checking legacy DB:', err);
+  }
+}
+
 // Initialize Firebase safely (prevents duplicate app registration)
 const app = hasConfig
   ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
