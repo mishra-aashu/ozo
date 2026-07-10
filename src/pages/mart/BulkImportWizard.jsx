@@ -207,9 +207,7 @@ export default function BulkImportWizard({
       if (serialHeaders.includes(clean)) return
 
       if (
-        clean === 'barcode' || clean === 'upc' || clean === 'ean' || clean === 'sku' || clean === 'productid' ||
-        clean === 'blinkitproductid' || clean === 'blinkitid' || clean === 'itemcode' || clean === 'code' ||
-        clean === 'slug'
+        clean === 'barcode' || clean === 'ean' || clean === 'upc' || clean === 'ean13'
       ) {
         if (!mapping.product_identifier) mapping.product_identifier = h
       }
@@ -266,19 +264,21 @@ export default function BulkImportWizard({
         const samples = colSamples[h] || []
         if (samples.length === 0) return
 
-        const allNumeric = samples.every(s => /^\d+(\.\d+)?$/.test(s.toString().trim().replace(/[₹$,\s]/g, '')))
-        const hasDecimals = samples.some(s => s.toString().includes('.'))
-        const averageLength = samples.reduce((acc, s) => acc + s.toString().trim().length, 0) / samples.length
+        const allNumeric = samples.every(s => /^\d+$/.test(s.toString().trim()))
+        const has13Digits = samples.some(s => /^\d{13}$/.test(s.toString().trim()))
 
-        if (!mapping.product_identifier && allNumeric && averageLength >= 6) {
+        if (!mapping.product_identifier && allNumeric && has13Digits) {
           mapping.product_identifier = h
         }
 
-        if (!mapping.mart_price && allNumeric && hasDecimals && !clean.includes('mrp')) {
+        const numericWithDecimals = samples.every(s => /^\d+(\.\d+)?$/.test(s.toString().trim().replace(/[₹$,\s]/g, '')))
+        const hasDecimals = samples.some(s => s.toString().includes('.'))
+
+        if (!mapping.mart_price && numericWithDecimals && hasDecimals && !clean.includes('mrp')) {
           mapping.mart_price = h
         }
 
-        if (!mapping.stock_quantity && allNumeric && !hasDecimals) {
+        if (!mapping.stock_quantity && numericWithDecimals && !hasDecimals) {
           const maxVal = Math.max(...samples.map(s => parseInt(s.toString().trim().replace(/[,\s]/g, ''), 10) || 0))
           if (maxVal > 0 && maxVal < 10000) {
             mapping.stock_quantity = h
@@ -293,7 +293,7 @@ export default function BulkImportWizard({
     })
 
     if (!mapping.product_identifier) {
-      mapping.product_identifier = nonSerialHeaders[0] || headers[0] || ''
+      mapping.product_identifier = ''
     }
     if (!mapping.stock_quantity) {
       const unmatched = nonSerialHeaders.find(h => 
