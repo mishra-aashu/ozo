@@ -468,6 +468,7 @@ export default function AddressForm({
       )) ||
       (currentGali && (
         currentGali.name?.includes('Coaching Gali') ||
+        currentGali.name?.includes('College Gate Side') ||
         currentGali.name?.includes('Gate Back Lane')
       ));
     return isSinhaCollege 
