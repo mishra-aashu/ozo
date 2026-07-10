@@ -1310,7 +1310,7 @@ const CategoryProducts = () => {
                     animate="visible"
                     className={`grid transform-gpu will-change-transform ${
                       viewMode === 'grid'
-                        ? 'grid-cols-2 sm:grid-cols-3 xl:grid-cols-4'
+                        ? 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
                         : 'grid-cols-1'
                     } gap-1.5 xs:gap-2 sm:gap-6`}
                   >

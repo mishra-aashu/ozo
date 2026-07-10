@@ -279,6 +279,83 @@ const MART_COLOR_PRESETS = [
   }
 ]
 
+const fetchAndApplyCityOverrides = async (products, citySlug) => {
+  if (!products || products.length === 0) return [];
+  if (!citySlug) {
+    return products.map(product => {
+      const priceVal = parseFloat(product.price);
+      const mrpVal = parseFloat(product.mrp);
+      return {
+        ...product,
+        price: priceVal,
+        mrp: mrpVal,
+        discount_percentage: (mrpVal && mrpVal > priceVal) 
+          ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
+          : parseFloat(product.discount_percentage || 0)
+      };
+    });
+  }
+
+  try {
+    const productIds = products.map(p => p.id);
+    const { data: cityData, error: cityErr } = await supabase
+      .from('product_city_availability')
+      .select('product_id, city_price, city_mrp, is_available, is_featured, is_upcoming')
+      .eq('city_slug', citySlug)
+      .in('product_id', productIds);
+
+    if (cityErr) {
+      console.warn('[Home] City override query failed:', cityErr);
+    }
+
+    const cityMap = new Map((cityData || []).map(row => [row.product_id, row]));
+    const launchConfig = useCartStore.getState().launchConfig;
+    const launchModeEnabled = !!launchConfig?.launch_mode_enabled;
+
+    return products.map(product => {
+      const pca = cityMap.get(product.id);
+      
+      const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
+        ? pca.is_available
+        : product.is_available;
+
+      const isUpcomingRaw = pca && pca.is_upcoming !== null && pca.is_upcoming !== undefined
+        ? pca.is_upcoming
+        : (product.is_upcoming || false);
+
+      const isUpcoming = (launchModeEnabled && !isAvailable) ? true : isUpcomingRaw;
+
+      const priceVal = pca?.city_price !== null && pca?.city_price !== undefined
+        ? parseFloat(pca.city_price)
+        : parseFloat(product.price);
+      const mrpVal = pca?.city_mrp !== null && pca?.city_mrp !== undefined
+        ? parseFloat(pca.city_mrp)
+        : parseFloat(product.mrp);
+
+      return {
+        ...product,
+        price: priceVal,
+        mrp: mrpVal,
+        is_available: isAvailable,
+        is_upcoming: isUpcoming,
+        is_featured: pca && pca.is_featured !== null && pca.is_featured !== undefined
+          ? pca.is_featured
+          : product.is_featured,
+        discount_percentage: (mrpVal && mrpVal > priceVal)
+          ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
+          : parseFloat(product.discount_percentage || 0)
+      };
+    });
+  } catch (err) {
+    console.error('[Home] Error applying city overrides:', err);
+    return products.map(product => ({
+      ...product,
+      price: parseFloat(product.price),
+      mrp: parseFloat(product.mrp)
+    }));
+  }
+};
+
 const Home = () => {
   const [shuffleSeed] = useState(() => Math.random())
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
@@ -561,90 +638,36 @@ const Home = () => {
 
         // 2. Fetch products in those categories
         const citySlug = useLocationStore.getState().selectedCitySlug;
-        let productsQuery;
-        if (citySlug) {
-          productsQuery = supabase
-            .from('products')
-            .select(`
-              *,
-              product_city_availability(
-                city_slug,
-                city_price,
-                city_mrp,
-                is_featured,
-                is_available,
-                is_upcoming
-              ),
-              category:categories (
-                id,
-                name,
-                slug,
-                parent_id,
-                is_active
-              )
-            `)
-            .eq('product_city_availability.city_slug', citySlug);
-        } else {
-          productsQuery = supabase
-            .from('products')
-            .select(`
-              *,
-              category:categories (
-                id,
-                name,
-                slug,
-                parent_id,
-                is_active
-              )
-            `);
-        }
+        const productsQuery = supabase
+          .from('products')
+          .select(`
+            *,
+            category:categories (
+              id,
+              name,
+              slug,
+              parent_id,
+              is_active
+            )
+          `);
 
-        const { data: products, error: prodError } = await productsQuery
+        const { data: rawProducts, error: prodError } = await productsQuery
           .in('category_id', categoryIds)
           .limit(15); // Show top 15 products
 
         if (prodError) throw prodError;
 
+        const products = await fetchAndApplyCityOverrides(rawProducts || [], citySlug);
+
         if (isMounted) {
-          const formattedProducts = (products || []).map(product => {
+          const formattedProducts = products.map(product => {
             if (product.category && product.category.is_active === false) {
               return null;
             }
             if (isProductImageMissing(product)) {
               return null;
             }
-            const pca = citySlug && Array.isArray(product.product_city_availability)
-              ? product.product_city_availability[0]
-              : (citySlug && product.product_city_availability ? product.product_city_availability : null);
-
-            const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-              ? pca.is_available
-              : product.is_available;
-
-            const isUpcoming = pca && pca.is_upcoming !== null && pca.is_upcoming !== undefined
-              ? pca.is_upcoming
-              : (product.is_upcoming || false);
-
-            const priceVal = pca?.city_price !== null && pca?.city_price !== undefined
-              ? parseFloat(pca.city_price)
-              : parseFloat(product.price);
-            const mrpVal = pca?.city_mrp !== null && pca?.city_mrp !== undefined
-              ? parseFloat(pca.city_mrp)
-              : parseFloat(product.mrp);
-
-            return {
-              ...product,
-              price: priceVal,
-              mrp: mrpVal,
-              is_available: isAvailable,
-              is_upcoming: isUpcoming,
-              is_featured: pca && pca.is_featured !== null && pca.is_featured !== undefined
-                ? pca.is_featured
-                : product.is_featured,
-              discount_percentage: (mrpVal && mrpVal > priceVal) 
-                ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
-                : parseFloat(product.discount_percentage || 0)
-            };
+            return product;
           }).filter(Boolean);
           const sortedProducts = formattedProducts.sort((a, b) => {
             const aOOS = !a.is_available || a.quantity_available === 0;
@@ -700,93 +723,36 @@ const Home = () => {
 
   const { data: stealDealsData = [], isLoading: isStealDealsLoading } = useOzoQuery(
     async () => {
-      let query
-      if (selectedCitySlug) {
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            product_city_availability(
-              city_slug,
-              city_price,
-              city_mrp,
-              is_featured,
-              is_available,
-              is_upcoming
-            ),
-            category:categories (
-              id,
-              name,
-              slug,
-              parent_id,
-              is_active
-            )
-          `)
-          .eq('product_city_availability.city_slug', selectedCitySlug)
-      } else {
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            category:categories (
-              id,
-              name,
-              slug,
-              parent_id,
-              is_active
-            )
-          `)
-      }
-
-      query = query
+      const query = supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories (
+            id,
+            name,
+            slug,
+            parent_id,
+            is_active
+          )
+        `)
         .gt('discount_percentage', 0)
         .eq('is_available', true)
         .order('discount_percentage', { ascending: false })
         .limit(100)
 
-      const { data, error } = await query
+      const { data: rawProducts, error } = await query
       if (error) throw error
 
-      if (data && data.length > 0) {
-        return data.map(product => {
+      if (rawProducts && rawProducts.length > 0) {
+        const products = await fetchAndApplyCityOverrides(rawProducts, selectedCitySlug);
+        return products.map(product => {
           if (product.category && product.category.is_active === false) {
             return null
           }
           if (isProductImageMissing(product)) {
             return null
           }
-          const pca = selectedCitySlug && Array.isArray(product.product_city_availability)
-            ? product.product_city_availability[0]
-            : (selectedCitySlug && product.product_city_availability ? product.product_city_availability : null)
-
-          const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-            ? pca.is_available
-            : product.is_available
-
-          const isUpcoming = pca && pca.is_upcoming !== null && pca.is_upcoming !== undefined
-            ? pca.is_upcoming
-            : (product.is_upcoming || false)
-
-          const priceVal = pca?.city_price !== null && pca?.city_price !== undefined
-            ? parseFloat(pca.city_price)
-            : parseFloat(product.price)
-          const mrpVal = pca?.city_mrp !== null && pca?.city_mrp !== undefined
-            ? parseFloat(pca.city_mrp)
-            : parseFloat(product.mrp)
-
-          return {
-            ...product,
-            price: priceVal,
-            mrp: mrpVal,
-            is_available: isAvailable,
-            is_upcoming: isUpcoming,
-            is_featured: pca && pca.is_featured !== null && pca.is_featured !== undefined
-              ? pca.is_featured
-              : product.is_featured,
-            discount_percentage: (mrpVal && mrpVal > priceVal) 
-              ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
-              : parseFloat(product.discount_percentage || 0)
-          }
+          return product;
         }).filter(Boolean).filter(p => p.discount_percentage > 0 && p.is_available)
       }
       return []
@@ -818,92 +784,31 @@ const Home = () => {
 
       const categoryIds = [parentCat.id, ...(subcategories || []).map(s => s.id)]
 
-      let query
-      if (selectedCitySlug) {
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            product_city_availability(
-              city_slug,
-              city_price,
-              city_mrp,
-              is_featured,
-              is_available,
-              is_upcoming
-            ),
-            category:categories (
-              id,
-              name,
-              slug,
-              parent_id,
-              is_active
-            )
-          `)
-          .eq('product_city_availability.city_slug', selectedCitySlug)
-      } else {
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            category:categories (
-              id,
-              name,
-              slug,
-              parent_id,
-              is_active
-            )
-          `)
-      }
+      const query = supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories (
+            id,
+            name,
+            slug,
+            parent_id,
+            is_active
+          )
+        `);
 
-      const { data: products, error: prodError } = await query
+      const { data: rawProducts, error: prodError } = await query
         .in('category_id', categoryIds)
         .limit(20)
 
       if (prodError) throw prodError
 
+      const products = await fetchAndApplyCityOverrides(rawProducts || [], selectedCitySlug);
+
       // Format product pricing and availability
-      let formatted = (products || [])
+      let formatted = products
         .filter(product => !(product.category && product.category.is_active === false))
-        .filter(product => !isProductImageMissing(product))
-        .map(product => {
-          let isAvailable = product.is_available;
-          let isUpcoming = product.is_upcoming || false;
-          let priceVal = parseFloat(product.price);
-          let mrpVal = parseFloat(product.mrp);
-
-          if (selectedCitySlug && product.product_city_availability) {
-            const pca = Array.isArray(product.product_city_availability)
-              ? product.product_city_availability[0]
-              : product.product_city_availability;
-
-            if (pca) {
-              isAvailable = pca.is_available !== null && pca.is_available !== undefined
-                ? pca.is_available
-                : product.is_available;
-              isUpcoming = pca.is_upcoming !== null && pca.is_upcoming !== undefined
-                ? pca.is_upcoming
-                : (product.is_upcoming || false);
-              priceVal = pca.city_price !== null && pca.city_price !== undefined
-                ? parseFloat(pca.city_price)
-                : priceVal;
-              mrpVal = pca.city_mrp !== null && pca.city_mrp !== undefined
-                ? parseFloat(pca.city_mrp)
-                : mrpVal;
-            }
-          }
-
-          return {
-            ...product,
-            price: priceVal,
-            mrp: mrpVal,
-            is_available: isAvailable,
-            is_upcoming: isUpcoming,
-            discount_percentage: (mrpVal && mrpVal > priceVal)
-              ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
-              : parseFloat(product.discount_percentage || 0)
-          }
-        })
+        .filter(product => !isProductImageMissing(product));
 
       // Sort: in-stock first
       return formatted.sort((a, b) => {
@@ -938,85 +843,31 @@ const Home = () => {
           ...parentIds,
           ...(subCatData?.map(s => s.id) || [])
         ]
-        let query
-        if (selectedCitySlug) {
-          query = supabase
-            .from('products')
-            .select(`
-              *,
-              product_city_availability(
-                city_slug,
-                city_price,
-                city_mrp,
-                is_featured,
-                is_available,
-                is_upcoming
-              ),
-              category:categories (
-                id,
-                name,
-                slug,
-                is_active
-              )
-            `)
-            .eq('product_city_availability.city_slug', selectedCitySlug)
-        } else {
-          query = supabase
-            .from('products')
-            .select(`
-              *,
-              category:categories (
-                id,
-                name,
-                slug,
-                is_active
-              )
-            `)
-        }
+        const query = supabase
+          .from('products')
+          .select(`
+            *,
+            category:categories (
+              id,
+              name,
+              slug,
+              is_active
+            )
+          `)
 
-        const { data, error } = await query.in('category_id', catIds)
+        const { data: rawProducts, error } = await query.in('category_id', catIds)
         if (error) throw error
 
-        if (data && data.length > 0) {
-          const formatted = data.map(product => {
+        if (rawProducts && rawProducts.length > 0) {
+          const products = await fetchAndApplyCityOverrides(rawProducts, selectedCitySlug);
+          const formatted = products.map(product => {
             if (product.category && product.category.is_active === false) {
               return null
             }
             if (isProductImageMissing(product)) {
               return null
             }
-            const pca = selectedCitySlug && Array.isArray(product.product_city_availability)
-              ? product.product_city_availability[0]
-              : (selectedCitySlug && product.product_city_availability ? product.product_city_availability : null)
-
-            const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-              ? pca.is_available
-              : product.is_available
-
-            const isUpcoming = pca && pca.is_upcoming !== null && pca.is_upcoming !== undefined
-              ? pca.is_upcoming
-              : (product.is_upcoming || false)
-
-            const priceVal = pca?.city_price !== null && pca?.city_price !== undefined
-              ? parseFloat(pca.city_price)
-              : parseFloat(product.price)
-            const mrpVal = pca?.city_mrp !== null && pca?.city_mrp !== undefined
-              ? parseFloat(pca.city_mrp)
-              : parseFloat(product.mrp)
-
-            return {
-              ...product,
-              price: priceVal,
-              mrp: mrpVal,
-              is_available: isAvailable,
-              is_upcoming: isUpcoming,
-              is_featured: pca && pca.is_featured !== null && pca.is_featured !== undefined
-                ? pca.is_featured
-                : product.is_featured,
-              discount_percentage: (mrpVal && mrpVal > priceVal) 
-                ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
-                : parseFloat(product.discount_percentage || 0)
-            };
+            return product;
           }).filter(Boolean);
           return formatted;
         }
@@ -1028,85 +879,35 @@ const Home = () => {
 
   const { data: budgetProductsData = [], isLoading: isBudgetLoading } = useOzoQuery(
     async () => {
-      let query
-      if (selectedCitySlug) {
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            product_city_availability(
-              city_slug,
-              city_price,
-              city_mrp,
-              is_featured,
-              is_available
-            ),
-            category:categories (
-              id,
-              name,
-              slug,
-              is_active
-            )
-          `)
-          .eq('product_city_availability.city_slug', selectedCitySlug)
-      } else {
-        query = supabase
-          .from('products')
-          .select(`
-            *,
-            category:categories (
-              id,
-              name,
-              slug,
-              is_active
-            )
-          `)
-      }
-
-      query = query
+      const query = supabase
+        .from('products')
+        .select(`
+          *,
+          category:categories (
+            id,
+            name,
+            slug,
+            is_active
+          )
+        `)
         .lte('price', 50)
         .eq('is_available', true)
         .order('price', { ascending: true })
         .limit(150)
 
-      const { data, error } = await query
+      const { data: rawProducts, error } = await query
       if (error) throw error
 
-      if (data && data.length > 0) {
-        const formatted = data.map(product => {
+      if (rawProducts && rawProducts.length > 0) {
+        const products = await fetchAndApplyCityOverrides(rawProducts, selectedCitySlug);
+        const formatted = products.map(product => {
           if (product.category && product.category.is_active === false) {
             return null
           }
           if (isProductImageMissing(product)) {
             return null
           }
-          const pca = selectedCitySlug && Array.isArray(product.product_city_availability)
-            ? product.product_city_availability[0]
-            : (selectedCitySlug && product.product_city_availability ? product.product_city_availability : null)
-
-          const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-            ? pca.is_available
-            : product.is_available
-
-          const priceVal = pca?.city_price !== null && pca?.city_price !== undefined
-            ? parseFloat(pca.city_price)
-            : parseFloat(product.price)
-          const mrpVal = pca?.city_mrp !== null && pca?.city_mrp !== undefined
-            ? parseFloat(pca.city_mrp)
-            : parseFloat(product.mrp)
-
-          return {
-            ...product,
-            price: priceVal,
-            mrp: mrpVal,
-            is_available: isAvailable,
-            is_featured: pca && pca.is_featured !== null && pca.is_featured !== undefined
-              ? pca.is_featured
-              : product.is_featured,
-            discount_percentage: mrpVal > 0 
-              ? Math.round(((mrpVal - priceVal) / mrpVal) * 100)
-              : parseFloat(product.discount_percentage || 0)
-          }
+          return product;
         }).filter(Boolean).filter(p => p.price <= 50 && p.is_available)
 
         // Exclude raw cooking ingredients, spices, cleaning/detergents and select snack-like / ready-to-eat products
@@ -1927,21 +1728,21 @@ const Home = () => {
     const shuffledInStock = seededSort(inStock, shuffleSeed);
 
     let result = [...shuffledInStock, ...outOfStock];
-    if (result.length < 9 && bestsellerProducts.length > 0) {
+    if (result.length < 10 && bestsellerProducts.length > 0) {
       const duplicates = bestsellerProducts.filter(p => excludedIds.has(p.id));
       const shuffledDuplicates = seededSort(duplicates, shuffleSeed);
       result = [...result, ...shuffledDuplicates];
     }
 
-    // Pad with featuredProducts or other products if we have fewer than 9 items to prevent empty spaces in rows
-    if (result.length < 9) {
+    // Pad with featuredProducts or other products if we have fewer than 10 items to prevent empty spaces in rows
+    if (result.length < 10) {
       const existingIds = new Set(result.map(p => p.id));
       const candidates = (featuredProducts || []).filter(p => p.is_available && !existingIds.has(p.id) && !excludedIds.has(p.id));
       const shuffledCandidates = seededSort(candidates, shuffleSeed);
       result = [...result, ...shuffledCandidates];
     }
 
-    return result.slice(0, 9);
+    return result.slice(0, 10);
   }, [bestsellerProducts, featuredProducts, displayStealDeals, displayMandi, displayBudgetProducts, shuffleSeed]);
   const filteredCategoryProducts = useMemo(() => {
     const isUpcoming = (p) => {
@@ -2728,7 +2529,7 @@ const Home = () => {
                     </Link>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     {isBudgetLoading && displayBudgetProducts.length === 0 ? (
                       [...Array(4)].map((_, i) => (
                         <div key={i} className="h-72 bg-gray-100 dark:bg-white/5 rounded-3xl animate-pulse" />
@@ -2765,7 +2566,7 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
             {(isBestsellersLoading || isHomeDataLoading) && displayBestsellers.length === 0 ? (
               [...Array(5)].map((_, i) => (
                 <div key={i} className="h-80 bg-white dark:bg-white/5 rounded-3xl animate-pulse" />
@@ -2835,7 +2636,7 @@ const Home = () => {
 
           <div
             key={selectedFeaturedCategory}
-            className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
           >
             {(isFeaturedLoading || isHomeDataLoading || isCategoryProductsLoading) ? (
               [...Array(5)].map((_, i) => (
