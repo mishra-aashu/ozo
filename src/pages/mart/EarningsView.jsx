@@ -279,7 +279,7 @@ const EarningsView = () => {
   }
 
   return (
-    <div className="flex-1 flex flex-col p-4 lg:p-6 bg-gray-50 dark:bg-slate-955 w-full min-w-0 overflow-y-auto">
+    <div className="flex-1 flex flex-col p-4 lg:p-6 bg-gray-50 dark:bg-slate-950 w-full min-w-0 overflow-y-auto">
       {/* Earnings Info Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
         <div>
