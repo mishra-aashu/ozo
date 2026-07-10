@@ -1321,7 +1321,7 @@ const Home = () => {
               mrp: (p?.mrp && p.mrp > p.price) ? p.mrp : Math.round((p?.price || 0) * 1.25),
               discount_percentage: p?.discount_percentage || 20
              }))
-          : seededSort(fallbackDeals, shuffleSeed)
+          : []
       );
   }, [stealDealsData, bestsellerProducts, shuffleSeed, launchConfig]);
 
@@ -1360,7 +1360,7 @@ const Home = () => {
       return result;
     }
 
-    return seededSort(fallbackMandi, shuffleSeed);
+    return [];
   }, [mandiProductsData, displayStealDeals, shuffleSeed, launchConfig]);
 
   useEffect(() => {
@@ -1515,7 +1515,7 @@ const Home = () => {
       return result;
     }
 
-    return seededSort(fallbackSummer, shuffleSeed);
+    return [];
   }, [summerSpecialsProductsData, shuffleSeed, launchConfig]);
 
   // Automatic smooth scrolling for Summer Specials
@@ -1636,7 +1636,7 @@ const Home = () => {
       return [...mixedInStock, ...mixedOutOfStock].slice(0, 12);
     }
 
-    return mixCategories(fallbackBudget, shuffleSeed, 12);
+    return [];
   }, [budgetProductsData, displayStealDeals, displayMandi, shuffleSeed, launchConfig]);
 
   const features = [
@@ -2204,7 +2204,8 @@ const Home = () => {
               )}
 
               {/* SECTION 2: Steal Deals / Today's Offers */}
-              <div className="bg-white dark:bg-[#111] border border-gray-100 dark:border-white/5 rounded-3xl p-5 md:p-6 shadow-premium transition-colors duration-300">
+              {displayStealDeals.length > 0 && (
+                <div className="bg-white dark:bg-[#111] border border-gray-100 dark:border-white/5 rounded-3xl p-5 md:p-6 shadow-premium transition-colors duration-300">
                 <div className="flex items-start justify-between gap-2 md:gap-4 mb-6">
                   <div className="min-w-0 flex-1">
                     <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
@@ -2346,9 +2347,10 @@ const Home = () => {
                   })}
                 </div>
               </div>
+              )}
 
               {/* SECTION 3: Fresh Mandi Arrivals */}
-              {!!launchConfig?.show_mandi_section && (
+              {!!launchConfig?.show_mandi_section && displayMandi.length > 0 && (
                 <div className="bg-white dark:bg-[#111] border border-gray-100 dark:border-white/5 rounded-3xl p-3 xs:p-4 md:p-6 shadow-premium transition-all duration-300 overflow-hidden">
                 <div className="flex items-start justify-between gap-2 md:gap-4 mb-4">
                   <div className="min-w-0 flex-1">
@@ -2515,7 +2517,7 @@ const Home = () => {
               </div>
 
               {/* SECTION 5: Pocket-Friendly Bites (Under ₹50) */}
-              {!!launchConfig?.show_budget_section && (
+              {!!launchConfig?.show_budget_section && displayBudgetProducts.length > 0 && (
                 <div className="bg-white dark:bg-[#111] border border-gray-100 dark:border-white/5 rounded-3xl p-5 md:p-6 shadow-premium transition-all duration-300">
                   <div className="flex items-start justify-between gap-2 md:gap-4 mb-6">
                     <div className="min-w-0 flex-1">
