@@ -13,12 +13,21 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
+// Check if required configuration is present
+const hasConfig = firebaseConfig.apiKey && firebaseConfig.projectId
+
 // Initialize Firebase safely (prevents duplicate app registration)
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
+const app = hasConfig
+  ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
+  : null
+
+if (!hasConfig) {
+  console.warn('[Firebase] Configuration is missing. Make sure VITE_FIREBASE_API_KEY and VITE_FIREBASE_PROJECT_ID are set in .env and restart the Vite dev server.')
+}
 
 // Initialize Analytics conditionally (safely handles environments without window/IndexedDB)
 let analytics = null
-if (typeof window !== 'undefined') {
+if (app && typeof window !== 'undefined') {
   isSupported().then((supported) => {
     if (supported) {
       analytics = getAnalytics(app)
@@ -32,7 +41,7 @@ if (typeof window !== 'undefined') {
 }
 
 // Initialize Messaging safely
-export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null
+export const messaging = app && typeof window !== 'undefined' ? getMessaging(app) : null
 
 /**
  * Requests browser notification permission and retrieves FCM registration token
