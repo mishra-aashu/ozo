@@ -39,7 +39,11 @@ const Dashboard = () => {
     captainsCount: 0,
     activeCaptainsCount: 0,
     revenue: 0,
-    avgRating: 4.8
+    avgRating: 0.0,
+    deliveredOrdersCount: 0,
+    activeOrdersCount: 0,
+    pendingOrdersCount: 0,
+    cancelledOrdersCount: 0
   })
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
@@ -47,6 +51,8 @@ const Dashboard = () => {
   const [recentOrders, setRecentOrders] = useState([])
   const [topSellers, setTopSellers] = useState([])
   const [dailyData, setDailyData] = useState([])
+  const [allOrders, setAllOrders] = useState([])
+  const [chartTimeframe, setChartTimeframe] = useState(30)
   
   // Interactive Chart States
   const [activeChartTab, setActiveChartTab] = useState('sales') // 'sales' or 'orders'
@@ -102,15 +108,35 @@ const Dashboard = () => {
             avatar_url
           )
         `).order('created_at', { ascending: false }).limit(5)),
-        withTimeout(supabaseAdmin.from('order_items').select('product_name, quantity, total_price').limit(100)),
+        withTimeout(supabaseAdmin.from('order_items').select('product_name, quantity, total_price, order:orders(status)').limit(500)),
         withTimeout(supabaseAdmin.from('products').select('id, name, price, mrp, image_url, created_at').order('created_at', { ascending: false }).limit(4))
       ])
+
+      // Debug query errors to help troubleshoot RLS issues
+      const checkError = (res, name) => {
+        if (res.status === 'rejected') {
+          console.error(`[Dashboard] ${name} query rejected:`, res.reason)
+        } else if (res.value?.error) {
+          console.error(`[Dashboard] ${name} query returned error:`, res.value.error)
+        }
+      }
+      checkError(productsRes, 'products')
+      checkError(outOfStockRes, 'outOfStock')
+      checkError(categoriesRes, 'categories')
+      checkError(martsRes, 'marts')
+      checkError(usersRes, 'users')
+      checkError(captainsRes, 'captains')
+      checkError(reviewsRes, 'reviews')
+      checkError(ordersRes, 'orders')
+      checkError(recentOrdersRes, 'recentOrders')
+      checkError(itemsRes, 'items')
+      checkError(recentProdRes, 'recentProd')
 
       // Parse counts safely
       const productsCount = productsRes.status === 'fulfilled' ? (productsRes.value.count ?? 0) : 0
       const outOfStockCount = outOfStockRes.status === 'fulfilled' ? (outOfStockRes.value.count ?? 0) : 0
       const categoriesCount = categoriesRes.status === 'fulfilled' ? (categoriesRes.value.count ?? 0) : 0
-      const martsCount = martsRes.status === 'fulfilled' ? (martsRes.value.count ?? 3) : 3
+      const martsCount = martsRes.status === 'fulfilled' ? (martsRes.value.count ?? 0) : 0
       const usersCount = usersRes.status === 'fulfilled' ? (usersRes.value.count ?? 0) : 0
       
       const captainsData = captainsRes.status === 'fulfilled' ? (captainsRes.value.data || []) : []
@@ -127,7 +153,7 @@ const Dashboard = () => {
       // Calculate Review Average
       const avgRating = reviewsData.length > 0
         ? parseFloat((reviewsData.reduce((acc, r) => acc + r.rating, 0) / reviewsData.length).toFixed(1))
-        : 4.8
+        : 0.0
 
       // Calculate Orders count & delivered revenue
       const ordersCount = ordersData.length
@@ -137,9 +163,19 @@ const Dashboard = () => {
             .reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0)
         : 0
 
-      // Calculate Top Products dynamically
+      // Calculate Order breakdown counts
+      const deliveredOrdersCount = ordersData.filter(o => ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(o.status)).length
+      const activeOrdersCount = ordersData.filter(o => ['CONFIRMED_SYSTEM', 'confirmed', 'preparing', 'packed', 'assigned', 'dispatched'].includes(o.status)).length
+      const pendingOrdersCount = ordersData.filter(o => ['pending', 'PLACED_COOLING'].includes(o.status)).length
+      const cancelledOrdersCount = ordersData.filter(o => ['cancelled', 'CANCELLED_BY_USER', 'RETURN_REQUESTED'].includes(o.status)).length
+
+      // Calculate Top Products dynamically (only from delivered/completed orders)
       const productMap = {}
       itemsData.forEach(item => {
+        const orderStatus = item.order?.status
+        if (!['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(orderStatus)) {
+          return
+        }
         const name = item.product_name
         const qty = parseInt(item.quantity || 0)
         const price = parseFloat(item.total_price || 0)
@@ -153,14 +189,6 @@ const Dashboard = () => {
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 4)
 
-      // Fallback Top Sellers if database has no entries
-      const finalTopSellers = sortedTopProducts.length > 0 ? sortedTopProducts : [
-        { name: 'Fresh Organic Tomatoes (500g)', quantity: 45, revenue: 1125 },
-        { name: 'Amul Taaza Fresh Toned Milk (1L)', quantity: 38, revenue: 2128 },
-        { name: 'Golden Premium Bananas (1 Dozen)', quantity: 32, revenue: 1920 },
-        { name: 'Fortune Soyabean Oil (1L)', quantity: 28, revenue: 3920 }
-      ]
-
       // Set trend lists
       setStats({
         productsCount,
@@ -170,54 +198,19 @@ const Dashboard = () => {
         ordersCount,
         usersCount,
         captainsCount,
-        activeCaptainsCount: activeCaptainsCount || 3, // fallback
+        activeCaptainsCount,
         revenue,
-        avgRating
+        avgRating,
+        deliveredOrdersCount,
+        activeOrdersCount,
+        pendingOrdersCount,
+        cancelledOrdersCount
       })
 
       setRecentProducts(recentProdData || [])
       setRecentOrders(recentOrdersData || [])
-      setTopSellers(finalTopSellers)
-
-      // Generate daily sales and orders for the last 7 days
-      const getLast7Days = () => {
-        const days = []
-        for (let i = 6; i >= 0; i--) {
-          const d = new Date()
-          d.setDate(d.getDate() - i)
-          days.push({
-            dateStr: d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
-            rawDate: d,
-            sales: 0,
-            orders: 0
-          })
-        }
-        return days
-      }
-
-      const tempDaily = getLast7Days()
-      ordersData.forEach(order => {
-        const orderDate = new Date(order.created_at)
-        tempDaily.forEach(day => {
-          if (orderDate.toDateString() === day.rawDate.toDateString()) {
-            day.orders += 1
-            if (['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(order.status)) {
-              day.sales += parseFloat(order.total || 0)
-            }
-          }
-        })
-      })
-
-      // Add baseline realistic mock sales curve so chart isn't empty on new project setup
-      const baselineSales = [4200, 5800, 4900, 7200, 8500, 9100, 10200]
-      const baselineOrders = [8, 14, 11, 19, 24, 21, 28]
-      
-      tempDaily.forEach((day, index) => {
-        day.sales += baselineSales[index]
-        day.orders += baselineOrders[index]
-      })
-
-      setDailyData(tempDaily)
+      setTopSellers(sortedTopProducts)
+      setAllOrders(ordersData || [])
     } catch (err) {
       console.error('[Dashboard] Error fetching dashboard statistics:', err)
     } finally {
@@ -230,6 +223,34 @@ const Dashboard = () => {
     fetchDashboardStats()
   }, [])
 
+  useEffect(() => {
+    const days = []
+    for (let i = chartTimeframe - 1; i >= 0; i--) {
+      const d = new Date()
+      d.setDate(d.getDate() - i)
+      days.push({
+        dateStr: d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }),
+        rawDate: d,
+        sales: 0,
+        orders: 0
+      })
+    }
+
+    allOrders.forEach(order => {
+      const orderDate = new Date(order.created_at)
+      days.forEach(day => {
+        if (orderDate.toDateString() === day.rawDate.toDateString()) {
+          day.orders += 1
+          if (['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(order.status)) {
+            day.sales += parseFloat(order.total || 0)
+          }
+        }
+      })
+    })
+
+    setDailyData(days)
+  }, [allOrders, chartTimeframe])
+
   const handleSync = () => {
     fetchDashboardStats(true)
   }
@@ -237,13 +258,15 @@ const Dashboard = () => {
   // Sparkline data generator helper
   const getSparklinePath = (values, width = 120, height = 36) => {
     if (!values || values.length === 0) return ''
-    const max = Math.max(...values, 1)
+    const max = Math.max(...values, 0)
     const min = Math.min(...values, 0)
     const range = max - min
     
     return values.map((val, i) => {
       const x = (i / (values.length - 1)) * width
-      const y = height - 2 - ((val - min) / range) * (height - 4)
+      const y = range > 0 
+        ? height - 2 - ((val - min) / range) * (height - 4)
+        : height - 2
       return `${i === 0 ? 'M' : 'L'} ${x.toFixed(1)} ${y.toFixed(1)}`
     }).join(' ')
   }
@@ -265,10 +288,10 @@ const Dashboard = () => {
   const statCards = [
     {
       title: 'Total Revenue',
-      value: `₹${(stats.revenue || 42000).toLocaleString('en-IN')}`, // shows realistic fallback if 0
-      change: '+18.4% vs last week',
+      value: `₹${(stats.revenue || 0).toLocaleString('en-IN')}`,
+      change: 'Total earnings from completed orders',
       isPositive: true,
-      sparkValues: [38000, 41000, 39000, 44000, 42000, 45000, 49000],
+      sparkValues: dailyData.length > 0 ? dailyData.map(d => d.sales) : [0, 0, 0, 0, 0, 0, 0],
       icon: DollarSign,
       color: 'text-emerald-500',
       bgColor: 'bg-emerald-500/10 border-emerald-500/20',
@@ -276,10 +299,10 @@ const Dashboard = () => {
     },
     {
       title: 'Active Captains',
-      value: `${stats.activeCaptainsCount} / ${stats.captainsCount || 3}`,
+      value: `${stats.activeCaptainsCount} / ${stats.captainsCount}`,
       change: 'Riders online & dispatching',
       isPositive: true,
-      sparkValues: [2, 3, 3, 2, 3, 3, 3],
+      sparkValues: Array(7).fill(stats.activeCaptainsCount),
       icon: Truck,
       color: 'text-sky-500',
       bgColor: 'bg-sky-500/10 border-sky-500/20',
@@ -287,10 +310,10 @@ const Dashboard = () => {
     },
     {
       title: 'Total Orders',
-      value: stats.ordersCount || 125, // shows realistic fallback if 0
-      change: '+12.5% this month',
+      value: stats.ordersCount,
+      change: 'Lifetime orders placed',
       isPositive: true,
-      sparkValues: [95, 110, 105, 120, 115, 122, 134],
+      sparkValues: dailyData.length > 0 ? dailyData.map(d => d.orders) : [0, 0, 0, 0, 0, 0, 0],
       icon: ShoppingBag,
       color: 'text-purple-500',
       bgColor: 'bg-purple-500/10 border-purple-500/20',
@@ -301,7 +324,7 @@ const Dashboard = () => {
       value: stats.outOfStockCount,
       change: stats.outOfStockCount > 0 ? `${stats.outOfStockCount} items need restock` : 'All items cataloged',
       isWarning: stats.outOfStockCount > 0,
-      sparkValues: [1150, 1120, 1110, 1098, 1098, 1098, 1098],
+      sparkValues: Array(7).fill(stats.outOfStockCount),
       icon: AlertTriangle,
       color: stats.outOfStockCount > 0 ? 'text-red-500' : 'text-green-500',
       bgColor: stats.outOfStockCount > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-green-500/10 border-green-500/20',
@@ -309,10 +332,10 @@ const Dashboard = () => {
     },
     {
       title: 'Satisfaction Rate',
-      value: `${stats.avgRating} ★`,
+      value: stats.avgRating > 0 ? `${stats.avgRating} ★` : 'No ratings yet',
       change: 'Based on customer feedback',
       isPositive: true,
-      sparkValues: [4.5, 4.6, 4.6, 4.7, 4.7, 4.8, 4.8],
+      sparkValues: Array(7).fill(stats.avgRating),
       icon: Star,
       color: 'text-amber-500',
       bgColor: 'bg-amber-500/10 border-amber-500/20',
@@ -331,10 +354,11 @@ const Dashboard = () => {
   let chartPoints = []
   let chartLinePath = ''
   let chartAreaPath = ''
-  let maxChartValue = 1
+  let maxChartValue = 1000
 
   if (dailyData.length > 0) {
-    maxChartValue = Math.max(...dailyData.map(d => activeChartTab === 'sales' ? d.sales : d.orders), 1)
+    const rawMax = Math.max(...dailyData.map(d => activeChartTab === 'sales' ? d.sales : d.orders), 0)
+    maxChartValue = rawMax > 0 ? rawMax : (activeChartTab === 'sales' ? 1000 : 10)
     
     chartPoints = dailyData.map((d, i) => {
       const val = activeChartTab === 'sales' ? d.sales : d.orders
@@ -344,7 +368,7 @@ const Dashboard = () => {
     })
 
     chartLinePath = chartPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ')
-    chartAreaPath = `${chartLinePath} L ${chartPoints[chartPoints.length - 1].x.toFixed(1)} ${(chartHeight - paddingBottom).toFixed(1)} L ${chartPoints[0].x.toFixed(1)} ${(chartHeight - paddingBottom).toFixed(1)} Z`
+    chartAreaPath = chartPoints.length > 0 ? `${chartLinePath} L ${chartPoints[chartPoints.length - 1].x.toFixed(1)} ${(chartHeight - paddingBottom).toFixed(1)} L ${chartPoints[0].x.toFixed(1)} ${(chartHeight - paddingBottom).toFixed(1)} Z` : ''
   }
 
   const sliceWidth = dailyData.length > 1 ? (chartWidth - paddingLeft - paddingRight) / (dailyData.length - 1) : 0
@@ -446,37 +470,53 @@ const Dashboard = () => {
                   Live
                 </span>
               </h3>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Aggregated weekly transaction value & order velocity.</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Aggregated daily performance over the last {chartTimeframe} days.</p>
             </div>
             
-            {/* Chart toggle buttons */}
-            <div className="flex items-center p-1 bg-gray-150 dark:bg-white/5 rounded-xl border border-gray-200/50 dark:border-white/10">
-              <button
-                onClick={() => {
-                  setActiveChartTab('sales')
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Timeframe Select */}
+              <select
+                value={chartTimeframe}
+                onChange={(e) => {
+                  setChartTimeframe(Number(e.target.value))
                   setHoveredPoint(null)
                 }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeChartTab === 'sales'
-                    ? 'bg-white dark:bg-[#252525] text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
+                className="bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-gray-200/50 dark:border-white/10 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
               >
-                Revenue (₹)
-              </button>
-              <button
-                onClick={() => {
-                  setActiveChartTab('orders')
-                  setHoveredPoint(null)
-                }}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                  activeChartTab === 'orders'
-                    ? 'bg-white dark:bg-[#252525] text-gray-900 dark:text-white shadow-sm'
-                    : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                }`}
-              >
-                Order Vol
-              </button>
+                <option value={7} className="bg-white dark:bg-[#1a1a1a]">Last 7 Days</option>
+                <option value={15} className="bg-white dark:bg-[#1a1a1a]">Last 15 Days</option>
+                <option value={30} className="bg-white dark:bg-[#1a1a1a]">Last 30 Days</option>
+              </select>
+
+              {/* Chart toggle buttons */}
+              <div className="flex items-center p-1 bg-gray-150 dark:bg-white/5 rounded-xl border border-gray-200/50 dark:border-white/10">
+                <button
+                  onClick={() => {
+                    setActiveChartTab('sales')
+                    setHoveredPoint(null)
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeChartTab === 'sales'
+                      ? 'bg-white dark:bg-[#252525] text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Revenue (₹)
+                </button>
+                <button
+                  onClick={() => {
+                    setActiveChartTab('orders')
+                    setHoveredPoint(null)
+                  }}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                    activeChartTab === 'orders'
+                      ? 'bg-white dark:bg-[#252525] text-gray-900 dark:text-white shadow-sm'
+                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  Order Vol
+                </button>
+              </div>
             </div>
           </div>
 
@@ -576,17 +616,24 @@ const Dashboard = () => {
                   )}
 
                   {/* Bottom Date labels */}
-                  {chartPoints.map((p, i) => (
-                    <text
-                      key={i}
-                      x={p.x}
-                      y={chartHeight - paddingBottom + 16}
-                      className="text-[9px] fill-gray-400 dark:fill-gray-500 font-bold"
-                      textAnchor="middle"
-                    >
-                      {p.label}
-                    </text>
-                  ))}
+                  {chartPoints.map((p, i) => {
+                    const labelInterval = Math.ceil(dailyData.length / 6)
+                    const isEdge = i === 0 || i === chartPoints.length - 1
+                    const isStep = i % labelInterval === 0
+                    if (!isEdge && !isStep) return null
+
+                    return (
+                      <text
+                        key={i}
+                        x={p.x}
+                        y={chartHeight - paddingBottom + 16}
+                        className="text-[9px] fill-gray-400 dark:fill-gray-500 font-bold"
+                        textAnchor="middle"
+                      >
+                        {p.label}
+                      </text>
+                    )
+                  })}
 
                   {/* Hover detector zones */}
                   {chartPoints.map((p, i) => {
@@ -645,15 +692,12 @@ const Dashboard = () => {
 
           <div className="mt-6 flex-1 flex flex-col justify-center space-y-4">
             {(() => {
-              // Calculate breakdown percentages
-              const counts = { pending: 0, active: 0, delivered: 0, cancelled: 0 }
-              const rawOrders = recentOrders.length > 0 ? recentOrders : []
-              // simulate some distributions if clean database
-              const totalBreak = stats.ordersCount || 10
-              const delVal = stats.ordersCount ? Math.round(stats.ordersCount * 0.75) : 7
-              const actVal = stats.ordersCount ? Math.round(stats.ordersCount * 0.15) : 2
-              const penVal = stats.ordersCount ? Math.max(0, stats.ordersCount - delVal - actVal) : 1
-              const canVal = 0
+              // Use real order breakdown counts
+              const totalBreak = stats.ordersCount
+              const delVal = stats.deliveredOrdersCount
+              const actVal = stats.activeOrdersCount
+              const penVal = stats.pendingOrdersCount
+              const canVal = stats.cancelledOrdersCount
 
               const dataList = [
                 { label: 'Delivered', count: delVal, color: 'bg-green-500', barBg: 'bg-green-500/10' },
@@ -817,37 +861,43 @@ const Dashboard = () => {
             <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">High volume fast-moving grocery SKU items.</p>
 
             <div className="space-y-5">
-              {topSellers.map((item, idx) => {
-                const maxQty = Math.max(...topSellers.map(s => s.quantity), 1)
-                const pct = (item.quantity / maxQty) * 100
+              {topSellers.length === 0 ? (
+                <div className="text-center py-10 text-xs text-gray-400 italic">
+                  No sales recorded yet.
+                </div>
+              ) : (
+                topSellers.map((item, idx) => {
+                  const maxQty = Math.max(...topSellers.map(s => s.quantity), 1)
+                  const pct = (item.quantity / maxQty) * 100
 
-                return (
-                  <div key={idx} className="space-y-1">
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-1 flex-1 pr-4">
-                        {item.name}
-                      </span>
-                      <span className="text-[10px] text-gray-405 font-black flex-shrink-0">
-                        {item.quantity} sold
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="flex-1 h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.8, delay: idx * 0.05 }}
-                          className="h-full bg-gradient-ozo rounded-full"
-                        />
+                  return (
+                    <div key={idx} className="space-y-1">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-1 flex-1 pr-4">
+                          {item.name}
+                        </span>
+                        <span className="text-[10px] text-gray-400 dark:text-gray-500 font-black flex-shrink-0">
+                          {item.quantity} sold
+                        </span>
                       </div>
-                      <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 w-12 text-right">
-                        ₹{item.revenue.toLocaleString('en-IN')}
-                      </span>
+
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{ width: `${pct}%` }}
+                            transition={{ duration: 0.8, delay: idx * 0.05 }}
+                            className="h-full bg-gradient-ozo rounded-full"
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 w-12 text-right">
+                          ₹{item.revenue.toLocaleString('en-IN')}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
             </div>
           </div>
 
