@@ -53,7 +53,23 @@ export const requestForToken = async () => {
   try {
     const permission = await Notification.requestPermission()
     if (permission === 'granted') {
+      // Register service worker manually with query parameters to pass config securely without hardcoding
+      let registration = null
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        const swUrl = `/firebase-messaging-sw.js?apiKey=${encodeURIComponent(firebaseConfig.apiKey || '')}` +
+          `&authDomain=${encodeURIComponent(firebaseConfig.authDomain || '')}` +
+          `&projectId=${encodeURIComponent(firebaseConfig.projectId || '')}` +
+          `&storageBucket=${encodeURIComponent(firebaseConfig.storageBucket || '')}` +
+          `&messagingSenderId=${encodeURIComponent(firebaseConfig.messagingSenderId || '')}` +
+          `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
+          `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
+        
+        registration = await navigator.serviceWorker.register(swUrl)
+        console.log('[FCM] Service Worker registered with configuration successfully')
+      }
+
       const currentToken = await getToken(messaging, {
+        serviceWorkerRegistration: registration,
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
       })
       if (currentToken) {
