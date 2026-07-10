@@ -160,6 +160,8 @@ Deno.serve(async (req: Request) => {
       targetUrl = 'https://ozomart.store/rider-dashboard'
     } else if (type === 'admin_order_alert') {
       targetUrl = 'https://ozomart.store/admin/orders'
+    } else if (type === 'mart_order_alert') {
+      targetUrl = 'https://ozomart.store/mart'
     } else if (type === 'order_status') {
       const orderId = parsedData?.order_id
       targetUrl = orderId ? `https://ozomart.store/order/${orderId}` : 'https://ozomart.store/orders'
@@ -170,7 +172,11 @@ Deno.serve(async (req: Request) => {
     console.log(`[PUSH] Resolved deep-link target URL: ${targetUrl}`)
 
     // FCM Integration: Send push notification to target user's active device tokens
-    const isFcmAllowed = title === 'Rider is Rushing! 🛵' || title === 'Delivered! 🎉'
+    const isFcmAllowed = 
+      title === 'Rider is Rushing! 🛵' || 
+      title === 'Delivered! 🎉' || 
+      type === 'mart_order_alert' || 
+      title === '📦 New Order for Your Mart!'
     
     if (isFcmAllowed && user_id) {
       const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ungxccwdondssatixzlz.supabase.co'
