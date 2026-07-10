@@ -57,7 +57,13 @@ function SearchableSelect({
 
   const filteredOptions = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
-    if (!q) return options.slice(0, 15) // Show top 15 initially
+    if (!q) {
+      const hasLocalities = options.some(opt => opt.type === 'locality')
+      if (hasLocalities) {
+        return options.filter(opt => opt.type === 'locality').slice(0, 15)
+      }
+      return options.slice(0, 15)
+    }
     return options.filter(opt => 
       (opt.name && opt.name.toLowerCase().includes(q)) || 
       (opt.name_hi && opt.name_hi.toLowerCase().includes(q))
@@ -145,6 +151,7 @@ function SearchableSelect({
                 }`}
               >
                 <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 font-sans font-medium">
+                  {opt.type && <SuggestionIcon type={opt.type} className="w-3.5 h-3.5 shrink-0" />}
                   {opt.isCore && <Star size={12} className="text-amber-500 fill-amber-500 shrink-0" />}
                   {opt.isBikeOnly && <Bike size={12} className="text-amber-500 shrink-0" />}
                   <span className={opt.isCore ? 'text-amber-600 dark:text-amber-400' : ''}>{opt.name}</span>
@@ -367,7 +374,7 @@ export default function AddressForm({
 
   // Prepare searchable select options for localities, prioritizing core areas dynamically
   const localitySelectOptions = React.useMemo(() => {
-    const mapped = localities.map(loc => {
+    const mappedLocalities = localities.map(loc => {
       const isCore = !!loc.is_primary;
       const priority = parseInt(loc.priority) || 0;
       return {
@@ -378,12 +385,45 @@ export default function AddressForm({
         longitude: loc.longitude,
         subtitle: isCore ? `Primary Area • ${loc.pincode || '824101'}` : `Area/Mohalla • ${loc.pincode || '824101'}`,
         isCore,
-        priority
+        priority,
+        type: 'locality'
       };
     });
 
-    // Sort: Higher priority/primary areas first, then alphabetically
-    return mapped.sort((a, b) => {
+    const mappedGalis = galis.map(g => {
+      const parentLoc = localities.find(l => l.id === g.locality_id);
+      return {
+        id: g.id,
+        name: g.name,
+        name_hi: g.name_hi,
+        latitude: g.latitude,
+        longitude: g.longitude,
+        subtitle: parentLoc ? `Street/Apartment in ${parentLoc.name}` : 'Street/Apartment',
+        isCore: false,
+        priority: 0,
+        type: 'gali',
+        parentLocalityId: g.locality_id
+      };
+    });
+
+    const mappedLandmarks = landmarks.map(lm => {
+      const parentLoc = localities.find(l => l.id === lm.locality_id);
+      return {
+        id: lm.id,
+        name: lm.name,
+        name_hi: lm.name_hi,
+        latitude: lm.latitude,
+        longitude: lm.longitude,
+        subtitle: parentLoc ? `Landmark near ${parentLoc.name}` : 'Landmark',
+        isCore: false,
+        priority: 0,
+        type: 'landmark',
+        parentLocalityId: lm.locality_id
+      };
+    });
+
+    // Localities are sorted by primary/priority first.
+    const sortedLocalities = mappedLocalities.sort((a, b) => {
       if (a.isCore !== b.isCore) {
         return a.isCore ? -1 : 1;
       }
@@ -392,7 +432,10 @@ export default function AddressForm({
       }
       return a.name.localeCompare(b.name);
     });
-  }, [localities])
+
+    // Combine all options. Keep localities at the top so they show up initially.
+    return [...sortedLocalities, ...mappedGalis, ...mappedLandmarks];
+  }, [localities, galis, landmarks])
 
   // Filter landmarks strictly relative to current selected locality ID
   const filteredLandmarks = React.useMemo(() => {
@@ -495,33 +538,100 @@ export default function AddressForm({
       return
     }
 
-    const updateData = {
-      address_line2: opt.name,
-      locality_id: opt.id || null,
-      landmark: '', // Clear landmark to force re-selection relative to new locality
-      landmark_id: null,
-      gali_id: null,
-      latitude: opt.latitude ? parseFloat(opt.latitude) : null,
-      longitude: opt.longitude ? parseFloat(opt.longitude) : null
-    }
+    if (opt.type === 'gali') {
+      const parentLoc = localities.find(l => l.id === opt.parentLocalityId)
+      const currentLine1 = formData.address_line1 || ''
+      const updatedLine1 = currentLine1.toLowerCase().includes(opt.name.toLowerCase())
+        ? currentLine1
+        : currentLine1 ? `${currentLine1}, ${opt.name}` : opt.name
 
-    onChange(updateData)
+      const updateData = {
+        address_line2: parentLoc ? parentLoc.name : '',
+        locality_id: parentLoc ? parentLoc.id : null,
+        gali_id: opt.id || null,
+        landmark: '',
+        landmark_id: null,
+        address_line1: updatedLine1,
+        latitude: opt.latitude ? parseFloat(opt.latitude) : null,
+        longitude: opt.longitude ? parseFloat(opt.longitude) : null
+      }
 
-    // Snap map center to locality coordinate
-    if (onMapLocationSelect && opt.latitude && opt.longitude) {
-      onMapLocationSelect({
-        lat: parseFloat(opt.latitude),
-        lng: parseFloat(opt.longitude),
-        displayName: `${opt.name}, Aurangabad, Bihar, ${formData.pincode || '824101'}`,
-        isManualSelect: true,
-        addressDetails: {
-          road: '',
-          suburb: opt.name,
-          city: formData.city || 'Aurangabad',
-          state: formData.state || 'Bihar',
-          postcode: formData.pincode || '824101'
-        }
-      })
+      onChange(updateData)
+
+      if (onMapLocationSelect && opt.latitude && opt.longitude) {
+        onMapLocationSelect({
+          lat: parseFloat(opt.latitude),
+          lng: parseFloat(opt.longitude),
+          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+          isManualSelect: true,
+          addressDetails: {
+            road: opt.name,
+            suburb: parentLoc ? parentLoc.name : '',
+            city: formData.city || 'Aurangabad',
+            state: formData.state || 'Bihar',
+            postcode: formData.pincode || '824101'
+          }
+        })
+      }
+    } else if (opt.type === 'landmark') {
+      const parentLoc = localities.find(l => l.id === opt.parentLocalityId)
+      
+      const updateData = {
+        address_line2: parentLoc ? parentLoc.name : '',
+        locality_id: parentLoc ? parentLoc.id : null,
+        gali_id: null,
+        landmark: opt.name,
+        landmark_id: opt.id || null,
+        latitude: opt.latitude ? parseFloat(opt.latitude) : null,
+        longitude: opt.longitude ? parseFloat(opt.longitude) : null
+      }
+
+      onChange(updateData)
+
+      if (onMapLocationSelect && opt.latitude && opt.longitude) {
+        onMapLocationSelect({
+          lat: parseFloat(opt.latitude),
+          lng: parseFloat(opt.longitude),
+          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+          isManualSelect: true,
+          addressDetails: {
+            road: '',
+            suburb: parentLoc ? parentLoc.name : '',
+            city: formData.city || 'Aurangabad',
+            state: formData.state || 'Bihar',
+            postcode: formData.pincode || '824101'
+          }
+        })
+      }
+    } else {
+      // Regular locality
+      const updateData = {
+        address_line2: opt.name,
+        locality_id: opt.id || null,
+        landmark: '',
+        landmark_id: null,
+        gali_id: null,
+        latitude: opt.latitude ? parseFloat(opt.latitude) : null,
+        longitude: opt.longitude ? parseFloat(opt.longitude) : null
+      }
+
+      onChange(updateData)
+
+      if (onMapLocationSelect && opt.latitude && opt.longitude) {
+        onMapLocationSelect({
+          lat: parseFloat(opt.latitude),
+          lng: parseFloat(opt.longitude),
+          displayName: `${opt.name}, Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+          isManualSelect: true,
+          addressDetails: {
+            road: '',
+            suburb: opt.name,
+            city: formData.city || 'Aurangabad',
+            state: formData.state || 'Bihar',
+            postcode: formData.pincode || '824101'
+          }
+        })
+      }
     }
   }
 
