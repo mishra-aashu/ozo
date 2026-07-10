@@ -239,13 +239,13 @@ if (directRealtimeWssUrl) {
 }
 
 // =============================================
-// ADMIN CLIENT — Direct Supabase (No Proxy)
-// Used in all admin pages for reliable data fetching.
+// ADMIN CLIENT — Proxied for Reliability
+// Used in all admin pages. Connects through the secure local proxy to
+// bypass client-side DNS/adblocker blocks on supabase.co domains.
 // Session persistence is disabled here to avoid duplicate GoTrue client
 // storage warnings. The session is synced manually from authStore.js.
 // =============================================
-const adminUrl = supabaseDirectUrl || supabaseUrl
-export const supabaseAdmin = createClient(adminUrl, supabaseAnonKey, {
+export const supabaseAdmin = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: false,
     autoRefreshToken: false,
@@ -258,6 +258,15 @@ export const supabaseAdmin = createClient(adminUrl, supabaseAnonKey, {
     },
   },
 })
+
+// Override supabaseAdmin realtime WebSocket URL just like the main client
+if (directRealtimeWssUrl) {
+  supabaseAdmin.realtime.endPoint = directRealtimeWssUrl + '/websocket'
+  supabaseAdmin.realtime.httpEndpoint = directRealtimeWssUrl
+    .replace(/^wss:\/\//, 'https://')
+    .replace(/^ws:\/\//, 'http://')
+    .replace(/\/realtime\/v1$/, '')
+}
 
 // =============================================
 // AUTH HELPERS
