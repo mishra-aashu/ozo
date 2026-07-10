@@ -19,7 +19,7 @@ const Auth = () => {
 
   const navigate = useNavigate()
   const location = useLocation()
-  const { signInWithGoogle, isAuthenticated } = useAuthStore()
+  const { signInWithGoogle, isAuthenticated, profile } = useAuthStore()
 
   const getRedirectPath = () => {
     const searchParams = new URLSearchParams(location.search)
@@ -39,9 +39,13 @@ const Auth = () => {
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate(from, { replace: true })
+      if (!profile?.phone) {
+        navigate('/complete-profile', { replace: true })
+      } else {
+        navigate(from, { replace: true })
+      }
     }
-  }, [isAuthenticated, navigate, from])
+  }, [isAuthenticated, profile, navigate, from])
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true)

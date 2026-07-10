@@ -42,12 +42,15 @@ const ensureProfileExists = async (user) => {
 
     if (insertError) {
       console.warn('Failed to insert user profile via client SDK (might be RLS):', insertError)
-      // Return a fallback profile so application continues functioning
+      // Return a fallback profile so application continues functioning.
+      // Include phone: null explicitly so route guards (profile?.phone)
+      // correctly detect the profile as incomplete.
       return {
         id: user.id,
         email: user.email,
         full_name: fullName,
         avatar_url: avatarUrl,
+        phone: null,
         role: 'customer',
       }
     }
