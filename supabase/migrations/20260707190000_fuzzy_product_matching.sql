@@ -30,11 +30,11 @@ BEGIN
     product := NULL;
     best_product_id := NULL;
 
-    -- 1. Try exact barcode match first
-    IF item->>'barcode' IS NOT NULL AND item->>'barcode' != '' THEN
+    -- 1. Try exact barcode match first (strictly 13-digit numeric barcodes)
+    IF item->>'barcode' IS NOT NULL AND item->>'barcode' != '' AND length(trim(item->>'barcode')) = 13 AND (trim(item->>'barcode')) ~ '^[0-9]+$' THEN
       SELECT * INTO product
       FROM public.products
-      WHERE barcode = item->>'barcode'
+      WHERE barcode = trim(item->>'barcode')
       LIMIT 1;
 
       IF FOUND THEN
