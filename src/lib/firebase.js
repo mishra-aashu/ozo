@@ -1,5 +1,6 @@
-import { initializeApp } from 'firebase/app'
+import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAnalytics, isSupported } from 'firebase/analytics'
+import { getMessaging, getToken, onMessage } from 'firebase/messaging'
 
 // Firebase Configuration using Vite environment variables
 const firebaseConfig = {
@@ -12,8 +13,8 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 }
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig)
+// Initialize Firebase safely (prevents duplicate app registration)
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp()
 
 // Initialize Analytics conditionally (safely handles environments without window/IndexedDB)
 let analytics = null
@@ -27,6 +28,52 @@ if (typeof window !== 'undefined') {
     }
   }).catch((err) => {
     console.error('[Firebase] Failed to check analytics support:', err)
+  })
+}
+
+// Initialize Messaging safely
+export const messaging = typeof window !== 'undefined' ? getMessaging(app) : null
+
+/**
+ * Requests browser notification permission and retrieves FCM registration token
+ * @returns {Promise<string|null>} FCM Registration Token
+ */
+export const requestForToken = async () => {
+  if (!messaging) return null
+
+  try {
+    const permission = await Notification.requestPermission()
+    if (permission === 'granted') {
+      const currentToken = await getToken(messaging, {
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+      })
+      if (currentToken) {
+        console.log('[FCM] Token generated successfully:', currentToken)
+        return currentToken
+      } else {
+        console.warn('[FCM] No registration token available.')
+        return null
+      }
+    } else {
+      console.warn('[FCM] Notification permission denied.')
+      return null
+    }
+  } catch (err) {
+    console.error('[FCM] An error occurred while retrieving token:', err)
+    return null
+  }
+}
+
+/**
+ * Attaches a listener for foreground FCM messages when the application is active
+ * @param {Function} callback Function executed with the message payload
+ * @returns {Function} Unsubscribe function to clean up listener
+ */
+export const onMessageListener = (callback) => {
+  if (!messaging) return () => {}
+  return onMessage(messaging, (payload) => {
+    console.log('[FCM] Foreground message received:', payload)
+    callback(payload)
   })
 }
 
