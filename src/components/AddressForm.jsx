@@ -855,7 +855,7 @@ export default function AddressForm({
               <GoogleMapsIcon className="w-[18px] h-[18px]" />
             </div>
             <span className="truncate text-xs font-extrabold text-gray-700 dark:text-gray-200">
-              Paste Location Link
+              Paste your location
             </span>
           </span>
           <div className="flex items-center gap-2 shrink-0">
