@@ -33,6 +33,31 @@ const GoogleMapsIcon = ({ className = "w-4 h-4" }) => (
   </svg>
 )
 
+const AppleMapsIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="apple-maps-shape">
+        <rect x="10" y="10" width="100" height="100" rx="22" />
+      </clipPath>
+    </defs>
+    <g clipPath="url(#apple-maps-shape)">
+      <rect x="10" y="10" width="100" height="100" fill="#E5E5EA" />
+      <path d="M10 60 H110" stroke="#FFFFFF" strokeWidth="8" />
+      <path d="M60 10 V110" stroke="#FFFFFF" strokeWidth="8" />
+      <path d="M10 10 L110 110" stroke="#FFFFFF" strokeWidth="6" />
+      <path d="M10 60 H110" stroke="#007AFF" strokeWidth="4" />
+      <path d="M60 10 V110" stroke="#34C759" strokeWidth="4" />
+      <path d="M45 45 C45 35 75 35 75 45 C75 55 45 55 45 45 Z" fill="#FF9500" />
+      <path d="M52 42 H68 V52 H52 Z" fill="#FFFFFF" />
+      <circle cx="60" cy="47" r="2" fill="#FF9500" />
+    </g>
+    <g>
+      <path d="M60 20 C50 20 42 28 42 38 C42 50 60 72 60 72 C60 72 78 50 78 38 C78 28 70 20 60 20 Z" fill="#FF3B30" />
+      <circle cx="60" cy="38" r="5" fill="#FFFFFF" />
+    </g>
+  </svg>
+)
+
 // Helper component for styled suggestion icons
 const SuggestionIcon = ({ type, className = "w-4 h-4" }) => {
   switch (type) {
@@ -241,9 +266,19 @@ export default function AddressForm({
   const landmarks = useLocationStore((state) => state.landmarks || [])
   const galis = useLocationStore((state) => state.galis || [])
 
-  const [pastedLink, setPastedLink] = React.useState('')
+  const [pastedLink, setPastedLink] = React.useState(formData.google_maps_url || '')
   const [isResolving, setIsResolving] = React.useState(false)
-  const [showLinkAutofill, setShowLinkAutofill] = React.useState(false)
+  const [showLinkAutofill, setShowLinkAutofill] = React.useState(!!formData.google_maps_url)
+
+  // Sync state if google_maps_url is updated on load or props change
+  React.useEffect(() => {
+    if (formData.google_maps_url && !pastedLink) {
+      setPastedLink(formData.google_maps_url)
+    }
+    if (formData.google_maps_url) {
+      setShowLinkAutofill(true)
+    }
+  }, [formData.google_maps_url])
 
   // Auto-fetch active cities and hierarchical database entries on mount
   React.useEffect(() => {
@@ -785,6 +820,7 @@ export default function AddressForm({
       
       const updateData = {
         google_maps_url: resolvedUrl,
+        address_line2: 'Delivery via Link'
       }
 
       // Pre-fill address_line1 with the link to satisfy the required field
@@ -822,7 +858,7 @@ export default function AddressForm({
   return (
     <div className="space-y-6">
       {/* 1. Map Section at the top */}
-      {!mapConfig?.hide_map && OzoMapPicker && (
+      {!showLinkAutofill && !mapConfig?.hide_map && OzoMapPicker && (
         <div className="space-y-2">
           <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-550">
             Pin Delivery Location
@@ -853,6 +889,7 @@ export default function AddressForm({
             <div className="flex items-center gap-1 shrink-0">
               <WhatsAppIcon className="w-[18px] h-[18px]" />
               <GoogleMapsIcon className="w-[18px] h-[18px]" />
+              <AppleMapsIcon className="w-[18px] h-[18px]" />
             </div>
             <span className="truncate text-xs font-extrabold text-gray-700 dark:text-gray-200">
               Paste your location
@@ -877,7 +914,12 @@ export default function AddressForm({
               <span className="text-gray-300 dark:text-zinc-700">|</span>
               <div className="flex items-center gap-1 text-red-500 font-bold">
                 <GoogleMapsIcon className="w-3.5 h-3.5" />
-                <span>Google Maps Links</span>
+                <span>Google Maps</span>
+              </div>
+              <span className="text-gray-300 dark:text-zinc-700">|</span>
+              <div className="flex items-center gap-1 text-blue-500 font-bold">
+                <AppleMapsIcon className="w-3.5 h-3.5" />
+                <span>Apple Maps</span>
               </div>
             </div>
             
@@ -891,7 +933,7 @@ export default function AddressForm({
                   value={pastedLink}
                   onChange={(e) => setPastedLink(e.target.value)}
                   className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/20 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
-                  placeholder="Paste WhatsApp location text or Google Maps link..."
+                  placeholder="Paste WhatsApp text, Google Maps, or Apple Maps link..."
                 />
               </div>
               <button
@@ -900,7 +942,6 @@ export default function AddressForm({
                 onClick={async () => {
                   if (!pastedLink) return
                   await resolveLocationLink(pastedLink)
-                  setPastedLink('')
                 }}
                 className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
                   pastedLink && !isResolving
@@ -921,6 +962,34 @@ export default function AddressForm({
                 )}
               </button>
             </div>
+
+            {formData.google_maps_url && (
+              <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10 flex items-center justify-between gap-3 text-xs text-emerald-800 dark:text-emerald-350 font-semibold animate-in fade-in slide-in-from-top-1 duration-200">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="text-emerald-500 shrink-0 text-sm">✓</span>
+                  <div className="min-w-0">
+                    <p className="font-extrabold text-[11px] text-emerald-700 dark:text-emerald-400">Location Link Saved & Active</p>
+                    <p className="truncate font-mono text-[10px] opacity-80 mt-0.5">{formData.google_maps_url}</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPastedLink('')
+                    onChange({
+                      google_maps_url: '',
+                      address_line1: '',
+                      address_line2: '',
+                      latitude: null,
+                      longitude: null
+                    })
+                  }}
+                  className="text-[10px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 px-2 py-1.5 rounded-lg transition-all shrink-0 font-bold"
+                >
+                  Remove
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -968,36 +1037,39 @@ export default function AddressForm({
       )}
 
       {/* 3. Address Type Selector */}
-      <div>
-        <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-          Save Address As
-        </label>
-        <div className="flex gap-2">
-          {[
-            { label: 'Home', icon: Home },
-            { label: 'Work', icon: Briefcase },
-            { label: 'Other', icon: MapPin }
-          ].map(({ label: lbl, icon: Icon }) => (
-            <button
-              key={lbl}
-              type="button"
-              onClick={() => updateField('label', lbl)}
-              className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                formData.label === lbl
-                  ? 'border-ozo-red bg-red-500/5 text-ozo-red shadow-sm'
-                  : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-550 hover:border-gray-300 dark:hover:border-white/20'
-              }`}
-            >
-              <Icon size={12} />
-              {lbl}
-            </button>
-          ))}
+      {!showLinkAutofill && (
+        <div>
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+            Save Address As
+          </label>
+          <div className="flex gap-2">
+            {[
+              { label: 'Home', icon: Home },
+              { label: 'Work', icon: Briefcase },
+              { label: 'Other', icon: MapPin }
+            ].map(({ label: lbl, icon: Icon }) => (
+              <button
+                key={lbl}
+                type="button"
+                onClick={() => updateField('label', lbl)}
+                className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+                  formData.label === lbl
+                    ? 'border-ozo-red bg-red-500/5 text-ozo-red shadow-sm'
+                    : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-550 hover:border-gray-300 dark:hover:border-white/20'
+                }`}
+              >
+                <Icon size={12} />
+                {lbl}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* 4. Address Information Fields */}
-      <div className="space-y-4 pt-2">
-        <div className="flex items-center justify-between pb-1 border-b border-gray-150 dark:border-zinc-800">
+      {!showLinkAutofill && (
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center justify-between pb-1 border-b border-gray-150 dark:border-zinc-800">
           <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
             Address Information
           </span>
@@ -1173,8 +1245,9 @@ export default function AddressForm({
           </div>
         )}
       </div>
+      )}
 
-      {formData.address_line2 && (
+      {(formData.address_line2 || showLinkAutofill) && (
         <div className="space-y-4 slide-up">
           {/* Notes */}
           <div>
