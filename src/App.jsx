@@ -80,6 +80,7 @@ const SelectLocation = lazyWithRetry(() => import('./pages/SelectLocation'))
 const Categories = lazyWithRetry(() => import('./pages/Categories'))
 const CategoryProducts = lazyWithRetry(() => import('./pages/CategoryProducts'))
 const Auth = lazyWithRetry(() => import('./pages/Auth'))
+const AuthCallback = lazyWithRetry(() => import('./pages/AuthCallback'))
 const CompleteProfile = lazyWithRetry(() => import('./pages/CompleteProfile'))
 const NotFound = lazyWithRetry(() => import('./pages/NotFound'))
 const Help = lazyWithRetry(() => import('./pages/Help'))
@@ -506,6 +507,9 @@ function App() {
                 </PublicOnlyRoute>
               }
             />
+
+            {/* Auth Callback Route */}
+            <Route path="auth/v1/callback" element={<AuthCallback />} />
 
             {/* Complete Profile Route */}
             <Route
