@@ -379,22 +379,73 @@ export default function BulkImportWizard({
         return
       }
 
-      const headers = parsed[0].map(h => h.trim())
-      const dataRows = parsed.slice(1).filter(r => r.some(cell => cell.trim() !== ''))
+      // Heuristic to detect the header row index (scanning up to the first 15 rows)
+      let headerRowIndex = 0
+      let maxScore = -1
 
-      if (headers.length === 0) {
+      const headerKeywords = [
+        'barcode', 'sku', 'code', 'name', 'item', 'product', 'title',
+        'qty', 'quantity', 'stock', 'mrp', 'price', 'rate', 'serial', 's.no'
+      ]
+
+      for (let i = 0; i < Math.min(parsed.length, 15); i++) {
+        const row = parsed[i]
+        const nonEmptyCount = row.filter(cell => cell.trim() !== '').length
+        if (nonEmptyCount === 0) continue
+
+        let keywordMatchCount = 0
+        row.forEach(cell => {
+          const val = cell.toLowerCase().trim()
+          if (headerKeywords.some(keyword => val.includes(keyword))) {
+            keywordMatchCount++
+          }
+        })
+
+        // Score formula: (nonEmptyCount * 2) + (keywordMatchCount * 5)
+        const score = (nonEmptyCount * 2) + (keywordMatchCount * 5)
+        if (score > maxScore) {
+          maxScore = score
+          headerRowIndex = i
+        }
+      }
+
+      const rawHeaders = parsed[headerRowIndex]
+      const headers = rawHeaders.map((h, idx) => h.trim() || `Column ${idx + 1}`)
+
+      // Ensure headers are unique to avoid duplicate keys in React and state mapping conflicts
+      const uniqueHeaders = []
+      const seenHeaders = new Set()
+      for (let i = 0; i < headers.length; i++) {
+        let name = headers[i]
+        if (seenHeaders.has(name)) {
+          let count = 1
+          let uniqueName = `${name} (${count})`
+          while (seenHeaders.has(uniqueName)) {
+            count++
+            uniqueName = `${name} (${count})`
+          }
+          name = uniqueName
+        }
+        seenHeaders.add(name)
+        uniqueHeaders.push(name)
+      }
+
+      const dataRows = parsed.slice(headerRowIndex + 1).filter(r => r.some(cell => cell.trim() !== ''))
+
+      if (uniqueHeaders.length === 0) {
         toast.error('Could not find any headers in the CSV')
         return
       }
 
       setCsvFileName(file.name)
-      setCsvHeaders(headers)
+      setCsvHeaders(uniqueHeaders)
       setCsvRawRows(dataRows)
       
-      const detected = autoDetectColumns(headers, dataRows)
+      const detected = autoDetectColumns(uniqueHeaders, dataRows)
       setColumnMapping(detected)
       
       setImportStep('mapping')
+      setIsMappingVerified(false)
     }
     reader.readAsText(file)
   }
