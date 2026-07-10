@@ -5,6 +5,7 @@ import { AlertCircle, RefreshCcw } from 'lucide-react'
 import { Toaster } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
+import './lib/firebase'
 
 Sentry.init({
   dsn: "https://c54b8cf774cb2826aa57147a8d5e847c@o4511610232438784.ingest.us.sentry.io/4511610238402560",

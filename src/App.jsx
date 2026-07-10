@@ -3,6 +3,8 @@ import { toast } from 'react-hot-toast'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import OzoSplashScreen from './components/OzoSplashScreen'
+import { requestForToken, onMessageListener } from './firebase'
+import { supabase } from './lib/supabase'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -377,6 +379,69 @@ function App() {
       unsubscribeFromNotifications()
     }
   }, [user, fetchCart, fetchNotifications, subscribeToNotifications, unsubscribeFromNotifications])
+
+  // Firebase Cloud Messaging (FCM) Integration for Push Notifications
+  useEffect(() => {
+    let unsubscribe = () => {}
+
+    if (user) {
+      // 1. Request FCM Token on mount or user login
+      requestForToken().then(async (token) => {
+        if (token) {
+          console.log('[FCM] Received token:', token)
+          // Sync token to user_fcm_tokens table
+          try {
+            const { error } = await supabase
+              .from('user_fcm_tokens')
+              .upsert({
+                user_id: user.id,
+                token: token,
+                device_info: navigator.userAgent || 'Web PWA Client',
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'token' })
+            if (error) {
+              console.error('[FCM] Error saving token to DB:', error)
+            } else {
+              console.log('[FCM] Token synced to DB successfully.')
+            }
+          } catch (dbErr) {
+            console.error('[FCM] DB sync failed:', dbErr)
+          }
+        }
+      }).catch(err => {
+        console.error('[FCM] Error getting token:', err)
+      })
+
+      // 2. Register Foreground Message listener
+      unsubscribe = onMessageListener((payload) => {
+        const title = payload.notification?.title || 'Order Update'
+        const body = payload.notification?.body || 'You have received a new update.'
+        
+        toast.success(
+          <div className="flex flex-col text-left">
+            <span className="font-semibold text-sm text-gray-900">{title}</span>
+            <span className="text-xs text-gray-500 mt-0.5">{body}</span>
+          </div>,
+          {
+            duration: 6000,
+            icon: '🔔',
+            style: {
+              borderRadius: '16px',
+              background: '#ffffff',
+              color: '#333333',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+              padding: '12px 16px',
+            }
+          }
+        )
+      })
+    }
+
+    return () => {
+      unsubscribe()
+    }
+  }, [user])
+
 
   return (
     <>

@@ -19,6 +19,7 @@
     "@supabase/supabase-js": "^2.39.0",
     "date-fns": "^3.0.6",
     "dompurify": "^3.4.11",
+    "firebase": "^12.16.0",
     "framer-motion": "^10.16.16",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.303.0",

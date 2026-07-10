@@ -169,6 +169,95 @@ Deno.serve(async (req: Request) => {
 
     console.log(`[PUSH] Resolved deep-link target URL: ${targetUrl}`)
 
+    // FCM Integration: Send push notification to target user's active device tokens
+    const isFcmAllowed = title === 'Rider is Rushing! 🛵' || title === 'Delivered! 🎉'
+    
+    if (isFcmAllowed && user_id) {
+      const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ungxccwdondssatixzlz.supabase.co'
+      const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+      
+      if (SUPABASE_SERVICE_KEY) {
+        try {
+          const fcmDbRes = await fetch(`${SUPABASE_URL}/rest/v1/user_fcm_tokens?user_id=eq.${user_id}&select=token`, {
+            headers: {
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          if (fcmDbRes.ok) {
+            const fcmDbData = await fcmDbRes.json()
+            const fcmTokens = fcmDbData?.map((t: any) => t.token) || []
+            console.log(`[PUSH] Found ${fcmTokens.length} FCM tokens for user ${user_id}`)
+            
+            if (fcmTokens.length > 0) {
+              const clientEmail = Deno.env.get('FIREBASE_CLIENT_EMAIL')
+              const privateKey = Deno.env.get('FIREBASE_PRIVATE_KEY')
+              
+              if (clientEmail && privateKey) {
+                const { GoogleAuth } = await import("npm:google-auth-library")
+                const auth = new GoogleAuth({
+                  credentials: {
+                    client_email: clientEmail,
+                    private_key: privateKey.replace(/\\n/g, '\n'),
+                  },
+                  scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+                })
+                const client = await auth.getClient()
+                const tokenResponse = await client.getAccessToken()
+                const accessToken = tokenResponse.token
+                const projectId = Deno.env.get('FIREBASE_PROJECT_ID') || 'ozo-efcc9'
+
+                for (const token of fcmTokens) {
+                  try {
+                    const fcmSendRes = await fetch(`https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`, {
+                      method: 'POST',
+                      headers: {
+                        'Authorization': `Bearer ${accessToken}`,
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify({
+                        message: {
+                          token: token,
+                          notification: {
+                            title: title,
+                            body: message,
+                          },
+                          data: {
+                            notification_id: id || '',
+                            type: type || 'order_status',
+                            order_id: parsedData?.order_id || '',
+                          },
+                          webpush: {
+                            headers: {
+                              Urgency: 'high',
+                            },
+                            notification: {
+                              icon: '/apple-touch-icon.png',
+                              badge: '/logo_bag_only.png',
+                              click_action: targetUrl,
+                            },
+                          },
+                        },
+                      }),
+                    })
+                    const fcmResData = await fcmSendRes.json()
+                    console.log(`[PUSH] FCM send response for token ${token.slice(0, 8)}...:`, JSON.stringify(fcmResData))
+                  } catch (sendErr) {
+                    console.error('[PUSH] FCM token send error:', sendErr)
+                  }
+                }
+              } else {
+                console.warn('[PUSH] FCM credentials (FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are missing in environment. FCM skipped.')
+              }
+            }
+          }
+        } catch (fcmErr) {
+          console.error('[PUSH] FCM query/send lifecycle failed:', fcmErr)
+        }
+      }
+    }
+
     const response = await fetch('https://onesignal.com/api/v1/notifications', {
       method: 'POST',
       headers: {
