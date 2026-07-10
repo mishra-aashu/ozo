@@ -24,7 +24,7 @@ const fetchProductsDirect = async (options = {}) => {
     let query = supabase
       .from('products')
       .select(`
-        *,
+        id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
           id,
           name,
@@ -255,7 +255,7 @@ export default function SuggestedProducts({
             let recentQuery = supabase
               .from('products')
               .select(`
-                *,
+                id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
                 category:categories (
                   id,
                   name,

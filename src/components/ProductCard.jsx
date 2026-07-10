@@ -1,6 +1,7 @@
 import { useState, useEffect, memo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useShallow } from 'zustand/react/shallow'
 import {
   Heart,
   Plus,
@@ -40,10 +41,16 @@ function ProductCard({ product, variant = 'default', index }) {
   const addToCart = useCartStore(state => state.addToCart)
   const updateQuantity = useCartStore(state => state.updateQuantity)
   const launchConfig = useCartStore(state => state.launchConfig)
-  const cartItem = useCartStore(state => 
-    state.items.find(item => item.productId === selectedProduct?.id) || null
-  )
-  const quantity = cartItem ? cartItem.quantity : 0
+
+  // Use a shallow selector to fetch only the primitive quantity and cartItemId
+  // to prevent this card from re-rendering when other cart items change.
+  const { quantity, cartItemId } = useCartStore(useShallow(state => {
+    const item = state.items.find(item => item.productId === selectedProduct?.id)
+    return {
+      quantity: item ? item.quantity : 0,
+      cartItemId: item ? item.id : null
+    }
+  }))
 
   const toggleWishlist = useWishlistStore(state => state.toggleWishlist)
   const isFavorite = useWishlistStore(state => 
@@ -175,12 +182,12 @@ function ProductCard({ product, variant = 'default', index }) {
       e.stopPropagation()
     }
 
-    if (cartItem) {
+    if (cartItemId) {
       if (quantity >= (selectedProduct?.max_order_qty ?? 99)) {
         toast.error(`Maximum ${selectedProduct?.max_order_qty ?? 99} items allowed`)
         return
       }
-      await updateQuantity(cartItem.id, quantity + 1)
+      await updateQuantity(cartItemId, quantity + 1)
     }
   }
 
@@ -190,8 +197,8 @@ function ProductCard({ product, variant = 'default', index }) {
       e.stopPropagation()
     }
 
-    if (cartItem && quantity > 0) {
-      await updateQuantity(cartItem.id, quantity - 1)
+    if (cartItemId && quantity > 0) {
+      await updateQuantity(cartItemId, quantity - 1)
     }
   }
 
@@ -206,27 +213,23 @@ function ProductCard({ product, variant = 'default', index }) {
 
     await toggleWishlist(selectedProduct)
   }
-
   const cardVariants = {
     hidden: { 
       opacity: 0, 
-      y: 40,
-      scale: 0.94,
-      filter: 'blur(12px)'
+      y: 30,
+      scale: 0.96
     },
     visible: (index) => ({
       opacity: 1,
       y: 0,
       scale: 1,
-      filter: 'blur(0px)',
       transition: {
         type: 'spring',
         stiffness: 100,
         damping: 16,
         mass: 0.9,
         delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0,
-        filter: { duration: 0.4, ease: 'easeOut', delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0 },
-        opacity: { duration: 0.35, ease: 'easeOut', delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0 }
+        opacity: { duration: 0.25, ease: 'easeOut', delay: typeof index === 'number' ? Math.min(index * 0.035, 0.4) : 0 }
       },
     }),
     hover: {
@@ -287,11 +290,7 @@ function ProductCard({ product, variant = 'default', index }) {
   // Horizontal variant for lists
   if (variant === 'horizontal') {
     return (
-      <motion.div
-        custom={index}
-        variants={cardVariants}
-        initial="hidden"
-        animate="visible"
+      <div
         onClick={(e) => {
           if (
             e.target.closest('button') || 
@@ -302,7 +301,10 @@ function ProductCard({ product, variant = 'default', index }) {
           }
           navigate(productLink)
         }}
-        className="flex gap-5 p-5 bg-white dark:bg-white/5 rounded-3xl shadow-premium hover:shadow-ozo-lg transition-shadow border border-gray-200/90 dark:border-white/10 cursor-pointer transform-gpu will-change-transform"
+        style={{
+          animationDelay: typeof index === 'number' ? `${Math.min(index * 0.035, 0.4)}s` : '0s'
+        }}
+        className="product-card-animate flex gap-5 p-5 bg-white dark:bg-white/5 rounded-3xl shadow-premium hover:shadow-ozo-lg hover:-translate-y-2 border border-gray-200/90 dark:border-white/10 cursor-pointer transform-gpu will-change-transform transition-all duration-300"
       >
         <Link to={productLink} className="flex-shrink-0 relative overflow-hidden rounded-2xl group/img">
           <OptimizedImage
@@ -475,18 +477,13 @@ function ProductCard({ product, variant = 'default', index }) {
             </button>
           )}
         </div>
-      </motion.div>
+      </div>
     )
   }
 
   // Default card variant (Premium Horizontal Card Layout)
   return (
-    <motion.div
-      custom={index}
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      whileHover="hover"
+    <div
       onClick={(e) => {
         if (
           e.target.closest('button') || 
@@ -497,7 +494,10 @@ function ProductCard({ product, variant = 'default', index }) {
         }
         navigate(productLink)
       }}
-      className="product-card relative group flex flex-row sm:flex-col items-center sm:items-stretch gap-3 p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
+      style={{
+        animationDelay: typeof index === 'number' ? `${Math.min(index * 0.035, 0.4)}s` : '0s'
+      }}
+      className="product-card product-card-animate relative group flex flex-row sm:flex-col items-center sm:items-stretch gap-3 p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg hover:-translate-y-2 transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
     >
       {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
       <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
@@ -690,7 +690,7 @@ function ProductCard({ product, variant = 'default', index }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   )
 }
 
