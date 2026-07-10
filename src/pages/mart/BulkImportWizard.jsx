@@ -44,26 +44,41 @@ const CustomSelect = ({ value, onChange, placeholder, isRequired, csvHeaders = [
               : 'bg-gray-50 dark:bg-slate-800 border-gray-250 dark:border-slate-700 text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-700'
         }`}
       >
-        <span className="truncate flex items-center gap-2">
+        <span className="truncate flex items-center gap-2 pr-6">
           {value && <CheckCircle className="w-3.5 h-3.5 shrink-0 text-blue-500 dark:text-blue-500" />}
           {!value && isRequired && <AlertCircle className="w-3.5 h-3.5 shrink-0 text-amber-500" />}
           {getLabel()}
         </span>
-        <ChevronDown className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-blue-500 dark:text-blue-500' : 'text-gray-400'}`} />
+        <div className="flex items-center gap-1.5 shrink-0">
+          {value && (
+            <button
+              type="button"
+              title="Clear mapping"
+              onClick={(e) => {
+                e.stopPropagation()
+                onChange('')
+              }}
+              className="p-1 hover:bg-red-500/10 hover:text-red-500 rounded-lg text-gray-400 dark:text-gray-500 transition-colors cursor-pointer"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <ChevronDown className={`w-4 h-4 ${isOpen ? 'rotate-180' : ''} ${value ? 'text-blue-500 dark:text-blue-500' : 'text-gray-400'}`} />
+        </div>
       </button>
 
       {isOpen && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
-          <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-hide py-1.5">
-            {!isRequired && (
+          <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl z-50 max-h-60 overflow-y-auto scrollbar-hide py-1.5 font-sans">
+            {value && (
               <button
                 type="button"
                 onClick={() => {
                   onChange('')
                   setIsOpen(false)
                 }}
-                className="w-full text-left px-4 py-2.5 text-xs text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-800 hover:text-gray-700 dark:hover:text-white transition-colors cursor-pointer"
+                className="w-full text-left px-4 py-2.5 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-colors cursor-pointer font-bold border-b border-gray-150 dark:border-white/5"
               >
                 Clear mapping
               </button>
