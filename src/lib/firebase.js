@@ -68,6 +68,7 @@ export const requestForToken = async () => {
         console.log('[FCM] Service Worker registered with configuration successfully')
       }
 
+      console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
       const currentToken = await getToken(messaging, {
         serviceWorkerRegistration: registration,
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
