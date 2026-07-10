@@ -3,38 +3,47 @@
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js')
 
-// Initialize the Firebase app in the service worker.
-// Replace placeholders with your Firebase project keys.
-firebase.initializeApp({
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
-})
+// Extract config from query parameters
+const urlParams = new URLSearchParams(self.location.search)
+const firebaseConfig = {
+  apiKey: urlParams.get('apiKey'),
+  authDomain: urlParams.get('authDomain'),
+  projectId: urlParams.get('projectId'),
+  storageBucket: urlParams.get('storageBucket'),
+  messagingSenderId: urlParams.get('messagingSenderId'),
+  appId: urlParams.get('appId'),
+  measurementId: urlParams.get('measurementId')
+}
 
-// Retrieve an instance of Firebase Messaging so that it can handle background messages.
-const messaging = firebase.messaging()
+let messaging = null
+
+// Only initialize if we received valid parameters
+if (firebaseConfig.apiKey && firebaseConfig.projectId) {
+  firebase.initializeApp(firebaseConfig)
+  messaging = firebase.messaging()
+} else {
+  console.warn('[firebase-messaging-sw.js] Missing configuration parameters, skipping initialization')
+}
 
 // Background Message Handler
-messaging.onBackgroundMessage((payload) => {
-  console.log('[firebase-messaging-sw.js] Received background message: ', payload)
+if (messaging) {
+  messaging.onBackgroundMessage((payload) => {
+    console.log('[firebase-messaging-sw.js] Received background message: ', payload)
 
-  // Customize background notification title and options
-  const notificationTitle = payload.notification?.title || 'OZO Order Update'
-  const notificationOptions = {
-    body: payload.notification?.body || 'You have a new notification from OZO.',
-    icon: '/apple-touch-icon.png', // Replace with your notification icon path
-    badge: '/logo_bag_only.png',  // Replace with your badge icon path
-    data: payload.data || {},
-    tag: payload.data?.order_id || 'order-update', // Collapses notifications of the same order
-    vibrate: [200, 100, 200]
-  }
+    // Customize background notification title and options
+    const notificationTitle = payload.notification?.title || 'OZO Order Update'
+    const notificationOptions = {
+      body: payload.notification?.body || 'You have a new notification from OZO.',
+      icon: '/apple-touch-icon.png', // Replace with your notification icon path
+      badge: '/logo_bag_only.png',  // Replace with your badge icon path
+      data: payload.data || {},
+      tag: payload.data?.order_id || 'order-update', // Collapses notifications of the same order
+      vibrate: [200, 100, 200]
+    }
 
-  self.registration.showNotification(notificationTitle, notificationOptions)
-})
+    self.registration.showNotification(notificationTitle, notificationOptions)
+  })
+}
 
 // Optional: Handle Notification click events
 self.addEventListener('notificationclick', (event) => {
