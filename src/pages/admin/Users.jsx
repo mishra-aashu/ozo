@@ -1612,7 +1612,22 @@ WHERE id = '${selectedUser.id}';`
                                     </button>
                                   </div>
                                   <p className="text-sm font-semibold text-gray-800 dark:text-gray-200">
-                                    {addr.address_line1}
+                                    {addr.address_line1 && addr.address_line1.startsWith('Location Link: ') ? (
+                                      <>
+                                        Location Link:{' '}
+                                        <a
+                                          href={addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="text-ozo-red hover:underline break-all font-bold"
+                                        >
+                                          {addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                                        </a>
+                                      </>
+                                    ) : (
+                                      addr.address_line1
+                                    )}
                                   </p>
                                   {addr.address_line2 && (
                                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">

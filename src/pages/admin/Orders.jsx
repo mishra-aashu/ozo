@@ -1696,7 +1696,23 @@ const Orders = () => {
                     {selectedOrder.address ? (
                       <div className="space-y-3">
                         <div className="text-xs text-gray-600 dark:text-gray-400 space-y-1">
-                          <p className="font-bold text-gray-800 dark:text-gray-200">{selectedOrder.address.address_line1}</p>
+                          <p className="font-bold text-gray-800 dark:text-gray-200">
+                            {selectedOrder.address.address_line1 && selectedOrder.address.address_line1.startsWith('Location Link: ') ? (
+                              <>
+                                Location Link:{' '}
+                                <a
+                                  href={selectedOrder.google_maps_url || selectedOrder.address.google_maps_url || selectedOrder.address.address_line1.replace('Location Link: ', '')}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-ozo-red hover:underline break-all font-bold"
+                                >
+                                  {selectedOrder.google_maps_url || selectedOrder.address.google_maps_url || selectedOrder.address.address_line1.replace('Location Link: ', '')}
+                                </a>
+                              </>
+                            ) : (
+                              selectedOrder.address.address_line1
+                            )}
+                          </p>
                           {selectedOrder.address.address_line2 && <p>{selectedOrder.address.address_line2}</p>}
                           <p>{selectedOrder.address.city}, {selectedOrder.address.state} - {selectedOrder.address.pincode}</p>
                         </div>

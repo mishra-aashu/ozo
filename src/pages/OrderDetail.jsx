@@ -1474,7 +1474,22 @@ const OrderDetail = () => {
               <div className="space-y-2 text-sm">
                 <p className="font-black text-gray-900 dark:text-white">{currentOrder.address?.label || 'Home'}</p>
                 <p className="text-ozo-gray dark:text-gray-400 font-semibold leading-relaxed">
-                  {currentOrder.address?.address_line1}<br />
+                  {currentOrder.address?.address_line1 && currentOrder.address.address_line1.startsWith('Location Link: ') ? (
+                    <>
+                      Location Link:{' '}
+                      <a
+                        href={currentOrder.google_maps_url || currentOrder.address.google_maps_url || currentOrder.address.address_line1.replace('Location Link: ', '')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-ozo-red hover:underline break-all font-bold"
+                      >
+                        {currentOrder.google_maps_url || currentOrder.address.google_maps_url || currentOrder.address.address_line1.replace('Location Link: ', '')}
+                      </a>
+                    </>
+                  ) : (
+                    currentOrder.address?.address_line1
+                  )}
+                  <br />
                   {currentOrder.address?.address_line2 && <>{currentOrder.address.address_line2}<br /></>}
                   {currentOrder.address?.city}, {currentOrder.address?.state} - {currentOrder.address?.pincode}
                 </p>
@@ -1897,7 +1912,21 @@ const OrderDetail = () => {
                 <strong className="text-gray-900">{currentOrder.recipient_name || profile?.full_name || 'Customer'}</strong><br />
                 {currentOrder.house_no && <>{currentOrder.house_no}, </>}
                 {currentOrder.street_gali && <>{currentOrder.street_gali}, </>}
-                {currentOrder.address?.address_line1}<br />
+                {currentOrder.address?.address_line1 && currentOrder.address.address_line1.startsWith('Location Link: ') ? (
+                  <>
+                    Location Link:{' '}
+                    <a
+                      href={currentOrder.google_maps_url || currentOrder.address.google_maps_url || currentOrder.address.address_line1.replace('Location Link: ', '')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-ozo-red hover:underline break-all font-bold"
+                    >
+                      {currentOrder.google_maps_url || currentOrder.address.google_maps_url || currentOrder.address.address_line1.replace('Location Link: ', '')}
+                    </a>
+                  </>
+                ) : (
+                  currentOrder.address?.address_line1
+                )}<br />
                 {currentOrder.address?.address_line2 && <>{currentOrder.address.address_line2}<br /></>}
                 {currentOrder.address?.city || 'Aurangabad'}, {currentOrder.address?.state || 'Bihar'} - {currentOrder.address?.pincode || '824101'}<br />
                 <strong>Phone:</strong> {currentOrder.recipient_phone || profile?.phone || '—'}

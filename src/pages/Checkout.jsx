@@ -1125,7 +1125,22 @@ const Checkout = () => {
                                 <MapPin size={14} className="text-ozo-red dark:text-red-400 flex-shrink-0 mt-0.5" />
                                 <div className="flex flex-col gap-0.5">
                                   <h4 className="text-sm font-black text-gray-950 dark:text-white leading-snug">
-                                    {activeAddr.address_line1}
+                                    {activeAddr.address_line1 && activeAddr.address_line1.startsWith('Location Link: ') ? (
+                                      <>
+                                        Location Link:{' '}
+                                        <a
+                                          href={activeAddr.google_maps_url || activeAddr.address_line1.replace('Location Link: ', '')}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          onClick={(e) => e.stopPropagation()}
+                                          className="text-ozo-red hover:underline break-all"
+                                        >
+                                          {activeAddr.google_maps_url || activeAddr.address_line1.replace('Location Link: ', '')}
+                                        </a>
+                                      </>
+                                    ) : (
+                                      activeAddr.address_line1
+                                    )}
                                   </h4>
                                   <p className="text-xs text-ozo-gray dark:text-gray-450 font-bold leading-relaxed max-w-[90%]">
                                     {activeAddr.address_line2 && activeAddr.address_line2 + ', '}
@@ -1236,7 +1251,22 @@ const Checkout = () => {
                                           </div>
                                         )}
                                         
-                                        <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{addr.address_line1}</p>
+                                        {addr.address_line1 && addr.address_line1.startsWith('Location Link: ') ? (
+                                          <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+                                            Location Link:{' '}
+                                            <a
+                                              href={addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              onClick={(e) => e.stopPropagation()}
+                                              className="text-ozo-red hover:underline break-all"
+                                            >
+                                              {addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                                            </a>
+                                          </p>
+                                        ) : (
+                                          <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{addr.address_line1}</p>
+                                        )}
                                         <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium leading-relaxed">
                                           {addr.address_line2 && addr.address_line2 + ', '}
                                           {parsed.landmark && `Near ${parsed.landmark}, `}

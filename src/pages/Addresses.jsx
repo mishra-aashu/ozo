@@ -487,9 +487,24 @@ const Addresses = () => {
                             {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
                           </div>
                         )}
-                        <p className="font-bold text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                          {addr.address_line1}
-                        </p>
+                        {addr.address_line1 && addr.address_line1.startsWith('Location Link: ') ? (
+                          <p className="font-bold text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                            Location Link:{' '}
+                            <a
+                              href={addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-ozo-red hover:underline break-all"
+                            >
+                              {addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                            </a>
+                          </p>
+                        ) : (
+                          <p className="font-bold text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                            {addr.address_line1}
+                          </p>
+                        )}
                         {addr.address_line2 && (
                           <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold">
                             {addr.address_line2}
