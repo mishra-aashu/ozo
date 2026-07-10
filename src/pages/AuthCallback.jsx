@@ -1,27 +1,75 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
+import { supabase } from '../lib/supabase'
 import { Loader2 } from 'lucide-react'
 
 const AuthCallback = () => {
   const navigate = useNavigate()
-  const { isAuthenticated, isInitialized } = useAuthStore()
+  const hasHandled = useRef(false)
 
   useEffect(() => {
-    // If auth store has finished initializing and the user is authenticated, redirect them
-    if (isInitialized) {
-      if (isAuthenticated) {
-        // Successful login, redirect to home page
-        navigate('/', { replace: true })
-      } else {
-        // If not authenticated after initialization, redirect back to auth page
-        const timer = setTimeout(() => {
-          navigate('/auth', { replace: true })
-        }, 3000)
-        return () => clearTimeout(timer)
+    // Listen directly to the Supabase auth state change — this is the only
+    // reliable way to know when the URL hash tokens have been exchanged for
+    // a session.  The zustand store's `isInitialized` flag may flip to true
+    // BEFORE the URL token exchange completes (race condition), which caused
+    // users to be bounced back to /auth.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        // Only act on the events that signal a fresh session from the callback URL.
+        // INITIAL_SESSION fires when the client finishes its initialize() — which
+        // includes processing the URL hash.  SIGNED_IN fires right after.
+        if (
+          (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') &&
+          session?.user &&
+          !hasHandled.current
+        ) {
+          hasHandled.current = true
+
+          // Give the auth store a moment to process the SIGNED_IN event and
+          // populate the profile (it does this in a setTimeout(…, 0)).
+          // We wait up to 4 seconds for the profile to appear.
+          let profile = useAuthStore.getState().profile
+          let attempts = 0
+          while (!profile && attempts < 8) {
+            await new Promise((r) => setTimeout(r, 500))
+            profile = useAuthStore.getState().profile
+            attempts++
+          }
+
+          // Decide where to send the user
+          if (profile?.phone) {
+            navigate('/', { replace: true })
+          } else {
+            navigate('/complete-profile', { replace: true })
+          }
+        }
       }
+    )
+
+    // Fallback: if no auth event fires within 8 seconds (e.g. the URL had no
+    // valid tokens), check the store state and redirect accordingly.
+    const fallbackTimer = setTimeout(() => {
+      if (hasHandled.current) return
+      hasHandled.current = true
+
+      const { isAuthenticated, profile } = useAuthStore.getState()
+      if (isAuthenticated) {
+        if (profile?.phone) {
+          navigate('/', { replace: true })
+        } else {
+          navigate('/complete-profile', { replace: true })
+        }
+      } else {
+        navigate('/auth', { replace: true })
+      }
+    }, 8000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(fallbackTimer)
     }
-  }, [isInitialized, isAuthenticated, navigate])
+  }, [navigate])
 
   return (
     <div className="min-h-[80vh] flex flex-col items-center justify-center bg-white dark:bg-[#060608]">
