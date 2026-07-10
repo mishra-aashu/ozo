@@ -4,6 +4,21 @@ import { findCityByPincode, findMatchingActiveCity, checkDeliveryZoneStatus, che
 import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
 
+const WhatsAppIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.459h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+  </svg>
+)
+
+const GoogleMapsIcon = ({ className = "w-4 h-4" }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EA4335" />
+    <path d="M12 2c-.07 0-.13.01-.2.01V6.5c.2 0 .2.5.2.5s.3 0 .5.2l1.3-1.3c-.47-.55-1.1-.9-1.8-1.01V2z" fill="#4285F4" />
+    <path d="M7.7 13.3l1.3-1.3c.2.2.5.3.7.3h.8V9.1L9 7.7c-.55.47-.9 1.1-1.01 1.8H6.5c0 .2.01.39.01.59l1.19 3.21z" fill="#FBBC05" />
+    <path d="M12 22s4.9-5.42 6.3-9.1l-1.3-1.3c-.2.2-.5.3-.7.3h-.8v3.4l1.5 1.4c-.6.9-1.7 2.1-3 3.6v2.3z" fill="#34A853" />
+  </svg>
+)
+
 // Helper component for styled suggestion icons
 const SuggestionIcon = ({ type, className = "w-4 h-4" }) => {
   switch (type) {
@@ -16,6 +31,23 @@ const SuggestionIcon = ({ type, className = "w-4 h-4" }) => {
     default:
       return <MapPin className={`${className} text-gray-400`} />
   }
+}
+
+// Helper to calculate distance between two coordinates in meters
+const getDistance = (lat1, lon1, lat2, lon2) => {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity
+  const R = 6371e3 // metres
+  const phi1 = lat1 * Math.PI/180
+  const phi2 = lat2 * Math.PI/180
+  const deltaPhi = (lat2-lat1) * Math.PI/180
+  const deltaLambda = (lon2-lon1) * Math.PI/180
+
+  const a = Math.sin(deltaPhi/2) * Math.sin(deltaPhi/2) +
+            Math.cos(phi1) * Math.cos(phi2) *
+            Math.sin(deltaLambda/2) * Math.sin(deltaLambda/2)
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+
+  return R * c
 }
 
 // Reusable Searchable Select Component for premium autocomplete dropdowns
@@ -189,9 +221,6 @@ export default function AddressForm({
   OzoMapPicker = null,
   onMapLocationSelect = null
 }) {
-  const [pastedLink, setPastedLink] = useState('')
-  const [isResolving, setIsResolving] = useState(false)
-
   // Consume cached operating cities and hierarchical data layers
   const activeCities = useLocationStore((state) => state.activeCities || [])
   const localities = useLocationStore((state) => state.localities || [])
@@ -713,16 +742,30 @@ export default function AddressForm({
     }
   }
 
-  const handleLocateLink = async () => {
-    if (!pastedLink) return
+  const resolveLocationLink = async (url) => {
+    if (!url) return
     setIsResolving(true)
     const toastId = toast.loading('Resolving location link...')
     
     try {
-      let resolvedUrl = pastedLink.trim()
+      let resolvedUrl = url.trim()
+      // Extract URL if there's surrounding text (e.g. "My location: https://maps.app.goo.gl/xyz")
+      const urlRegex = /(https?:\/\/[^\s]+)/gi
+      const match = resolvedUrl.match(urlRegex)
+      if (match) {
+        resolvedUrl = match[0]
+      } else {
+        // If there's no http/https protocol but it looks like a maps link, prepend https://
+        const mapDomains = ['maps.app.goo.gl', 'goo.gl', 'maps.google.com', 'google.com', 'g.co', 'g.page']
+        const hasDomain = mapDomains.some(d => resolvedUrl.toLowerCase().includes(d))
+        if (hasDomain && !resolvedUrl.startsWith('http://') && !resolvedUrl.startsWith('https://')) {
+          resolvedUrl = 'https://' + resolvedUrl
+        }
+      }
+
       let coords = extractCoordinatesFromUrl(resolvedUrl)
 
-      if (!coords && resolvedUrl.includes('//')) {
+      if (!coords && (resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://'))) {
         try {
           const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
           const apiUrl = isDev 
@@ -798,10 +841,119 @@ export default function AddressForm({
       const pincode = resolvedPlaceDetails?.pincode || geocodeResult.addressDetails?.postcode || ''
 
       const titlePrefix = resolvedPlaceDetails?.title ? `${resolvedPlaceDetails.title}, ` : ''
+      let addressLine1 = titlePrefix + ([road, suburb].filter(Boolean).join(', ') || geocodeResult.displayName)
+
+      // Search database local lists to map coordinates to nearest street/landmark!
+      let matchedLocalityId = null
+      let matchedLocalityName = ''
+      let matchedGaliId = null
+      let matchedLandmarkId = null
+      let matchedLandmarkName = ''
+
+      const textToSearch = (titlePrefix + ' ' + road + ' ' + suburb + ' ' + geocodeResult.displayName).toLowerCase()
+      
+      // 1. Check for exact/partial text match in landmarks
+      const foundLandmark = landmarks.find(lm => 
+        textToSearch.includes(lm.name.toLowerCase()) || 
+        (lm.name_hi && textToSearch.includes(lm.name_hi.toLowerCase()))
+      )
+      
+      // 2. Check for exact/partial text match in galis
+      const foundGali = galis.find(g => 
+        textToSearch.includes(g.name.toLowerCase()) || 
+        (g.name_hi && textToSearch.includes(g.name_hi.toLowerCase()))
+      )
+
+      // 3. Check for exact/partial text match in localities
+      const foundLocality = localities.find(l => 
+        textToSearch.includes(l.name.toLowerCase()) || 
+        (l.name_hi && textToSearch.includes(l.name_hi.toLowerCase()))
+      )
+
+      if (foundLandmark) {
+        matchedLandmarkId = foundLandmark.id
+        matchedLandmarkName = foundLandmark.name
+        matchedLocalityId = foundLandmark.locality_id
+        const locObj = localities.find(l => l.id === foundLandmark.locality_id)
+        if (locObj) matchedLocalityName = locObj.name
+      } else if (foundGali) {
+        matchedGaliId = foundGali.id
+        matchedLocalityId = foundGali.locality_id
+        const locObj = localities.find(l => l.id === foundGali.locality_id)
+        if (locObj) matchedLocalityName = locObj.name
+        if (!addressLine1.toLowerCase().includes(foundGali.name.toLowerCase())) {
+          addressLine1 = `${foundGali.name}, ${addressLine1}`
+        }
+      } else if (foundLocality) {
+        matchedLocalityId = foundLocality.id
+        matchedLocalityName = foundLocality.name
+      } else {
+        // Find by closest coordinate distance (with a threshold, e.g. 500m for street/landmark, 2000m for locality)
+        let closestLandmark = null
+        let minLandmarkDist = 500 // max 500 meters
+        landmarks.forEach(lm => {
+          if (lm.latitude && lm.longitude) {
+            const dist = getDistance(coords.lat, coords.lng, parseFloat(lm.latitude), parseFloat(lm.longitude))
+            if (dist < minLandmarkDist) {
+              minLandmarkDist = dist
+              closestLandmark = lm
+            }
+          }
+        })
+
+        let closestGali = null
+        let minGaliDist = 300 // max 300 meters
+        galis.forEach(g => {
+          if (g.latitude && g.longitude) {
+            const dist = getDistance(coords.lat, coords.lng, parseFloat(g.latitude), parseFloat(g.longitude))
+            if (dist < minGaliDist) {
+              minGaliDist = dist
+              closestGali = g
+            }
+          }
+        })
+
+        let closestLocality = null
+        let minLocalityDist = 2000 // max 2km
+        localities.forEach(l => {
+          if (l.latitude && l.longitude) {
+            const dist = getDistance(coords.lat, coords.lng, parseFloat(l.latitude), parseFloat(l.longitude))
+            if (dist < minLocalityDist) {
+              minLocalityDist = dist
+              closestLocality = l
+            }
+          }
+        })
+
+        if (closestLandmark) {
+          matchedLandmarkId = closestLandmark.id
+          matchedLandmarkName = closestLandmark.name
+          matchedLocalityId = closestLandmark.locality_id
+          const locObj = localities.find(l => l.id === closestLandmark.locality_id)
+          if (locObj) matchedLocalityName = locObj.name
+        } else if (closestGali) {
+          matchedGaliId = closestGali.id
+          matchedLocalityId = closestGali.locality_id
+          const locObj = localities.find(l => l.id === closestGali.locality_id)
+          if (locObj) matchedLocalityName = locObj.name
+          if (!addressLine1.toLowerCase().includes(closestGali.name.toLowerCase())) {
+            addressLine1 = `${closestGali.name}, ${addressLine1}`
+          }
+        } else if (closestLocality) {
+          matchedLocalityId = closestLocality.id
+          matchedLocalityName = closestLocality.name
+        }
+      }
+
       onChange({
         latitude: coords.lat,
         longitude: coords.lng,
-        address_line2: titlePrefix + ([road, suburb].filter(Boolean).join(', ') || geocodeResult.displayName),
+        address_line2: matchedLocalityName || titlePrefix + ([road, suburb].filter(Boolean).join(', ') || geocodeResult.displayName),
+        locality_id: matchedLocalityId,
+        gali_id: matchedGaliId,
+        landmark: matchedLandmarkName,
+        landmark_id: matchedLandmarkId,
+        address_line1: addressLine1,
         city,
         state,
         pincode,
@@ -834,7 +986,7 @@ export default function AddressForm({
       } else {
         toast.success('Location parsed and pinned successfully!', { id: toastId })
       }
-      setPastedLink('')
+      setActiveTab('manual')
     } catch (error) {
       console.error('Failed to locate from link:', error)
       toast.error('Failed to parse location link', { id: toastId })
@@ -844,64 +996,29 @@ export default function AddressForm({
   }
 
   return (
-    <div className="space-y-5">
-      {/* Smart Link Parser shortcut (Google Maps / WhatsApp) */}
-      <div className="p-4 bg-gradient-to-br from-gray-50 to-white dark:from-zinc-900 dark:to-zinc-900/60 border border-emerald-500/20 dark:border-emerald-500/10 rounded-2xl shadow-sm space-y-3.5 relative overflow-hidden group">
-        <div className="absolute right-0 top-0 w-24 h-24 bg-emerald-500/5 rounded-full blur-xl pointer-events-none -mr-4 -mt-4 group-hover:bg-emerald-500/10 transition-colors duration-500" />
-        
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <label className="text-[11px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-              Smart Setup Shortcut
-            </label>
+    <div className="space-y-6">
+      {/* 1. Map Section at the top */}
+      {!mapConfig?.hide_map && OzoMapPicker && (
+        <div className="space-y-2">
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-550">
+            Pin Delivery Location
+          </label>
+          <div className="border border-gray-150 dark:border-white/5 rounded-2xl overflow-hidden bg-white dark:bg-white/5 shadow-sm">
+            <div className="h-48 w-full relative">
+              <OzoMapPicker
+                initialPosition={formData.latitude && formData.longitude ? [formData.latitude, formData.longitude] : null}
+                onLocationSelect={onMapLocationSelect}
+              />
+            </div>
+            <div className="p-3 bg-gray-50 dark:bg-zinc-900/30 border-t border-gray-150 dark:border-white/5 text-[10px] font-bold text-gray-550 dark:text-gray-400 flex items-center gap-1.5">
+              <MapIcon size={12} className="text-ozo-red shrink-0" />
+              <span>Drag or tap the map to fine-tune your exact delivery pin point.</span>
+            </div>
           </div>
-          <span className="text-[9px] bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 px-1.5 py-0.5 rounded font-black uppercase tracking-wide">
-            Link Snap
-          </span>
         </div>
+      )}
 
-        <div className="flex gap-2 min-w-0">
-          <input
-            type="text"
-            placeholder="Paste Google Maps or WhatsApp Live link..."
-            value={pastedLink}
-            onChange={(e) => setPastedLink(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleLocateLink(); } }}
-            disabled={isResolving}
-            className="flex-1 min-w-0 px-3.5 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/25 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-medium"
-          />
-          <button
-            type="button"
-            onClick={handleLocateLink}
-            disabled={isResolving || !pastedLink}
-            className="px-4 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white rounded-xl text-xs font-black uppercase tracking-wider active:scale-95 transition-all flex items-center gap-1.5 disabled:opacity-50 shadow-sm shadow-emerald-500/10 hover:shadow-emerald-500/20 shrink-0"
-          >
-            {isResolving ? (
-              <>
-                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                <span className="shrink-0">Snapping...</span>
-              </>
-            ) : (
-              <>
-                <Navigation size={12} className="rotate-45 shrink-0" />
-                <span className="shrink-0">Snap</span>
-              </>
-            )}
-          </button>
-        </div>
-        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold leading-relaxed flex items-start gap-1.5">
-          <Info size={12} className="text-emerald-500 shrink-0 mt-0.5" />
-          <span>
-            Paste WhatsApp <b>"Share Live Location"</b> or Google Maps link here to instantly locate your address.
-          </span>
-        </p>
-      </div>
-
-      {/* Contact Details (Receiver Name/Phone) */}
+      {/* 2. Contact Details (Receiver Name/Phone) */}
       {showContactFields && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -943,7 +1060,7 @@ export default function AddressForm({
         </div>
       )}
 
-      {/* Address Type Selector */}
+      {/* 3. Address Type Selector */}
       <div>
         <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
           Save Address As
@@ -958,10 +1075,10 @@ export default function AddressForm({
               key={lbl}
               type="button"
               onClick={() => updateField('label', lbl)}
-              className={`flex-1 py-2 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
+              className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
                 formData.label === lbl
                   ? 'border-ozo-red bg-red-500/5 text-ozo-red shadow-sm'
-                  : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-500 hover:border-gray-300 dark:hover:border-white/20'
+                  : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-550 hover:border-gray-300 dark:hover:border-white/20'
               }`}
             >
               <Icon size={12} />
@@ -971,13 +1088,15 @@ export default function AddressForm({
         </div>
       </div>
 
-      {/* Address Details Container */}
-      <div className="border border-gray-100 dark:border-white/5 rounded-2xl p-4 bg-gray-50/[0.15] dark:bg-zinc-900/10 space-y-4">
-        <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
-          Address Information
-        </span>
+      {/* 4. Address Information Fields */}
+      <div className="space-y-4 pt-2">
+        <div className="flex items-center justify-between pb-1 border-b border-gray-150 dark:border-zinc-800">
+          <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
+            Address Information
+          </span>
+        </div>
 
-        {/* 1. City & Pincode Selection Chips */}
+        {/* City & Pincode Chips */}
         <div className="space-y-1.5">
           <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
             Delivery City & Pincode <span className="text-ozo-red">*</span>
@@ -1013,7 +1132,7 @@ export default function AddressForm({
                       })
                     }
                   }}
-                  className={`px-3.5 py-2 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
                     isSelected
                       ? 'border-ozo-red bg-red-500/10 text-ozo-red shadow-sm'
                       : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-gray-300'
@@ -1028,7 +1147,7 @@ export default function AddressForm({
           </div>
         </div>
 
-        {/* 2. Locality / Area Dropdown Selection */}
+        {/* Locality Dropdown */}
         <SearchableSelect
           label="Area / Locality"
           placeholder="Search and select your Area/Locality..."
@@ -1042,7 +1161,7 @@ export default function AddressForm({
 
         {formData.address_line2 ? (
           <div className="space-y-4 slide-up">
-            {/* 3. Gali / Apartment / Street (Optional Dropdown Selection) */}
+            {/* Gali / Apartment / Street */}
             <SearchableSelect
               label="Street / Gali / Apartment (Optional)"
               placeholder={currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first"}
@@ -1055,7 +1174,7 @@ export default function AddressForm({
               noOptionsMessage="No streets recorded in this area. Type custom details above."
             />
 
-            {/* 4. Flat / House No. / Building / Lodge */}
+            {/* House details */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
                 Flat / House No. / Building / Lodge <span className="text-ozo-red">*</span>
@@ -1075,7 +1194,7 @@ export default function AddressForm({
               </div>
             </div>
 
-            {/* 5. Landmark Dropdown Selection */}
+            {/* Landmark */}
             <SearchableSelect
               label="Nearest Landmark (Optional)"
               placeholder={currentLocality ? "Search nearby landmarks..." : "Please select an Area/Locality first"}
@@ -1088,12 +1207,12 @@ export default function AddressForm({
               noOptionsMessage="No matching landmarks. Type to enter a custom landmark."
             />
 
-            {/* Geospatial Snapping Radius Feedback */}
+            {/* Pin Info Banner */}
             {radiusMetrics && (
               <div className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-start gap-2.5 transition-all shadow-sm ${
                 radiusMetrics.isValid 
                   ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400' 
-                  : 'bg-amber-500/5 dark:bg-amber-500/10 border-amber-500/20 text-amber-700 dark:text-amber-400 animate-pulse'
+                  : 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400'
               }`}>
                 {radiusMetrics.isValid ? (
                   <>
@@ -1107,7 +1226,7 @@ export default function AddressForm({
                         }
                       </p>
                       <p className="text-[11px] font-medium leading-relaxed opacity-90">
-                        Coordinates snapped successfully (approx. {Math.round(radiusMetrics.distance)} meters from {
+                        Coordinates matched successfully (approx. {Math.round(radiusMetrics.distance)} meters from {
                           radiusMetrics.type === 'street' ? 'street' :
                           radiusMetrics.type === 'landmark' ? 'landmark' :
                           'locality'
@@ -1117,10 +1236,10 @@ export default function AddressForm({
                   </>
                 ) : (
                   <>
-                    <Info size={16} className="shrink-0 text-amber-500 mt-0.5" />
+                    <Info size={16} className="shrink-0 text-blue-500 mt-0.5" />
                     <div>
                       <p className="font-extrabold text-sm mb-0.5">
-                        ⚠️ Out of Bound Warning for {
+                        ℹ️ Location Pin Info for {
                           radiusMetrics.type === 'street' ? `Street: ${radiusMetrics.name}` :
                           radiusMetrics.type === 'landmark' ? `Landmark: ${radiusMetrics.name}` :
                           `${currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}`
@@ -1131,7 +1250,7 @@ export default function AddressForm({
                           radiusMetrics.type === 'street' ? 'street' :
                           radiusMetrics.type === 'landmark' ? 'landmark' :
                           'locality'
-                        } center, which exceeds the allowed limit of {radiusMetrics.allowedRadius} meters. Please verify the map marker.
+                        } center. Please verify if the map marker is placed correctly.
                       </p>
                     </div>
                   </>
@@ -1150,7 +1269,7 @@ export default function AddressForm({
 
       {formData.address_line2 && (
         <div className="space-y-4 slide-up">
-          {/* Delivery Notes / Instructions */}
+          {/* Notes */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
               <span>Delivery Notes / Instructions (Optional)</span>
@@ -1175,31 +1294,6 @@ export default function AddressForm({
               </p>
             )}
           </div>
-
-          {/* Map Picker Accordion */}
-          {!mapConfig?.hide_map && OzoMapPicker && setShowMapPicker && (
-            <div className="border border-gray-100 dark:border-white/5 rounded-2xl overflow-hidden bg-white dark:bg-white/5 shadow-sm mt-2">
-              <button
-                type="button"
-                onClick={() => setShowMapPicker(!showMapPicker)}
-                className="w-full flex items-center justify-between p-3.5 text-xs font-bold text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
-              >
-                <span className="flex items-center gap-2">
-                  <MapIcon size={14} className="text-ozo-red animate-pulse" />
-                  {formData.latitude && formData.longitude ? 'Location Pinned (Open Map to Adjust)' : 'Pin Location on Map (Optional)'}
-                </span>
-                {showMapPicker ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-              </button>
-              {showMapPicker && (
-                <div className="h-60 w-full relative">
-                  <OzoMapPicker
-                    initialPosition={formData.latitude && formData.longitude ? [formData.latitude, formData.longitude] : null}
-                    onLocationSelect={onMapLocationSelect}
-                  />
-                </div>
-              )}
-            </div>
-          )}
         </div>
       )}
     </div>

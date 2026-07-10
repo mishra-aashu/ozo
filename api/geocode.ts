@@ -21,7 +21,7 @@ const CACHE_TTL = 3600000; // 1 hour
 function isAllowedUrl(rawUrl: string): boolean {
   try {
     const parsed = new URL(rawUrl);
-    if (parsed.protocol !== 'https:') return false;
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
     return ALLOWED_DOMAINS.some(d => parsed.hostname === d || parsed.hostname.endsWith('.' + d));
   } catch {
     return false;
@@ -31,7 +31,7 @@ function isAllowedUrl(rawUrl: string): boolean {
 function isAllowedFinalUrl(finalUrl: string): boolean {
   try {
     const parsed = new URL(finalUrl);
-    if (parsed.protocol !== 'https:') return false;
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return false;
     
     const finalAllowed = [
       'google.com',
