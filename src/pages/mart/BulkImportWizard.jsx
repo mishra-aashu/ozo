@@ -315,7 +315,8 @@ export default function BulkImportWizard({
 
         if (!mapping.stock_quantity && numericWithDecimals && !hasDecimals) {
           const isPriceOrMrp = clean.includes('mrp') || clean.includes('price') || clean.includes('rate') || clean.includes('cost') || clean.includes('amount') || clean.includes('₹') || clean.includes('val')
-          if (!isPriceOrMrp) {
+          const isIdOrSerial = clean.includes('id') || clean.includes('serial') || clean.includes('number') || clean.includes('no') || clean.includes('num')
+          if (!isPriceOrMrp && !isIdOrSerial) {
             const maxVal = Math.max(...samples.map(s => parseInt(s.toString().trim().replace(/[,\s]/g, ''), 10) || 0))
             if (maxVal > 0 && maxVal < 10000) {
               mapping.stock_quantity = h
@@ -345,7 +346,11 @@ export default function BulkImportWizard({
           !clean.includes('brand') &&
           !clean.includes('unit') &&
           !clean.includes('barcode') &&
-          !clean.includes('code')
+          !clean.includes('code') &&
+          !clean.includes('id') &&
+          !clean.includes('num') &&
+          !clean.includes('no') &&
+          !clean.includes('serial')
       })
       mapping.stock_quantity = unmatched || ''
     }
