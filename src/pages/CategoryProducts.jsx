@@ -239,6 +239,8 @@ const CategoryProducts = () => {
     setBestsellerOnly(false)
     setFeaturedOnly(false)
     setSortBy('random')
+    setIsScrolled(false)
+    setShowFiltersScrolled(false)
     window.scrollTo({ top: 0, behavior: 'instant' })
     if (productsContainerRef.current) {
       productsContainerRef.current.scrollTo({ top: 0, behavior: 'instant' })
@@ -462,12 +464,14 @@ const CategoryProducts = () => {
   }
 
   // Gradient variables for Banner
-  const { bannerGradient, textColor, IconComponent, iconEmoji } = useMemo(() => {
+  const { bannerGradient, textColor, IconComponent, iconEmoji, pageBgGradient } = useMemo(() => {
     const gradientClasses = getGradient(slug, currentCategory?.name)
     const parts = gradientClasses.split(' ')
     const isEmoji = typeof currentCategory?.icon === 'string' && currentCategory.icon.codePointAt(0) > 127
+    const rawBanner = parts.slice(0, 2).join(' ')
     return {
-      bannerGradient: parts.slice(0, 2).join(' '),
+      bannerGradient: rawBanner,
+      pageBgGradient: rawBanner.replace(/\/10/g, '/4'),
       textColor: parts[2] || 'text-gray-600',
       IconComponent: isEmoji ? null : (resolveCategoryIcon(currentCategory)),
       iconEmoji: isEmoji ? currentCategory?.icon : null
@@ -585,7 +589,7 @@ const CategoryProducts = () => {
       initial="hidden"
       animate="visible"
       variants={pageVariants}
-      className="flex flex-col bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible"
+      className={`flex flex-col bg-gradient-to-br ${pageBgGradient} dark:from-[#0a0a0a] dark:to-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible`}
     >
       <SEO
         title={`Buy ${catName} Online | OZO Mart Aurangabad`}
@@ -595,135 +599,52 @@ const CategoryProducts = () => {
       />
       <motion.div 
         variants={headerVariants}
-        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b border-ozo-gray-lighter/30 dark:border-white/5 transform-gpu will-change-[transform,opacity,background-color] ${
+        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b transform-gpu will-change-[background-color,box-shadow,border-color] ${
           isScrolled 
-            ? 'bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur-md shadow-lg' 
-            : `bg-white/95 dark:bg-[#0d0d0d]/95 bg-gradient-to-br ${bannerGradient}`
+            ? 'bg-white/95 dark:bg-[#0d0d0d]/95 backdrop-blur-md shadow-md border-ozo-gray-lighter/30 dark:border-white/5' 
+            : 'bg-white/80 dark:bg-[#0d0d0d]/80 border-transparent'
         }`} 
         style={{ 
           top: '0px',
-          transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s',
+          transition: 'background-color 0.3s, border-color 0.3s, box-shadow 0.3s',
           transform: 'translate3d(0,0,0)',
           backfaceVisibility: 'hidden'
         }}
       >
-        {/* Floating Background Icon / Emoji wrapper with clipping */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div 
-            className="absolute right-6 -bottom-6 opacity-[0.06] dark:opacity-[0.03] transition-all duration-500 transform-gpu will-change-transform"
-            style={{
-              transform: isScrolled ? 'translate3d(0, -20px, 0) scale(0.8)' : 'translate3d(0, 0, 0) scale(1.5)',
-              opacity: isScrolled ? 0 : 0.06
-            }}
-          >
-            {iconEmoji ? (
-              <span className="text-[120px] select-none block leading-none">{iconEmoji}</span>
-            ) : (
-              IconComponent && <IconComponent size={180} />
-            )}
-          </div>
-        </div>
-
-        <motion.div 
-          layout
-          transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-          className="container-custom relative z-10 transform-gpu will-change-[transform,padding]"
+        <div 
+          className="container-custom relative z-10 transform-gpu"
           style={{
-            paddingTop: `calc(env(safe-area-inset-top, 0px) + ${isScrolled ? '0.375rem' : '1rem'})`,
-            paddingBottom: isScrolled ? '0.375rem' : '1.25rem',
-            transition: 'padding 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+            paddingTop: `calc(env(safe-area-inset-top, 0px) + 0.625rem)`,
+            paddingBottom: '0.625rem'
           }}
         >
-          <motion.div 
-            layout
-            transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-            className={`flex transform-gpu will-change-transform ${
-              isScrolled 
-                ? 'flex-row items-center justify-between gap-2 w-full' 
-                : 'flex-col md:flex-row md:items-center justify-between gap-4'
-            }`}
-          >
+          <div className="flex flex-row items-center justify-between gap-3 w-full">
             {/* Left Back Arrow and Title info */}
-            <motion.div 
-              layout
-              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-              className={`flex items-center transform-gpu will-change-transform ${
-                isScrolled 
-                  ? 'gap-1.5 flex-1 min-w-0 md:w-auto md:items-start md:gap-3' 
-                  : 'gap-3 w-full md:w-auto items-start'
-              }`}
-            >
-              <motion.button
-                layout
-                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+              <button
                 onClick={() => navigate('/')}
-                className={`btn-icon rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm transform-gpu will-change-transform ${
-                  isScrolled ? 'p-1' : 'p-2 mt-1'
-                }`}
+                className="btn-icon p-2.5 rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/45 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm flex-shrink-0"
               >
-                <ChevronLeft size={isScrolled ? 16 : 20} />
-              </motion.button>
-              <motion.div 
-                layout
-                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-                className="flex-1 min-w-0 transform-gpu will-change-transform"
-              >
-                <motion.h1 
-                  layout="position"
-                  transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-                  className={`font-black text-gray-900 dark:text-white uppercase tracking-tight truncate transition-all duration-300 transform-gpu will-change-[transform,font-size] ${
-                    isScrolled ? 'text-xs xs:text-sm md:text-xl' : 'text-xl md:text-2xl'
-                  }`}
-                >
+                <ChevronLeft size={18} />
+              </button>
+              <div className="min-w-0 flex-1">
+                <h1 className="font-black text-gray-900 dark:text-white uppercase tracking-tight truncate text-sm xs:text-base md:text-xl leading-tight">
                   {currentCategory ? renderTitle(currentCategory.name) : 'Loading Category...'}
-                </motion.h1>
-                
-                {/* Collapsible Category Description */}
-                <motion.div 
-                  layout="position"
-                  transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-                  className="transition-all duration-300 overflow-hidden hidden md:block transform-gpu will-change-[max-height,opacity]"
-                  style={{
-                    maxHeight: isScrolled ? '0px' : '150px',
-                    opacity: isScrolled ? 0 : 1,
-                    marginTop: isScrolled ? '0px' : '8px'
-                  }}
-                >
-                  <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed max-w-xl">
-                    {currentCategory?.description || `Browse fresh and premium-grade segment items handpicked just for you. Guaranteed delivery at your doorstep in Aurangabad within 30 minutes.`}
-                  </p>
-                </motion.div>
-
-                <motion.p 
-                  layout="position"
-                  transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-                  className={`font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider transition-all duration-300 transform-gpu will-change-[transform,height,opacity] ${
-                    isScrolled ? 'text-[0px] h-0 overflow-hidden md:text-[9px] md:h-auto' : 'text-[10px] md:text-xs mt-1'
-                  }`}
-                >
+                </h1>
+                <p className="hidden md:block font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider text-[10px] md:text-xs mt-0.5">
                   {isProductsLoading ? 'Fetching products...' : `Showing ${filteredAndSortedProducts.length} items`}
-                </motion.p>
-              </motion.div>
-            </motion.div>
+                </p>
+              </div>
+            </div>
 
             {/* Right Controls */}
-            <motion.div 
-              layout
-              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-              className={`flex items-center justify-end transform-gpu will-change-transform ${
-                isScrolled 
-                  ? 'gap-1.5 w-auto md:gap-3' 
-                  : 'justify-between md:justify-end gap-3 w-full md:w-auto'
-              }`}
-            >
+            <div className="flex items-center justify-end gap-2.5 flex-shrink-0">
               {/* Desktop Filters Toggle Button when scrolled */}
-              <motion.button
-                layout
-                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              <button
                 onClick={() => setShowFiltersScrolled(!showFiltersScrolled)}
-                className={`hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all border transform-gpu will-change-transform ${
+                className={`hidden lg:flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs transition-all border transform-gpu will-change-transform ${
                   showFiltersScrolled
-                    ? 'bg-gradient-ozo text-white border-transparent shadow-sm'
+                    ? 'bg-gradient-ozo text-white border-transparent shadow-sm scale-105'
                     : 'bg-white/50 dark:bg-white/5 text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/30'
                 }`}
               >
@@ -736,14 +657,10 @@ const CategoryProducts = () => {
                     {(priceLimit < maxCategoryPrice ? 1 : 0) + (inStockOnly ? 1 : 0) + (bestsellerOnly ? 1 : 0) + (featuredOnly ? 1 : 0)}
                   </span>
                 )}
-              </motion.button>
+              </button>
 
               {/* View toggles for larger devices */}
-              <motion.div 
-                layout
-                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-                className="hidden sm:flex items-center bg-gray-100 dark:bg-white/5 p-1 rounded-xl transform-gpu will-change-transform"
-              >
+              <div className="hidden sm:flex items-center bg-gray-100 dark:bg-white/5 p-1 rounded-xl">
                 <button
                   onClick={() => setViewMode('grid')}
                   className={`p-2 rounded-lg transition-all ${
@@ -764,185 +681,300 @@ const CategoryProducts = () => {
                 >
                   <List size={18} />
                 </button>
-              </motion.div>
+              </div>
 
               {/* Filters Toggle Button (triggers sheet on mobile) */}
-              <motion.button
-                layout
-                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              <button
                 onClick={() => setShowMobileFilters(true)}
-                className={`flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 transform-gpu will-change-transform ${
-                  isScrolled 
-                    ? 'gap-1 px-2 py-1.5 rounded-lg text-xs font-bold' 
-                    : 'gap-1.5 px-2.5 py-1.5 xs:px-4 xs:py-2.5 rounded-lg xs:rounded-xl text-xs xs:text-sm font-bold'
-                }`}
+                className="flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 gap-1.5 px-3 py-2 rounded-xl text-xs font-bold"
               >
-                <SlidersHorizontal size={isScrolled ? 12 : 16} />
-                <span className={isScrolled ? 'hidden sm:inline' : ''}>Filters</span>
-              </motion.button>
+                <SlidersHorizontal size={14} />
+                <span>Filters</span>
+              </button>
 
               {/* Sorting Select Option */}
-              <motion.div 
-                layout
-                transition={{ type: 'spring', stiffness: 280, damping: 28 }}
-                className="transform-gpu will-change-transform"
-              >
-                <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={isScrolled} />
-              </motion.div>
-            </motion.div>
-          </motion.div>
-
-          {/* Subcategory Chips Navigation Bar - Desktop Only */}
-          {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
-            <div className="hidden lg:flex items-center gap-2 overflow-x-auto scrollbar-hide py-2 mt-3.5 border-t border-gray-150/40 dark:border-white/5 no-scrollbar">
-              <button
-                onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
-                className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
-                  slug === currentParentInfo.slug
-                    ? 'bg-gradient-ozo text-white border-transparent shadow-md shadow-ozo-red/20 scale-105'
-                    : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
-                }`}
-              >
-                <Box size={14} className="inline-block" />
-                <span>All {currentParentInfo.name}</span>
-              </button>
-              {currentParentInfo.subcategories.map((sub) => (
-                <button
-                  key={sub.id}
-                  onClick={() => navigate(`/category/${sub.slug}`)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
-                    slug === sub.slug
-                      ? 'bg-gradient-ozo text-white border-transparent shadow-md shadow-ozo-red/20 scale-105'
-                      : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
-                  }`}
-                >
-                  <span>{(() => {
-                    const isEmoji = sub.icon && sub.icon.codePointAt(0) > 127
-                    if (isEmoji) return sub.icon
-                    const IconComponent = resolveCategoryIcon(sub)
-                    return <IconComponent size={14} className="inline-block" />
-                  })()}</span>
-                  <span>{sub.name}</span>
-                </button>
-              ))}
+              <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={true} />
             </div>
-          )}
-
-          {/* Desktop Filters Panel - Premium Style */}
-          <div 
-            className="hidden lg:flex items-center justify-between gap-6 bg-gray-50 dark:bg-white/[0.02] border-gray-100 dark:border-white/5 rounded-2xl transition-all duration-300 overflow-hidden"
-            style={{
-              maxHeight: (!isScrolled || showFiltersScrolled) ? '100px' : '0px',
-              opacity: (!isScrolled || showFiltersScrolled) ? 1 : 0,
-              marginTop: (!isScrolled || showFiltersScrolled) ? '16px' : '0px',
-              padding: (!isScrolled || showFiltersScrolled) ? '14px' : '0px',
-              borderWidth: (!isScrolled || showFiltersScrolled) ? '1px' : '0px',
-            }}
-          >
-            <div className="flex items-center gap-6 flex-1">
-              {/* Price Slider */}
-              <div className="flex items-center gap-3 w-80">
-                <span className="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Price Range:</span>
-                <input
-                  type="range"
-                  className="w-full accent-ozo-red cursor-pointer h-1 bg-gray-200 dark:bg-white/10 rounded-lg appearance-none"
-                  min="0"
-                  max={maxCategoryPrice}
-                  value={priceLimit}
-                  onChange={(e) => setPriceLimit(Number(e.target.value))}
-                />
-                <span className="text-xs font-black text-gradient whitespace-nowrap min-w-[85px] text-right">Max: ₹{priceLimit}</span>
-              </div>
-
-              <div className="w-px h-5 bg-gray-200 dark:bg-white/10" />
-
-              {/* Toggle Filters */}
-              <div className="flex items-center gap-5">
-                {/* In Stock */}
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
-                    inStockOnly
-                      ? 'bg-gradient-ozo border-transparent text-white'
-                      : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
-                  }`}>
-                    {inStockOnly && <Check size={10} strokeWidth={4} />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={inStockOnly}
-                    onChange={(e) => setInStockOnly(e.target.checked)}
-                    className="hidden"
-                  />
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
-                    In Stock Only
-                  </span>
-                </label>
-
-                {/* Bestseller */}
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
-                    bestsellerOnly
-                      ? 'bg-gradient-ozo border-transparent text-white'
-                      : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
-                  }`}>
-                    {bestsellerOnly && <Check size={10} strokeWidth={4} />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={bestsellerOnly}
-                    onChange={(e) => setBestsellerOnly(e.target.checked)}
-                    className="hidden"
-                  />
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
-                    Bestsellers Only
-                  </span>
-                </label>
-
-                {/* Featured */}
-                <label className="flex items-center gap-2 cursor-pointer group">
-                  <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
-                    featuredOnly
-                      ? 'bg-gradient-ozo border-transparent text-white'
-                      : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
-                  }`}>
-                    {featuredOnly && <Check size={10} strokeWidth={4} />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={featuredOnly}
-                    onChange={(e) => setFeaturedOnly(e.target.checked)}
-                    className="hidden"
-                  />
-                  <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
-                    Featured Items Only
-                  </span>
-                </label>
-              </div>
-            </div>
-
-            {/* Clear Button */}
-            {(priceLimit < maxCategoryPrice || inStockOnly || bestsellerOnly || featuredOnly) && (
-              <button
-                onClick={() => {
-                  setPriceLimit(maxCategoryPrice)
-                  setInStockOnly(false)
-                  setBestsellerOnly(false)
-                  setFeaturedOnly(false)
-                  setSortBy('random')
-                }}
-                className="px-3 py-1.5 rounded-xl font-bold text-[11px] border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap flex items-center gap-1 hover:border-ozo-red/50 hover:text-ozo-red"
-              >
-                <X size={12} />
-                Clear Filters
-              </button>
-            )}
           </div>
-        </motion.div>
+        </div>
+
+        {/* Floating Filters Dropdown when scrolled on desktop */}
+        <AnimatePresence>
+          {isScrolled && showFiltersScrolled && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              className="absolute top-full left-0 right-0 bg-white/95 dark:bg-[#0d0d0d]/95 backdrop-blur-md border-b border-gray-150/40 dark:border-white/5 shadow-lg overflow-hidden z-20 hidden lg:block"
+            >
+              <div className="container-custom py-4 flex items-center justify-between gap-6">
+                <div className="flex items-center gap-6 flex-1">
+                  {/* Price Slider */}
+                  <div className="flex items-center gap-3 w-80">
+                    <span className="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Price Range:</span>
+                    <input
+                      type="range"
+                      className="w-full accent-ozo-red cursor-pointer h-1 bg-gray-200 dark:bg-white/10 rounded-lg appearance-none"
+                      min="0"
+                      max={maxCategoryPrice}
+                      value={priceLimit}
+                      onChange={(e) => setPriceLimit(Number(e.target.value))}
+                    />
+                    <span className="text-xs font-black text-gradient whitespace-nowrap min-w-[85px] text-right">Max: ₹{priceLimit}</span>
+                  </div>
+
+                  <div className="w-px h-5 bg-gray-200 dark:bg-white/10" />
+
+                  {/* Toggle Filters */}
+                  <div className="flex items-center gap-5">
+                    {/* In Stock */}
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
+                        inStockOnly
+                          ? 'bg-gradient-ozo border-transparent text-white'
+                          : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
+                      }`}>
+                        {inStockOnly && <Check size={10} strokeWidth={4} />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={inStockOnly}
+                        onChange={(e) => setInStockOnly(e.target.checked)}
+                        className="hidden"
+                      />
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
+                        In Stock Only
+                      </span>
+                    </label>
+
+                    {/* Bestseller */}
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
+                        bestsellerOnly
+                          ? 'bg-gradient-ozo border-transparent text-white'
+                          : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
+                      }`}>
+                        {bestsellerOnly && <Check size={10} strokeWidth={4} />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={bestsellerOnly}
+                        onChange={(e) => setBestsellerOnly(e.target.checked)}
+                        className="hidden"
+                      />
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
+                        Bestsellers Only
+                      </span>
+                    </label>
+
+                    {/* Featured */}
+                    <label className="flex items-center gap-2 cursor-pointer group">
+                      <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
+                        featuredOnly
+                          ? 'bg-gradient-ozo border-transparent text-white'
+                          : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
+                      }`}>
+                        {featuredOnly && <Check size={10} strokeWidth={4} />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={featuredOnly}
+                        onChange={(e) => setFeaturedOnly(e.target.checked)}
+                        className="hidden"
+                      />
+                      <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
+                        Featured Items Only
+                      </span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Clear Button */}
+                {(priceLimit < maxCategoryPrice || inStockOnly || bestsellerOnly || featuredOnly) && (
+                  <button
+                    onClick={() => {
+                      setPriceLimit(maxCategoryPrice)
+                      setInStockOnly(false)
+                      setBestsellerOnly(false)
+                      setFeaturedOnly(false)
+                      setSortBy('random')
+                    }}
+                    className="px-3 py-1.5 rounded-xl font-bold text-[11px] border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap flex items-center gap-1 hover:border-ozo-red/50 hover:text-ozo-red"
+                  >
+                    <X size={12} />
+                    Clear Filters
+                  </button>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       <div className="container-custom flex-1 min-h-0 py-2 md:py-6 flex flex-col">
         {/* Breadcrumb path */}
         <Breadcrumb items={breadcrumbItems} className="hidden md:flex mb-6" />
+
+        {/* Category Banner Card - Desktop/Tablet Only */}
+        <div className={`hidden md:block relative overflow-hidden rounded-[2rem] p-8 mb-6 bg-gradient-to-br ${bannerGradient} border border-ozo-gray-lighter/25 dark:border-white/5 shadow-sm`}>
+          {/* Floating Background Icon / Emoji */}
+          <div className="absolute right-8 -bottom-8 opacity-[0.08] dark:opacity-[0.04] pointer-events-none select-none">
+            {iconEmoji ? (
+              <span className="text-[150px] leading-none block">{iconEmoji}</span>
+            ) : (
+              IconComponent && <IconComponent size={220} className="text-current" />
+            )}
+          </div>
+
+          <div className="relative z-10 max-w-2xl">
+            <span className="inline-block text-[11px] font-black text-ozo-red dark:text-red-400 uppercase tracking-widest mb-2 px-2.5 py-1 rounded-full bg-ozo-red/10 dark:bg-red-500/10">
+              OZO Market
+            </span>
+            <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-3">
+              {currentCategory ? currentCategory.name : 'Loading Category...'}
+            </h1>
+            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
+              {currentCategory?.description || `Browse fresh and premium-grade segment items handpicked just for you. Guaranteed delivery at your doorstep in Aurangabad within 30 minutes.`}
+            </p>
+          </div>
+        </div>
+
+        {/* Subcategory Chips Navigation Bar - Desktop Only */}
+        {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
+          <div className="hidden lg:flex items-center gap-2 overflow-x-auto scrollbar-hide py-2.5 mb-6 border-b border-gray-150/40 dark:border-white/5 no-scrollbar">
+            <button
+              onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
+              className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
+                slug === currentParentInfo.slug
+                  ? 'bg-gradient-ozo text-white border-transparent shadow-md shadow-ozo-red/20 scale-105'
+                  : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
+              }`}
+            >
+              <Box size={14} className="inline-block" />
+              <span>All {currentParentInfo.name}</span>
+            </button>
+            {currentParentInfo.subcategories.map((sub) => (
+              <button
+                key={sub.id}
+                onClick={() => navigate(`/category/${sub.slug}`)}
+                className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
+                  slug === sub.slug
+                    ? 'bg-gradient-ozo text-white border-transparent shadow-md shadow-ozo-red/20 scale-105'
+                    : 'bg-white/40 dark:bg-black/25 text-gray-700 dark:text-gray-300 border-gray-200/40 dark:border-white/10 hover:border-ozo-red/40 hover:text-ozo-red hover:bg-white dark:hover:bg-white/5'
+                }`}
+              >
+                <span>{(() => {
+                  const isEmoji = sub.icon && sub.icon.codePointAt(0) > 127
+                  if (isEmoji) return sub.icon
+                  const IconComponent = resolveCategoryIcon(sub)
+                  return <IconComponent size={14} className="inline-block" />
+                })()}</span>
+                <span>{sub.name}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* Desktop Filters Panel - Premium Style */}
+        <div className="hidden lg:flex items-center justify-between gap-6 bg-white dark:bg-white/[0.02] border border-gray-150/40 dark:border-white/5 rounded-2xl p-4.5 mb-6 shadow-sm">
+          <div className="flex items-center gap-6 flex-1">
+            {/* Price Slider */}
+            <div className="flex items-center gap-3 w-80">
+              <span className="text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider whitespace-nowrap">Price Range:</span>
+              <input
+                type="range"
+                className="w-full accent-ozo-red cursor-pointer h-1 bg-gray-200 dark:bg-white/10 rounded-lg appearance-none"
+                min="0"
+                max={maxCategoryPrice}
+                value={priceLimit}
+                onChange={(e) => setPriceLimit(Number(e.target.value))}
+              />
+              <span className="text-xs font-black text-gradient whitespace-nowrap min-w-[85px] text-right">Max: ₹{priceLimit}</span>
+            </div>
+
+            <div className="w-px h-5 bg-gray-200 dark:bg-white/10" />
+
+            {/* Toggle Filters */}
+            <div className="flex items-center gap-5">
+              {/* In Stock */}
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
+                  inStockOnly
+                    ? 'bg-gradient-ozo border-transparent text-white'
+                    : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
+                }`}>
+                  {inStockOnly && <Check size={10} strokeWidth={4} />}
+                </div>
+                <input
+                  type="checkbox"
+                  checked={inStockOnly}
+                  onChange={(e) => setInStockOnly(e.target.checked)}
+                  className="hidden"
+                />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
+                  In Stock Only
+                </span>
+              </label>
+
+              {/* Bestseller */}
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
+                  bestsellerOnly
+                    ? 'bg-gradient-ozo border-transparent text-white'
+                    : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
+                }`}>
+                  {bestsellerOnly && <Check size={10} strokeWidth={4} />}
+                </div>
+                <input
+                  type="checkbox"
+                  checked={bestsellerOnly}
+                  onChange={(e) => setBestsellerOnly(e.target.checked)}
+                  className="hidden"
+                />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
+                  Bestsellers Only
+                </span>
+              </label>
+
+              {/* Featured */}
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className={`w-4.5 h-4.5 rounded border flex items-center justify-center transition-all ${
+                  featuredOnly
+                    ? 'bg-gradient-ozo border-transparent text-white'
+                    : 'border-gray-300 dark:border-white/10 group-hover:border-ozo-red'
+                }`}>
+                  {featuredOnly && <Check size={10} strokeWidth={4} />}
+                </div>
+                <input
+                  type="checkbox"
+                  checked={featuredOnly}
+                  onChange={(e) => setFeaturedOnly(e.target.checked)}
+                  className="hidden"
+                />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 select-none whitespace-nowrap">
+                  Featured Items Only
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Clear Button */}
+          {(priceLimit < maxCategoryPrice || inStockOnly || bestsellerOnly || featuredOnly) && (
+            <button
+              onClick={() => {
+                setPriceLimit(maxCategoryPrice)
+                setInStockOnly(false)
+                setBestsellerOnly(false)
+                setFeaturedOnly(false)
+                setSortBy('random')
+              }}
+              className="px-3 py-1.5 rounded-xl font-bold text-[11px] border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5 transition-colors whitespace-nowrap flex items-center gap-1 hover:border-ozo-red/50 hover:text-ozo-red"
+            >
+              <X size={12} />
+              Clear Filters
+            </button>
+          )}
+        </div>
 
         {/* Main Grid containing filters and products */}
         <div className="flex gap-2 md:gap-8 flex-1 min-h-0 h-full lg:h-auto">
@@ -1060,10 +1092,8 @@ const CategoryProducts = () => {
             <div 
               className="card p-6 sticky border border-gray-100 dark:border-white/5 shadow-sm space-y-4 transition-all duration-300" 
               style={{ 
-                top: isScrolled
-                  ? (showFiltersScrolled ? '165px' : '65px')
-                  : '160px',
-                transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s'
+                top: '76px',
+                transition: 'background-color 0.3s, border-color 0.3s'
               }}
             >
               <div>
