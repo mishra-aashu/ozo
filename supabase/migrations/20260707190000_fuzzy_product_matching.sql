@@ -13,7 +13,7 @@ STABLE
 SECURITY DEFINER
 AS $$
 DECLARE
-  item record;
+  item jsonb;
   matched_items jsonb := '[]'::jsonb;
   unmatched_items jsonb := '[]'::jsonb;
   product record;
