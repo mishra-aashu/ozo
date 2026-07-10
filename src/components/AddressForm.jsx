@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike } from 'lucide-react'
+import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike, DoorOpen, Bell, BellOff } from 'lucide-react'
 import { findCityByPincode, findMatchingActiveCity, checkDeliveryZoneStatus, checkPincodeServiceable, useLocationStore } from '../stores/locationStore'
 import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
@@ -925,14 +925,11 @@ export default function AddressForm({
             
             <div className="relative flex gap-2">
               <div className="relative flex-1">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-gray-400 dark:text-white/20 pointer-events-none">
-                  <Navigation size={14} className="text-ozo-red shrink-0" />
-                </div>
                 <input
                   type="text"
                   value={pastedLink}
                   onChange={(e) => setPastedLink(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/20 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
+                  className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/20 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
                   placeholder="Paste WhatsApp text, Google Maps, or Apple Maps link..."
                 />
               </div>
@@ -955,22 +952,16 @@ export default function AddressForm({
                     <span>Saving...</span>
                   </>
                 ) : (
-                  <>
-                    <Check size={13} />
-                    <span>Save Link</span>
-                  </>
+                  <span>Save Link</span>
                 )}
               </button>
             </div>
 
             {formData.google_maps_url && (
               <div className="p-3.5 rounded-xl border border-emerald-500/20 bg-emerald-500/5 dark:bg-emerald-500/10 flex items-center justify-between gap-3 text-xs text-emerald-800 dark:text-emerald-350 font-semibold animate-in fade-in slide-in-from-top-1 duration-200">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-emerald-500 shrink-0 text-sm">✓</span>
-                  <div className="min-w-0">
-                    <p className="font-extrabold text-[11px] text-emerald-700 dark:text-emerald-400">Location Link Saved & Active</p>
-                    <p className="truncate font-mono text-[10px] opacity-80 mt-0.5">{formData.google_maps_url}</p>
-                  </div>
+                <div className="min-w-0">
+                  <p className="font-extrabold text-[11px] text-emerald-700 dark:text-emerald-400">Location Link Saved & Active</p>
+                  <p className="truncate font-mono text-[10px] opacity-80 mt-0.5">{formData.google_maps_url}</p>
                 </div>
                 <button
                   type="button"
@@ -984,7 +975,7 @@ export default function AddressForm({
                       longitude: null
                     })
                   }}
-                  className="text-[10px] text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 px-2 py-1.5 rounded-lg transition-all shrink-0 font-bold"
+                  className="text-[10px] text-red-500 hover:text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 px-2.5 py-1.5 rounded-lg transition-all shrink-0 font-bold"
                 >
                   Remove
                 </button>
@@ -1267,6 +1258,44 @@ export default function AddressForm({
                 ? "This street is narrow, bike delivery only. Any specific instructions?" 
                 : "e.g. Ring bell, leave at gate, or call on arrival..."}
             />
+
+            {/* Quick-tap suggestions */}
+            <div className="flex flex-wrap gap-2 mt-2">
+              {[
+                'Call on arrival',
+                'Leave at gate',
+                'Ring bell',
+                "Don't ring bell"
+              ].map((label) => {
+                const currentNotes = formData.notes || ''
+                const isSelected = currentNotes.split(',').map(p => p.trim().toLowerCase()).includes(label.toLowerCase())
+                return (
+                  <button
+                    key={label}
+                    type="button"
+                    onClick={() => {
+                      const parts = currentNotes.split(',').map(p => p.trim()).filter(Boolean)
+                      if (isSelected) {
+                        const filtered = parts.filter(p => p.toLowerCase() !== label.toLowerCase())
+                        updateField('notes', filtered.join(', '))
+                      } else {
+                        if (!parts.some(p => p.toLowerCase() === label.toLowerCase())) {
+                          parts.push(label)
+                        }
+                        updateField('notes', parts.join(', '))
+                      }
+                    }}
+                    className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
+                      isSelected
+                        ? 'border-ozo-red bg-red-500/5 text-ozo-red shadow-sm'
+                        : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-550 hover:border-gray-305 dark:text-gray-300 dark:hover:border-white/25'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
             {currentGali && currentGali.vehicle_restriction === 'bike_only' && (
               <p className="text-[11px] text-amber-600 dark:text-amber-400/90 font-bold mt-1.5 flex items-center gap-1.5">
                 <Info size={12} className="shrink-0" />
