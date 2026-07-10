@@ -114,7 +114,7 @@ const ComboDetail = () => {
         const allSlugs = [...comboConfig.baseSlugs, ...addonSlugs]
         const { data, error } = await supabase
           .from('products')
-          .select('*')
+          .select('id, name, unit, image_url, price, mrp, slug, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id')
           .in('slug', allSlugs)
           .eq('is_available', true)
 

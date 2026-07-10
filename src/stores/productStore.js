@@ -15,7 +15,7 @@ let searchProductsController = null
 let getProductsByCategoryController = null
 
 // Helper to construct product query with city filters and overrides
-const buildProductQuery = (supabaseClient, citySlug, fields = '*', includeUnavailable = true) => {
+const buildProductQuery = (supabaseClient, citySlug, fields = 'id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id', includeUnavailable = true) => {
   if (citySlug) {
     let query = supabaseClient
       .from('products')
@@ -131,6 +131,20 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
   });
 }
 
+const ensureNumericPrices = (product) => {
+  if (!product) return null;
+  return {
+    ...product,
+    price: parseFloat(product.price || 0),
+    mrp: parseFloat(product.mrp || 0),
+    selling_price: parseFloat(product.selling_price || 0),
+    ozo_price: product.ozo_price !== null && product.ozo_price !== undefined ? parseFloat(product.ozo_price) : null,
+    discount_percentage: parseInt(product.discount_percentage || 0, 10),
+    is_available: !!product.is_available,
+    is_upcoming: !!product.is_upcoming,
+  };
+};
+
 export const useProductStore = create((set, get) => ({
   // State
   products: [],
@@ -138,6 +152,10 @@ export const useProductStore = create((set, get) => ({
   bestsellerProducts: [],
   categories: [],
   offers: [],
+  stealDeals: [],
+  summerSpecials: [],
+  mandi: [],
+  budgetPicks: [],
   isLoading: false,
   isProductsLoading: false,
   isFeaturedLoading: false,
@@ -146,6 +164,7 @@ export const useProductStore = create((set, get) => ({
   isOffersLoading: false,
   isSearchLoading: false,
   isProductDetailLoading: false,
+  isHomeLoading: false,
   currentProduct: null,
   searchResults: [],
   spellingSuggestion: null,
@@ -170,7 +189,7 @@ export const useProductStore = create((set, get) => ({
 
       const citySlug = useLocationStore.getState().selectedCitySlug
       let query = buildProductQuery(supabase, citySlug, `
-        *,
+        id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
           id,
           name,
@@ -303,7 +322,7 @@ export const useProductStore = create((set, get) => ({
       }
 
       let query = buildProductQuery(supabase, citySlug, `
-        *,
+        id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
           id,
           name,
@@ -340,7 +359,7 @@ export const useProductStore = create((set, get) => ({
 
       if (products.length === 0) {
         let fallbackQuery = buildProductQuery(supabase, citySlug, `
-          *,
+          id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
           category:categories (
             id,
             name,
@@ -396,7 +415,7 @@ export const useProductStore = create((set, get) => ({
       
       const citySlug = useLocationStore.getState().selectedCitySlug
       let query = buildProductQuery(supabase, citySlug, `
-        *,
+        id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
           id,
           name,
@@ -424,7 +443,7 @@ export const useProductStore = create((set, get) => ({
 
       if (products.length === 0) {
         let fallbackQuery = buildProductQuery(supabase, citySlug, `
-          *,
+          id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
           category:categories (
             id,
             name,
@@ -651,7 +670,7 @@ export const useProductStore = create((set, get) => ({
           similarity_threshold: 0.2
         })
         .select(`
-          *,
+          id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
           category:categories (
             id,
             name,
@@ -857,7 +876,7 @@ export const useProductStore = create((set, get) => ({
       // Then get products
       const citySlug = useLocationStore.getState().selectedCitySlug
       let productsQuery = buildProductQuery(supabase, citySlug, `
-        *,
+        id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
           id,
           name,
@@ -919,6 +938,75 @@ export const useProductStore = create((set, get) => ({
   // Clear search results
   clearSearchResults: () => {
     set({ searchResults: [], spellingSuggestion: null })
+  },
+
+  // Fetch all home page data in a single batched RPC query
+  fetchHomePageData: async (options = {}) => {
+    const controller = new AbortController()
+    const signal = options.signal || controller.signal
+
+    try {
+      set({ 
+        isHomeLoading: true, 
+        isFeaturedLoading: true,
+        isBestsellersLoading: true,
+        isCategoriesLoading: true,
+        isOffersLoading: true,
+        isLoading: true 
+      })
+
+      const citySlug = useLocationStore.getState().selectedCitySlug
+      
+      const { data, error } = await supabase
+        .rpc('get_home_page_data', { p_city_slug: citySlug || null })
+        .abortSignal(signal)
+
+      if (error) throw error
+
+      if (signal.aborted) {
+        return { success: false, error: new DOMException('Aborted', 'AbortError') }
+      }
+
+      const formatList = (list) => (list || []).map(ensureNumericPrices).filter(Boolean);
+
+      const categoriesWithImages = (data.categories || []).map(cat => ({
+        ...cat,
+        image_url: cat.image_url
+      }))
+
+      set({
+        categories: categoriesWithImages,
+        offers: data.offers || [],
+        featuredProducts: formatList(data.featured_products),
+        bestsellerProducts: formatList(data.bestseller_products),
+        stealDeals: formatList(data.steal_deals),
+        summerSpecials: formatList(data.summer_specials),
+        mandi: formatList(data.mandi),
+        budgetPicks: formatList(data.budget_picks),
+        isHomeLoading: false,
+        isFeaturedLoading: false,
+        isBestsellersLoading: false,
+        isCategoriesLoading: false,
+        isOffersLoading: false,
+        isLoading: get().isProductsLoading || get().isSearchLoading || get().isProductDetailLoading
+      })
+
+      return { success: true }
+    } catch (error) {
+      if (signal.aborted || error.name === 'AbortError') {
+        return { success: false, error }
+      }
+      console.error('Fetch home page data error:', error)
+      set({ 
+        isHomeLoading: false,
+        isFeaturedLoading: false,
+        isBestsellersLoading: false,
+        isCategoriesLoading: false,
+        isOffersLoading: false,
+        isLoading: get().isProductsLoading || get().isSearchLoading || get().isProductDetailLoading
+      })
+      return { success: false, error }
+    }
   },
 
   // Clear products state (data only — do NOT reset loading flags here,

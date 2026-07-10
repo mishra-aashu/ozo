@@ -30,6 +30,8 @@ const isValidUUID = (id) => typeof id === 'string' && UUID_RE.test(id)
 
 const roundTo2Decimals = (num) => Math.round((num + Number.EPSILON) * 100) / 100
 
+let roadDistanceTimeout = null
+
 export const useCartStore = create(
   persist(
     (set, get) => ({
@@ -336,71 +338,77 @@ export const useCartStore = create(
         })
       },
       fetchRoadDistance: async (lat, lng) => {
+        if (roadDistanceTimeout) {
+          clearTimeout(roadDistanceTimeout)
+        }
+
         set({ 
           requestedDistanceCoords: { lat, lng },
           lastDistanceCoords: { lat, lng } // Set immediately to prevent duplicate requests while in-flight
         })
 
-        const deliveryConfig = get().deliveryConfig || DELIVERY_DEFAULTS
-        const locationStore = useLocationStore.getState()
-        const nearestCity = locationStore.nearestCity
+        roadDistanceTimeout = setTimeout(async () => {
+          const deliveryConfig = get().deliveryConfig || DELIVERY_DEFAULTS
+          const locationStore = useLocationStore.getState()
+          const nearestCity = locationStore.nearestCity
 
-        let wLat = parseFloat(GEOFENCE_DEFAULTS.warehouse_lat)
-        let wLng = parseFloat(GEOFENCE_DEFAULTS.warehouse_lng)
-        if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
-          wLat = parseFloat(nearestCity.latitude)
-          wLng = parseFloat(nearestCity.longitude)
-        }
-
-        const sLat = nearestCity ? wLat : (parseFloat(deliveryConfig.store_lat) || wLat)
-        const sLng = nearestCity ? wLng : (parseFloat(deliveryConfig.store_lng) || wLng)
-
-        const url = `https://router.project-osrm.org/route/v1/driving/${lng},${lat};${sLng},${sLat}?overview=false`
-        let roadDist = null
-
-        try {
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 2500)
-          const res = await fetch(url, { signal: controller.signal })
-          clearTimeout(timeoutId)
-          if (res.ok) {
-            const data = await res.json()
-            if (data && data.routes && data.routes[0] && typeof data.routes[0].distance === 'number') {
-              roadDist = data.routes[0].distance / 1000
-            }
+          let wLat = parseFloat(GEOFENCE_DEFAULTS.warehouse_lat)
+          let wLng = parseFloat(GEOFENCE_DEFAULTS.warehouse_lng)
+          if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
+            wLat = parseFloat(nearestCity.latitude)
+            wLng = parseFloat(nearestCity.longitude)
           }
-        } catch (e) {
-          console.warn('[OSRM Client Error]', e)
-        }
 
-        const reqCoords = get().requestedDistanceCoords
-        if (!reqCoords || Math.abs(reqCoords.lat - lat) > 0.0001 || Math.abs(reqCoords.lng - lng) > 0.0001) {
-          return
-        }
+          const sLat = nearestCity ? wLat : (parseFloat(deliveryConfig.store_lat) || wLat)
+          const sLng = nearestCity ? wLng : (parseFloat(deliveryConfig.store_lng) || wLng)
 
-        if (roadDist !== null) {
-          set({
-            roadDistance: roadDist,
-            lastDistanceCoords: { lat, lng }
-          })
-        } else {
-          // Haversine fallback * 1.3
-          const R = 6371
-          const dLat = (lat - sLat) * Math.PI / 180
-          const dLon = (lng - sLng) * Math.PI / 180
-          const a = 
-            Math.sin(dLat/2) * Math.sin(dLat/2) +
-            Math.cos(sLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
-            Math.sin(dLon/2) * Math.sin(dLon/2)
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
-          const fallbackDist = R * c * 1.3
+          const url = `https://router.project-osrm.org/route/v1/driving/${lng},${lat};${sLng},${sLat}?overview=false`
+          let roadDist = null
 
-          set({
-            roadDistance: fallbackDist,
-            lastDistanceCoords: { lat, lng }
-          })
-        }
-        get().calculateTotals()
+          try {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 2500)
+            const res = await fetch(url, { signal: controller.signal })
+            clearTimeout(timeoutId)
+            if (res.ok) {
+              const data = await res.json()
+              if (data && data.routes && data.routes[0] && typeof data.routes[0].distance === 'number') {
+                roadDist = data.routes[0].distance / 1000
+              }
+            }
+          } catch (e) {
+            console.warn('[OSRM Client Error]', e)
+          }
+
+          const reqCoords = get().requestedDistanceCoords
+          if (!reqCoords || Math.abs(reqCoords.lat - lat) > 0.0001 || Math.abs(reqCoords.lng - lng) > 0.0001) {
+            return
+          }
+
+          if (roadDist !== null) {
+            set({
+              roadDistance: roadDist,
+              lastDistanceCoords: { lat, lng }
+            })
+          } else {
+            // Haversine fallback * 1.3
+            const R = 6371
+            const dLat = (lat - sLat) * Math.PI / 180
+            const dLon = (lng - sLng) * Math.PI / 180
+            const a = 
+              Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(sLat * Math.PI / 180) * Math.cos(lat * Math.PI / 180) * 
+              Math.sin(dLon/2) * Math.sin(dLon/2)
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+            const fallbackDist = R * c * 1.3
+
+            set({
+              roadDistance: fallbackDist,
+              lastDistanceCoords: { lat, lng }
+            })
+          }
+          get().calculateTotals()
+        }, 500)
       },
       fetchCart: async () => {
         // Fetch fresh settings in background to keep shipping limits synced

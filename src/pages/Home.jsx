@@ -327,11 +327,19 @@ const applyCityOverrides = (products, citySlug) => {
 const Home = () => {
   const [shuffleSeed] = useState(() => Math.random())
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
-
   useEffect(() => {
-    const handleResize = () => setWindowWidth(window.innerWidth)
+    let timeoutId = null
+    const handleResize = () => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        setWindowWidth(window.innerWidth)
+      }, 150)
+    }
     window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      clearTimeout(timeoutId)
+    }
   }, [])
 
   const navigate = useNavigate()
@@ -485,14 +493,17 @@ const Home = () => {
     }
     checkAndSetCity()
   }, [city, address, coordinates, addressDetails, activeCities, selectedCitySlug, setSelectedCitySlug, navigate])
-  const categories = useProductStore(state => state.categories)
-  const offers = useProductStore(state => state.offers)
-  const storeFeaturedProducts = useProductStore(state => state.featuredProducts)
-  const storeBestsellerProducts = useProductStore(state => state.bestsellerProducts)
-  const fetchFeaturedProducts = useProductStore(state => state.fetchFeaturedProducts)
-  const fetchBestsellerProducts = useProductStore(state => state.fetchBestsellerProducts)
-  const fetchCategories = useProductStore(state => state.fetchCategories)
-  const fetchOffers = useProductStore(state => state.fetchOffers)
+  const categories = useProductStore(useShallow(state => state.categories))
+  const offers = useProductStore(useShallow(state => state.offers))
+  const storeFeaturedProducts = useProductStore(useShallow(state => state.featuredProducts))
+  const storeBestsellerProducts = useProductStore(useShallow(state => state.bestsellerProducts))
+  const stealDealsData = useProductStore(useShallow(state => state.stealDeals))
+  const summerSpecialsProductsData = useProductStore(useShallow(state => state.summerSpecials))
+  const mandiProductsData = useProductStore(useShallow(state => state.mandi))
+  const budgetProductsData = useProductStore(useShallow(state => state.budgetPicks))
+
+  const fetchHomePageData = useProductStore(state => state.fetchHomePageData)
+  const isHomeLoading = useProductStore(state => state.isHomeLoading)
   const isFeaturedLoading = useProductStore(state => state.isFeaturedLoading)
   const isBestsellersLoading = useProductStore(state => state.isBestsellersLoading)
 
@@ -704,292 +715,6 @@ const Home = () => {
     [user?.id]
   )
 
-  const { data: stealDealsData = [], isLoading: isStealDealsLoading } = useOzoQuery(
-    async () => {
-      let query = supabase
-        .from('products')
-        .select(`
-          *,
-          category:categories (
-            id,
-            name,
-            slug,
-            parent_id,
-            is_active
-          ),
-          product_city_availability(
-            city_slug,
-            city_price,
-            city_mrp,
-            is_available,
-            is_featured,
-            is_upcoming
-          )
-        `)
-        .gt('discount_percentage', 0)
-        .eq('is_available', true)
-        .not('image_url', 'is', null)
-        .not('image_url', 'ilike', '%raw.githubusercontent.com%')
-        .not('image_url', 'ilike', '%logo_transparent.png%');
-
-      if (selectedCitySlug) {
-        query = query.eq('product_city_availability.city_slug', selectedCitySlug);
-      }
-
-      query = query.order('discount_percentage', { ascending: false }).limit(40);
-
-      const { data: rawProducts, error } = await query
-      if (error) throw error
-
-      if (rawProducts && rawProducts.length > 0) {
-        const products = applyCityOverrides(rawProducts, selectedCitySlug);
-        return products.map(product => {
-          if (product.category && product.category.is_active === false) {
-            return null
-          }
-          return product;
-        }).filter(Boolean).filter(p => p.discount_percentage > 0 && p.is_available)
-      }
-      return []
-    },
-    [selectedCitySlug]
-  )
-
-  const { data: summerSpecialsProductsData = [], isLoading: isSummerSpecialsLoading } = useOzoQuery(
-    async () => {
-      // Find parent category ID for summer specials
-      const { data: parentCat, error: catError } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('slug', 'summer-specials')
-        .eq('is_active', true)
-        .maybeSingle()
-
-      if (catError) throw catError
-      if (!parentCat) return []
-
-      // Find subcategories of Summer Specials
-      const { data: subcategories, error: subError } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('parent_id', parentCat.id)
-        .eq('is_active', true)
-
-      if (subError) throw subError
-
-      const categoryIds = [parentCat.id, ...(subcategories || []).map(s => s.id)]
-
-      let query = supabase
-        .from('products')
-        .select(`
-          *,
-          category:categories (
-            id,
-            name,
-            slug,
-            parent_id,
-            is_active
-          ),
-          product_city_availability(
-            city_slug,
-            city_price,
-            city_mrp,
-            is_available,
-            is_featured,
-            is_upcoming
-          )
-        `)
-        .not('image_url', 'is', null)
-        .not('image_url', 'ilike', '%raw.githubusercontent.com%')
-        .not('image_url', 'ilike', '%logo_transparent.png%');
-
-      if (selectedCitySlug) {
-        query = query.eq('product_city_availability.city_slug', selectedCitySlug);
-      }
-
-      const { data: rawProducts, error: prodError } = await query
-        .in('category_id', categoryIds)
-        .limit(20)
-
-      if (prodError) throw prodError
-
-      const products = applyCityOverrides(rawProducts || [], selectedCitySlug);
-
-      // Format product pricing and availability
-      let formatted = products
-        .filter(product => !(product.category && product.category.is_active === false));
-
-      // Sort: in-stock first
-      return formatted.sort((a, b) => {
-        const aOOS = !a.is_available || a.quantity_available === 0;
-        const bOOS = !b.is_available || b.quantity_available === 0;
-        if (aOOS && !bOOS) return 1;
-        if (!aOOS && bOOS) return -1;
-        return 0;
-      })
-    },
-    [selectedCitySlug]
-  )
-
-  const { data: mandiProductsData, isLoading: isMandiLoading } = useOzoQuery(
-    async () => {
-      const { data: catData } = await supabase
-        .from('categories')
-        .select('id')
-        .in('slug', ['vegetables', 'fruits', 'leafy-greens', 'root-vegetables', 'flower-vegetables', 'fruiting-vegetables', 'pods-legumes', 'fresh-fruits'])
-        .eq('is_active', true)
-
-      if (catData && catData.length > 0) {
-        const parentIds = catData.map(c => c.id)
-        // Fetch all child subcategories
-        const { data: subCatData } = await supabase
-          .from('categories')
-          .select('id')
-          .in('parent_id', parentIds)
-          .eq('is_active', true)
-
-        const catIds = [
-          ...parentIds,
-          ...(subCatData?.map(s => s.id) || [])
-        ]
-        let query = supabase
-          .from('products')
-          .select(`
-            *,
-            category:categories (
-              id,
-              name,
-              slug,
-              is_active
-            ),
-            product_city_availability(
-              city_slug,
-              city_price,
-              city_mrp,
-              is_available,
-              is_featured,
-              is_upcoming
-            )
-          `)
-          .not('image_url', 'is', null)
-          .not('image_url', 'ilike', '%raw.githubusercontent.com%')
-          .not('image_url', 'ilike', '%logo_transparent.png%');
-
-        if (selectedCitySlug) {
-          query = query.eq('product_city_availability.city_slug', selectedCitySlug);
-        }
-
-        const { data: rawProducts, error } = await query.in('category_id', catIds).limit(24);
-        if (error) throw error
-
-        if (rawProducts && rawProducts.length > 0) {
-          const products = applyCityOverrides(rawProducts, selectedCitySlug);
-          const formatted = products.map(product => {
-            if (product.category && product.category.is_active === false) {
-              return null
-            }
-            return product;
-          }).filter(Boolean);
-          return formatted;
-        }
-      }
-      return [];
-    },
-    [selectedCitySlug]
-  )
-
-  const { data: budgetProductsData = [], isLoading: isBudgetLoading } = useOzoQuery(
-    async () => {
-      let query = supabase
-        .from('products')
-        .select(`
-          *,
-          category:categories (
-            id,
-            name,
-            slug,
-            is_active
-          ),
-          product_city_availability(
-            city_slug,
-            city_price,
-            city_mrp,
-            is_available,
-            is_featured,
-            is_upcoming
-          )
-        `)
-        .lte('price', 50)
-        .eq('is_available', true)
-        .not('image_url', 'is', null)
-        .not('image_url', 'ilike', '%raw.githubusercontent.com%')
-        .not('image_url', 'ilike', '%logo_transparent.png%');
-
-      if (selectedCitySlug) {
-        query = query.eq('product_city_availability.city_slug', selectedCitySlug);
-      }
-
-      query = query.order('price', { ascending: true }).limit(80);
-
-      const { data: rawProducts, error } = await query
-      if (error) throw error
-
-      if (rawProducts && rawProducts.length > 0) {
-        const products = applyCityOverrides(rawProducts, selectedCitySlug);
-        const formatted = products.map(product => {
-          if (product.category && product.category.is_active === false) {
-            return null
-          }
-          return product;
-        }).filter(Boolean).filter(p => p.price <= 50 && p.is_available)
-
-        // Exclude raw cooking ingredients, spices, cleaning/detergents and select snack-like / ready-to-eat products
-        const filtered = formatted.filter(p => {
-          const name = p.name.toLowerCase()
-          const excludeKeywords = [
-            'powder', 'mirch', 'haldi', 'turmeric', 'coriander', 'dhania', 'jeera', 'cumin', 'hing', 
-            'masala', 'ginger', 'adrak', 'garlic', 'lehsun', 'oil', 'ghee', 'mustard', 'refined', 
-            'rice', 'chawal', 'salt', 'namak', 'chini', 'atta', 'flour', 'dal', 'lentil', 'raw',
-            'whole spice', 'cardamom', 'elaichi', 'clove', 'laung', 'cinnamon', 'dalchini', 'saffron',
-            'kesar', 'black pepper', 'kali mirch', 'fenugreek', 'methi', 'mustard seed', 'rai', 
-            'fennel', 'saunf', 'detergent', 'soap', 'cleaner', 'shampoo', 'brush', 'scrub', 'raw sugar'
-          ]
-          if (excludeKeywords.some(kw => name.includes(kw))) {
-            return false
-          }
-          const includeKeywords = [
-            'choc', 'ice cream', 'drink', 'beverage', 'pepsi', 'coke', 'cola', 'fanta', 'sprite',
-            'chips', 'namkeen', 'bhujia', 'snack', 'biscuit', 'cookie', 'wafer', 'roll', 'thekua',
-            'sweet', 'jamun', 'lassi', 'curd', 'yoghurt', 'juice', 'nectar', 'water', 'soda',
-            'makhana', 'popcorn', 'crisps', 'bite', 'candy', 'toffee', 'bar', 'cake', 'croissant',
-            'bun', 'bread', 'butter', 'cheese', 'paneer'
-          ]
-          return includeKeywords.some(kw => name.includes(kw))
-        })
-
-        // If not enough snack-like products, backfill with remaining safe products under 50
-        if (filtered.length < 24) {
-          const selectedIds = new Set(filtered.map(f => f.id))
-          const backfill = formatted
-            .filter(p => !selectedIds.has(p.id))
-            .filter(p => {
-              const name = p.name.toLowerCase()
-              return !['powder', 'masala', 'detergent', 'soap', 'cleaner', 'shampoo', 'scrub'].some(kw => name.includes(kw))
-            })
-          
-          for (const p of backfill) {
-            if (filtered.length >= 24) break
-            filtered.push(p)
-          }
-        }
-
-        return filtered
-      }
-      return []
-    },
-    [selectedCitySlug]
-  )
-  
   // Request Modal states
   const [isRequestModalOpen, setIsRequestModalOpen] = useState(false)
   const [requestName, setRequestName] = useState('')
@@ -1030,18 +755,12 @@ const Home = () => {
   // Fetch standard data on mount using useOzoQuery to preserve initial loading state
   const { isLoading: isHomeDataLoading } = useOzoQuery(
     async (signal) => {
-      const results = await Promise.all([
-        fetchOffers({ signal }),
-        fetchFeaturedProducts({ signal }),
-        fetchBestsellerProducts({ signal }),
-        fetchCategories({ signal })
-      ])
-      const failed = results.find(r => !r.success)
-      if (failed) {
-        throw failed.error || new Error('Failed to load homepage data')
+      const res = await fetchHomePageData({ signal })
+      if (!res.success) {
+        throw res.error || new Error('Failed to load homepage data')
       }
     },
-    [fetchOffers, fetchFeaturedProducts, fetchBestsellerProducts, fetchCategories, selectedCitySlug]
+    [fetchHomePageData, selectedCitySlug]
   )
 
   // Custom quantity controls for inline cards
@@ -2565,7 +2284,7 @@ const Home = () => {
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {isBudgetLoading && displayBudgetProducts.length === 0 ? (
+                    {isHomeDataLoading && displayBudgetProducts.length === 0 ? (
                       [...Array(4)].map((_, i) => (
                         <div key={i} className="h-72 bg-gray-100 dark:bg-white/5 rounded-3xl animate-pulse" />
                       ))

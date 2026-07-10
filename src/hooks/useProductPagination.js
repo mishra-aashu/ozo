@@ -54,7 +54,7 @@ export function useProductPagination() {
             search_term: options.search,
             similarity_threshold: 0.2
           }).select(`
-            *,
+            id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
             category:categories (
               id,
               name,
@@ -79,7 +79,7 @@ export function useProductPagination() {
           }
         } else {
           query = supabase.from('products').select(`
-            *,
+            id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
             category:categories (
               id,
               name,

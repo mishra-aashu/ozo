@@ -37,6 +37,8 @@ export const useOzoQuery = (fetchFn, dependencies = []) => {
     dependencies.map(d => (typeof d === 'function' ? '__fn__' : d))
   );
 
+  const lastDepsKeyRef = useRef(null);
+
   const executeFetch = useCallback(async () => {
     // Cancel the previous active request
     if (abortControllerRef.current) {
@@ -46,9 +48,14 @@ export const useOzoQuery = (fetchFn, dependencies = []) => {
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
+    const isDepChange = lastDepsKeyRef.current !== depsKey;
+    if (isDepChange) {
+      setData(null);
+      lastDepsKeyRef.current = depsKey;
+    }
+
     setIsLoading(true);
     setIsError(false);
-    setData(null);
 
     try {
       // Pass the controller's signal to the fetch function
