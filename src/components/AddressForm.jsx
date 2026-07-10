@@ -5,17 +5,18 @@ import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
 
 const WhatsAppIcon = ({ className = "w-4 h-4" }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.458 5.704 1.459h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+  <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path fillRule="evenodd" clipRule="evenodd" d="M12.01 0C5.39 0 0 5.39 0 12.01c0 2.45.74 4.73 2.01 6.64L.25 24l5.52-1.72a11.96 11.96 0 006.24 1.73c6.62 0 12.01-5.39 12.01-12.01C24.02 5.39 18.63 0 12.01 0z" fill="#25D366"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M12.01 1.83c-5.61 0-10.18 4.57-10.18 10.18 0 2.22.72 4.28 1.94 5.96l.24.32-.82 2.63 2.74-.78.33.2c1.6.98 3.47 1.49 5.39 1.49 5.61 0 10.18-4.57 10.18-10.18S17.62 1.83 12.01 1.83z" fill="#FFFFFF"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M16.94 13.9c-.27-.13-1.61-.79-1.86-.88-.25-.09-.43-.14-.61.13-.18.27-.7 1.86-.86 2.04-.16.18-.32.2-.59.07a7.48 7.48 0 01-2.2-1.36c-.85-.76-1.42-1.7-1.59-1.97-.17-.27-.02-.42.12-.55.12-.12.27-.31.4-.47.14-.16.18-.27.27-.45.09-.18.05-.34-.02-.48-.07-.14-.61-1.47-.84-2.02-.22-.53-.45-.46-.61-.47-.16-.01-.34-.01-.52-.01-.18 0-.48.07-.73.34-.25.27-.95.93-.95 2.27 0 1.34.98 2.63 1.11 2.81.14.18 1.92 2.93 4.65 4.11.65.28 1.16.45 1.55.57.65.21 1.25.18 1.72.11.52-.08 1.61-.66 1.84-1.3.23-.63.23-1.18.16-1.3-.07-.11-.25-.18-.52-.31z" fill="#25D366"/>
   </svg>
 )
 
 const GoogleMapsIcon = ({ className = "w-4 h-4" }) => (
   <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="#EA4335" />
-    <path d="M12 2c-.07 0-.13.01-.2.01V6.5c.2 0 .2.5.2.5s.3 0 .5.2l1.3-1.3c-.47-.55-1.1-.9-1.8-1.01V2z" fill="#4285F4" />
-    <path d="M7.7 13.3l1.3-1.3c.2.2.5.3.7.3h.8V9.1L9 7.7c-.55.47-.9 1.1-1.01 1.8H6.5c0 .2.01.39.01.59l1.19 3.21z" fill="#FBBC05" />
-    <path d="M12 22s4.9-5.42 6.3-9.1l-1.3-1.3c-.2.2-.5.3-.7.3h-.8v3.4l1.5 1.4c-.6.9-1.7 2.1-3 3.6v2.3z" fill="#34A853" />
+    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="#EA4335" />
+    <path d="M12 12a3 3 0 100-6 3 3 0 000 6z" fill="#4285F4" />
+    <path d="M12 10.5a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" fill="#FFFFFF" />
   </svg>
 )
 
@@ -226,6 +227,10 @@ export default function AddressForm({
   const localities = useLocationStore((state) => state.localities || [])
   const landmarks = useLocationStore((state) => state.landmarks || [])
   const galis = useLocationStore((state) => state.galis || [])
+
+  const [pastedLink, setPastedLink] = React.useState('')
+  const [isResolving, setIsResolving] = React.useState(false)
+  const [showLinkAutofill, setShowLinkAutofill] = React.useState(false)
 
   // Auto-fetch active cities and hierarchical database entries on mount
   React.useEffect(() => {
@@ -745,17 +750,16 @@ export default function AddressForm({
   const resolveLocationLink = async (url) => {
     if (!url) return
     setIsResolving(true)
-    const toastId = toast.loading('Resolving location link...')
+    const toastId = toast.loading('Saving location link...')
     
     try {
       let resolvedUrl = url.trim()
-      // Extract URL if there's surrounding text (e.g. "My location: https://maps.app.goo.gl/xyz")
+      // Extract URL if there's surrounding text
       const urlRegex = /(https?:\/\/[^\s]+)/gi
       const match = resolvedUrl.match(urlRegex)
       if (match) {
         resolvedUrl = match[0]
       } else {
-        // If there's no http/https protocol but it looks like a maps link, prepend https://
         const mapDomains = ['maps.app.goo.gl', 'goo.gl', 'maps.google.com', 'google.com', 'g.co', 'g.page']
         const hasDomain = mapDomains.some(d => resolvedUrl.toLowerCase().includes(d))
         if (hasDomain && !resolvedUrl.startsWith('http://') && !resolvedUrl.startsWith('https://')) {
@@ -763,233 +767,40 @@ export default function AddressForm({
         }
       }
 
-      let coords = extractCoordinatesFromUrl(resolvedUrl)
+      // Try client-side extraction of coordinates to update map location
+      const coords = extractCoordinatesFromUrl(resolvedUrl)
+      
+      const updateData = {
+        google_maps_url: resolvedUrl,
+      }
 
-      if (!coords && (resolvedUrl.startsWith('http://') || resolvedUrl.startsWith('https://'))) {
-        try {
-          const isDev = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-          const apiUrl = isDev 
-            ? `https://www.ozomart.store/api/resolve-link?url=${encodeURIComponent(resolvedUrl)}`
-            : `/api/resolve-link?url=${encodeURIComponent(resolvedUrl)}`
+      // Pre-fill address_line1 with the link to satisfy the required field
+      updateData.address_line1 = `Location Link: ${resolvedUrl}`
 
-          const response = await fetch(apiUrl)
-          if (response.ok) {
-            const data = await response.json()
-            if (data && data.finalUrl) {
-              resolvedUrl = data.finalUrl
-              coords = data.coordinates || extractCoordinatesFromUrl(resolvedUrl)
-              if (data.place) {
-                const parts = data.place.address.split(',').map(p => p.trim())
-                let resolvedPincode = data.place.pincode || ''
-                let resolvedCity = ''
-                let resolvedState = ''
-                
-                const countryPart = parts[parts.length - 1]
-                let statePincodePart = ''
-                let cityPart = ''
-                
-                if (countryPart && countryPart.toLowerCase() === 'india') {
-                  statePincodePart = parts[parts.length - 2] || ''
-                  cityPart = parts[parts.length - 3] || ''
-                } else {
-                  statePincodePart = parts[parts.length - 1] || ''
-                  cityPart = parts[parts.length - 2] || ''
-                }
-                
-                if (statePincodePart) {
-                  const pinMatch = statePincodePart.match(/\b\d{6}\b/)
-                  if (pinMatch) {
-                    resolvedPincode = pinMatch[0]
-                  }
-                  resolvedState = statePincodePart.replace(/\d+/g, '').trim()
-                }
-                
-                if (cityPart) {
-                  resolvedCity = cityPart.split(' ')[0].trim()
-                }
-                
-                window._resolvedPlaceDetails = {
-                  title: data.place.title,
-                  address: data.place.address,
-                  pincode: resolvedPincode,
-                  city: resolvedCity,
-                  state: resolvedState
-                }
-              }
+      if (coords) {
+        updateData.latitude = coords.lat
+        updateData.longitude = coords.lng
+        
+        if (onMapLocationSelect) {
+          onMapLocationSelect({
+            lat: coords.lat,
+            lng: coords.lng,
+            displayName: `Pinned from Link: ${resolvedUrl}`,
+            addressDetails: {
+              road: resolvedUrl,
+              city: formData.city || 'Aurangabad',
+              state: formData.state || 'Bihar',
+              postcode: formData.pincode || '824101'
             }
-          }
-        } catch (fetchErr) {
-          console.warn('API proxy fetch failed:', fetchErr)
+          })
         }
       }
 
-      if (!coords) {
-        toast.error('Could not extract coordinates from link. Please search or pin manually.', { id: toastId })
-        setIsResolving(false)
-        return
-      }
-
-      const geocodeResult = await reverseGeocode(coords.lat, coords.lng)
-      const road = geocodeResult.addressDetails?.road || geocodeResult.addressDetails?.street || ''
-      const suburb = geocodeResult.addressDetails?.suburb || geocodeResult.addressDetails?.neighbourhood || ''
-      
-      const resolvedPlaceDetails = window._resolvedPlaceDetails
-      window._resolvedPlaceDetails = null
-
-      const city = resolvedPlaceDetails?.city || geocodeResult.addressDetails?.city || geocodeResult.addressDetails?.town || 'Aurangabad'
-      const state = resolvedPlaceDetails?.state || geocodeResult.addressDetails?.state || 'Bihar'
-      const pincode = resolvedPlaceDetails?.pincode || geocodeResult.addressDetails?.postcode || ''
-
-      const titlePrefix = resolvedPlaceDetails?.title ? `${resolvedPlaceDetails.title}, ` : ''
-      let addressLine1 = titlePrefix + ([road, suburb].filter(Boolean).join(', ') || geocodeResult.displayName)
-
-      // Search database local lists to map coordinates to nearest street/landmark!
-      let matchedLocalityId = null
-      let matchedLocalityName = ''
-      let matchedGaliId = null
-      let matchedLandmarkId = null
-      let matchedLandmarkName = ''
-
-      const textToSearch = (titlePrefix + ' ' + road + ' ' + suburb + ' ' + geocodeResult.displayName).toLowerCase()
-      
-      // 1. Check for exact/partial text match in landmarks
-      const foundLandmark = landmarks.find(lm => 
-        textToSearch.includes(lm.name.toLowerCase()) || 
-        (lm.name_hi && textToSearch.includes(lm.name_hi.toLowerCase()))
-      )
-      
-      // 2. Check for exact/partial text match in galis
-      const foundGali = galis.find(g => 
-        textToSearch.includes(g.name.toLowerCase()) || 
-        (g.name_hi && textToSearch.includes(g.name_hi.toLowerCase()))
-      )
-
-      // 3. Check for exact/partial text match in localities
-      const foundLocality = localities.find(l => 
-        textToSearch.includes(l.name.toLowerCase()) || 
-        (l.name_hi && textToSearch.includes(l.name_hi.toLowerCase()))
-      )
-
-      if (foundLandmark) {
-        matchedLandmarkId = foundLandmark.id
-        matchedLandmarkName = foundLandmark.name
-        matchedLocalityId = foundLandmark.locality_id
-        const locObj = localities.find(l => l.id === foundLandmark.locality_id)
-        if (locObj) matchedLocalityName = locObj.name
-      } else if (foundGali) {
-        matchedGaliId = foundGali.id
-        matchedLocalityId = foundGali.locality_id
-        const locObj = localities.find(l => l.id === foundGali.locality_id)
-        if (locObj) matchedLocalityName = locObj.name
-        if (!addressLine1.toLowerCase().includes(foundGali.name.toLowerCase())) {
-          addressLine1 = `${foundGali.name}, ${addressLine1}`
-        }
-      } else if (foundLocality) {
-        matchedLocalityId = foundLocality.id
-        matchedLocalityName = foundLocality.name
-      } else {
-        // Find by closest coordinate distance (with a threshold, e.g. 500m for street/landmark, 2000m for locality)
-        let closestLandmark = null
-        let minLandmarkDist = 500 // max 500 meters
-        landmarks.forEach(lm => {
-          if (lm.latitude && lm.longitude) {
-            const dist = getDistance(coords.lat, coords.lng, parseFloat(lm.latitude), parseFloat(lm.longitude))
-            if (dist < minLandmarkDist) {
-              minLandmarkDist = dist
-              closestLandmark = lm
-            }
-          }
-        })
-
-        let closestGali = null
-        let minGaliDist = 300 // max 300 meters
-        galis.forEach(g => {
-          if (g.latitude && g.longitude) {
-            const dist = getDistance(coords.lat, coords.lng, parseFloat(g.latitude), parseFloat(g.longitude))
-            if (dist < minGaliDist) {
-              minGaliDist = dist
-              closestGali = g
-            }
-          }
-        })
-
-        let closestLocality = null
-        let minLocalityDist = 2000 // max 2km
-        localities.forEach(l => {
-          if (l.latitude && l.longitude) {
-            const dist = getDistance(coords.lat, coords.lng, parseFloat(l.latitude), parseFloat(l.longitude))
-            if (dist < minLocalityDist) {
-              minLocalityDist = dist
-              closestLocality = l
-            }
-          }
-        })
-
-        if (closestLandmark) {
-          matchedLandmarkId = closestLandmark.id
-          matchedLandmarkName = closestLandmark.name
-          matchedLocalityId = closestLandmark.locality_id
-          const locObj = localities.find(l => l.id === closestLandmark.locality_id)
-          if (locObj) matchedLocalityName = locObj.name
-        } else if (closestGali) {
-          matchedGaliId = closestGali.id
-          matchedLocalityId = closestGali.locality_id
-          const locObj = localities.find(l => l.id === closestGali.locality_id)
-          if (locObj) matchedLocalityName = locObj.name
-          if (!addressLine1.toLowerCase().includes(closestGali.name.toLowerCase())) {
-            addressLine1 = `${closestGali.name}, ${addressLine1}`
-          }
-        } else if (closestLocality) {
-          matchedLocalityId = closestLocality.id
-          matchedLocalityName = closestLocality.name
-        }
-      }
-
-      onChange({
-        latitude: coords.lat,
-        longitude: coords.lng,
-        address_line2: matchedLocalityName || titlePrefix + ([road, suburb].filter(Boolean).join(', ') || geocodeResult.displayName),
-        locality_id: matchedLocalityId,
-        gali_id: matchedGaliId,
-        landmark: matchedLandmarkName,
-        landmark_id: matchedLandmarkId,
-        address_line1: addressLine1,
-        city,
-        state,
-        pincode,
-        google_maps_url: resolvedUrl
-      })
-
-      if (setShowMapPicker) {
-        setShowMapPicker(true)
-      }
-
-      if (onMapLocationSelect) {
-        onMapLocationSelect({
-          lat: coords.lat,
-          lng: coords.lng,
-          displayName: geocodeResult.displayName,
-          addressDetails: geocodeResult.addressDetails,
-          nearestStreet: geocodeResult.nearestStreet
-        })
-      }
-
-      const isServiceable = checkDeliveryZoneStatus(coords.lat, coords.lng)
-      if (!isServiceable) {
-        toast.error("Location link parsed, but it is outside Ozo's delivery zone.", { id: toastId })
-        setIsResolving(false)
-        return
-      }
-
-      if (pincode && !checkPincodeServiceable(pincode, city)) {
-        toast.success(`Location parsed and pinned successfully! (Pincode ${pincode} may be marked outside regular zone)`, { id: toastId })
-      } else {
-        toast.success('Location parsed and pinned successfully!', { id: toastId })
-      }
-      setActiveTab('manual')
+      onChange(updateData)
+      toast.success('Location link saved successfully!', { id: toastId })
     } catch (error) {
-      console.error('Failed to locate from link:', error)
-      toast.error('Failed to parse location link', { id: toastId })
+      console.error('Failed to save location link:', error)
+      toast.error('Failed to save location link', { id: toastId })
     } finally {
       setIsResolving(false)
     }
@@ -1017,6 +828,96 @@ export default function AddressForm({
           </div>
         </div>
       )}
+
+      {/* Optional Link Autofill Accordion */}
+      <div className="border border-gray-100 dark:border-white/5 rounded-2xl bg-gray-50/35 dark:bg-zinc-950/20 overflow-hidden transition-all duration-300">
+        <button
+          type="button"
+          onClick={() => setShowLinkAutofill(!showLinkAutofill)}
+          className="w-full flex items-center justify-between p-3.5 text-xs font-semibold hover:bg-gray-50 dark:hover:bg-zinc-900/30 transition-all gap-2"
+        >
+          <span className="flex items-center gap-2 min-w-0">
+            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-extrabold text-[11px] animate-pulse">
+              ⚡
+            </span>
+            <span className="truncate text-xs font-bold text-gray-700 dark:text-gray-250">
+              Paste Location Link
+            </span>
+          </span>
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center -space-x-1.5 mr-1">
+              <div className="bg-white dark:bg-zinc-800 p-0.5 rounded-full shadow-sm border border-gray-150 dark:border-white/10 z-10 flex items-center justify-center">
+                <WhatsAppIcon className="w-3.5 h-3.5" />
+              </div>
+              <div className="bg-white dark:bg-zinc-800 p-0.5 rounded-full shadow-sm border border-gray-150 dark:border-white/10 flex items-center justify-center">
+                <GoogleMapsIcon className="w-3.5 h-3.5" />
+              </div>
+            </div>
+            <span className="text-[10px] bg-gray-200/50 dark:bg-white/10 px-1.5 py-0.5 rounded font-black text-gray-500 dark:text-zinc-400 uppercase tracking-wide">
+              Optional
+            </span>
+            {showLinkAutofill ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
+          </div>
+        </button>
+
+        {showLinkAutofill && (
+          <div className="p-4 pt-0 space-y-3 slide-up border-t border-gray-100/50 dark:border-white/5 mt-1">
+            <div className="text-[10px] text-gray-450 dark:text-zinc-500 font-semibold flex items-center gap-1.5 flex-wrap">
+              <span>Supports:</span>
+              <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-bold">
+                <WhatsAppIcon className="w-3.5 h-3.5" />
+                <span>WhatsApp</span>
+              </div>
+              <span className="text-gray-300 dark:text-zinc-700">|</span>
+              <div className="flex items-center gap-1 text-red-500 font-bold">
+                <GoogleMapsIcon className="w-3.5 h-3.5" />
+                <span>Google Maps Links</span>
+              </div>
+            </div>
+            
+            <div className="relative flex gap-2">
+              <div className="relative flex-1">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 flex items-center gap-1.5 text-gray-400 dark:text-white/20 pointer-events-none">
+                  <Navigation size={14} className="text-ozo-red shrink-0" />
+                </div>
+                <input
+                  type="text"
+                  value={pastedLink}
+                  onChange={(e) => setPastedLink(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/20 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
+                  placeholder="Paste WhatsApp location text or Google Maps link..."
+                />
+              </div>
+              <button
+                type="button"
+                disabled={!pastedLink || isResolving}
+                onClick={async () => {
+                  if (!pastedLink) return
+                  await resolveLocationLink(pastedLink)
+                  setPastedLink('')
+                }}
+                className={`px-4 py-2.5 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 whitespace-nowrap ${
+                  pastedLink && !isResolving
+                    ? 'bg-ozo-red text-white hover:bg-red-600 shadow-sm cursor-pointer'
+                    : 'bg-gray-100 dark:bg-white/5 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                {isResolving ? (
+                  <>
+                    <Loader2 size={13} className="animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Check size={13} />
+                    <span>Save Link</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* 2. Contact Details (Receiver Name/Phone) */}
       {showContactFields && (
