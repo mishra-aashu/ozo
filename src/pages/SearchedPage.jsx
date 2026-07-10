@@ -710,7 +710,7 @@ export default function SearchedPage() {
 
                 {/* Products Grid / Loading State */}
                 {isLoading ? (
-                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
                     {[...Array(10)].map((_, i) => (
                       <div key={i} className="aspect-[3/4] bg-white dark:bg-[#111] rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-white/5" />
                     ))}
@@ -719,7 +719,7 @@ export default function SearchedPage() {
                   <div className="space-y-8">
                     <div 
                       key={`${sortBy}_${filterBestseller}_${filterFeatured}`}
-                      className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
+                      className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
                     >
                       {sortedProducts.map((product, idx) => (
                         <ProductCard key={product.id} product={product} index={idx} />

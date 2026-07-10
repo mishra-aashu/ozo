@@ -479,7 +479,7 @@ function ProductCard({ product, variant = 'default', index }) {
     )
   }
 
-  // Default card variant
+  // Default card variant (Premium Horizontal Card Layout)
   return (
     <motion.div
       custom={index}
@@ -497,30 +497,18 @@ function ProductCard({ product, variant = 'default', index }) {
         }
         navigate(productLink)
       }}
-      className="product-card relative group flex flex-col h-full bg-white dark:bg-[#0c0c0e] border border-gray-150/50 dark:border-white/[0.04] rounded-xl sm:rounded-[2.25rem] overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer transform-gpu will-change-transform"
+      className="product-card relative group flex flex-row sm:flex-col items-center sm:items-stretch gap-3 p-3 bg-white dark:bg-[#0c0c0e] border border-gray-150/50 dark:border-white/[0.04] rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
     >
-      {/* Badges (Discount, Featured, Bestseller) */}
-      <div className="absolute top-2 left-2 z-10 flex flex-col gap-1 items-start">
+      {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
+      <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
         {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
-          <span className="bg-gradient-to-r from-amber-400 to-yellow-300 dark:from-amber-500 dark:to-yellow-400 text-red-800 dark:text-red-950 font-black text-[8px] sm:text-[10px] px-1.5 py-0.5 sm:py-1 rounded-md shadow-sm border border-amber-300/30 select-none uppercase tracking-wider">
+          <span className="bg-gradient-to-r from-amber-400 to-yellow-300 dark:from-amber-500 dark:to-yellow-400 text-red-800 dark:text-red-950 font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-sm border border-amber-300/30 select-none uppercase tracking-wider">
             {discountPercentage}% OFF
-          </span>
-        )}
-        {selectedProduct.is_featured && (
-          <span className="bg-gradient-to-r from-emerald-600 to-teal-500 text-white text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:py-1 rounded-md flex items-center gap-1 shadow-sm uppercase tracking-wider">
-            <Zap className="w-2 h-2 fill-white" />
-            FEATURED
-          </span>
-        )}
-        {selectedProduct.is_bestseller && (
-          <span className="bg-gradient-to-r from-amber-500 to-yellow-400 text-amber-950 text-[8px] sm:text-[10px] font-black px-1.5 py-0.5 sm:py-1 rounded-md flex items-center gap-1 shadow-sm uppercase tracking-wider">
-            <TrendingUp className="w-2 h-2" />
-            BESTSELLER
           </span>
         )}
       </div>
 
-      {/* Wishlist Button */}
+      {/* Wishlist Button - Top Right */}
       <button
         onClick={handleToggleWishlist}
         aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
@@ -533,7 +521,7 @@ function ProductCard({ product, variant = 'default', index }) {
           transition={{ duration: 0.3 }}
         >
           <Heart
-            className={`w-3 h-3 sm:w-4.5 sm:h-4.5 ${
+            className={`w-3.5 h-3.5 ${
               isFavorite ? 'fill-ozo-red text-ozo-red' : 'text-gray-500 dark:text-gray-400 hover:text-ozo-red'
             } transition-colors`}
           />
@@ -546,28 +534,31 @@ function ProductCard({ product, variant = 'default', index }) {
           onClick={toggleAvailability}
           disabled={isUpdating}
           aria-label="Toggle availability"
-          className="absolute top-10 sm:top-14 right-2 z-10 p-1.5 bg-white/70 dark:bg-black/40 backdrop-blur-md hover:bg-white dark:hover:bg-black/60 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-250/30 dark:border-white/10 flex items-center justify-center hover:scale-105 active:scale-95 text-gray-400 hover:text-ozo-red"
+          className="absolute top-10 right-2 z-10 p-1.5 bg-white/70 dark:bg-black/40 backdrop-blur-md hover:bg-white dark:hover:bg-black/60 rounded-full shadow-sm hover:shadow-md transition-all border border-gray-250/30 dark:border-white/10 flex items-center justify-center hover:scale-105 active:scale-95 text-gray-400 hover:text-ozo-red"
           title="Toggle Availability (Admin)"
         >
           {isUpdating ? (
-            <Loader2 className="w-3 h-3 sm:w-4.5 sm:h-4.5 animate-spin text-ozo-red" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-ozo-red" />
           ) : selectedProduct.is_available ? (
-            <Eye className="w-3 h-3 sm:w-4.5 sm:h-4.5 text-ozo-green" />
+            <Eye className="w-3.5 h-3.5 text-ozo-green" />
           ) : (
-            <EyeOff className="w-3 h-3 sm:w-4.5 sm:h-4.5 text-ozo-red" />
+            <EyeOff className="w-3.5 h-3.5 text-ozo-red" />
           )}
         </button>
       )}
 
-      {/* Product Image */}
-      <Link to={productLink} className="block relative aspect-square overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-t-xl sm:rounded-t-[2.25rem] border-b border-gray-100 dark:border-white/[0.02]">
+      {/* Product Image (Left on mobile, top centered on desktop) */}
+      <Link 
+        to={productLink} 
+        className="relative w-20 h-20 sm:w-full sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
+      >
         <OptimizedImage
           src={selectedProduct.image_url}
           slug={selectedProduct.slug}
           alt={selectedProduct.name}
           width={300}
           loading="lazy"
-          className={`w-full h-full object-contain p-1.5 sm:p-5 group-hover:scale-105 transition-transform duration-500 ${
+          className={`w-full h-full object-contain p-1.5 sm:p-3 group-hover:scale-105 transition-transform duration-500 ${
             !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
           }`}
           containerClassName="w-full h-full"
@@ -575,59 +566,50 @@ function ProductCard({ product, variant = 'default', index }) {
 
         {(!selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0)) && (
           <div className="absolute inset-0 flex items-center justify-center bg-black/5 pointer-events-none select-none">
-            <div className="flex flex-col items-center gap-1">
+            <div className="flex flex-col items-center gap-0.5">
               {isUpcoming ? (
-                <div className="bg-amber-500 text-white font-black text-[9px] px-2.5 py-1 rounded-xl shadow-lg tracking-wider uppercase flex items-center gap-1 border border-white/10">
-                  <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                  Listing Soon
+                <div className="bg-amber-500 text-white font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-lg tracking-wider uppercase border border-white/10">
+                  Soon
                 </div>
               ) : (
-                <div className="bg-ozo-red/90 text-white font-black text-[9px] px-2.5 py-1 rounded-xl shadow-lg tracking-wider uppercase flex items-center gap-1 border border-white/10">
-                  <span className="w-1 h-1 rounded-full bg-white animate-pulse" />
-                  OUT OF STOCK
+                <div className="bg-ozo-red/90 text-white font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-lg tracking-wider uppercase border border-white/10">
+                  OOS
                 </div>
               )}
             </div>
           </div>
         )}
-
-        {/* Quick View on hover */}
-        <div className="hidden sm:flex absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 items-center justify-center pointer-events-none">
-          <span className="px-3.5 py-1.5 bg-white/90 dark:bg-black/80 text-gray-800 dark:text-white rounded-xl font-black text-[10px] uppercase tracking-wider transform scale-95 group-hover:scale-100 transition-all shadow-md">
-            View Details
-          </span>
-        </div>
       </Link>
 
-      {/* Product Details */}
-      <div className="product-card-body flex flex-col flex-1 p-2 sm:p-4">
-        {/* Delivery Time & Info */}
-        <div className="flex items-center gap-1 mb-1">
-          <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-[8px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
-            <Clock className="w-2 h-2 text-amber-500 fill-amber-500/20" />
-            <span>30 mins</span>
+      {/* Product Details (Right on mobile, bottom on desktop) */}
+      <div className="product-card-body flex flex-col flex-1 min-w-0 p-1 sm:p-2.5 sm:pt-1">
+        {/* Delivery Time & Rating Info */}
+        <div className="flex items-center gap-1.5 mb-1.5">
+          <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-[7px] sm:text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+            <Clock className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-amber-500 fill-amber-500/20" />
+            <span>30m</span>
           </div>
           {selectedProduct.rating && (
-            <div className="flex items-center gap-1 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-full">
-              <Star className="w-2 h-2 fill-emerald-600 text-emerald-600 dark:fill-emerald-400 dark:text-emerald-400" />
-              <span className="text-[8px] font-black text-emerald-600 dark:text-emerald-400">{selectedProduct.rating}</span>
+            <div className="flex items-center gap-0.5 bg-emerald-500/10 dark:bg-emerald-500/20 px-1.5 py-0.5 rounded-full">
+              <Star className="w-2 h-2 sm:w-2.5 sm:h-2.5 fill-emerald-600 text-emerald-600 dark:fill-emerald-400 dark:text-emerald-400" />
+              <span className="text-[7px] sm:text-[9px] font-black text-emerald-600 dark:text-emerald-400">{selectedProduct.rating}</span>
             </div>
           )}
         </div>
 
         {/* Product Name */}
-        <Link to={productLink} className="block min-h-[26px] sm:min-h-[36px] mb-1">
-          <h3 className="font-extrabold text-[10.5px] sm:text-[13.5px] line-clamp-2 leading-tight text-gray-800 dark:text-gray-100 group-hover:text-ozo-red transition-colors break-words">
+        <Link to={productLink} className="block mb-1 pr-1">
+          <h3 className="font-extrabold text-[11px] sm:text-[13px] md:text-[14px] line-clamp-2 leading-tight text-gray-800 dark:text-gray-100 group-hover:text-ozo-red transition-colors break-words">
             {product.name}
           </h3>
         </Link>
 
         {/* Unit */}
-        <p className="text-[8px] sm:text-[10px] font-semibold text-gray-400 dark:text-gray-400 mb-1.5">{selectedProduct.unit || 'per pc'}</p>
+        <p className="text-[8px] sm:text-[10px] font-semibold text-gray-400 dark:text-gray-400 mb-2">{selectedProduct.unit || 'per pc'}</p>
 
         {/* Variant Selector Pills */}
         {hasVariants && product.variants.length > 1 && (
-          <div className="flex flex-wrap gap-1.5 mb-3 mt-0.5">
+          <div className="flex flex-wrap gap-1 mb-2">
             {product.variants.map((v) => {
               const isSelected = selectedProduct.id === v.id;
               return (
@@ -638,7 +620,7 @@ function ProductCard({ product, variant = 'default', index }) {
                     e.stopPropagation();
                     setSelectedProduct(v);
                   }}
-                  className={`text-[8px] font-black px-2 py-0.5 rounded border transition-all ${
+                  className={`text-[7px] sm:text-[8px] font-black px-1.5 py-0.5 rounded border transition-all ${
                     isSelected
                       ? 'bg-ozo-red text-white border-ozo-red shadow-sm'
                       : 'bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 border-gray-200 dark:border-white/5 hover:border-gray-300'
@@ -652,77 +634,59 @@ function ProductCard({ product, variant = 'default', index }) {
         )}
 
         {/* Price & Add Section */}
-        <div className="mt-auto pt-1.5 border-t border-gray-100 dark:border-white/[0.04]">
-          <div className="flex items-center justify-between gap-1">
-            {/* Price Info (Left) */}
-            <div className="flex flex-col flex-1 min-w-0">
-              <span className={`font-black text-gray-900 dark:text-white leading-tight ${
-                selectedProduct?.price && String(selectedProduct.price).length > 3
-                  ? 'text-[10px] xs:text-[11.5px] sm:text-[14px]'
-                  : 'text-[11.5px] sm:text-[14px]'
-              }`}>
-                {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
+        <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-gray-100 dark:border-white/[0.04]">
+          <div className="flex flex-col min-w-0">
+            <span className="font-black text-gray-900 dark:text-white text-[12px] sm:text-[14px] md:text-[15px] leading-tight">
+              {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
+            </span>
+            {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
+              <span className="text-gray-400 dark:text-gray-500 line-through leading-none mt-0.5 font-semibold text-[9px] sm:text-[10px] md:text-[11px]">
+                ₹{selectedProduct.mrp}
               </span>
-              {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
-                <span className={`text-gray-455 dark:text-gray-450 line-through leading-none mt-0.5 font-semibold ${
-                  String(selectedProduct.mrp).length > 3
-                    ? 'text-[9px] xs:text-[10px] sm:text-[12px]'
-                    : 'text-[10px] sm:text-[12px]'
-                }`}>
-                  ₹{selectedProduct.mrp}
-                </span>
-              )}
-            </div>
+            )}
+          </div>
 
-            {/* Add Button (Right) */}
-            <div className="w-[48px] xs:w-[56px] sm:w-[68px] flex-shrink-0 relative">
-              {quantity > 0 ? (
-                <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-lg py-0.5 px-0.5 sm:py-1 sm:px-1 shadow-md shadow-emerald-600/10">
-                  <button
-                    onClick={handleDecrement}
-                    aria-label="Decrease quantity"
-                    className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-90"
-                  >
-                    <Minus className="w-2 h-2 sm:w-3 h-3 stroke-[3px] text-white" />
-                  </button>
-                  <span className="font-black text-[9.5px] sm:text-xs select-none text-white">{quantity}</span>
-                  <button
-                    onClick={handleIncrement}
-                    aria-label="Increase quantity"
-                    className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-95"
-                  >
-                    <Plus className="w-2 h-2 sm:w-3 h-3 stroke-[3px] text-white" />
-                  </button>
-                </div>
-              ) : !selectedProduct?.is_available || isQtyOOS ? (
-                <div className="text-[9px] font-bold uppercase text-ozo-red text-center py-1 select-none leading-none">
-                  OOS
-                </div>
-              ) : (
+          {/* Add Button */}
+          <div className="w-[48px] sm:w-[60px] md:w-[70px] flex-shrink-0">
+            {quantity > 0 ? (
+              <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-lg py-1 px-1 sm:py-1.5 sm:px-1.5 shadow-md shadow-emerald-600/10">
                 <button
-                  onClick={handleAddToCart}
-                  disabled={!selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price}
-                  className={`w-full py-1 sm:py-1.5 rounded-lg font-black text-[9.5px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
-                    !selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
-                      : 'bg-ozo-red hover:bg-red-600 text-white hover:shadow-lg hover:shadow-red-600/20 active:scale-95'
-                  }`}
+                  onClick={handleDecrement}
+                  aria-label="Decrease quantity"
+                  className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-90"
                 >
-                  {isAdding ? (
-                    <span className="font-black text-[9.5px] text-white">...</span>
-                  ) : (
-                    <>
-                      <span className="text-white">ADD</span>
-                      {hasVariants && product.variants.length > 1 && (
-                        <span className="text-[7px] sm:text-[8px] text-red-100 font-medium normal-case leading-none">
-                          {product.variants.length} options
-                        </span>
-                      )}
-                    </>
-                  )}
+                  <Minus className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 stroke-[3px] text-white" />
                 </button>
-              )}
-            </div>
+                <span className="font-black text-[9px] sm:text-xs select-none text-white">{quantity}</span>
+                <button
+                  onClick={handleIncrement}
+                  aria-label="Increase quantity"
+                  className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-95"
+                >
+                  <Plus className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 stroke-[3px] text-white" />
+                </button>
+              </div>
+            ) : !selectedProduct?.is_available || isQtyOOS ? (
+              <div className="text-[8px] sm:text-[10px] font-bold uppercase text-ozo-red text-center py-1 select-none leading-none">
+                OOS
+              </div>
+            ) : (
+              <button
+                onClick={handleAddToCart}
+                disabled={!selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price}
+                className={`w-full py-1 sm:py-1.5 rounded-lg font-black text-[9px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
+                  !selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
+                    : 'bg-ozo-red hover:bg-red-600 text-white hover:shadow-lg hover:shadow-red-600/20 active:scale-95'
+                }`}
+              >
+                {isAdding ? (
+                  <span className="font-black text-[9px] text-white">...</span>
+                ) : (
+                  <span className="text-white">ADD</span>
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
