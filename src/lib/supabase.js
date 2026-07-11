@@ -124,6 +124,23 @@ const customFetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url
   const isProxyRequest = supabaseUrl && url.startsWith(supabaseUrl)
 
+  // ─── AUTH BYPASS ───────────────────────────────────────────────────────────
+  // Auth endpoints (PKCE token exchange, session refresh, OAuth) must NOT be
+  // encrypted or proxied — they need to go directly to Supabase so the PKCE
+  // code exchange works correctly. Encrypting these requests breaks the OAuth
+  // flow because the proxy's encrypt/decrypt round-trip interferes with the
+  // exact binary payload that GoTrue expects.
+  const isAuthRequest = url.includes('/auth/v1/')
+  if (isAuthRequest && isProxyRequest && supabaseDirectUrl) {
+    // Rewrite the proxy URL to the direct Supabase URL for auth requests
+    const directUrl = url.replace(supabaseUrl, supabaseDirectUrl)
+    const newRequest = input instanceof Request
+      ? new Request(directUrl, init)
+      : directUrl
+    return fetch(newRequest, input instanceof Request ? undefined : init)
+  }
+  // ──────────────────────────────────────────────────────────────────────────
+
   let newInit = { ...init }
 
   // Encrypt request body if sending JSON to proxy
