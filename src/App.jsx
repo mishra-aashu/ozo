@@ -162,6 +162,16 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/auth" replace />
   }
 
+  // Profile still loading — hold here to prevent premature redirect to /complete-profile
+  if (profile === null) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
+        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Loading profile...</p>
+      </div>
+    )
+  }
+
   if (user && !profile?.phone) {
     return <Navigate to="/complete-profile" replace />
   }
@@ -187,6 +197,16 @@ const PublicOnlyRoute = ({ children }) => {
   }
 
   if (user) {
+    // If profile is still loading, hold here instead of redirecting — avoids
+    // the /auth → /complete-profile → /auth bounce loop during profile fetch.
+    if (profile === null) {
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
+          <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
+          <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Loading profile...</p>
+        </div>
+      )
+    }
     if (!profile?.phone) {
       return <Navigate to="/complete-profile" replace />
     }
@@ -213,6 +233,19 @@ const CompleteProfileRoute = ({ children }) => {
     return <Navigate to="/auth" replace />
   }
 
+  // profile === null means it is still loading — don't redirect yet to avoid
+  // bouncing the user between /complete-profile and /auth in a loop while the
+  // profile fetch is in-flight (especially right after OAuth callback).
+  if (profile === null) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
+        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Loading profile...</p>
+      </div>
+    )
+  }
+
+  // Profile is loaded and phone is already set — send to home
   if (user && profile?.phone) {
     return <Navigate to="/" replace />
   }
@@ -505,7 +538,9 @@ function App() {
               }
             />
 
-            {/* Auth Callback Route */}
+            {/* Auth Callback Route — handles Google OAuth redirect */}
+            <Route path="auth/callback" element={<AuthCallback />} />
+            {/* Legacy callback path — keep for backward compatibility */}
             <Route path="auth/v1/callback" element={<AuthCallback />} />
 
             {/* Complete Profile Route */}
