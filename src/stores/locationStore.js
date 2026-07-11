@@ -76,6 +76,19 @@ export const useLocationStore = create(
             .eq('is_active', true)
           if (activeCities) {
             set({ activeCities })
+            
+            // Clean up any stale fallback_default state from previous sessions to prevent forcing default city
+            if (get().tracedThrough === 'fallback_default') {
+              set({
+                coordinates: null,
+                address: null,
+                addressDetails: null,
+                selectedCitySlug: null,
+                nearestCity: null,
+                tracedThrough: null
+              })
+            }
+            
             return activeCities
           }
         } catch (e) {
