@@ -104,8 +104,20 @@ export default function LocationPromptModal() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    // Check after a short delay to allow geolocation auto-detection on load to finish
-    const timer = setTimeout(() => {
+    let timer
+
+    const runLocationPromptCheck = () => {
+      // Sequence: Wait for notification permission flow to be resolved/dismissed first
+      const isNotificationFlowDone = !useAuthStore.getState().user || 
+        (typeof window !== 'undefined' && 'Notification' in window && Notification.permission !== 'default') || 
+        sessionStorage.getItem('ozo_notification_prompt_dismissed') === 'true'
+
+      if (!isNotificationFlowDone) {
+        // Notification flow not finished yet, check again in 2 seconds
+        timer = setTimeout(runLocationPromptCheck, 2000)
+        return
+      }
+
       const isDismissed = sessionStorage.getItem('ozo_location_prompt_dismissed') === 'true'
       
       if (isDismissed) {
@@ -180,7 +192,10 @@ export default function LocationPromptModal() {
       } else {
         setIsOpen(false)
       }
-    }, 8000)
+    }
+
+    // Start checking after a short delay to allow notifications modal to render/interact first
+    timer = setTimeout(runLocationPromptCheck, 5000)
 
     return () => clearTimeout(timer)
   }, [address, userAddresses])

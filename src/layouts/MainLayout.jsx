@@ -24,11 +24,33 @@ const MainLayout = () => {
   }, [fetchActiveCities])
 
   useEffect(() => {
-    // Prompt geolocation only on non-admin routes if coordinates are not set
-    if (!location.pathname.startsWith('/admin') && !coordinates) {
-      detectLocation()
+    let checkInterval
+    
+    const triggerDetectLocation = () => {
+      if (location.pathname.startsWith('/admin') || coordinates) {
+        clearInterval(checkInterval)
+        return
+      }
+
+      // Wait for notification permission flow to be resolved/dismissed first
+      const isNotificationFlowDone = !user || 
+        (typeof window !== 'undefined' && 'Notification' in window && Notification.permission !== 'default') || 
+        sessionStorage.getItem('ozo_notification_prompt_dismissed') === 'true'
+
+      if (isNotificationFlowDone) {
+        detectLocation()
+        clearInterval(checkInterval)
+      }
     }
-  }, [location.pathname, coordinates, detectLocation])
+
+    triggerDetectLocation()
+
+    if (!coordinates && !location.pathname.startsWith('/admin')) {
+      checkInterval = setInterval(triggerDetectLocation, 1500)
+    }
+
+    return () => clearInterval(checkInterval)
+  }, [location.pathname, coordinates, detectLocation, user])
 
   useEffect(() => {
     const handleResize = () => {
