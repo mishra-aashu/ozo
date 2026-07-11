@@ -671,21 +671,7 @@ export const useLocationStore = create(
         }
         
         if (!navigator.geolocation) {
-          const fallback = await get().getFallbackLocation()
-          set({ 
-            coordinates: { lat: fallback.lat, lng: fallback.lng },
-            address: `${fallback.cityName} - ${fallback.pincode}`,
-            addressDetails: {
-              road: '',
-              suburb: '',
-              city: fallback.rawCity,
-              state: fallback.stateName,
-              postcode: fallback.pincode
-            },
-            isDetecting: false,
-            tracedThrough: 'fallback_default'
-          })
-          await get().updateNearestCitySlug(fallback.lat, fallback.lng)
+          set({ isDetecting: false })
           return false
         }
 
@@ -774,28 +760,14 @@ export const useLocationStore = create(
               }
             },
             async (error) => {
-              // Fallback to closest active city defaults when permission is denied or geolocator fails
-              const fallback = await get().getFallbackLocation()
-              set({ 
-                coordinates: { lat: fallback.lat, lng: fallback.lng },
-                address: `${fallback.cityName} - ${fallback.pincode}`,
-                addressDetails: {
-                  road: '',
-                  suburb: '',
-                  city: fallback.rawCity,
-                  state: fallback.stateName,
-                  postcode: fallback.pincode
-                },
-                isDetecting: false,
-                tracedThrough: 'fallback_default'
-              })
-              await get().updateNearestCitySlug(fallback.lat, fallback.lng)
+              // Do NOT automatically fallback to a default city when permission is denied or geolocator fails
+              set({ isDetecting: false })
               
               if (error.code === error.PERMISSION_DENIED) {
                 localStorage.setItem('ozo_location_permission_denied', 'true')
               }
               if (isManual) {
-                toast.error(`Could not detect live location. Defaulted to ${fallback.cityName}.`, { id: 'gps-error' })
+                toast.error(`Could not detect live location. Please select your location manually.`, { id: 'gps-error' })
               }
               resolve(false)
             },
