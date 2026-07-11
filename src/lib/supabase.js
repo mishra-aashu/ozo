@@ -160,8 +160,33 @@ const customFetch = async (input, init) => {
   const response = await fetch(input, newInit)
 
   // Auto-clear invalid/expired sessions if Supabase Auth rejects the token or refresh token fails
-  const isInvalidSession = (response.status === 403 && url.includes('/auth/v1/user')) || 
-                          (response.status === 400 && url.includes('/auth/v1/token') && url.includes('refresh_token'))
+  let isInvalidSession = false
+  if ((response.status === 401 || response.status === 403) && url.includes('/auth/v1/user')) {
+    // Check if the response is JSON and indicates an auth/token error, avoiding logging users
+    // out on transient proxy/WAF HTML error pages.
+    try {
+      const clone = response.clone()
+      const body = await clone.json()
+      if (body && (body.error || body.msg || body.message)) {
+        const errMsg = (body.error || body.msg || body.message || '').toLowerCase()
+        if (errMsg.includes('invalid') || errMsg.includes('expired') || errMsg.includes('auth') || errMsg.includes('token') || errMsg.includes('unauthorized')) {
+          isInvalidSession = true
+        }
+      }
+    } catch (e) {
+      // Not JSON, likely transient proxy/WAF response, ignore.
+    }
+  } else if (response.status === 400 && url.includes('/auth/v1/token') && url.includes('refresh_token')) {
+    try {
+      const clone = response.clone()
+      const body = await clone.json()
+      if (body && body.error === 'invalid_grant') {
+        isInvalidSession = true
+      }
+    } catch (e) {
+      // Not JSON, ignore
+    }
+  }
 
   if (isInvalidSession) {
     console.warn('[OZO Auth] Got session invalidation from Supabase Auth. Clearing invalid session storage.');

@@ -17,11 +17,36 @@ let profileFetchInProgress = false
 // Helper to ensure user profile exists in public.users table (important for OAuth logins)
 const ensureProfileExists = async (user) => {
   if (!user) return null
+  
+  const fetchWithRetry = async (retries = 2, delay = 500) => {
+    for (let i = 0; i <= retries; i++) {
+      try {
+        const { data: profile, error } = await authHelpers.getUserProfile(user.id)
+        if (profile) return profile
+        // If it's a PGRST116 (no rows found) error, we know the profile doesn't exist
+        // in the database, so we don't need to retry the fetch.
+        if (error && error.code === 'PGRST116') {
+          return null
+        }
+        if (error) {
+          console.warn(`Fetch profile attempt ${i + 1} failed:`, error)
+        }
+      } catch (err) {
+        console.warn(`Fetch profile attempt ${i + 1} threw:`, err)
+      }
+      if (i < retries) {
+        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)))
+      }
+    }
+    return null
+  }
+
   try {
-    const { data: profile } = await authHelpers.getUserProfile(user.id)
+    // 1. Try to fetch the profile with retries for transient issues
+    let profile = await fetchWithRetry()
     if (profile) return profile
 
-    // Profile doesn't exist, create it (e.g. Google OAuth login)
+    // 2. If it doesn't exist, attempt to insert
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
@@ -41,19 +66,23 @@ const ensureProfileExists = async (user) => {
       .single()
 
     if (insertError) {
-      console.warn('Failed to insert user profile via client SDK (might be RLS):', insertError)
-      // Return a fallback profile so application continues functioning.
-      // Include phone: null explicitly so route guards (profile?.phone)
-      // correctly detect the profile as incomplete.
-      return {
-        id: user.id,
-        email: user.email,
-        full_name: fullName,
-        avatar_url: avatarUrl,
-        phone: null,
-        role: 'customer',
+      console.warn('Failed to insert user profile via client SDK (might be RLS or duplicate key):', insertError)
+      
+      // 3. Retry the fetch one more time. The row might have been created by
+      // a concurrent trigger (like on_auth_user_created) or another process.
+      profile = await fetchWithRetry(2, 500)
+      if (profile) {
+        console.log('Successfully retrieved profile on retry after insert failure.')
+        return profile
       }
+      
+      // 4. Return null instead of a fake fallback with phone: null.
+      // This ensures that if the user already has a valid cached profile
+      // in the store (e.g. from localStorage), we do not overwrite their
+      // phone number with null and throw them into a redirect loop.
+      return null
     }
+
     return newProfile
   } catch (err) {
     console.error('Error ensuring profile exists:', err)
