@@ -4,6 +4,7 @@
  */
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import { syncFcmTokenWithDatabase } from '../lib/firebase'
 
 let initPromise = null;
 let resolveInitPromise = null;
@@ -243,6 +244,16 @@ export const promptOneSignalPush = async () => {
       if (OneSignal && window.__oneSignalInitialized) {
         await syncSubscriptionWithDatabase(OneSignal);
       }
+
+      // Sync FCM token since permission is granted
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      if (userId) {
+        syncFcmTokenWithDatabase(userId, false).catch(err => {
+          console.error('[FCM] Post-permission token sync failed:', err);
+        });
+      }
+
       if (initialPermission !== 'granted') {
         toast.success('Notifications enabled successfully! 🔔', {
           id: 'onesignal-permission-granted',

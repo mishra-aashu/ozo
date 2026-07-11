@@ -3,7 +3,7 @@ import { toast } from 'react-hot-toast'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import OzoSplashScreen from './components/OzoSplashScreen'
-import { requestForToken, onMessageListener } from './firebase'
+import { syncFcmTokenWithDatabase, onMessageListener } from './firebase'
 import { supabase } from './lib/supabase'
 
 // Layouts
@@ -419,32 +419,8 @@ function App() {
     let unsubscribe = () => {}
 
     if (user) {
-      // 1. Request FCM Token on mount or user login
-      requestForToken().then(async (token) => {
-        if (token) {
-          console.log('[FCM] Received token:', token)
-          // Sync token to user_fcm_tokens table
-          try {
-            const { error } = await supabase
-              .from('user_fcm_tokens')
-              .upsert({
-                user_id: user.id,
-                token: token,
-                device_info: navigator.userAgent || 'Web PWA Client',
-                updated_at: new Date().toISOString()
-              }, { onConflict: 'token' })
-            if (error) {
-              console.error('[FCM] Error saving token to DB:', error)
-            } else {
-              console.log('[FCM] Token synced to DB successfully.')
-            }
-          } catch (dbErr) {
-            console.error('[FCM] DB sync failed:', dbErr)
-          }
-        }
-      }).catch(err => {
-        console.error('[FCM] Error getting token:', err)
-      })
+      // 1. Request FCM Token silently on mount or user login (do NOT force prompt)
+      syncFcmTokenWithDatabase(user.id, false)
 
       // 2. Register Foreground Message listener
       unsubscribe = onMessageListener((payload) => {
