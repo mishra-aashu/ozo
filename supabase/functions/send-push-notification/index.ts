@@ -176,7 +176,9 @@ Deno.serve(async (req: Request) => {
       title === 'Rider is Rushing! 🛵' || 
       title === 'Delivered! 🎉' || 
       type === 'mart_order_alert' || 
-      title === '📦 New Order for Your Mart!'
+      title === '📦 New Order for Your Mart!' ||
+      type === 'rider_assignment' ||
+      title === '📦 New Order Received!'
     
     if (isFcmAllowed && user_id) {
       const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ungxccwdondssatixzlz.supabase.co'
