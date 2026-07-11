@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app'
 import { getAnalytics, isSupported } from 'firebase/analytics'
 import { getMessaging, getToken, onMessage } from 'firebase/messaging'
+import { supabase } from './supabase'
 
 // Firebase Configuration using Vite environment variables
 const firebaseConfig = {
@@ -68,6 +69,77 @@ if (app && typeof window !== 'undefined') {
 
 // Initialize Messaging safely
 export const messaging = app && typeof window !== 'undefined' ? getMessaging(app) : null
+
+/**
+ * Syncs the FCM token to the user_fcm_tokens table in the database if permission is granted.
+ * @param {string} userId - The user ID
+ * @param {boolean} forcePrompt - Whether to force prompt for permission if not already granted
+ * @returns {Promise<string|null>} FCM Registration Token
+ */
+export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
+  if (!messaging || !userId) return null
+
+  try {
+    const currentPermission = Notification.permission
+    if (!forcePrompt && currentPermission !== 'granted') {
+      console.log('[FCM] Skipping token sync because permission is not granted.')
+      return null
+    }
+
+    const permission = await Notification.requestPermission()
+    if (permission === 'granted') {
+      // Register service worker manually with query parameters to pass config securely without hardcoding
+      let registration = null
+      if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+        const swUrl = `/firebase-messaging-sw.js?apiKey=${encodeURIComponent(firebaseConfig.apiKey || '')}` +
+          `&authDomain=${encodeURIComponent(firebaseConfig.authDomain || '')}` +
+          `&projectId=${encodeURIComponent(firebaseConfig.projectId || '')}` +
+          `&storageBucket=${encodeURIComponent(firebaseConfig.storageBucket || '')}` +
+          `&messagingSenderId=${encodeURIComponent(firebaseConfig.messagingSenderId || '')}` +
+          `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
+          `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
+        
+        registration = await navigator.serviceWorker.register(swUrl)
+        console.log('[FCM] Service Worker registered with configuration successfully')
+      }
+
+      console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
+      const token = await getToken(messaging, {
+        serviceWorkerRegistration: registration,
+        vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
+      })
+
+      if (token) {
+        console.log('[FCM] Token generated successfully:', token)
+        // Sync token to user_fcm_tokens table
+        const { error } = await supabase
+          .from('user_fcm_tokens')
+          .upsert({
+            user_id: userId,
+            token: token,
+            device_info: navigator.userAgent || 'Web PWA Client',
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'token' })
+
+        if (error) {
+          console.error('[FCM] Error saving token to DB:', error)
+        } else {
+          console.log('[FCM] Token synced to DB successfully.')
+        }
+        return token
+      } else {
+        console.warn('[FCM] No registration token available.')
+        return null
+      }
+    } else {
+      console.warn('[FCM] Notification permission denied.')
+      return null
+    }
+  } catch (err) {
+    console.error('[FCM] An error occurred while retrieving token:', err)
+    return null
+  }
+}
 
 /**
  * Requests browser notification permission and retrieves FCM registration token
