@@ -264,10 +264,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (location) {
         const supabaseHost = new URL(SUPABASE_URL).host;
         const reqHost = req.headers.host || '';
-        if (location.includes(supabaseHost)) {
-          location = location.replace(supabaseHost, reqHost);
-          responseHeaders.set("Location", location);
+        // Only rewrite the origin (protocol+host) of the Location URL itself.
+        // Do NOT blindly string-replace all occurrences of the supabase host,
+        // because that also replaces the host inside query parameters like
+        // redirect_uri in OAuth authorize URLs. This breaks the OAuth flow:
+        // Google would receive redirect_uri=ozomart.store/auth/v1/callback
+        // instead of the real Supabase callback URL, causing the auth code to
+        // come back to the client app instead of Supabase's server.
+        try {
+          const locUrl = new URL(location);
+          if (locUrl.host === supabaseHost) {
+            // Determine scheme: use https if the incoming request looks like https
+            const reqProto = (req.headers['x-forwarded-proto'] || 'https') as string;
+            locUrl.protocol = reqProto + ':';
+            locUrl.host = reqHost;
+            location = locUrl.toString();
+          }
+        } catch {
+          // If location is a relative URL or unparseable, fall back to the
+          // old approach but ONLY replace the very start of the URL to
+          // avoid mangling query strings.
+          if (location.startsWith(`https://${supabaseHost}`)) {
+            const reqProto = (req.headers['x-forwarded-proto'] || 'https') as string;
+            location = location.replace(`https://${supabaseHost}`, `${reqProto}://${reqHost}`);
+          } else if (location.startsWith(`http://${supabaseHost}`)) {
+            const reqProto = (req.headers['x-forwarded-proto'] || 'https') as string;
+            location = location.replace(`http://${supabaseHost}`, `${reqProto}://${reqHost}`);
+          }
         }
+        responseHeaders.set("Location", location);
       }
     }
 
