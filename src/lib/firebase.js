@@ -115,13 +115,33 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
 
       if (token) {
         console.log('[FCM] Token generated successfully:', token)
+        
+        // Delete any old tokens for this user on the same device (userAgent) to avoid duplicates
+        const userAgent = navigator.userAgent || 'Web PWA Client'
+        try {
+          const { error: deleteError } = await supabase
+            .from('user_fcm_tokens')
+            .delete()
+            .eq('user_id', userId)
+            .eq('device_info', userAgent)
+            .neq('token', token)
+            
+          if (deleteError) {
+            console.warn('[FCM] Error clearing old device tokens:', deleteError)
+          } else {
+            console.log('[FCM] Cleared stale tokens for this device.')
+          }
+        } catch (delErr) {
+          console.error('[FCM] Failed to clear old tokens:', delErr)
+        }
+
         // Sync token to user_fcm_tokens table
         const { error } = await supabase
           .from('user_fcm_tokens')
           .upsert({
             user_id: userId,
             token: token,
-            device_info: navigator.userAgent || 'Web PWA Client',
+            device_info: userAgent,
             updated_at: new Date().toISOString()
           }, { onConflict: 'token' })
 
