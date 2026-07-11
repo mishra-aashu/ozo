@@ -402,7 +402,7 @@ export const useAuthStore = create(
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/auth/v1/callback`,
+              redirectTo: `${window.location.origin}/auth/callback`,
             },
           })
 
