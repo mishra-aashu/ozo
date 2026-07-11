@@ -90,3 +90,15 @@ image_tool/__pycache__/
 # PyInstaller build artifacts
 build/
 *.spec
+
+# Model Context Protocol (MCP) and local agent configurations
+.mcp/
+mcp/
+mcp_config.json
+.mcp_config.json
+.cursor/mcp.json
+.cursor/mcp_config.json
+.gemini/
+.kiro/
+
+
