@@ -9,40 +9,60 @@ const AuthCallback = () => {
   const hasHandled = useRef(false)
 
   useEffect(() => {
-    // The Supabase client automatically exchanges the `code` query param
-    // (PKCE flow) or the URL hash tokens (implicit flow) for a session when
-    // the page mounts — because `detectSessionInUrl: true` is set in the
-    // client config.  We just need to wait for the resulting auth event.
-
+    // Step 1: Register onAuthStateChange FIRST (before any async work)
+    // so we never miss the SIGNED_IN event from the PKCE code exchange.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (hasHandled.current) return
 
-        // INITIAL_SESSION fires after the SDK finishes its own initialize()
-        // which includes processing the URL tokens/code.
-        // SIGNED_IN fires immediately after a successful token exchange.
         if (
           (event === 'INITIAL_SESSION' || event === 'SIGNED_IN') &&
           session?.user
         ) {
           hasHandled.current = true
-          await redirectAfterAuth()
+          subscription.unsubscribe()
+          await handleAuthSuccess(session)
         }
       }
     )
 
-    // Fallback: if no auth event fires within 10 seconds, use store state
+    // Step 2: Also try getSession() as a fast path in case the SDK has
+    // already exchanged the code before our listener was registered.
+    const tryGetSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('[AuthCallback] getSession error:', error)
+        }
+        if (session?.user && !hasHandled.current) {
+          hasHandled.current = true
+          subscription.unsubscribe()
+          await handleAuthSuccess(session)
+        }
+      } catch (err) {
+        console.error('[AuthCallback] getSession threw:', err)
+      }
+    }
+    tryGetSession()
+
+    // Step 3: Hard timeout fallback — 15 seconds
     const fallbackTimer = setTimeout(async () => {
       if (hasHandled.current) return
       hasHandled.current = true
+      subscription.unsubscribe()
 
-      const { isAuthenticated } = useAuthStore.getState()
-      if (isAuthenticated) {
-        await redirectAfterAuth()
-      } else {
-        navigate('/auth', { replace: true })
-      }
-    }, 10000)
+      // Last-ditch: try reading session directly
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (session?.user) {
+          await handleAuthSuccess(session)
+          return
+        }
+      } catch (_) {}
+
+      // Truly failed — go back to auth page
+      navigate('/auth', { replace: true })
+    }, 15000)
 
     return () => {
       subscription.unsubscribe()
@@ -50,21 +70,36 @@ const AuthCallback = () => {
     }
   }, [navigate]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const redirectAfterAuth = async () => {
-    // Poll for profile to be loaded in the auth store (max ~5s).
-    // The store's SIGNED_IN handler fetches the profile asynchronously,
-    // so we wait for it before navigating to avoid landing on a route
-    // whose guard immediately bounces us back because profile is still null.
+  /**
+   * Called once we have a confirmed Supabase session.
+   * Syncs state into the authStore (in case the store's own listener missed
+   * the SIGNED_IN event due to late registration), then decides where to navigate.
+   */
+  const handleAuthSuccess = async (session) => {
+    const store = useAuthStore.getState()
+
+    // Manually sync user + isAuthenticated into the store if the store's own
+    // onAuthStateChange listener hasn't fired yet (race condition on PKCE exchange).
+    if (!store.isAuthenticated) {
+      useAuthStore.setState({
+        user: session.user,
+        isAuthenticated: true,
+        isInitialized: true,
+      })
+    }
+
+    // Poll for the store's profile fetch to complete (max 5s / 10 attempts).
+    // The store's SIGNED_IN handler fires ensureProfileExists() in a setTimeout,
+    // so it may lag slightly behind this callback.
     let attempts = 0
     const maxAttempts = 10
 
     while (attempts < maxAttempts) {
-      const { isAuthenticated, profile, isInitialized } = useAuthStore.getState()
+      const { profile, isAuthenticated } = useAuthStore.getState()
 
-      // isInitialized must be true and user must be authenticated
-      if (isAuthenticated && isInitialized) {
-        // If profile is loaded, we can make an informed routing decision
+      if (isAuthenticated) {
         if (profile !== null) {
+          // Profile loaded — route based on whether phone is set
           if (profile.phone) {
             navigate('/', { replace: true })
           } else {
@@ -73,9 +108,7 @@ const AuthCallback = () => {
           return
         }
 
-        // Profile is still null — it's either still fetching OR this is a
-        // brand-new user whose DB row hasn't been created yet (first OAuth login).
-        // After 3 seconds of waiting (6 attempts × 500ms), assume new user.
+        // Profile still null after 3s → assume new user (no DB row yet)
         if (attempts >= 6) {
           navigate('/complete-profile', { replace: true })
           return
@@ -86,7 +119,7 @@ const AuthCallback = () => {
       attempts++
     }
 
-    // Timed out waiting for profile — do a safe fallback
+    // Timed out polling — make a safe decision
     const { isAuthenticated, profile } = useAuthStore.getState()
     if (isAuthenticated) {
       navigate(profile?.phone ? '/' : '/complete-profile', { replace: true })

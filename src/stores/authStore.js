@@ -115,6 +115,29 @@ export const useAuthStore = create(
             authSubscription = null
           }
 
+          // ─── IMPORTANT: Register the auth state change listener BEFORE
+          // calling getSession(). On the OAuth callback page, the Supabase SDK
+          // exchanges the PKCE code and fires SIGNED_IN during or right after
+          // getSession(). If we register the listener after getSession() returns
+          // we miss that event and the store stays unauthenticated, causing
+          // AuthCallback to fall back to /auth.
+          //
+          // We attach the listener now (using a temporary ref) and move the
+          // full handler definition below so it has access to the session
+          // variable from getSession(). The handler ignores events that arrive
+          // before the initial session fetch completes via the earlyEvents queue.
+          let initComplete = false
+          let earlySignedInCapture = null // { event, session } captured before init completes
+
+          const { data: { subscription: earlySubscription } } = supabase.auth.onAuthStateChange(
+            (event, session) => {
+              // Capture a SIGNED_IN that fires before initializeAuth finishes
+              if (!initComplete && event === 'SIGNED_IN' && session?.user) {
+                earlySignedInCapture = { event, session }
+              }
+            }
+          )
+
           // Get current session with a timeout to prevent absolute block if auth endpoints hang
           const { data: { session } } = await Promise.race([
             supabase.auth.getSession(),
@@ -214,8 +237,12 @@ export const useAuthStore = create(
             }
           }
 
-          // Register the auth state change listener and store the subscription
-          // handle so it can be torn down if initializeAuth is called again.
+          // Mark init as complete and tear down the early capture listener.
+          initComplete = true
+          earlySubscription.unsubscribe()
+
+          // Register the permanent auth state change listener and store the
+          // subscription handle so it can be torn down if initializeAuth is called again.
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (event, session) => {
               // Sync session to supabaseAdmin
@@ -330,6 +357,43 @@ export const useAuthStore = create(
           )
 
           authSubscription = subscription
+
+          // If a SIGNED_IN event was captured before the permanent listener was
+          // registered (race condition on OAuth callback page), replay it now so
+          // the store doesn't stay unauthenticated after the PKCE code exchange.
+          if (earlySignedInCapture) {
+            const { session: earlySess } = earlySignedInCapture
+            // Only replay if the store didn't already pick up this session
+            if (earlySess?.user && !get().isAuthenticated) {
+              const localProfile = get().profile
+              set({
+                user: earlySess.user,
+                isAuthenticated: true,
+                ...(localProfile && localProfile.id === earlySess.user.id
+                  ? { profile: localProfile, isAdmin: localProfile?.role === 'admin' }
+                  : {}),
+              })
+              oneSignalLogin(earlySess.user.id)
+              // Kick off profile fetch in background
+              setTimeout(async () => {
+                try {
+                  const profile = await ensureProfileExists(earlySess.user)
+                  const currentLocalProfile = get().profile
+                  const finalProfile = profile
+                    ? (currentLocalProfile && currentLocalProfile.id === profile.id
+                        ? { ...currentLocalProfile, ...profile, role: profile.role, avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || '' }
+                        : profile)
+                    : currentLocalProfile
+                  set({ profile: finalProfile, isAdmin: finalProfile?.role === 'admin' })
+                } catch (err) {
+                  console.warn('[authStore] Early SIGNED_IN profile fetch failed:', err)
+                } finally {
+                  profileFetchInProgress = false
+                }
+              }, 0)
+            }
+            earlySignedInCapture = null
+          }
         } catch (error) {
           console.error('Auth initialization error:', error)
           // Fallback: use whatever we have in the persisted store to keep the app functional
