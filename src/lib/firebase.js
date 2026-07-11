@@ -99,15 +99,19 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
           `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
           `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
         
-        registration = await navigator.serviceWorker.register(swUrl)
-        console.log('[FCM] Service Worker registered with configuration successfully')
+        await navigator.serviceWorker.register(swUrl)
+        registration = await navigator.serviceWorker.ready
+        console.log('[FCM] Service Worker registered and ready successfully')
       }
 
       console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
-      const token = await getToken(messaging, {
-        serviceWorkerRegistration: registration,
+      const tokenOptions = {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
-      })
+      }
+      if (registration) {
+        tokenOptions.serviceWorkerRegistration = registration
+      }
+      const token = await getToken(messaging, tokenOptions)
 
       if (token) {
         console.log('[FCM] Token generated successfully:', token)
@@ -162,15 +166,19 @@ export const requestForToken = async () => {
           `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
           `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
         
-        registration = await navigator.serviceWorker.register(swUrl)
-        console.log('[FCM] Service Worker registered with configuration successfully')
+        await navigator.serviceWorker.register(swUrl)
+        registration = await navigator.serviceWorker.ready
+        console.log('[FCM] Service Worker registered and ready successfully')
       }
 
       console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
-      const currentToken = await getToken(messaging, {
-        serviceWorkerRegistration: registration,
+      const tokenOptions = {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
-      })
+      }
+      if (registration) {
+        tokenOptions.serviceWorkerRegistration = registration
+      }
+      const currentToken = await getToken(messaging, tokenOptions)
       if (currentToken) {
         console.log('[FCM] Token generated successfully:', currentToken)
         return currentToken
