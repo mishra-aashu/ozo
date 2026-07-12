@@ -143,16 +143,25 @@ const customFetch = async (input, init) => {
 
   let newInit = { ...init }
 
+  // Normalize and prepare headers
+  let newHeaders = {}
+  if (newInit.headers) {
+    if (newInit.headers instanceof Headers) {
+      newHeaders = Object.fromEntries(newInit.headers.entries())
+    } else {
+      newHeaders = { ...newInit.headers }
+    }
+  }
+
+  // Inject admin session token if it exists in sessionStorage
+  const adminToken = typeof window !== 'undefined' ? sessionStorage.getItem('ozo-admin-token') : null
+  if (adminToken) {
+    newHeaders['x-admin-token'] = adminToken
+  }
+  newInit.headers = newHeaders
+
   // Encrypt request body if sending JSON to proxy
   if (isProxyRequest && newInit.body && ["POST", "PUT", "PATCH", "DELETE"].includes(newInit.method || 'GET')) {
-    let newHeaders = {}
-    if (newInit.headers) {
-      if (newInit.headers instanceof Headers) {
-        newHeaders = Object.fromEntries(newInit.headers.entries())
-      } else {
-        newHeaders = { ...newInit.headers }
-      }
-    }
     const contentType = newHeaders['Content-Type'] || newHeaders['content-type'] || ''
     if (contentType.includes('application/json') || typeof newInit.body === 'string') {
       try {
@@ -167,7 +176,6 @@ const customFetch = async (input, init) => {
         newHeaders['x-original-content-type'] = origCt
         newHeaders['Content-Type'] = 'text/plain'
         delete newHeaders['content-type'] // avoid duplicate casing
-        newInit.headers = newHeaders
       } catch (err) {
         console.error('[OZO Crypto] Request encryption failed:', err)
       }
@@ -211,6 +219,15 @@ const customFetch = async (input, init) => {
       window.localStorage.removeItem('ozo-auth-token');
       window.localStorage.removeItem('ozo-auth-storage');
       window.dispatchEvent(new CustomEvent('ozo-session-expired'));
+    }
+  }
+
+  // Auto-clear admin panel session if response is 401/403 and x-admin-token was sent
+  if ((response.status === 401 || response.status === 403) && adminToken) {
+    console.warn('[OZO Auth] Admin session token was rejected or has expired. Clearing admin session.');
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('ozo-admin-token');
+      window.dispatchEvent(new CustomEvent('ozo-admin-session-expired'));
     }
   }
 

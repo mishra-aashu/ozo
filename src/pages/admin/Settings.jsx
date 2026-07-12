@@ -163,6 +163,12 @@ const AdminSettings = () => {
     max_sessions_per_user: 2
   })
 
+  // Change Admin Password States
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [updatingPassword, setUpdatingPassword] = useState(false)
+
   const [mapConfig, setMapConfig] = useState({
     hide_map: false,
     hide_mart_pickup: false
@@ -756,6 +762,39 @@ const AdminSettings = () => {
   const addLog = (message, type = 'info') => {
     const time = new Date().toLocaleTimeString()
     setLogs(prev => [`[${time}] [${type.toUpperCase()}] ${message}`, ...prev.slice(0, 19)])
+  }
+
+  const handleChangeAdminPassword = async (e) => {
+    e.preventDefault()
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('All fields are required')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('Passwords do not match')
+      return
+    }
+    if (newPassword.length < 8) {
+      toast.error('Password must be at least 8 characters')
+      return
+    }
+    setUpdatingPassword(true)
+    try {
+      const { data, error } = await supabase.rpc('change_admin_password', {
+        current_password: currentPassword,
+        new_password: newPassword
+      })
+      if (error) throw error
+      toast.success('Admin password updated successfully')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      console.error('[Admin Settings]: Failed to change password', err)
+      toast.error(err.message || 'Failed to change admin password')
+    } finally {
+      setUpdatingPassword(false)
+    }
   }
 
   const fetchSettings = async () => {
@@ -2269,6 +2308,61 @@ const AdminSettings = () => {
                     <span>
                       If a user logs in from a new device when they are already at their session limit, the oldest active login session is automatically logged out to prevent account sharing.
                     </span>
+                  </div>
+
+                  <div className="border-t border-gray-200 dark:border-white/5 pt-6 mt-6">
+                    <h3 className="text-sm font-black text-gray-850 dark:text-white mb-4 uppercase tracking-wider">Change Master Admin Password</h3>
+                    <form onSubmit={handleChangeAdminPassword} className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Current Admin Password</label>
+                        <input
+                          type="password"
+                          value={currentPassword}
+                          onChange={e => setCurrentPassword(e.target.value)}
+                          className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-850 dark:text-white"
+                          placeholder="Current Password"
+                          required
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-gray-400 uppercase mb-2">New Admin Password</label>
+                          <input
+                            type="password"
+                            value={newPassword}
+                            onChange={e => setNewPassword(e.target.value)}
+                            className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-850 dark:text-white"
+                            placeholder="New Password (min 8 chars)"
+                            required
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Confirm New Password</label>
+                          <input
+                            type="password"
+                            value={confirmPassword}
+                            onChange={e => setConfirmPassword(e.target.value)}
+                            className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-850 dark:text-white"
+                            placeholder="Confirm New Password"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={updatingPassword}
+                        className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-ozo-red to-orange-600 hover:shadow-lg hover:shadow-ozo-red/20 active:scale-[0.98] text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        {updatingPassword ? (
+                          <>
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            Updating...
+                          </>
+                        ) : (
+                          'Update Master Password'
+                        )}
+                      </button>
+                    </form>
                   </div>
                 </div>
               </div>

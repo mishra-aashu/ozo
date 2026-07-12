@@ -39,6 +39,7 @@ import { useThemeStore } from '../stores/themeStore'
 import { useAdminIndicatorStore } from '../stores/adminIndicatorStore'
 import toast from 'react-hot-toast'
 import UserAvatar from '../components/UserAvatar'
+import AdminLockScreen from '../components/AdminLockScreen'
  
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -48,6 +49,18 @@ const AdminLayout = () => {
   const { badges, todayStats, startSubscribing, stopSubscribing, markAsSeen } = useAdminIndicatorStore()
   const navigate = useNavigate()
   const location = useLocation()
+
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    return !!sessionStorage.getItem('ozo-admin-token')
+  })
+
+  useEffect(() => {
+    const handleExpired = () => {
+      setIsUnlocked(false)
+    }
+    window.addEventListener('ozo-admin-session-expired', handleExpired)
+    return () => window.removeEventListener('ozo-admin-session-expired', handleExpired)
+  }, [])
 
   useEffect(() => {
     const path = location.pathname
@@ -258,6 +271,10 @@ const AdminLayout = () => {
         damping: 30,
       },
     },
+  }
+
+  if (!isUnlocked) {
+    return <AdminLockScreen onUnlock={() => setIsUnlocked(true)} />
   }
 
   return (
