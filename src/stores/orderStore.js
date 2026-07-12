@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 import { useAuthStore } from './authStore'
 import { useCartStore } from './cartStore'
 import toast from 'react-hot-toast'
@@ -43,6 +43,7 @@ export const useOrderStore = create((set, get) => ({
             product_name,
             product_image,
             quantity,
+            unit_price,
             is_cancelled
           )
         `)
@@ -456,7 +457,7 @@ export const useOrderStore = create((set, get) => ({
   adminFetchOrders: async () => {
     try {
       set({ isLoading: true })
-      const query = supabase
+      const query = supabaseAdmin
         .from('orders')
         .select(`
           *,
@@ -525,7 +526,7 @@ export const useOrderStore = create((set, get) => ({
       // Fetch both orders and server time in parallel
       const [queryResult, timeResult] = await Promise.all([
         query,
-        supabase.rpc('get_server_time')
+        supabaseAdmin.rpc('get_server_time')
       ])
 
       const { data, error } = queryResult
@@ -576,7 +577,7 @@ export const useOrderStore = create((set, get) => ({
         updatePayload.delivery_instructions = `${originalInstructions} [Cancel Reason: ${reason}] [Cancel Note: ${note || ''}]`.trim()
       }
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('orders')
         .update(updatePayload)
         .eq('id', orderId)
@@ -608,7 +609,7 @@ export const useOrderStore = create((set, get) => ({
   // Admin: Update payment status
   adminUpdatePaymentStatus: async (orderId, newPaymentStatus) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('orders')
         .update({
           payment_status: newPaymentStatus,
@@ -641,7 +642,7 @@ export const useOrderStore = create((set, get) => ({
   // Admin: Assign Mart to order
   adminAssignMart: async (orderId, martId) => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseAdmin
         .from('orders')
         .update({
           mart_id: martId,
