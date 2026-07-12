@@ -99,9 +99,8 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
           `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
           `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
         
-        await navigator.serviceWorker.register(swUrl)
-        registration = await navigator.serviceWorker.ready
-        console.log('[FCM] Service Worker registered and ready successfully')
+        registration = await navigator.serviceWorker.register(swUrl)
+        console.log('[FCM] Service Worker registered successfully')
       }
 
       console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
@@ -186,9 +185,8 @@ export const requestForToken = async () => {
           `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
           `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
         
-        await navigator.serviceWorker.register(swUrl)
-        registration = await navigator.serviceWorker.ready
-        console.log('[FCM] Service Worker registered and ready successfully')
+        registration = await navigator.serviceWorker.register(swUrl)
+        console.log('[FCM] Service Worker registered successfully')
       }
 
       console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
