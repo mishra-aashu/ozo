@@ -318,7 +318,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, oneSignalResponse: responseData, fcmResults: fcmSendResults, debugEnvKeys: Object.keys(Deno.env.toObject()) }),
+      JSON.stringify({ success: true, oneSignalResponse: responseData, fcmResults: fcmSendResults }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
