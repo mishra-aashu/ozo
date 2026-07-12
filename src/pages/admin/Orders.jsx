@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useSearchParams } from 'react-router-dom'
 import {
   Search,
   ChevronRight,
@@ -166,6 +167,27 @@ const Orders = () => {
     fetchMarts()
   }, [fetchMarts])
 
+  const [searchParams, setSearchParams] = useSearchParams()
+  const orderIdParam = searchParams.get('id')
+
+  const handleCloseDetails = () => {
+    setIsModalOpen(false)
+    if (searchParams.has('id')) {
+      const newParams = new URLSearchParams(searchParams)
+      newParams.delete('id')
+      setSearchParams(newParams)
+    }
+  }
+
+  useEffect(() => {
+    if (orderIdParam && orders.length > 0) {
+      const order = orders.find(o => o.id === orderIdParam)
+      if (order) {
+        setSelectedOrder(order)
+        setIsModalOpen(true)
+      }
+    }
+  }, [orderIdParam, orders])
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
@@ -951,11 +973,47 @@ const Orders = () => {
     revenue: orders.filter(o => ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(o.status)).reduce((sum, o) => sum + (o.total || 0), 0)
   }
 
+  if (orderIdParam) {
+    if (isLoading && orders.length === 0) {
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
+          <div className="relative flex items-center justify-center">
+            <div className="w-16 h-16 border-4 border-ozo-red/20 border-t-ozo-red rounded-full animate-spin" />
+            <div className="absolute w-8 h-8 border-4 border-ozo-green/20 border-b-ozo-green rounded-full animate-spin [animation-direction:reverse] [animation-duration:1s]" />
+          </div>
+          <p className="mt-6 text-gray-850 dark:text-gray-200 text-xs font-black uppercase tracking-widest animate-pulse notranslate" translate="no">
+            Loading Order details...
+          </p>
+        </div>
+      )
+    }
+
+    const order = orders.find(o => o.id === orderIdParam)
+    if (!order) {
+      return (
+        <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-4 bg-transparent">
+          <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 text-xl font-bold">
+            ⚠️
+          </div>
+          <p className="text-gray-500 dark:text-gray-400 font-bold">Order not found or has been deleted.</p>
+          <button
+            onClick={() => setSearchParams({})}
+            className="px-5 py-2.5 bg-gradient-to-r from-ozo-red to-red-650 text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all"
+          >
+            Back to Orders List
+          </button>
+        </div>
+      )
+    }
+  }
+
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 shadow-premium">
-        <div>
+      {!orderIdParam && (
+        <>
+          {/* Header Banner */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-6 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 shadow-premium">
+            <div>
           <h1 className="text-3xl font-black text-gradient">Orders Management</h1>
           <p className="text-sm text-ozo-gray mt-1">Customer orders ko dispatch, track, aur cancel krein.</p>
         </div>
@@ -1234,11 +1292,11 @@ const Orders = () => {
                         <td className="p-4 text-right">
                           <button
                             onClick={() => {
-                              setSelectedOrder(order)
-                              setIsModalOpen(true)
+                              setSearchParams({ id: order.id })
                               setShowCancelPrompt(false)
                             }}
                             className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-gray-650 dark:text-gray-300 transition-colors"
+                            title="View order details"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -1289,11 +1347,11 @@ const Orders = () => {
                         </span>
                         <button
                           onClick={() => {
-                            setSelectedOrder(order)
-                            setIsModalOpen(true)
+                            setSearchParams({ id: order.id })
                             setShowCancelPrompt(false)
                           }}
                           className="p-2 bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 rounded-xl text-gray-650 dark:text-gray-300 transition-colors"
+                          title="View order details"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
@@ -1453,26 +1511,36 @@ const Orders = () => {
           </div>
         )}
       </div>
+        </>
+      )}
 
-      {/* Detailed Order Modal */}
+      {/* Detailed Order Modal / Standalone Page */}
       <AnimatePresence>
-        {isModalOpen && selectedOrder && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm overflow-hidden">
+        {((isModalOpen && !orderIdParam) || (orderIdParam && selectedOrder)) && (
+          <div className={
+            orderIdParam
+              ? "-mx-4 sm:-mx-6 -my-4 sm:-my-6 w-[calc(100%+2rem)] sm:w-[calc(100%+3rem)] h-[calc(100vh-72px)] sm:h-[calc(100vh-80px)]"
+              : "fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm overflow-hidden"
+          }>
             {/* Backdrop click handler to close */}
-            <div className="absolute inset-0" onClick={() => setIsModalOpen(false)} />
+            {!orderIdParam && <div className="absolute inset-0" onClick={handleCloseDetails} />}
             
             <motion.div
-              initial={{ x: '100%', opacity: 0.8 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: '100%', opacity: 0.8 }}
+              initial={orderIdParam ? { opacity: 0 } : { x: '100%', opacity: 0.8 }}
+              animate={orderIdParam ? { opacity: 1 } : { x: 0, opacity: 1 }}
+              exit={orderIdParam ? { opacity: 0 } : { x: '100%', opacity: 0.8 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="relative bg-white dark:bg-[#141414] w-full max-w-2xl h-full shadow-2xl overflow-hidden flex flex-col border-l border-gray-100 dark:border-white/5 z-10"
+              className={
+                orderIdParam
+                  ? "relative bg-white dark:bg-[#1a1a1a] w-full border-none shadow-none flex flex-col overflow-hidden h-full rounded-none"
+                  : "relative bg-white dark:bg-[#141414] w-full max-w-2xl h-full shadow-2xl overflow-hidden flex flex-col border-l border-gray-100 dark:border-white/5 z-10"
+              }
             >
               {/* Header */}
               <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] shrink-0">
                 <div className="flex items-center gap-3">
                   <button
-                    onClick={() => setIsModalOpen(false)}
+                    onClick={handleCloseDetails}
                     className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors flex items-center justify-center border border-gray-200/60 dark:border-white/10 shadow-sm"
                     aria-label="Go back"
                   >
@@ -1491,7 +1559,7 @@ const Orders = () => {
                   </div>
                 </div>
                 <button
-                  onClick={() => setIsModalOpen(false)}
+                  onClick={handleCloseDetails}
                   className="hidden sm:block p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
