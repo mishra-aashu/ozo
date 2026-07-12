@@ -88,18 +88,11 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
 
     const permission = await Notification.requestPermission()
     if (permission === 'granted') {
-      // Register service worker manually with query parameters to pass config securely without hardcoding
+      // Register service worker at a fixed URL (config is hardcoded in the SW file)
+      // This ensures Chrome Android can reliably wake the SW for background pushes
       let registration = null
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        const swUrl = `/firebase-messaging-sw.js?apiKey=${encodeURIComponent(firebaseConfig.apiKey || '')}` +
-          `&authDomain=${encodeURIComponent(firebaseConfig.authDomain || '')}` +
-          `&projectId=${encodeURIComponent(firebaseConfig.projectId || '')}` +
-          `&storageBucket=${encodeURIComponent(firebaseConfig.storageBucket || '')}` +
-          `&messagingSenderId=${encodeURIComponent(firebaseConfig.messagingSenderId || '')}` +
-          `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
-          `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
-        
-        registration = await navigator.serviceWorker.register(swUrl)
+        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
         console.log('[FCM] Service Worker registered successfully')
       }
 
@@ -174,18 +167,10 @@ export const requestForToken = async () => {
   try {
     const permission = await Notification.requestPermission()
     if (permission === 'granted') {
-      // Register service worker manually with query parameters to pass config securely without hardcoding
+      // Register service worker at a fixed URL (config is hardcoded in the SW file)
       let registration = null
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-        const swUrl = `/firebase-messaging-sw.js?apiKey=${encodeURIComponent(firebaseConfig.apiKey || '')}` +
-          `&authDomain=${encodeURIComponent(firebaseConfig.authDomain || '')}` +
-          `&projectId=${encodeURIComponent(firebaseConfig.projectId || '')}` +
-          `&storageBucket=${encodeURIComponent(firebaseConfig.storageBucket || '')}` +
-          `&messagingSenderId=${encodeURIComponent(firebaseConfig.messagingSenderId || '')}` +
-          `&appId=${encodeURIComponent(firebaseConfig.appId || '')}` +
-          `&measurementId=${encodeURIComponent(firebaseConfig.measurementId || '')}`
-        
-        registration = await navigator.serviceWorker.register(swUrl)
+        registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
         console.log('[FCM] Service Worker registered successfully')
       }
 

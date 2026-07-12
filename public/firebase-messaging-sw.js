@@ -1,71 +1,87 @@
-// Give the service worker access to Firebase Messaging.
-// Note that we must use compat libraries in service workers when loading via CDN scripts.
+// Firebase Messaging Service Worker - handles background push notifications
+// This file MUST have hardcoded config so Chrome Android can wake it up reliably
+// when the app/browser is completely closed.
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js')
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js')
 
-// Extract config from query parameters
-const urlParams = new URLSearchParams(self.location.search)
+// Firebase config - hardcoded for reliable background wake-up on Android
+// These are PUBLIC client-side keys (safe to expose, same as in the built JS bundle)
 const firebaseConfig = {
-  apiKey: urlParams.get('apiKey'),
-  authDomain: urlParams.get('authDomain'),
-  projectId: urlParams.get('projectId'),
-  storageBucket: urlParams.get('storageBucket'),
-  messagingSenderId: urlParams.get('messagingSenderId'),
-  appId: urlParams.get('appId'),
-  measurementId: urlParams.get('measurementId')
+  apiKey: 'AIzaSyA6_IkWfRHK2UsoNgZKNmMP2gRKh6fRHUU',
+  authDomain: 'ozo-efcc9.firebaseapp.com',
+  projectId: 'ozo-efcc9',
+  storageBucket: 'ozo-efcc9.firebasestorage.app',
+  messagingSenderId: '566208116360',
+  appId: '1:566208116360:web:fda01120decbf9bab1d13d',
+  measurementId: 'G-6E5XL7QP2E'
 }
 
-let messaging = null
+firebase.initializeApp(firebaseConfig)
+const messaging = firebase.messaging()
 
-// Only initialize if we received valid parameters
-if (firebaseConfig.apiKey && firebaseConfig.projectId) {
-  firebase.initializeApp(firebaseConfig)
-  messaging = firebase.messaging()
-} else {
-  console.warn('[firebase-messaging-sw.js] Missing configuration parameters, skipping initialization')
-}
+// Background Message Handler - fires when app/browser is closed or in background
+messaging.onBackgroundMessage((payload) => {
+  console.log('[firebase-messaging-sw.js] Received background message:', payload)
 
-// Background Message Handler
-if (messaging) {
-  messaging.onBackgroundMessage((payload) => {
-    console.log('[firebase-messaging-sw.js] Received background message: ', payload)
+  const notificationTitle = payload.notification?.title || 'OZO Order Update'
+  const notificationOptions = {
+    body: payload.notification?.body || 'You have a new notification from OZO.',
+    icon: 'https://ozomart.store/apple-touch-icon.png',
+    badge: 'https://ozomart.store/logo_bag_only.png',
+    data: payload.data || {},
+    tag: payload.data?.order_id || 'order-update',
+    vibrate: [200, 100, 200],
+    requireInteraction: true
+  }
 
-    // Customize background notification title and options
-    const notificationTitle = payload.notification?.title || 'OZO Order Update'
-    const notificationOptions = {
-      body: payload.notification?.body || 'You have a new notification from OZO.',
-      icon: 'https://ozomart.store/apple-touch-icon.png', // Replace with your notification icon path
-      badge: 'https://ozomart.store/logo_bag_only.png',  // Replace with your badge icon path
-      data: payload.data || {},
-      tag: payload.data?.order_id || 'order-update', // Collapses notifications of the same order
-      vibrate: [200, 100, 200]
-    }
+  self.registration.showNotification(notificationTitle, notificationOptions)
+})
 
-    self.registration.showNotification(notificationTitle, notificationOptions)
-  })
-}
-
-// Optional: Handle Notification click events
+// Handle notification click - opens the correct page
 self.addEventListener('notificationclick', (event) => {
   event.notification.close()
   
-  // Retrieve custom payload data
-  const orderId = event.notification.data?.order_id
-  const targetUrl = event.notification.data?.url || (orderId ? `/order/${orderId}` : '/')
+  const targetUrl = event.notification.data?.url || 
+    (event.notification.data?.order_id ? `/order/${event.notification.data.order_id}` : '/')
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
-      // If a window is already open, navigate it
       for (let i = 0; i < windowClients.length; i++) {
         const client = windowClients[i]
         if (client.url.includes(self.location.origin) && 'focus' in client) {
           return client.focus().then((focusedClient) => focusedClient.navigate(targetUrl))
         }
       }
-      // Otherwise, open a new window
       if (clients.openWindow) {
         return clients.openWindow(targetUrl)
       }
     })
   )
+})
+
+// Keep alive - ensure SW stays active for push events
+self.addEventListener('push', (event) => {
+  // This listener ensures the SW wakes up for push events even if
+  // onBackgroundMessage doesn't fire (e.g. data-only messages)
+  if (!event.data) return
+
+  try {
+    const payload = event.data.json()
+    // If there's no notification field, show one from data
+    if (!payload.notification && payload.data) {
+      const title = payload.data.title || 'OZO Notification'
+      const options = {
+        body: payload.data.body || payload.data.message || 'You have a new update.',
+        icon: 'https://ozomart.store/apple-touch-icon.png',
+        badge: 'https://ozomart.store/logo_bag_only.png',
+        data: payload.data,
+        tag: payload.data.order_id || 'ozo-update',
+        vibrate: [200, 100, 200],
+        requireInteraction: true
+      }
+      event.waitUntil(self.registration.showNotification(title, options))
+    }
+  } catch (e) {
+    console.warn('[firebase-messaging-sw.js] Push event parse error:', e)
+  }
 })
