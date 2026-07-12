@@ -228,44 +228,40 @@ const Orders = () => {
                   </span>
                 </div>
 
-                {/* Body row: Thumbnails and pricing/destination */}
-                <div className="p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                  {/* Left part: product list thumbnails */}
+                <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                  {/* Left part: product list compact badges */}
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 overflow-x-auto py-1 scrollbar-hide">
+                    <p className="text-[10px] font-black text-gray-450 dark:text-gray-500 uppercase tracking-widest mb-3">Order Items</p>
+                    <div className="flex flex-wrap gap-2.5 py-1">
                       {order.order_items && order.order_items.length > 0 ? (
-                        order.order_items.slice(0, 3).map((item) => (
-                          <div key={item.id} className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 flex-shrink-0 overflow-hidden p-1 flex items-center justify-center relative">
-                            <OptimizedImage
-                              src={item.product_image}
-                              slug={item.product_slug}
-                              alt={item.product_name}
-                              width={100}
-                              className="w-full h-full object-contain rounded-lg"
-                              containerClassName="w-full h-full"
-                            />
-                            <span className="absolute -bottom-1 -right-1 bg-gray-900 text-white text-[8px] font-black px-1 py-0.5 rounded-full border border-white dark:border-[#121212] leading-none">
-                              {item.quantity}x
-                            </span>
+                        order.order_items.map((item) => (
+                          <div key={item.id} className="flex items-center gap-2.5 bg-gray-50 dark:bg-white/[0.02] border border-gray-150/40 dark:border-white/5 rounded-2xl p-1.5 pr-3 shadow-sm hover:shadow-md transition-all duration-200">
+                            <div className="w-9 h-9 rounded-xl bg-white dark:bg-black/10 border border-gray-100 dark:border-white/5 flex-shrink-0 overflow-hidden p-0.5 flex items-center justify-center">
+                              <OptimizedImage
+                                src={item.product_image}
+                                slug={item.product_slug}
+                                alt={item.product_name}
+                                width={80}
+                                className="w-full h-full object-contain rounded-lg"
+                                containerClassName="w-full h-full"
+                              />
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-[11px] font-bold text-gray-800 dark:text-gray-200 truncate max-w-[110px] leading-tight">
+                                {item.product_name}
+                              </span>
+                              <span className="text-[9px] text-gray-450 dark:text-gray-500 font-extrabold mt-0.5">
+                                {item.quantity} x ₹{item.price}
+                              </span>
+                            </div>
                           </div>
                         ))
                       ) : (
-                        <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 flex-shrink-0 flex items-center justify-center text-ozo-red">
-                          <Package size={20} />
+                        <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/[0.02] border border-gray-150/50 dark:border-white/10 rounded-2xl p-2 pr-3.5">
+                          <Package size={16} className="text-gray-400" />
+                          <span className="text-xs text-gray-500 font-semibold">No items info</span>
                         </div>
                       )}
-                      {order.order_items && order.order_items.length > 3 && (
-                        <div className="w-12 h-12 rounded-xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/10 flex-shrink-0 flex items-center justify-center text-xs font-black text-gray-500 dark:text-gray-400">
-                          +{order.order_items.length - 3}
-                        </div>
-                      )}
-                      
-                      <div className="ml-2">
-                        <p className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">Items</p>
-                        <p className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[150px] sm:max-w-none">
-                          {order.order_items ? order.order_items.map(i => i.product_name).join(', ') : 'Grocery Items'}
-                        </p>
-                      </div>
                     </div>
                   </div>
 

@@ -153,9 +153,12 @@ const customFetch = async (input, init) => {
     }
   }
 
-  // Inject admin session token if it exists in localStorage
+  // Inject admin session token if it exists in localStorage and this is an admin request
   const adminToken = typeof window !== 'undefined' ? localStorage.getItem('ozo-admin-token') : null
-  if (adminToken) {
+  const isDocAdminRequest = newHeaders['x-application-name'] === 'ozo-grocery-app-admin' || 
+                            newHeaders['X-Application-Name'] === 'ozo-grocery-app-admin' ||
+                            url.includes('/admin/');
+  if (adminToken && isDocAdminRequest) {
     newHeaders['x-admin-token'] = adminToken
   }
   newInit.headers = newHeaders
@@ -223,7 +226,8 @@ const customFetch = async (input, init) => {
   }
 
   // Auto-clear admin panel session if response is 401/403 and x-admin-token was sent
-  if ((response.status === 401 || response.status === 403) && adminToken) {
+  const sentAdminToken = newHeaders['x-admin-token'] || newHeaders['X-Admin-Token'];
+  if ((response.status === 401 || response.status === 403) && sentAdminToken) {
     console.warn('[OZO Auth] Admin session token was rejected or has expired. Clearing admin session.');
     if (typeof window !== 'undefined') {
       window.localStorage.removeItem('ozo-admin-token');
