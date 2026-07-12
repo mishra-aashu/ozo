@@ -238,15 +238,24 @@ Deno.serve(async (req: Request) => {
                             notification_id: id || '',
                             type: type || 'order_status',
                             order_id: parsedData?.order_id || '',
+                            url: targetUrl,
                           },
                           webpush: {
                             headers: {
                               Urgency: 'high',
                             },
                             notification: {
-                              icon: '/apple-touch-icon.png',
-                              badge: '/logo_bag_only.png',
+                              title: title,
+                              body: message,
+                              icon: 'https://ozomart.store/apple-touch-icon.png',
+                              badge: 'https://ozomart.store/logo_bag_only.png',
                               click_action: targetUrl,
+                            },
+                            data: {
+                              notification_id: id || '',
+                              type: type || 'order_status',
+                              order_id: parsedData?.order_id || '',
+                              url: targetUrl,
                             },
                           },
                         },
