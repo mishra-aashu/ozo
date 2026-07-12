@@ -34,8 +34,8 @@ if (messaging) {
     const notificationTitle = payload.notification?.title || 'OZO Order Update'
     const notificationOptions = {
       body: payload.notification?.body || 'You have a new notification from OZO.',
-      icon: '/apple-touch-icon.png', // Replace with your notification icon path
-      badge: '/logo_bag_only.png',  // Replace with your badge icon path
+      icon: 'https://ozomart.store/apple-touch-icon.png', // Replace with your notification icon path
+      badge: 'https://ozomart.store/logo_bag_only.png',  // Replace with your badge icon path
       data: payload.data || {},
       tag: payload.data?.order_id || 'order-update', // Collapses notifications of the same order
       vibrate: [200, 100, 200]
@@ -51,7 +51,7 @@ self.addEventListener('notificationclick', (event) => {
   
   // Retrieve custom payload data
   const orderId = event.notification.data?.order_id
-  const targetUrl = orderId ? `/order/${orderId}` : '/'
+  const targetUrl = event.notification.data?.url || (orderId ? `/order/${orderId}` : '/')
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
