@@ -239,7 +239,7 @@ const Orders = () => {
                             <div className="w-9 h-9 rounded-xl bg-white dark:bg-black/10 border border-gray-100 dark:border-white/5 flex-shrink-0 overflow-hidden p-0.5 flex items-center justify-center">
                               <OptimizedImage
                                 src={item.product_image}
-                                slug={item.product_slug}
+                                slug={item.product_slug || ''}
                                 alt={item.product_name}
                                 width={80}
                                 className="w-full h-full object-contain rounded-lg"
@@ -251,7 +251,7 @@ const Orders = () => {
                                 {item.product_name}
                               </span>
                               <span className="text-[9px] text-gray-450 dark:text-gray-500 font-extrabold mt-0.5">
-                                {item.quantity} x ₹{item.price}
+                                {item.quantity} x ₹{item.unit_price}
                               </span>
                             </div>
                           </div>
