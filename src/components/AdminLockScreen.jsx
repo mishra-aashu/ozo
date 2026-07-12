@@ -28,7 +28,7 @@ const AdminLockScreen = ({ onUnlock }) => {
       }
 
       if (token) {
-        sessionStorage.setItem('ozo-admin-token', token)
+        localStorage.setItem('ozo-admin-token', token)
         toast.success('Admin panel unlocked successfully')
         onUnlock()
       } else {

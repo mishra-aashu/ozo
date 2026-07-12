@@ -153,8 +153,8 @@ const customFetch = async (input, init) => {
     }
   }
 
-  // Inject admin session token if it exists in sessionStorage
-  const adminToken = typeof window !== 'undefined' ? sessionStorage.getItem('ozo-admin-token') : null
+  // Inject admin session token if it exists in localStorage
+  const adminToken = typeof window !== 'undefined' ? localStorage.getItem('ozo-admin-token') : null
   if (adminToken) {
     newHeaders['x-admin-token'] = adminToken
   }
@@ -226,7 +226,7 @@ const customFetch = async (input, init) => {
   if ((response.status === 401 || response.status === 403) && adminToken) {
     console.warn('[OZO Auth] Admin session token was rejected or has expired. Clearing admin session.');
     if (typeof window !== 'undefined') {
-      window.sessionStorage.removeItem('ozo-admin-token');
+      window.localStorage.removeItem('ozo-admin-token');
       window.dispatchEvent(new CustomEvent('ozo-admin-session-expired'));
     }
   }
