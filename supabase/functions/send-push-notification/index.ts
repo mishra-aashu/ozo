@@ -174,6 +174,7 @@ Deno.serve(async (req: Request) => {
     // FCM Integration: Send push notification to target user's active device tokens
     // We allow all user notifications to be sent via FCM as long as there is a user_id
     const isFcmAllowed = !!user_id
+    let fcmSendResults: any[] = []
     
     if (isFcmAllowed && user_id) {
       const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ungxccwdondssatixzlz.supabase.co'
@@ -253,17 +254,32 @@ Deno.serve(async (req: Request) => {
                     })
                     const fcmResData = await fcmSendRes.json()
                     console.log(`[PUSH] FCM send response for token ${token.slice(0, 8)}...:`, JSON.stringify(fcmResData))
-                  } catch (sendErr) {
+                    fcmSendResults.push({
+                      token_prefix: token.slice(0, 10) + '...',
+                      status: fcmSendRes.status,
+                      response: fcmResData
+                    })
+                  } catch (sendErr: any) {
                     console.error('[PUSH] FCM token send error:', sendErr)
+                    fcmSendResults.push({
+                      token_prefix: token.slice(0, 10) + '...',
+                      error: sendErr.message || String(sendErr)
+                    })
                   }
                 }
               } else {
                 console.warn('[PUSH] FCM credentials (FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are missing in environment. FCM skipped.')
+                fcmSendResults.push({ error: 'FCM credentials (FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY) are missing in environment.' })
               }
+            } else {
+              fcmSendResults.push({ info: 'No FCM tokens registered for user.' })
             }
+          } else {
+            fcmSendResults.push({ error: `Failed to query FCM tokens from DB: status ${fcmDbRes.status}` })
           }
-        } catch (fcmErr) {
+        } catch (fcmErr: any) {
           console.error('[PUSH] FCM query/send lifecycle failed:', fcmErr)
+          fcmSendResults.push({ error: fcmErr.message || String(fcmErr) })
         }
       }
     }
@@ -302,7 +318,7 @@ Deno.serve(async (req: Request) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, oneSignalResponse: responseData }),
+      JSON.stringify({ success: true, oneSignalResponse: responseData, fcmResults: fcmSendResults }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
