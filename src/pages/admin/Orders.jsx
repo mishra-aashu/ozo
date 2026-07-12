@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   Search,
   ChevronRight,
+  ChevronLeft,
   MapPin,
   CheckCircle2,
   XCircle,
@@ -1468,21 +1469,30 @@ const Orders = () => {
               className="relative bg-white dark:bg-[#141414] w-full max-w-2xl h-full shadow-2xl overflow-hidden flex flex-col border-l border-gray-100 dark:border-white/5 z-10"
             >
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] shrink-0">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-xl font-black text-gray-900 dark:text-white">
-                      Order details #{selectedOrder.order_number || selectedOrder.id.slice(0, 8)}
-                    </h3>
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold border ${STATUS_COLORS[selectedOrder.status]?.bg} ${STATUS_COLORS[selectedOrder.status]?.text} ${STATUS_COLORS[selectedOrder.status]?.border}`}>
-                      {STATUS_COLORS[selectedOrder.status]?.label}
-                    </span>
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] shrink-0">
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setIsModalOpen(false)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl text-gray-500 hover:text-gray-700 dark:hover:text-white transition-colors flex items-center justify-center border border-gray-200/60 dark:border-white/10 shadow-sm"
+                    aria-label="Go back"
+                  >
+                    <ChevronLeft className="w-5 h-5 stroke-[2.5px]" />
+                  </button>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white leading-none">
+                        Order #{selectedOrder.order_number || selectedOrder.id.slice(0, 8)}
+                      </h3>
+                      <span className={`px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold border ${STATUS_COLORS[selectedOrder.status]?.bg} ${STATUS_COLORS[selectedOrder.status]?.text} ${STATUS_COLORS[selectedOrder.status]?.border}`}>
+                        {STATUS_COLORS[selectedOrder.status]?.label}
+                      </span>
+                    </div>
+                    <p className="text-[10px] sm:text-xs text-gray-400 mt-1">Placed on: {new Date(selectedOrder.created_at).toLocaleString('en-IN')}</p>
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">Placed on: {new Date(selectedOrder.created_at).toLocaleString('en-IN')}</p>
                 </div>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+                  className="hidden sm:block p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
                 >
                   <X className="w-6 h-6" />
                 </button>
