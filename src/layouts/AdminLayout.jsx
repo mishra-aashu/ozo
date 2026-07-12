@@ -51,7 +51,7 @@ const AdminLayout = () => {
   const location = useLocation()
 
   const [isUnlocked, setIsUnlocked] = useState(() => {
-    return !!sessionStorage.getItem('ozo-admin-token')
+    return !!localStorage.getItem('ozo-admin-token')
   })
 
   useEffect(() => {
@@ -247,6 +247,7 @@ const AdminLayout = () => {
   ]
 
   const handleLogout = async () => {
+    localStorage.removeItem('ozo-admin-token')
     const result = await signOut()
     if (result.success) {
       navigate('/')

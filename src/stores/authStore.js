@@ -510,6 +510,8 @@ export const useAuthStore = create(
 
           // 2. Manually clear Supabase local storage key to guarantee session is deleted from the root
           localStorage.removeItem('ozo-auth-token')
+          localStorage.removeItem('ozo-admin-token')
+          sessionStorage.removeItem('ozo-admin-token')
 
           // 3. Trigger the remote sign out asynchronously in the background so it doesn't block the UI
           supabase.auth.signOut().catch((apiError) => {
@@ -534,6 +536,8 @@ export const useAuthStore = create(
             isLoading: false,
           })
           localStorage.removeItem('ozo-auth-token')
+          localStorage.removeItem('ozo-admin-token')
+          sessionStorage.removeItem('ozo-admin-token')
           try {
             useLocationStore.getState().clearLocation()
           } catch (err) {
