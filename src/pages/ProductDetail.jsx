@@ -39,7 +39,7 @@ import OptimizedImage from '../components/OptimizedImage'
 import { useCartStore } from '../stores/cartStore'
 import { useWishlistStore } from '../stores/wishlistStore'
 import { useAuthStore } from '../stores/authStore'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 import ImageUpload from '../components/ImageUpload'
 import toast from 'react-hot-toast'
 import SuggestedProducts from '../components/SuggestedProducts'
@@ -275,7 +275,7 @@ const ProductDetail = () => {
     const newStatus = !currentProduct.is_available
     const toastId = toast.loading(newStatus ? 'Marking as In Stock...' : 'Marking as Out of Stock...')
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('products')
         .update({ is_available: newStatus })
         .eq('id', currentProduct.id)

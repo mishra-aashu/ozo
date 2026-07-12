@@ -21,7 +21,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useWishlistStore } from '../stores/wishlistStore'
 import { useAuthStore } from '../stores/authStore'
 import { useLocationStore } from '../stores/locationStore'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import OptimizedImage from './OptimizedImage'
 import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
@@ -118,7 +118,7 @@ function ProductCard({ product, variant = 'default', index }) {
     const newStatus = !selectedProduct.is_available
     const toastId = toast.loading(newStatus ? 'Marking as In Stock...' : 'Marking as Out of Stock...')
     try {
-      const { error } = await supabase
+      const { error } = await supabaseAdmin
         .from('products')
         .update({ is_available: newStatus })
         .eq('id', selectedProduct.id)
