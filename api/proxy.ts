@@ -172,7 +172,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       'accept',
       'x-original-content-type',
       'user-agent',
-      'x-forwarded-for'
+      'x-forwarded-for',
+      'x-admin-token'
     ];
 
     headersToForward.forEach(header => {
