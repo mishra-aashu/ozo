@@ -142,6 +142,9 @@ export default defineConfig(({ mode }) => {
   return {
     base: '/',
     plugins: [react(), localApiPlugin()],
+    esbuild: {
+      pure: mode === 'production' ? ['console.log', 'console.info', 'console.debug'] : []
+    },
     server: {
       port: 3000,
       open: true,
