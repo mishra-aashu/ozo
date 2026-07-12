@@ -172,13 +172,8 @@ Deno.serve(async (req: Request) => {
     console.log(`[PUSH] Resolved deep-link target URL: ${targetUrl}`)
 
     // FCM Integration: Send push notification to target user's active device tokens
-    const isFcmAllowed = 
-      title === 'Rider is Rushing! 🛵' || 
-      title === 'Delivered! 🎉' || 
-      type === 'mart_order_alert' || 
-      title === '📦 New Order for Your Mart!' ||
-      type === 'rider_assignment' ||
-      title === '📦 New Order Received!'
+    // We allow all user notifications to be sent via FCM as long as there is a user_id
+    const isFcmAllowed = !!user_id
     
     if (isFcmAllowed && user_id) {
       const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ungxccwdondssatixzlz.supabase.co'
@@ -203,11 +198,18 @@ Deno.serve(async (req: Request) => {
               const privateKey = Deno.env.get('FIREBASE_PRIVATE_KEY')
               
               if (clientEmail && privateKey) {
+                // Clean up private key quotes and escaped newlines
+                let formattedPrivateKey = privateKey.trim()
+                if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+                  formattedPrivateKey = formattedPrivateKey.slice(1, -1)
+                }
+                formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n')
+
                 const { GoogleAuth } = await import("npm:google-auth-library")
                 const auth = new GoogleAuth({
                   credentials: {
                     client_email: clientEmail,
-                    private_key: privateKey.replace(/\\n/g, '\n'),
+                    private_key: formattedPrivateKey,
                   },
                   scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
                 })
