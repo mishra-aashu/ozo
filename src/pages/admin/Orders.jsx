@@ -1069,7 +1069,7 @@ const Orders = () => {
       </div>
 
       {/* Orders List Container */}
-      <div className="bg-transparent md:bg-white dark:md:bg-[#1a1a1a] md:rounded-3xl md:border md:border-gray-100 md:dark:border-white/5 md:shadow-premium overflow-hidden">
+      <div className="bg-transparent lg:bg-white dark:lg:bg-[#1a1a1a] lg:rounded-3xl lg:border lg:border-gray-100 lg:dark:border-white/5 lg:shadow-premium overflow-hidden">
         {isLoading ? (
           <div className="flex flex-col items-center justify-center py-24 gap-4">
             <RefreshCw className="w-10 h-10 animate-spin text-ozo-red" />
@@ -1086,7 +1086,7 @@ const Orders = () => {
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className="hidden md:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] text-xs uppercase tracking-wider font-bold text-gray-400">
@@ -1250,7 +1250,7 @@ const Orders = () => {
             </div>
 
             {/* Mobile Cards View */}
-            <div className="md:hidden space-y-4 py-2">
+            <div className="lg:hidden space-y-4 py-2">
               {filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => {
                 const orderNum = order.order_number || order.id.slice(0, 8)
                 const dateString = new Date(order.created_at).toLocaleDateString('en-IN', {
@@ -1332,16 +1332,16 @@ const Orders = () => {
                     </div>
 
                     {/* Items Box with Summary Header */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-[10px] text-gray-400 uppercase font-black tracking-wider px-1">
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-[10px] text-gray-450 uppercase font-black tracking-wider px-1">
                         <span>Items ({order.order_items?.length || 0})</span>
                         <span>{order.order_items?.reduce((s, i) => s + i.quantity, 0) || 0} qty total</span>
                       </div>
-                      <div className="flex flex-col gap-1.5 bg-gray-50/50 dark:bg-white/[0.01] p-3 rounded-2xl border border-gray-100 dark:border-white/5">
+                      <div className="flex flex-wrap gap-2">
                         {order.order_items?.map((item, idx) => (
-                          <div key={idx} className="flex items-center justify-between text-xs text-gray-650 dark:text-gray-300">
-                            <span className="font-medium truncate max-w-[200px]">{item.product_name}</span>
-                            <span className="text-gray-450 dark:text-gray-550 font-bold bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-lg text-[10px]">
+                          <div key={idx} className="flex items-center gap-1.5 bg-gray-50 dark:bg-white/[0.02] border border-gray-150/30 dark:border-white/5 rounded-xl px-2.5 py-1 text-xs">
+                            <span className="font-extrabold text-gray-700 dark:text-gray-300 truncate max-w-[130px]">{item.product_name}</span>
+                            <span className="text-[10px] font-black px-1.5 py-0.5 rounded bg-red-500/10 text-ozo-red dark:text-red-400">
                               x{item.quantity}
                             </span>
                           </div>
