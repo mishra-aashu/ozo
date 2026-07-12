@@ -765,7 +765,7 @@ const AdminSettings = () => {
   }
 
   const handleChangeAdminPassword = async (e) => {
-    e.preventDefault()
+    if (e && e.preventDefault) e.preventDefault()
     if (!currentPassword || !newPassword || !confirmPassword) {
       toast.error('All fields are required')
       return
@@ -2312,7 +2312,7 @@ const AdminSettings = () => {
 
                   <div className="border-t border-gray-200 dark:border-white/5 pt-6 mt-6">
                     <h3 className="text-sm font-black text-gray-850 dark:text-white mb-4 uppercase tracking-wider">Change Master Admin Password</h3>
-                    <form onSubmit={handleChangeAdminPassword} className="space-y-4">
+                    <div className="space-y-4">
                       <div>
                         <label className="block text-xs font-bold text-gray-400 uppercase mb-2">Current Admin Password</label>
                         <input
@@ -2349,7 +2349,8 @@ const AdminSettings = () => {
                         </div>
                       </div>
                       <button
-                        type="submit"
+                        type="button"
+                        onClick={handleChangeAdminPassword}
                         disabled={updatingPassword}
                         className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-ozo-red to-orange-600 hover:shadow-lg hover:shadow-ozo-red/20 active:scale-[0.98] text-white rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                       >
@@ -2362,7 +2363,7 @@ const AdminSettings = () => {
                           'Update Master Password'
                         )}
                       </button>
-                    </form>
+                    </div>
                   </div>
                 </div>
               </div>
