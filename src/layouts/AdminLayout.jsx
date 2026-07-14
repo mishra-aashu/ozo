@@ -161,6 +161,13 @@ const AdminLayout = () => {
       bgColor: 'bg-red-100 dark:bg-red-950/30',
     },
     {
+      icon: Calendar,
+      label: 'Festival Planner',
+      path: '/admin/festivals',
+      color: 'text-fuchsia-600 dark:text-fuchsia-400',
+      bgColor: 'bg-fuchsia-100 dark:bg-fuchsia-950/30',
+    },
+    {
       icon: Users,
       label: 'Users',
       path: '/admin/users',

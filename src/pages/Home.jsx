@@ -327,6 +327,43 @@ const applyCityOverrides = (products, citySlug) => {
 const Home = () => {
   const [shuffleSeed] = useState(() => Math.random())
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
+  const [activeFestivals, setActiveFestivals] = useState([])
+
+  useEffect(() => {
+    let isMounted = true
+    const fetchActiveFestivals = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('festival_planner')
+          .select('*, categories(slug)')
+          .eq('status', 'Active')
+          .not('banner_url', 'is', null)
+        
+        if (!error && data && isMounted) {
+          setActiveFestivals(data)
+        }
+      } catch (err) {
+        console.error('Error fetching active festivals for home page:', err)
+      }
+    }
+    fetchActiveFestivals()
+    return () => {
+      isMounted = false
+    }
+  }, [])
+
+  const festivalBanners = useMemo(() => {
+    return activeFestivals.map(f => ({
+      id: `festival_${f.id}`,
+      title: f.festival_name,
+      subtitle: `${f.festival_name} specials available now! सोचो मत, #OZOपेखोजो!`,
+      tagline: 'Festival Special',
+      image_url: f.banner_url,
+      categorySlug: f.categories?.slug || f.category?.slug || '',
+      offer_type: 'banner'
+    }))
+  }, [activeFestivals])
+
   useEffect(() => {
     let timeoutId = null
     const handleResize = () => {
@@ -1460,6 +1497,7 @@ const Home = () => {
   };
 
   const displayOffers = [
+    ...festivalBanners,
     ...(offers || []).filter(o => o?.offer_type === 'banner'),
     ...demoBanners.filter(d => !((offers || []).filter(o => o?.offer_type === 'banner')).some(o => o?.title?.toLowerCase() === d?.title?.toLowerCase()))
   ];
