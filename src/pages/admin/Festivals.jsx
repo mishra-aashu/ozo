@@ -52,7 +52,9 @@ const Festivals = () => {
     actual_date: '',
     buffer_days: 7,
     banner_url: '',
-    category_id: ''
+    category_id: '',
+    tagline: '',
+    custom_description: ''
   })
 
   // Fetch all categories (to link to festival)
@@ -204,6 +206,8 @@ const Festivals = () => {
         buffer_days: parseInt(formData.buffer_days, 10),
         banner_url: formData.banner_url || null,
         category_id: formData.category_id || null,
+        tagline: formData.tagline?.trim() || null,
+        custom_description: formData.custom_description?.trim() || null,
         updated_at: new Date().toISOString()
       }
 
@@ -263,7 +267,9 @@ const Festivals = () => {
       actual_date: '',
       buffer_days: 7,
       banner_url: '',
-      category_id: ''
+      category_id: '',
+      tagline: '',
+      custom_description: ''
     })
     setEditingFestival(null)
   }
@@ -275,7 +281,9 @@ const Festivals = () => {
       actual_date: festival.actual_date || '',
       buffer_days: festival.buffer_days ?? 7,
       banner_url: festival.banner_url || '',
-      category_id: festival.category_id || ''
+      category_id: festival.category_id || '',
+      tagline: festival.tagline || '',
+      custom_description: festival.custom_description || ''
     })
     setIsDrawerOpen(true)
   }
@@ -529,7 +537,17 @@ const Festivals = () => {
                         <span className="font-bold text-gray-850 dark:text-white block">
                           {festival.festival_name}
                         </span>
-                        <span className="text-[10px] text-gray-400 font-mono">
+                        {festival.tagline && (
+                          <span className="text-[10px] font-extrabold text-fuchsia-600 dark:text-fuchsia-400 bg-fuchsia-50 dark:bg-fuchsia-950/20 px-1.5 py-0.5 rounded-md border border-fuchsia-100 dark:border-fuchsia-900/30 inline-block mt-0.5 mr-1">
+                            {festival.tagline}
+                          </span>
+                        )}
+                        {festival.custom_description && (
+                          <span className="text-[11px] text-gray-500 block mt-1 line-clamp-1 italic">
+                            "{festival.custom_description}"
+                          </span>
+                        )}
+                        <span className="text-[10px] text-gray-400 font-mono block mt-1">
                           ID: {festival.id.substring(0, 8)}...
                         </span>
                       </td>
@@ -770,6 +788,40 @@ const Festivals = () => {
                     </p>
                   </div>
 
+                  {/* Tagline */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider block">
+                      Campaign Tagline
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Diwali Dhamaka, Special Offer, Holi Hungama"
+                      value={formData.tagline}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tagline: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:ring-1 focus:ring-ozo-red outline-none dark:text-white"
+                    />
+                    <p className="text-[11px] text-gray-400">
+                      Banners ke upar aane wali bold tagline text.
+                    </p>
+                  </div>
+
+                  {/* Custom Description */}
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wider block">
+                      Custom Description
+                    </label>
+                    <textarea
+                      rows="2"
+                      placeholder="e.g. Pooja items, sweets, and gifts delivered in 10 mins!"
+                      value={formData.custom_description}
+                      onChange={(e) => setFormData(prev => ({ ...prev, custom_description: e.target.value }))}
+                      className="w-full px-4 py-3 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:ring-1 focus:ring-ozo-red outline-none dark:text-white resize-none"
+                    />
+                    <p className="text-[11px] text-gray-400">
+                      Banners ke upar aane wali detail description text.
+                    </p>
+                  </div>
+
                   {/* Banner Upload */}
                   <div className="space-y-1.5">
                     <ImageUpload
@@ -907,7 +959,9 @@ const Festivals = () => {
                                   actual_date: holiday.date,
                                   buffer_days: 7,
                                   banner_url: '',
-                                  category_id: ''
+                                  category_id: '',
+                                  tagline: `${holiday.name} Special!`,
+                                  custom_description: `${holiday.name} ki taiyari shuru karein OZO ke sath! Best deals & rapid delivery.`
                                 })
                                 setIsCalendarModalOpen(false)
                                 setIsDrawerOpen(true)

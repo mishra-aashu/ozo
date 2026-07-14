@@ -10,6 +10,8 @@ CREATE TABLE IF NOT EXISTS public.festival_planner (
     status VARCHAR(50) NOT NULL DEFAULT 'Upcoming' CHECK (status IN ('Upcoming', 'Active', 'Completed')),
     banner_url TEXT,
     category_id UUID REFERENCES public.categories(id) ON DELETE SET NULL,
+    tagline VARCHAR(255),
+    custom_description TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
 );

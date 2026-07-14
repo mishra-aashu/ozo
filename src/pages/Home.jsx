@@ -356,8 +356,8 @@ const Home = () => {
     return activeFestivals.map(f => ({
       id: `festival_${f.id}`,
       title: f.festival_name,
-      subtitle: `${f.festival_name} specials available now! सोचो मत, #OZOपेखोजो!`,
-      tagline: 'Festival Special',
+      subtitle: f.custom_description || `${f.festival_name} specials available now! सोचो मत, #OZOपेखोजो!`,
+      tagline: f.tagline || 'Festival Special',
       image_url: f.banner_url,
       categorySlug: f.categories?.slug || f.category?.slug || '',
       offer_type: 'banner'
