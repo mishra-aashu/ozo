@@ -36,6 +36,7 @@ const Festivals = () => {
   const [calendarLoading, setCalendarLoading] = useState(false)
   const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false)
   const [calendarSearchQuery, setCalendarSearchQuery] = useState('')
+  const [deleteConfirmFestival, setDeleteConfirmFestival] = useState(null)
 
   // Filters & Search
   const [searchQuery, setSearchQuery] = useState('')
@@ -240,9 +241,10 @@ const Festivals = () => {
   }
 
   // Delete Campaign Planner
-  const handleDelete = async (festival) => {
-    const confirmDelete = window.confirm(`Are you sure you want to delete "${festival.festival_name}" planner?`)
-    if (!confirmDelete) return
+  const executeDelete = async () => {
+    if (!deleteConfirmFestival) return
+    const festival = deleteConfirmFestival
+    setDeleteConfirmFestival(null)
 
     const toastId = toast.loading('Deleting campaign...')
     try {
@@ -666,7 +668,7 @@ const Festivals = () => {
                             <Pencil className="w-4.5 h-4.5" />
                           </button>
                           <button
-                            onClick={() => handleDelete(festival)}
+                            onClick={() => setDeleteConfirmFestival(festival)}
                             className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 text-red-600 dark:text-red-400 rounded-xl transition-all"
                             title="Delete Campaign"
                           >
@@ -982,6 +984,56 @@ const Festivals = () => {
                     <p className="text-xs text-gray-500 mt-1">Try searching for other terms.</p>
                   </div>
                 )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Custom Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteConfirmFestival && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setDeleteConfirmFestival(null)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60]"
+            />
+            
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="fixed inset-x-4 top-1/2 -translate-y-1/2 md:inset-x-auto md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md bg-white dark:bg-[#121214] shadow-2xl rounded-3xl border border-transparent dark:border-white/5 z-[60] p-6 flex flex-col"
+            >
+              <div className="flex items-center gap-4 text-red-650 dark:text-red-450 mb-4">
+                <div className="p-3 bg-red-50 dark:bg-red-950/20 rounded-2xl">
+                  <Trash2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                  Delete Campaign Planner?
+                </h3>
+              </div>
+
+              <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed mb-6">
+                Are you sure you want to delete the festival campaign for <span className="font-bold text-gray-850 dark:text-white">"{deleteConfirmFestival.festival_name}"</span>? This will stop banner automation and category schedule. This action cannot be undone.
+              </p>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setDeleteConfirmFestival(null)}
+                  className="flex-1 py-3 px-4 rounded-xl border border-gray-200 dark:border-white/10 text-sm font-bold text-gray-650 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-white/5 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={executeDelete}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-rose-600 text-white py-3 px-4 rounded-xl text-sm font-bold hover:opacity-95 active:scale-95 transition-all shadow-md shadow-red-500/10"
+                >
+                  Yes, Delete
+                </button>
               </div>
             </motion.div>
           </>
