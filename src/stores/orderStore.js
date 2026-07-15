@@ -457,7 +457,39 @@ export const useOrderStore = create((set, get) => ({
   adminFetchOrders: async () => {
     try {
       set({ isLoading: true })
-      const query = supabaseAdmin
+
+      const { profile, getScopedCities, getScopedMarts } = useAuthStore.getState()
+      const isSuperAdmin = profile?.isSuperAdmin
+      const isCityManager = profile?.isCityManager
+      const isMartOwner = profile?.isMartOwner
+
+      let allowedMartIds = []
+      let needsFiltering = false
+
+      if (!isSuperAdmin) {
+        if (isCityManager) {
+          needsFiltering = true
+          const scopedCities = getScopedCities()
+          if (scopedCities.length > 0) {
+            const { data: managerMarts } = await supabaseAdmin
+              .from('marts')
+              .select('id')
+              .in('city_id', scopedCities)
+            if (managerMarts && managerMarts.length > 0) {
+              allowedMartIds = [...allowedMartIds, ...managerMarts.map(m => m.id)]
+            }
+          }
+        }
+        if (isMartOwner) {
+          needsFiltering = true
+          const scopedMarts = getScopedMarts()
+          if (scopedMarts.length > 0) {
+            allowedMartIds = [...allowedMartIds, ...scopedMarts]
+          }
+        }
+      }
+
+      let query = supabaseAdmin
         .from('orders')
         .select(`
           *,
@@ -522,6 +554,15 @@ export const useOrderStore = create((set, get) => ({
           )
         `)
         .order('created_at', { ascending: false })
+
+      if (needsFiltering) {
+        if (allowedMartIds.length > 0) {
+          query = query.in('mart_id', allowedMartIds)
+        } else {
+          // No access to any marts, force empty result
+          query = query.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+      }
 
       // Fetch both orders and server time in parallel
       const [queryResult, timeResult] = await Promise.all([

@@ -41,6 +41,7 @@ import {
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import { DELIVERY_DEFAULTS } from '../../config/deliveryDefaults'
+import { useAuthStore } from '../../stores/authStore'
 
 const RiderManageAdmin = () => {
   const [activeTab, setActiveTab] = useState('directory') // 'directory' | 'settings'
@@ -58,6 +59,16 @@ const RiderManageAdmin = () => {
   const [customEarnings, setCustomEarnings] = useState('')
   const [customCashInHand, setCustomCashInHand] = useState('')
   const [isSavingCaptain, setIsSavingCaptain] = useState(false)
+  const [selectedCityId, setSelectedCityId] = useState('')
+  const [cities, setCities] = useState([])
+
+  const { profile } = useAuthStore()
+  const isSuperAdmin = profile?.isSuperAdmin
+  const isCityManager = profile?.isCityManager
+  const managerCityId = profile?.roles?.find(r => r.role === 'city_manager')?.city_id
+  const filteredCities = isSuperAdmin 
+    ? cities 
+    : cities.filter(city => city.id === managerCityId)
 
   // System settings state
   const [riderConfig, setRiderConfig] = useState({
@@ -80,18 +91,53 @@ const RiderManageAdmin = () => {
   const fetchCaptains = async () => {
     try {
       setLoading(true)
-      const { data, error } = await supabase
+      const { data: captainsData, error: captainsError } = await supabase
         .from('captains')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
-      setCaptains(data || [])
+      if (captainsError) throw captainsError
+
+      if (captainsData && captainsData.length > 0) {
+        const captainIds = captainsData.map(c => c.id)
+        const { data: rolesData, error: rolesError } = await supabase
+          .from('user_roles')
+          .select('user_id, city_id, id')
+          .eq('role', 'rider')
+          .in('user_id', captainIds)
+
+        if (rolesError) throw rolesError
+
+        const merged = captainsData.map(captain => {
+          const roleEntry = rolesData?.find(r => r.user_id === captain.id)
+          return {
+            ...captain,
+            city_id: roleEntry?.city_id || null,
+            user_role_id: roleEntry?.id || null
+          }
+        })
+        setCaptains(merged)
+      } else {
+        setCaptains([])
+      }
     } catch (err) {
       console.error('Failed to fetch captains:', err)
       toast.error('Could not load Captains directory')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchCities = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('operating_cities')
+        .select('id, name')
+        .order('name')
+      if (error) throw error
+      setCities(data || [])
+    } catch (err) {
+      console.error('Failed to fetch cities:', err)
     }
   }
 
@@ -120,15 +166,22 @@ const RiderManageAdmin = () => {
 
   useEffect(() => {
     fetchCaptains()
+    fetchCities()
     fetchSystemSettings()
   }, [])
+
+  useEffect(() => {
+    if (selectedCaptain) {
+      setSelectedCityId(selectedCaptain.city_id || '')
+    }
+  }, [selectedCaptain])
 
   // Action: Approve Captain Onboarding
   const handleApproveCaptain = async (captainId) => {
     setIsSavingCaptain(true)
     const toastId = toast.loading('Approving Captain profile...')
     try {
-      const { error } = await supabase
+      const { error: capError } = await supabase
         .from('captains')
         .update({ 
           status: 'offline',
@@ -136,7 +189,25 @@ const RiderManageAdmin = () => {
         })
         .eq('id', captainId)
 
-      if (error) throw error
+      if (capError) throw capError
+
+      const { error: userError } = await supabase
+        .from('users')
+        .update({ role: 'captain' })
+        .eq('id', captainId)
+
+      if (userError) throw userError
+
+      if (selectedCityId) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .update({ city_id: selectedCityId })
+          .eq('user_id', captainId)
+          .eq('role', 'rider')
+
+        if (roleError) throw roleError
+      }
+
       toast.success('Captain approved successfully! Ready for duty.', { id: toastId })
       setShowDocModal(false)
       fetchCaptains()
@@ -168,6 +239,28 @@ const RiderManageAdmin = () => {
     } catch (err) {
       console.error('Error updating captain status:', err)
       toast.error(`Failed to update: ${err.message}`, { id: toastId })
+    } finally {
+      setIsSavingCaptain(false)
+    }
+  }
+
+  const handleUpdateCity = async (captainId, newCityId) => {
+    setIsSavingCaptain(true)
+    const toastId = toast.loading('Updating Captain city...')
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ city_id: newCityId })
+        .eq('user_id', captainId)
+        .eq('role', 'rider')
+
+      if (error) throw error
+      toast.success('Captain city updated successfully!', { id: toastId })
+      setShowDocModal(false)
+      fetchCaptains()
+    } catch (err) {
+      console.error('Error updating captain city:', err)
+      toast.error(`Update failed: ${err.message}`, { id: toastId })
     } finally {
       setIsSavingCaptain(false)
     }
@@ -530,6 +623,15 @@ const RiderManageAdmin = () => {
                           </span>
                         </div>
                         <div className="col-span-2 pt-2 border-t border-gray-150 dark:border-white/5 flex items-center justify-between">
+                          <span className="text-[9px] uppercase font-bold text-gray-450">City</span>
+                          <span className="font-extrabold text-gray-800 dark:text-gray-200 flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-gray-450" />
+                            {cities.find(city => city.id === captain.city_id)?.name || (
+                              <span className="text-amber-500 font-bold">Unassigned (Pending)</span>
+                            )}
+                          </span>
+                        </div>
+                        <div className="col-span-2 pt-2 border-t border-gray-150 dark:border-white/5 flex items-center justify-between">
                           <span className="text-[9px] uppercase font-bold text-gray-450">Rating</span>
                           <span className="flex items-center gap-1 font-extrabold text-gray-800 dark:text-gray-200">
                             <Star className="w-3.5 h-3.5 text-amber-500 fill-amber-400" />
@@ -871,6 +973,35 @@ const RiderManageAdmin = () => {
                   </div>
                 </div>
 
+                {/* City Assignment Selection */}
+                <div className="p-5 bg-red-50/10 dark:bg-white/[0.02] border border-gray-150 dark:border-white/5 rounded-2xl space-y-3">
+                  <span className="text-[10px] font-black uppercase text-gray-400 tracking-wider flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-red-500" />
+                    City Assignment Scoping
+                  </span>
+                  <div className="flex flex-col sm:flex-row gap-4 items-center">
+                    <div className="w-full sm:flex-1">
+                      <select
+                        value={selectedCityId}
+                        onChange={(e) => setSelectedCityId(e.target.value)}
+                        className="w-full bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl py-2.5 px-3.5 text-xs font-semibold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-ozo-red"
+                      >
+                        <option value="" disabled className="text-gray-405">Select operational city for scoping...</option>
+                        {filteredCities.map(city => (
+                          <option key={city.id} value={city.id} className="text-gray-900 dark:text-black">
+                            {city.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="w-full sm:w-auto text-xs text-gray-400 italic">
+                      {selectedCaptain.city_id 
+                        ? 'Update scoping to transfer rider to another city.' 
+                        : 'Must assign an operational city to complete onboarding.'}
+                    </div>
+                  </div>
+                </div>
+
                 {/* Document images */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   {/* Selfie */}
@@ -963,21 +1094,46 @@ const RiderManageAdmin = () => {
 
                 {/* Verification decision footer */}
                 <div className="pt-6 border-t border-gray-150 dark:border-white/5 flex flex-col sm:flex-row gap-3 justify-end items-center">
-                  <button
-                    onClick={() => handleUpdateStatus(selectedCaptain.id, 'suspended')}
-                    disabled={isSavingCaptain}
-                    className="w-full sm:w-auto px-5 py-3 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all disabled:opacity-50"
-                  >
-                    <ThumbsDown className="w-4 h-4" /> Reject / Suspend Captain
-                  </button>
+                  {selectedCaptain.status === 'pending' ? (
+                    <>
+                      <button
+                        onClick={() => handleUpdateStatus(selectedCaptain.id, 'suspended')}
+                        disabled={isSavingCaptain}
+                        className="w-full sm:w-auto px-5 py-3 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                      >
+                        <ThumbsDown className="w-4 h-4" /> Reject / Suspend Captain
+                      </button>
 
-                  <button
-                    onClick={() => handleApproveCaptain(selectedCaptain.id)}
-                    disabled={isSavingCaptain || !selectedCaptain.driving_license}
-                    className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r bg-gradient-ozo text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-ozo hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40"
-                  >
-                    <ThumbsUp className="w-4 h-4" /> Approve Captain Profile
-                  </button>
+                      <button
+                        onClick={() => handleApproveCaptain(selectedCaptain.id)}
+                        disabled={isSavingCaptain || !selectedCaptain.driving_license || !selectedCityId}
+                        className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r bg-gradient-ozo text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-ozo hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40"
+                      >
+                        <ThumbsUp className="w-4 h-4" /> Approve Captain Profile
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      {selectedCaptain.status !== 'suspended' && (
+                        <button
+                          onClick={() => handleUpdateStatus(selectedCaptain.id, 'suspended')}
+                          disabled={isSavingCaptain}
+                          className="w-full sm:w-auto px-5 py-3 rounded-xl border border-red-500/20 text-red-500 hover:bg-red-500/5 text-xs font-bold uppercase tracking-wider flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                        >
+                          <ShieldAlert className="w-4 h-4" /> Suspend Captain
+                        </button>
+                      )}
+                      {selectedCityId !== (selectedCaptain.city_id || '') && (
+                        <button
+                          onClick={() => handleUpdateCity(selectedCaptain.id, selectedCityId)}
+                          disabled={isSavingCaptain || !selectedCityId}
+                          className="w-full sm:w-auto px-8 py-3 bg-gradient-to-r bg-gradient-ozo text-white rounded-xl text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-ozo hover:opacity-90 active:scale-[0.98] transition-all disabled:opacity-40"
+                        >
+                          <Save className="w-4 h-4" /> Save City Assignment
+                        </button>
+                      )}
+                    </>
+                  )}
                 </div>
               </div>
             </motion.div>

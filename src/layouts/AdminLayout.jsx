@@ -50,6 +50,21 @@ const AdminLayout = () => {
   const navigate = useNavigate()
   const location = useLocation()
 
+  const isSuperAdmin = profile?.isSuperAdmin
+  const isCityManager = profile?.isCityManager
+  const isMartOwner = profile?.isMartOwner
+
+  const filteredMenuItems = menuItems.filter(item => {
+    if (isSuperAdmin) return true
+    if (isCityManager) {
+      return ['Dashboard', 'Products', 'Orders', 'Reviews', 'Rider Settings', 'Mart Settings'].includes(item.label)
+    }
+    if (isMartOwner) {
+      return ['Dashboard', 'Products', 'Orders', 'Reviews'].includes(item.label)
+    }
+    return ['Dashboard'].includes(item.label)
+  })
+
   const [isUnlocked, setIsUnlocked] = useState(() => {
     return !!localStorage.getItem('ozo-admin-token')
   })
@@ -349,7 +364,7 @@ const AdminLayout = () => {
           {/* Scrollable Navigation */}
           <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
             <nav className="px-4 py-3 space-y-1">
-              {menuItems.map((item) => {
+              {filteredMenuItems.map((item) => {
                 const count = getBadgeCount(item.label)
                 return (
                   <NavLink
@@ -403,13 +418,15 @@ const AdminLayout = () => {
               <Home className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
               <span className="font-semibold text-sm">Go to Store</span>
             </button>
-            <button
-              onClick={() => navigate('/admin/settings')}
-              className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 transition-all w-full text-left"
-            >
-              <Settings className="w-4.5 h-4.5" />
-              <span className="font-semibold text-sm">System Settings</span>
-            </button>
+             {isSuperAdmin && (
+              <button
+                onClick={() => navigate('/admin/settings')}
+                className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 transition-all w-full text-left"
+              >
+                <Settings className="w-4.5 h-4.5" />
+                <span className="font-semibold text-sm">System Settings</span>
+              </button>
+            )}
             <button
               onClick={handleLogout}
               className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl hover:bg-red-50 dark:hover:bg-red-950/20 text-ozo-red transition-all w-full text-left"

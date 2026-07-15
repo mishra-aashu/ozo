@@ -34,6 +34,7 @@ import {
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import AdminMapPickerModal from '../../components/admin/AdminMapPickerModal'
+import { useAuthStore } from '../../stores/authStore'
 
 // Helper to generate URL-friendly slug while typing
 const slugifyForTyping = (text) => {
@@ -100,22 +101,55 @@ const MartManageAdmin = () => {
   const fetchMarts = async () => {
     try {
       setLoading(true)
-      // Fetch marts and join with city and owner details
-      const { data: martsData, error: martsError } = await supabase
+      const { profile, getScopedCities, getScopedMarts } = useAuthStore.getState()
+      const isSuperAdmin = profile?.isSuperAdmin
+      const isCityManager = profile?.isCityManager
+      const isMartOwner = profile?.isMartOwner
+
+      let martsQuery = supabase
         .from('marts')
         .select(`
           *,
           operating_cities!marts_city_id_fkey (name),
           users!marts_owner_id_fkey (full_name, email, phone)
         `)
-        .order('created_at', { ascending: false })
+
+      if (!isSuperAdmin) {
+        if (isCityManager) {
+          const scopedCities = getScopedCities()
+          if (scopedCities.length > 0) {
+            martsQuery = martsQuery.in('city_id', scopedCities)
+          } else {
+            martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          }
+        } else if (isMartOwner) {
+          const scopedMarts = getScopedMarts()
+          if (scopedMarts.length > 0) {
+            martsQuery = martsQuery.in('id', scopedMarts)
+          } else {
+            martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          }
+        } else {
+          martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+      }
+
+      // Fetch marts and join with city and owner details
+      const { data: martsData, error: martsError } = await martsQuery.order('created_at', { ascending: false })
 
       if (martsError) throw martsError
 
-      // Fetch all orders to aggregate stats
-      const { data: ordersData, error: ordersError } = await supabase
-        .from('orders')
-        .select('mart_id, total, status')
+      // Fetch only orders belonging to allowed marts to calculate stats
+      const martIds = (martsData || []).map(m => m.id)
+      let ordersQuery = supabase.from('orders').select('mart_id, total, status')
+      
+      if (martIds.length > 0) {
+        ordersQuery = ordersQuery.in('mart_id', martIds)
+      } else {
+        ordersQuery = ordersQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+      }
+
+      const { data: ordersData, error: ordersError } = await ordersQuery
 
       if (ordersError) throw ordersError
 
@@ -201,11 +235,25 @@ const MartManageAdmin = () => {
 
   const fetchCities = async () => {
     try {
-      const { data, error } = await supabase
+      const { profile, getScopedCities } = useAuthStore.getState()
+      const isSuperAdmin = profile?.isSuperAdmin
+      const isCityManager = profile?.isCityManager
+
+      let citiesQuery = supabase
         .from('operating_cities')
         .select('id, name, slug')
         .eq('is_active', true)
-        .order('name')
+
+      if (!isSuperAdmin && isCityManager) {
+        const scopedCities = getScopedCities()
+        if (scopedCities.length > 0) {
+          citiesQuery = citiesQuery.in('id', scopedCities)
+        } else {
+          citiesQuery = citiesQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+      }
+
+      const { data, error } = await citiesQuery.order('name')
       if (error) throw error
       setCities(data || [])
     } catch (err) {

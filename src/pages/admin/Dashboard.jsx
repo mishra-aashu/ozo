@@ -26,6 +26,7 @@ import {
   MessageSquare
 } from 'lucide-react'
 import { supabaseAdmin } from '../../lib/supabase'
+import { useAuthStore } from '../../stores/authStore'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -62,6 +63,39 @@ const Dashboard = () => {
     if (isSync) setSyncing(true)
     else setLoading(true)
 
+    // Resolve user roles and scoped entities
+    const { profile, getScopedCities } = useAuthStore.getState()
+    const isCityManager = profile?.isCityManager
+    const scopedCities = isCityManager ? getScopedCities() : []
+
+    let scopedMartIds = []
+    let riderUserIds = []
+
+    if (isCityManager) {
+      try {
+        // Get all marts in these cities
+        if (scopedCities.length > 0) {
+          const { data: managerMarts } = await supabaseAdmin
+            .from('marts')
+            .select('id')
+            .in('city_id', scopedCities)
+          scopedMartIds = (managerMarts || []).map(m => m.id)
+        }
+
+        // Get all rider user IDs in these cities
+        if (scopedCities.length > 0) {
+          const { data: riderRoles } = await supabaseAdmin
+            .from('user_roles')
+            .select('user_id')
+            .eq('role', 'rider')
+            .in('city_id', scopedCities)
+          riderUserIds = (riderRoles || []).map(r => r.user_id)
+        }
+      } catch (err) {
+        console.error('[Dashboard] Error pre-fetching scoping data:', err)
+      }
+    }
+
     const timeoutMs = 8000 // 8 seconds timeout limit
     const withTimeout = (promise) => 
       Promise.race([
@@ -72,6 +106,91 @@ const Dashboard = () => {
       ])
 
     try {
+      // Build queries dynamically based on role scope
+      let productsQuery = supabaseAdmin.from('products').select('*', { count: 'exact', head: true })
+      let outOfStockQuery = supabaseAdmin.from('products').select('*', { count: 'exact', head: true }).eq('is_available', false)
+      let categoriesQuery = supabaseAdmin.from('categories').select('*', { count: 'exact', head: true })
+      let martsQuery = supabaseAdmin.from('marts').select('*', { count: 'exact', head: true })
+      let usersQuery = supabaseAdmin.from('users').select('*', { count: 'exact', head: true })
+      let captainsQuery = supabaseAdmin.from('captains').select('status')
+      let reviewsQuery = supabaseAdmin.from('reviews').select('rating')
+      let ordersQuery = supabaseAdmin.from('orders').select('total, status, created_at')
+      let recentOrdersQuery = supabaseAdmin.from('orders').select(`
+        id,
+        order_number,
+        total,
+        status,
+        created_at,
+        payment_status,
+        payment_method,
+        customer:users (
+          full_name,
+          email,
+          phone,
+          avatar_url
+        )
+      `).order('created_at', { ascending: false }).limit(5)
+      let itemsQuery = supabaseAdmin.from('order_items').select('product_name, quantity, total_price, order:orders(status)').limit(500)
+      let recentProdQuery = supabaseAdmin.from('products').select('id, name, price, mrp, image_url, created_at').order('created_at', { ascending: false }).limit(4)
+
+      if (isCityManager) {
+        if (scopedMartIds.length > 0) {
+          productsQuery = productsQuery.in('mart_id', scopedMartIds)
+          outOfStockQuery = outOfStockQuery.in('mart_id', scopedMartIds)
+          ordersQuery = ordersQuery.in('mart_id', scopedMartIds)
+          recentOrdersQuery = recentOrdersQuery.in('mart_id', scopedMartIds)
+          recentProdQuery = recentProdQuery.in('mart_id', scopedMartIds)
+          
+          // Use inner join on order for order_items query
+          itemsQuery = supabaseAdmin.from('order_items')
+            .select('product_name, quantity, total_price, order:orders!inner(status, mart_id)')
+            .in('order.mart_id', scopedMartIds)
+            .limit(500)
+
+          // Use inner join on products for reviews query
+          reviewsQuery = supabaseAdmin.from('reviews')
+            .select('rating, products!inner(mart_id)')
+            .in('products.mart_id', scopedMartIds)
+        } else {
+          // If no marts assigned, force query to return empty by targeting non-matching criteria
+          productsQuery = productsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          outOfStockQuery = outOfStockQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          ordersQuery = ordersQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          recentOrdersQuery = recentOrdersQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          recentProdQuery = recentProdQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          
+          itemsQuery = supabaseAdmin.from('order_items')
+            .select('product_name, quantity, total_price, order:orders!inner(status, mart_id)')
+            .eq('id', '00000000-0000-0000-0000-000000000000')
+            .limit(500)
+
+          reviewsQuery = supabaseAdmin.from('reviews')
+            .select('rating, products!inner(mart_id)')
+            .eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+
+        if (scopedCities.length > 0) {
+          martsQuery = martsQuery.in('city_id', scopedCities)
+        } else {
+          martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+
+        if (riderUserIds.length > 0) {
+          captainsQuery = captainsQuery.in('id', riderUserIds)
+        } else {
+          captainsQuery = captainsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+
+        // For users: count users who placed orders in manager's marts
+        if (scopedMartIds.length > 0) {
+          usersQuery = supabaseAdmin.from('users')
+            .select('*, orders!inner(mart_id)', { count: 'exact', head: true })
+            .in('orders.mart_id', scopedMartIds)
+        } else {
+          usersQuery = usersQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+      }
+
       const [
         productsRes,
         outOfStockRes,
@@ -85,31 +204,17 @@ const Dashboard = () => {
         itemsRes,
         recentProdRes
       ] = await Promise.allSettled([
-        withTimeout(supabaseAdmin.from('products').select('*', { count: 'exact', head: true })),
-        withTimeout(supabaseAdmin.from('products').select('*', { count: 'exact', head: true }).eq('is_available', false)),
-        withTimeout(supabaseAdmin.from('categories').select('*', { count: 'exact', head: true })),
-        withTimeout(supabaseAdmin.from('marts').select('*', { count: 'exact', head: true })),
-        withTimeout(supabaseAdmin.from('users').select('*', { count: 'exact', head: true })),
-        withTimeout(supabaseAdmin.from('captains').select('status')),
-        withTimeout(supabaseAdmin.from('reviews').select('rating')),
-        withTimeout(supabaseAdmin.from('orders').select('total, status, created_at')),
-        withTimeout(supabaseAdmin.from('orders').select(`
-          id,
-          order_number,
-          total,
-          status,
-          created_at,
-          payment_status,
-          payment_method,
-          customer:users (
-            full_name,
-            email,
-            phone,
-            avatar_url
-          )
-        `).order('created_at', { ascending: false }).limit(5)),
-        withTimeout(supabaseAdmin.from('order_items').select('product_name, quantity, total_price, order:orders(status)').limit(500)),
-        withTimeout(supabaseAdmin.from('products').select('id, name, price, mrp, image_url, created_at').order('created_at', { ascending: false }).limit(4))
+        withTimeout(productsQuery),
+        withTimeout(outOfStockQuery),
+        withTimeout(categoriesQuery),
+        withTimeout(martsQuery),
+        withTimeout(usersQuery),
+        withTimeout(captainsQuery),
+        withTimeout(reviewsQuery),
+        withTimeout(ordersQuery),
+        withTimeout(recentOrdersQuery),
+        withTimeout(itemsQuery),
+        withTimeout(recentProdQuery)
       ])
 
       // Debug query errors to help troubleshoot RLS issues
