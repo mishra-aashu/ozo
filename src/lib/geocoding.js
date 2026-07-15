@@ -1,10 +1,9 @@
 import { supabase } from './supabase'
-// Circular import: locationStore imports this file (reverseGeocode) at the top
-// level. ESM live bindings make this safe — useLocationStore will be undefined
-// during module evaluation but fully initialised by the time reverseGeocode()
-// is called at runtime. We ONLY read it inside function bodies, never at the
-// top level, so the circular reference resolves cleanly.
-import { useLocationStore } from '../stores/locationStore'
+
+// DO NOT import useLocationStore at the top level.
+// locationStore → geocoding → locationStore is a circular dependency that
+// causes "Cannot access 'T' before initialization" in production builds.
+// Instead, we resolve it lazily via dynamic import() inside reverseGeocode().
 
 const LOCATIONIQ_KEY = import.meta.env.VITE_LOCATIONIQ_KEY || '';
 
@@ -60,6 +59,9 @@ export const findNearestStreet = (lat, lng, streetsList) => {
 }
 
 export const reverseGeocode = async (lat, lng, providedStreets = null) => {
+  // Lazy-load locationStore to break circular dependency
+  const { useLocationStore } = await import('../stores/locationStore')
+
   let displayName = '';
   let addressDetails = {};
   let success = false;
