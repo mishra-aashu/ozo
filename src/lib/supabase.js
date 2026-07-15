@@ -415,7 +415,7 @@ export const authHelpers = {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*, user_roles(*)')
+        .select('*, user_roles!user_id(*)')
         .eq('id', userId)
         .single()
 
