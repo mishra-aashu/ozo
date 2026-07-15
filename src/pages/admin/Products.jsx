@@ -40,6 +40,7 @@ import {
 import { supabaseAdmin } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import ImageUpload from '../../components/ImageUpload'
+import { useAuthStore } from '../../stores/authStore'
 import BulkControlPanel from '../../components/admin/BulkControlPanel'
 import ProductCityManager from '../../components/admin/ProductCityManager'
 import ConfirmModal from '../../components/ConfirmModal'
@@ -373,10 +374,36 @@ WHERE id = '${editingProduct.id}';`
       // 2. Fetch Marts
       let martsList = []
       try {
-        const { data: martData, error: martError } = await supabaseAdmin
+        const { profile, getScopedCities, getScopedMarts } = useAuthStore.getState()
+        const isSuperAdmin = profile?.isSuperAdmin
+        const isCityManager = profile?.isCityManager
+        const isMartOwner = profile?.isMartOwner
+
+        let martsQuery = supabaseAdmin
           .from('marts')
           .select('*')
-          .order('name', { ascending: true })
+
+        if (!isSuperAdmin) {
+          if (isCityManager) {
+            const scopedCities = getScopedCities()
+            if (scopedCities.length > 0) {
+              martsQuery = martsQuery.in('city_id', scopedCities)
+            } else {
+              martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+            }
+          } else if (isMartOwner) {
+            const scopedMarts = getScopedMarts()
+            if (scopedMarts.length > 0) {
+              martsQuery = martsQuery.in('id', scopedMarts)
+            } else {
+              martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+            }
+          } else {
+            martsQuery = martsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          }
+        }
+
+        const { data: martData, error: martError } = await martsQuery.order('name', { ascending: true })
         if (martError) throw martError
         martsList = martData || []
       } catch (err) {
@@ -409,6 +436,35 @@ WHERE id = '${editingProduct.id}';`
   const fetchProducts = async () => {
     setLoading(true)
     try {
+      const { profile, getScopedCities, getScopedMarts } = useAuthStore.getState()
+      const isSuperAdmin = profile?.isSuperAdmin
+      const isCityManager = profile?.isCityManager
+      const isMartOwner = profile?.isMartOwner
+
+      let allowedMartIds = []
+      let needsFiltering = false
+
+      if (!isSuperAdmin) {
+        needsFiltering = true
+        if (isCityManager) {
+          const scopedCities = getScopedCities()
+          if (scopedCities.length > 0) {
+            const { data: managerMarts } = await supabaseAdmin
+              .from('marts')
+              .select('id')
+              .in('city_id', scopedCities)
+            if (managerMarts && managerMarts.length > 0) {
+              allowedMartIds = managerMarts.map(m => m.id)
+            }
+          }
+        } else if (isMartOwner) {
+          const scopedMarts = getScopedMarts()
+          if (scopedMarts.length > 0) {
+            allowedMartIds = scopedMarts
+          }
+        }
+      }
+
       // 1. Build Query
       let query = supabaseAdmin
         .from('products')
@@ -442,9 +498,25 @@ WHERE id = '${editingProduct.id}';`
         }
       }
 
-      // Mart Filter
-      if (selectedMart !== 'all') {
-        query = query.eq('mart_id', selectedMart)
+      // Mart Filter Scoping
+      if (needsFiltering) {
+        if (selectedMart !== 'all') {
+          if (allowedMartIds.includes(selectedMart)) {
+            query = query.eq('mart_id', selectedMart)
+          } else {
+            query = query.eq('id', '00000000-0000-0000-0000-000000000000')
+          }
+        } else {
+          if (allowedMartIds.length > 0) {
+            query = query.in('mart_id', allowedMartIds)
+          } else {
+            query = query.eq('id', '00000000-0000-0000-0000-000000000000')
+          }
+        }
+      } else {
+        if (selectedMart !== 'all') {
+          query = query.eq('mart_id', selectedMart)
+        }
       }
 
       // Stock Status Filter
@@ -494,22 +566,31 @@ WHERE id = '${editingProduct.id}';`
 
       // 2. Fetch overall stats — use limit(0) instead of head:true
       // (HEAD requests fail through Cloudflare proxy; limit(0) is a GET that returns count in Content-Range header)
-      const { count: totalAll } = await supabaseAdmin
-        .from('products')
-        .select('*', { count: 'exact' })
-        .limit(0)
+      let statsQuery1 = supabaseAdmin.from('products').select('*', { count: 'exact' })
+      let statsQuery2 = supabaseAdmin.from('products').select('*', { count: 'exact' }).eq('is_available', false)
+      let statsQuery3 = supabaseAdmin.from('products').select('*', { count: 'exact' }).eq('verification_status', 'pending')
 
-      const { count: oos } = await supabaseAdmin
-        .from('products')
-        .select('*', { count: 'exact' })
-        .eq('is_available', false)
-        .limit(0)
+      if (needsFiltering) {
+        if (allowedMartIds.length > 0) {
+          statsQuery1 = statsQuery1.in('mart_id', allowedMartIds)
+          statsQuery2 = statsQuery2.in('mart_id', allowedMartIds)
+          statsQuery3 = statsQuery3.in('mart_id', allowedMartIds)
+        } else {
+          statsQuery1 = statsQuery1.eq('id', '00000000-0000-0000-0000-000000000000')
+          statsQuery2 = statsQuery2.eq('id', '00000000-0000-0000-0000-000000000000')
+          statsQuery3 = statsQuery3.eq('id', '00000000-0000-0000-0000-000000000000')
+        }
+      }
 
-      const { count: pendingAll } = await supabaseAdmin
-        .from('products')
-        .select('*', { count: 'exact' })
-        .eq('verification_status', 'pending')
-        .limit(0)
+      const [totalAllResult, oosResult, pendingAllResult] = await Promise.all([
+        statsQuery1.limit(0),
+        statsQuery2.limit(0),
+        statsQuery3.limit(0)
+      ])
+
+      const totalAll = totalAllResult.count
+      const oos = oosResult.count
+      const pendingAll = pendingAllResult.count
 
       setStats({
         total: totalAll ?? count ?? 0,

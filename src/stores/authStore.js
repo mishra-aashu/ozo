@@ -90,6 +90,42 @@ const ensureProfileExists = async (user) => {
   }
 }
 
+// Helper to enrich profile roles and check if admin
+const enrichProfileRoles = (profile) => {
+  if (!profile) return null
+  const roles = profile.user_roles || []
+  const hasSuperAdmin = roles.some(r => r.role === 'super_admin') || profile.role === 'admin' || profile.role === 'super_admin'
+  const hasCityManager = roles.some(r => r.role === 'city_manager') || profile.role === 'city_manager'
+  const hasMartOwner = roles.some(r => r.role === 'mart_owner') || profile.role === 'mart_owner'
+  const hasRider = roles.some(r => r.role === 'rider') || profile.role === 'rider'
+  const hasCustomer = roles.some(r => r.role === 'customer') || profile.role === 'customer'
+
+  // Set top-level role for backward compatibility
+  let primaryRole = profile.role
+  if (hasSuperAdmin) primaryRole = 'super_admin'
+  else if (hasCityManager) primaryRole = 'city_manager'
+  else if (hasMartOwner) primaryRole = 'mart_owner'
+  else if (hasRider) primaryRole = 'rider'
+  else if (hasCustomer) primaryRole = 'customer'
+
+  return {
+    ...profile,
+    role: primaryRole,
+    roles: roles,
+    isSuperAdmin: hasSuperAdmin,
+    isCityManager: hasCityManager,
+    isMartOwner: hasMartOwner,
+    isRider: hasRider,
+    isCustomer: hasCustomer,
+  }
+}
+
+const checkAdmin = (profile) => {
+  if (!profile) return false
+  const enriched = enrichProfileRoles(profile)
+  return !!(enriched?.isSuperAdmin || enriched?.isCityManager)
+}
+
 export const useAuthStore = create(
   persist(
     (set, get) => ({
@@ -162,12 +198,13 @@ export const useAuthStore = create(
             const localProfile = get().profile
 
             if (localProfile && localProfile.id === session.user.id) {
+              const enrichedLocal = enrichProfileRoles(localProfile)
               // Set initialized state immediately with cached local profile so the UI doesn't hang
               set({
                 user: session.user,
-                profile: localProfile,
+                profile: enrichedLocal,
                 isAuthenticated: true,
-                isAdmin: localProfile?.role === 'admin',
+                isAdmin: checkAdmin(enrichedLocal),
                 isLoading: false,
                 isInitialized: true,
               })
@@ -182,16 +219,16 @@ export const useAuthStore = create(
 
                   if (profile) {
                     // Always let the fresh DB profile win for role — never use stale cached role
-                    const finalProfile = {
+                    const finalProfile = enrichProfileRoles({
                       ...localProfile,
                       ...profile,
                       role: profile.role, // DB role always wins
                       avatar_url: profile.avatar_url || localProfile.avatar_url || ''
-                    }
+                    })
 
                     set({
                       profile: finalProfile,
-                      isAdmin: finalProfile?.role === 'admin'
+                      isAdmin: checkAdmin(finalProfile)
                     })
                   }
                 } catch (err) {
@@ -210,13 +247,13 @@ export const useAuthStore = create(
                 console.warn('Failed to ensure profile on init:', err)
               }
 
-              const finalProfile = profile || localProfile
+              const finalProfile = enrichProfileRoles(profile || localProfile)
 
               set({
                 user: session.user,
                 profile: finalProfile,
                 isAuthenticated: true,
-                isAdmin: finalProfile?.role === 'admin',
+                isAdmin: checkAdmin(finalProfile),
                 isLoading: false,
                 isInitialized: true,
               })
@@ -273,12 +310,13 @@ export const useAuthStore = create(
                 // left a multi-second window where user was null and the
                 // guards bounced users back to /auth.
                 const localProfile = get().profile
+                const enrichedLocal = enrichProfileRoles(localProfile)
                 set({
                   user: session.user,
                   isAuthenticated: true,
                   // Keep the cached profile (if any) so the UI isn't blank
                   ...(localProfile && localProfile.id === session.user.id
-                    ? { profile: localProfile, isAdmin: localProfile?.role === 'admin' }
+                    ? { profile: enrichedLocal, isAdmin: checkAdmin(enrichedLocal) }
                     : {}),
                 })
 
@@ -302,7 +340,7 @@ export const useAuthStore = create(
                     // details only if the user ID matches.
                     // DB role always wins to prevent stale-cache role mismatch issues.
                     const currentLocalProfile = get().profile
-                    const finalProfile = profile
+                    const finalProfile = enrichProfileRoles(profile
                       ? (currentLocalProfile && currentLocalProfile.id === profile.id
                           ? {
                               ...currentLocalProfile,
@@ -311,11 +349,11 @@ export const useAuthStore = create(
                               avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || ''
                             }
                           : profile)
-                      : currentLocalProfile
+                      : currentLocalProfile)
 
                     set({
                       profile: finalProfile,
-                      isAdmin: finalProfile?.role === 'admin',
+                      isAdmin: checkAdmin(finalProfile),
                     })
 
                     // Sync guest addresses immediately upon SIGNED_IN
@@ -365,12 +403,12 @@ export const useAuthStore = create(
             const { session: earlySess } = earlySignedInCapture
             // Only replay if the store didn't already pick up this session
             if (earlySess?.user && !get().isAuthenticated) {
-              const localProfile = get().profile
+              const enrichedLocal = enrichProfileRoles(localProfile)
               set({
                 user: earlySess.user,
                 isAuthenticated: true,
                 ...(localProfile && localProfile.id === earlySess.user.id
-                  ? { profile: localProfile, isAdmin: localProfile?.role === 'admin' }
+                  ? { profile: enrichedLocal, isAdmin: checkAdmin(enrichedLocal) }
                   : {}),
               })
               oneSignalLogin(earlySess.user.id)
@@ -379,12 +417,12 @@ export const useAuthStore = create(
                 try {
                   const profile = await ensureProfileExists(earlySess.user)
                   const currentLocalProfile = get().profile
-                  const finalProfile = profile
+                  const finalProfile = enrichProfileRoles(profile
                     ? (currentLocalProfile && currentLocalProfile.id === profile.id
                         ? { ...currentLocalProfile, ...profile, role: profile.role, avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || '' }
                         : profile)
-                    : currentLocalProfile
-                  set({ profile: finalProfile, isAdmin: finalProfile?.role === 'admin' })
+                    : currentLocalProfile)
+                  set({ profile: finalProfile, isAdmin: checkAdmin(finalProfile) })
                 } catch (err) {
                   console.warn('[authStore] Early SIGNED_IN profile fetch failed:', err)
                 } finally {
@@ -399,11 +437,12 @@ export const useAuthStore = create(
           // Fallback: use whatever we have in the persisted store to keep the app functional
           const cachedUser = get().user
           const cachedProfile = get().profile
+          const enrichedCached = enrichProfileRoles(cachedProfile)
           set({
             user: cachedUser || null,
-            profile: cachedProfile || null,
+            profile: enrichedCached || null,
             isAuthenticated: !!cachedUser,
-            isAdmin: cachedProfile?.role === 'admin',
+            isAdmin: checkAdmin(enrichedCached),
             isLoading: false,
             isInitialized: true
           })
@@ -440,12 +479,13 @@ export const useAuthStore = create(
 
           // Fetch profile
           const { data: profile } = await authHelpers.getUserProfile(data.user.id)
+          const enrichedProfile = enrichProfileRoles(profile)
 
           set({
             user: data.user,
-            profile: profile,
+            profile: enrichedProfile,
             isAuthenticated: true,
-            isAdmin: profile?.role === 'admin',
+            isAdmin: checkAdmin(enrichedProfile),
             isLoading: false,
           })
 
@@ -575,7 +615,8 @@ export const useAuthStore = create(
             return { success: false, error }
           }
 
-          set({ profile: data, isLoading: false })
+          const enrichedProfile = enrichProfileRoles(data)
+          set({ profile: enrichedProfile, isLoading: false })
           toast.success('Profile updated successfully')
           return { success: true, data }
         } catch (error) {
@@ -613,14 +654,50 @@ export const useAuthStore = create(
 
           const { data } = await authHelpers.getUserProfile(userId)
           if (data) {
+            const enrichedProfile = enrichProfileRoles(data)
             set({
-              profile: data,
-              isAdmin: data.role === 'admin'
+              profile: enrichedProfile,
+              isAdmin: checkAdmin(enrichedProfile)
             })
           }
         } catch (error) {
           console.error('Refresh profile error:', error)
         }
+      },
+
+      // Scoping helper methods
+      getScopedCities: () => {
+        const profile = get().profile
+        if (!profile) return []
+        if (profile.isSuperAdmin) return []
+        return (profile.roles || [])
+          .filter(r => r.role === 'city_manager' && r.city_id)
+          .map(r => r.city_id)
+      },
+
+      getScopedMarts: () => {
+        const profile = get().profile
+        if (!profile) return []
+        if (profile.isSuperAdmin) return []
+        return (profile.roles || [])
+          .filter(r => r.role === 'mart_owner' && r.mart_id)
+          .map(r => r.mart_id)
+      },
+
+      hasAccessToCity: (cityId) => {
+        const profile = get().profile
+        if (!profile) return false
+        if (profile.isSuperAdmin) return true
+        if (!cityId) return false
+        return (profile.roles || []).some(r => r.role === 'city_manager' && r.city_id === cityId)
+      },
+
+      hasAccessToMart: (martId) => {
+        const profile = get().profile
+        if (!profile) return false
+        if (profile.isSuperAdmin) return true
+        if (!martId) return false
+        return (profile.roles || []).some(r => r.role === 'mart_owner' && r.mart_id === martId)
       },
     }),
     {
