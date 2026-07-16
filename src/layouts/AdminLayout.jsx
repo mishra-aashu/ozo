@@ -54,77 +54,6 @@ const AdminLayout = () => {
   const isCityManager = profile?.isCityManager
   const isMartOwner = profile?.isMartOwner
 
-  const filteredMenuItems = menuItems.filter(item => {
-    if (isSuperAdmin) return true
-    if (isCityManager) {
-      return ['Dashboard', 'Products', 'Orders', 'Reviews', 'Rider Settings', 'Mart Settings'].includes(item.label)
-    }
-    if (isMartOwner) {
-      return ['Dashboard', 'Products', 'Orders', 'Reviews'].includes(item.label)
-    }
-    return ['Dashboard'].includes(item.label)
-  })
-
-  const [isUnlocked, setIsUnlocked] = useState(() => {
-    return !!localStorage.getItem('ozo-admin-token')
-  })
-
-  useEffect(() => {
-    const handleExpired = () => {
-      setIsUnlocked(false)
-    }
-    window.addEventListener('ozo-admin-session-expired', handleExpired)
-    return () => window.removeEventListener('ozo-admin-session-expired', handleExpired)
-  }, [])
-
-  useEffect(() => {
-    const path = location.pathname
-    if (path === '/admin/orders') {
-      markAsSeen('orders')
-    } else if (path === '/admin/users') {
-      markAsSeen('users')
-    } else if (path === '/admin/requests') {
-      markAsSeen('requests')
-    } else if (path === '/admin/reviews') {
-      markAsSeen('reviews')
-    } else if (path === '/admin/messages') {
-      markAsSeen('messages')
-    }
-  }, [location.pathname, markAsSeen])
-
-  useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 1024)
-    }
-    handleResize()
-    window.addEventListener('resize', handleResize)
-    return () => window.removeEventListener('resize', handleResize)
-  }, [])
-
-  useEffect(() => {
-    startSubscribing()
-    return () => stopSubscribing()
-  }, [startSubscribing, stopSubscribing])
-
-  const getBadgeCount = (label) => {
-    switch (label) {
-      case 'Orders':
-        return badges.orders
-      case 'Users':
-        return badges.users
-      case 'Requests':
-        return badges.requests
-      case 'Reviews':
-        return badges.reviews
-      case 'Support Messages':
-        return badges.messages
-      default:
-        return 0
-    }
-  }
-
-  const totalAlerts = badges.orders + badges.requests + badges.reviews + badges.messages
-
   const menuItems = [
     {
       icon: LayoutDashboard,
@@ -267,6 +196,77 @@ const AdminLayout = () => {
       bgColor: 'bg-rose-100/50 dark:bg-rose-950/20',
     },
   ]
+
+  const filteredMenuItems = menuItems.filter(item => {
+    if (isSuperAdmin) return true
+    if (isCityManager) {
+      return ['Dashboard', 'Products', 'Orders', 'Reviews', 'Rider Settings', 'Mart Settings'].includes(item.label)
+    }
+    if (isMartOwner) {
+      return ['Dashboard', 'Products', 'Orders', 'Reviews'].includes(item.label)
+    }
+    return ['Dashboard'].includes(item.label)
+  })
+
+  const [isUnlocked, setIsUnlocked] = useState(() => {
+    return !!localStorage.getItem('ozo-admin-token')
+  })
+
+  useEffect(() => {
+    const handleExpired = () => {
+      setIsUnlocked(false)
+    }
+    window.addEventListener('ozo-admin-session-expired', handleExpired)
+    return () => window.removeEventListener('ozo-admin-session-expired', handleExpired)
+  }, [])
+
+  useEffect(() => {
+    const path = location.pathname
+    if (path === '/admin/orders') {
+      markAsSeen('orders')
+    } else if (path === '/admin/users') {
+      markAsSeen('users')
+    } else if (path === '/admin/requests') {
+      markAsSeen('requests')
+    } else if (path === '/admin/reviews') {
+      markAsSeen('reviews')
+    } else if (path === '/admin/messages') {
+      markAsSeen('messages')
+    }
+  }, [location.pathname, markAsSeen])
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    handleResize()
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
+
+  useEffect(() => {
+    startSubscribing()
+    return () => stopSubscribing()
+  }, [startSubscribing, stopSubscribing])
+
+  const getBadgeCount = (label) => {
+    switch (label) {
+      case 'Orders':
+        return badges.orders
+      case 'Users':
+        return badges.users
+      case 'Requests':
+        return badges.requests
+      case 'Reviews':
+        return badges.reviews
+      case 'Support Messages':
+        return badges.messages
+      default:
+        return 0
+    }
+  }
+
+  const totalAlerts = badges.orders + badges.requests + badges.reviews + badges.messages
 
   const handleLogout = async () => {
     localStorage.removeItem('ozo-admin-token')
