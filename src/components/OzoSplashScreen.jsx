@@ -96,9 +96,22 @@ const OzoSplashScreen = ({ onAnimationComplete }) => {
           transform: scale(1.08); /* Slightly zoomed in properly as requested */
           transition: opacity 0.5s ease;
           opacity: ${hasStarted ? 1 : 0};
+          pointer-events: none; /* Prevents clicks/taps on the video from triggering native browser controls */
         }
 
-        /* Premium Controls */
+        /* Absolutely hide any native browser media player controls / logo panels */
+        video::-webkit-media-controls,
+        video::-webkit-media-controls-panel,
+        video::-webkit-media-controls-panel-container,
+        video::-webkit-media-controls-start-panel-button,
+        video::-webkit-media-controls-play-button,
+        video::-webkit-media-controls-enclosure {
+          display: none !important;
+          -webkit-appearance: none !important;
+          opacity: 0 !important;
+        }
+
+        /* Premium Controls styling */
         .ozo-splash-control {
           position: absolute;
           z-index: 100000;
@@ -164,6 +177,10 @@ const OzoSplashScreen = ({ onAnimationComplete }) => {
             autoPlay
             muted={isMuted}
             playsInline
+            controls={false}
+            controlsList="nodownload nofullscreen noremoteplayback"
+            disablePictureInPicture
+            disableRemotePlayback
             onTimeUpdate={handleTimeUpdate}
             onPlay={() => setHasStarted(true)}
             onError={() => setError(true)}
