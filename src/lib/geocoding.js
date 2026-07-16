@@ -1,9 +1,9 @@
 import { supabase } from './supabase'
 
-// DO NOT import useLocationStore at the top level.
-// locationStore → geocoding → locationStore is a circular dependency that
-// causes "Cannot access 'T' before initialization" in production builds.
-// Instead, we resolve it lazily via dynamic import() inside reverseGeocode().
+// NOTE: This module must NEVER import from locationStore (directly or dynamically).
+// locationStore imports from geocoding, so any reverse import creates a circular
+// dependency that causes "Cannot access 'T' before initialization" in production
+// builds. Instead, callers pass the needed location state as a parameter.
 
 const LOCATIONIQ_KEY = import.meta.env.VITE_LOCATIONIQ_KEY || '';
 
@@ -58,9 +58,21 @@ export const findNearestStreet = (lat, lng, streetsList) => {
   return null
 }
 
-export const reverseGeocode = async (lat, lng, providedStreets = null) => {
-  // Lazy-load locationStore to break circular dependency
-  const { useLocationStore } = await import('../stores/locationStore')
+/**
+ * Reverse geocode coordinates to an address.
+ *
+ * @param {number} lat
+ * @param {number} lng
+ * @param {Array|null} providedStreets - Optional pre-fetched serviceable streets
+ * @param {object|null} locationState - Optional location store state snapshot.
+ *   Shape: { nearestCity, activeCities }
+ *   Callers should pass useLocationStore.getState() or equivalent.
+ *   If omitted, the enrichment that depends on store state is skipped gracefully.
+ */
+export const reverseGeocode = async (lat, lng, providedStreets = null, locationState = null) => {
+  // Extract what we need from the passed-in state (safe defaults if not provided)
+  const nearestCity = locationState?.nearestCity || null;
+  const activeCities = locationState?.activeCities || [];
 
   let displayName = '';
   let addressDetails = {};
@@ -152,15 +164,10 @@ export const reverseGeocode = async (lat, lng, providedStreets = null) => {
     let nearestCityName = 'Unknown';
     let nearestState = 'Unknown';
     let nearestPostcode = '';
-    try {
-      const nearestCity = useLocationStore.getState().nearestCity;
-      if (nearestCity) {
-        nearestCityName = nearestCity.name || nearestCityName;
-        nearestState = nearestCity.state || nearestState;
-        nearestPostcode = nearestCity.slug?.includes('aurangabad') ? '824101' : '';
-      }
-    } catch (e) {
-      console.error('Failed to get nearestCity from store in geocoding:', e);
+    if (nearestCity) {
+      nearestCityName = nearestCity.name || nearestCityName;
+      nearestState = nearestCity.state || nearestState;
+      nearestPostcode = nearestCity.slug?.includes('aurangabad') ? '824101' : '';
     }
 
     addressDetails.suburb = addressDetails.suburb || nearest.type || '';
@@ -181,14 +188,9 @@ export const reverseGeocode = async (lat, lng, providedStreets = null) => {
   
   let nearestCityNameFallback = 'Unknown';
   let nearestStateFallback = 'Unknown';
-  try {
-    const nearestCity = useLocationStore.getState().nearestCity;
-    if (nearestCity) {
-      nearestCityNameFallback = nearestCity.name || nearestCityNameFallback;
-      nearestStateFallback = nearestCity.state || nearestStateFallback;
-    }
-  } catch (e) {
-    // Non-fatal — fall back to defaults
+  if (nearestCity) {
+    nearestCityNameFallback = nearestCity.name || nearestCityNameFallback;
+    nearestStateFallback = nearestCity.state || nearestStateFallback;
   }
   
   const city = addressDetails.city || addressDetails.town || nearestCityNameFallback;
@@ -221,8 +223,6 @@ export const reverseGeocode = async (lat, lng, providedStreets = null) => {
   // we check if the postcode returned by Nominatim/LocationIQ is in the city's allowed_pincodes.
   // If it's not (or if it is missing), we automatically override it with the city's primary allowed postcode.
   try {
-    const locationState = useLocationStore.getState();
-    const activeCities = locationState.activeCities || [];
     const R = 6371; // Earth's radius in KM
     
     let matchedCity = null;
