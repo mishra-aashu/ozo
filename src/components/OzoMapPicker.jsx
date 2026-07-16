@@ -386,7 +386,11 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
 
         // Then fire reverse geocoding for address label via utility
         if (onLocationSelect) {
-          const result = await reverseGeocode(targetLat, targetLng, serviceableStreets)
+          const locState = useLocationStore.getState()
+          const result = await reverseGeocode(targetLat, targetLng, serviceableStreets, {
+            nearestCity: locState.nearestCity,
+            activeCities: locState.activeCities
+          })
           onLocationSelect({
             lat: targetLat,
             lng: targetLng,
@@ -784,7 +788,11 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
       }
       setPosition([lat, lng])
       if (onLocationSelect) {
-        const result = await reverseGeocode(lat, lng, serviceableStreets)
+        const locState = useLocationStore.getState()
+        const result = await reverseGeocode(lat, lng, serviceableStreets, {
+          nearestCity: locState.nearestCity,
+          activeCities: locState.activeCities
+        })
         onLocationSelect({
           lat,
           lng,
