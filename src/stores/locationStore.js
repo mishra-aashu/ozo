@@ -722,7 +722,10 @@ export const useLocationStore = create(
 
               try {
                 // Reverse geocoding to fetch detailed address via utility
-                const { displayName, addressDetails } = await reverseGeocode(latitude, longitude)
+                const { displayName, addressDetails } = await reverseGeocode(latitude, longitude, null, {
+                  nearestCity: get().nearestCity,
+                  activeCities: get().activeCities
+                })
                 
                 // Construct a shorter, cleaner display address (e.g. Road, Suburb, City)
                 const road = addressDetails.road || addressDetails.street || ''
