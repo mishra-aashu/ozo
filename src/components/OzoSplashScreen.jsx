@@ -1,435 +1,143 @@
-import React, { useEffect } from 'react';
-import OzoLogo from './OzoLogo';
+import React, { useEffect, useRef, useState } from 'react';
 
 const OzoSplashScreen = ({ onAnimationComplete }) => {
+  const videoRef = useRef(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const [hasStarted, setHasStarted] = useState(false);
+  const [isExiting, setIsExiting] = useState(false);
+  const [error, setError] = useState(false);
+
+  // Fallback timer to ensure splash ends if video fails to load or play
   useEffect(() => {
-    const timer = setTimeout(() => {
-      if (onAnimationComplete) {
-        onAnimationComplete();
+    const fallbackTimer = setTimeout(() => {
+      handleExit();
+    }, 11000); // 11s fallback (video is 10s)
+
+    return () => clearTimeout(fallbackTimer);
+  }, []);
+
+  const handleExit = () => {
+    setIsExiting(true);
+  };
+
+  // Exit animation wrapper before calling onAnimationComplete
+  useEffect(() => {
+    if (isExiting) {
+      const exitTimer = setTimeout(() => {
+        if (onAnimationComplete) {
+          onAnimationComplete();
+        }
+      }, 600); // Matches the CSS exit animation duration
+      return () => clearTimeout(exitTimer);
+    }
+  }, [isExiting, onAnimationComplete]);
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      const { currentTime, duration } = videoRef.current;
+      // Start exit transition 0.6s before video ends to make a cinematic blend
+      if (duration && currentTime >= duration - 0.6) {
+        handleExit();
       }
-    }, 4500); // 4.5 seconds total duration (matches CSS overlay exit completion)
-    return () => clearTimeout(timer);
-  }, [onAnimationComplete]);
+    }
+  };
+
+  const handleSkip = (e) => {
+    e.stopPropagation();
+    handleExit();
+  };
+
+  const toggleMute = (e) => {
+    e.stopPropagation();
+    if (videoRef.current) {
+      const newMuted = !videoRef.current.muted;
+      videoRef.current.muted = newMuted;
+      setIsMuted(newMuted);
+    }
+  };
 
   return (
     <div 
-      className="ozo-splash-overlay"
-      onClick={() => { if (onAnimationComplete) onAnimationComplete(); }}
+      className={`ozo-splash-overlay ${isExiting ? 'ozo-exiting' : ''}`}
+      onClick={handleSkip}
       title="Click to skip"
     >
       <style>{`
         .ozo-splash-overlay {
           position: fixed;
           inset: 0;
-          background-color: #ffffff;
+          background: radial-gradient(circle, #821b1f 0%, #761a1d 100%); /* Flawlessly matches video background colors */
           display: flex;
-          flex-direction: column;
           align-items: center;
           justify-content: center;
           z-index: 99999;
           overflow: hidden;
           user-select: none;
           will-change: opacity, transform, filter;
-          transition: background-color 0.3s ease;
+        }
+
+        .ozo-splash-overlay.ozo-exiting {
           animation: ozoOverlayExit 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 3.9s;
         }
 
-        .dark .ozo-splash-overlay {
-          background-color: #060608;
-        }
-
-        /* Cinematic Background Radial Glow */
-        .ozo-splash-glow {
-          position: absolute;
-          inset: 0;
-          background: radial-gradient(circle at center, rgba(255, 0, 63, 0.08) 0%, rgba(255, 255, 255, 0) 75%);
-          pointer-events: none;
-        }
-
-        .dark .ozo-splash-glow {
-          background: radial-gradient(circle at center, rgba(255, 0, 63, 0.15) 0%, rgba(0, 0, 0, 0) 70%);
-        }
-
-        /* High-tech Grid Mask */
-        .ozo-splash-grid {
-          position: absolute;
-          inset: 0;
-          background-image: 
-            linear-gradient(rgba(0, 0, 0, 0.015) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(0, 0, 0, 0.015) 1px, transparent 1px);
-          background-size: 40px 40px;
-          mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%);
-          -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 50%, #000 70%, transparent 100%);
-          pointer-events: none;
-        }
-
-        .dark .ozo-splash-grid {
-          background-image: 
-            linear-gradient(rgba(255, 255, 255, 0.012) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(255, 255, 255, 0.012) 1px, transparent 1px);
-        }
-
-        /* Content Wrapper */
-        .ozo-splash-content {
+        .ozo-video-container {
           position: relative;
+          width: 100%;
+          height: 100%;
           display: flex;
           align-items: center;
           justify-content: center;
         }
 
-        /* Wrapper for brand box and dust trail */
-        .ozo-brand-box-wrapper {
-          position: relative;
-          display: flex;
-          align-items: center;
-          justify-content: center;
+        .ozo-intro-video {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          transform: scale(1.08); /* Slightly zoomed in properly as requested */
+          transition: opacity 0.5s ease;
+          opacity: ${hasStarted ? 1 : 0};
         }
 
-        /* Dust particles trailing the sliding cart */
-        .ozo-dust-particle {
+        /* Premium Controls */
+        .ozo-splash-control {
           position: absolute;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 0, 63, 0.8) 0%, rgba(255, 0, 63, 0) 70%);
-          pointer-events: none;
-          opacity: 0;
-          will-change: transform, opacity;
-        }
-
-        .ozo-dust-1 {
-          width: 32px;
-          height: 32px;
-          left: -40px;
-          top: 15px;
-          animation: ozoDustTrail1 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.1s;
-        }
-
-        .ozo-dust-2 {
-          width: 40px;
-          height: 40px;
-          left: -60px;
-          top: 35px;
-          animation: ozoDustTrail2 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.2s;
-        }
-
-        .ozo-dust-3 {
-          width: 24px;
-          height: 24px;
-          left: -30px;
-          top: 55px;
-          animation: ozoDustTrail3 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.15s;
-        }
-
-        .ozo-dust-4 {
-          width: 36px;
-          height: 36px;
-          left: -50px;
-          top: -5px;
-          animation: ozoDustTrail4 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.25s;
-        }
-
-        .ozo-brand-box {
-          position: relative;
-          width: 90px;
-          height: 90px;
+          z-index: 100000;
+          background: rgba(0, 0, 0, 0.45);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+          color: #ffffff;
+          padding: 10px 20px;
+          border-radius: 9999px;
+          font-size: 0.85rem;
+          font-weight: 600;
+          cursor: pointer;
           display: flex;
           align-items: center;
-          justify-content: center;
-          will-change: transform, opacity;
-          transform: translate3d(-100vw, 0, 0) scale(0.7) rotate(-15deg);
-          opacity: 0;
-          animation: ozoBrandBoxEntrance 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          gap: 8px;
+          box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+          transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        @media (min-width: 475px) {
-          .ozo-brand-box {
-            width: 110px;
-            height: 110px;
-          }
+        .ozo-splash-control:hover {
+          background: rgba(255, 255, 255, 0.15);
+          transform: translateY(-2px) scale(1.04);
+          border-color: rgba(255, 255, 255, 0.25);
         }
 
-        @media (min-width: 640px) {
-          .ozo-brand-box {
-            width: 140px;
-            height: 140px;
-          }
+        .ozo-splash-control:active {
+          transform: translateY(0px) scale(0.98);
         }
 
-        @media (min-width: 768px) {
-          .ozo-brand-box {
-            width: 180px;
-            height: 180px;
-          }
+        .ozo-splash-mute {
+          bottom: 32px;
+          left: 32px;
         }
 
-        /* Sequenced Icons */
-        .ozo-splash-icon {
-          position: absolute;
-          width: 48px;
-          height: 48px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          opacity: 0;
-          will-change: transform, opacity;
-          transform: scale3d(0.4, 0.4, 1) rotate3d(0, 0, 1, -45deg);
-          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
-        }
-
-        @media (min-width: 640px) {
-          .ozo-splash-icon {
-            width: 56px;
-            height: 56px;
-          }
-        }
-
-        /* Staggered CSS Animation sequence: 4 items over 4 seconds */
-        .ozo-icon-1 { animation: ozoIconSeqFirst 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards; animation-delay: 0s; }
-        .ozo-icon-2 { animation: ozoIconSeq 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; animation-delay: 1.1s; }
-        .ozo-icon-3 { animation: ozoIconSeq 1s cubic-bezier(0.23, 1, 0.32, 1) forwards; animation-delay: 2.0s; }
-        .ozo-icon-4 { animation: ozoIconSeqFinal 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; animation-delay: 2.9s; }
-
-        /* Text Layout */
-        .ozo-text-container {
-          height: 72px;
-          display: flex;
-          flex-direction: column;
-          justify-content: center;
-          padding-left: 16px;
-          overflow: hidden;
-        }
-        @media (min-width: 475px) {
-          .ozo-text-container {
-            height: 88px;
-            padding-left: 20px;
-          }
-        }
-        @media (min-width: 640px) {
-          .ozo-text-container {
-            height: 112px;
-            padding-left: 32px;
-          }
-        }
-
-        .ozo-title {
-          color: #FF003F;
-          font-size: 2.25rem;
-          line-height: 1;
-          font-weight: 900;
-          font-family: 'Poppins', sans-serif;
+        .ozo-splash-skip {
+          bottom: 32px;
+          right: 32px;
           letter-spacing: 0.05em;
-          text-shadow: 0 0 25px rgba(255, 0, 63, 0.25);
-          opacity: 0;
-          will-change: transform, opacity;
-          transform: translate3d(-60px, 0, 0);
-          animation: ozoTitleEntrance 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 0.8s;
-        }
-        @media (min-width: 475px) {
-          .ozo-title {
-            font-size: 2.75rem;
-          }
-        }
-        @media (min-width: 640px) {
-          .ozo-title {
-            font-size: 3.5rem;
-          }
-        }
-        @media (min-width: 768px) {
-          .ozo-title {
-            font-size: 5rem;
-          }
-        }
-
-        .ozo-subtitle {
-          color: rgba(255, 0, 63, 0.9);
-          font-size: 0.45rem;
-          font-weight: 700;
-          letter-spacing: 0.3em;
-          text-transform: uppercase;
-          margin-top: 4px;
-          margin-left: 2px;
-          opacity: 0;
-          will-change: transform, opacity;
-          transform: translate3d(0, 10px, 0);
-          animation: ozoSubtitleEntrance 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-          animation-delay: 1.4s;
-        }
-        @media (min-width: 475px) {
-          .ozo-subtitle {
-            font-size: 0.55rem;
-            letter-spacing: 0.4em;
-            margin-top: 5px;
-          }
-        }
-        @media (min-width: 640px) {
-          .ozo-subtitle {
-            font-size: 0.6rem;
-            letter-spacing: 0.5em;
-            margin-top: 6px;
-            margin-left: 2px;
-          }
-        }
-        @media (min-width: 768px) {
-          .ozo-subtitle {
-            font-size: 0.7rem;
-            letter-spacing: 0.55em;
-            margin-top: 8px;
-            margin-left: 4px;
-          }
-        }
-
-        /* Progress Bar */
-        .ozo-progress-bar {
-          position: absolute;
-          bottom: 0;
-          left: 0;
-          height: 3px;
-          background: linear-gradient(90deg, #FF003F 0%, #FF5A87 50%, #FF003F 100%);
-          will-change: width;
-          width: 0%;
-          animation: ozoProgressBarFill 3.9s linear forwards;
-        }
-
-        /* GPU Accelerated Keyframes */
-        @keyframes ozoBrandBoxEntrance {
-          0% {
-            opacity: 0;
-            transform: translate3d(-100vw, 0, 0) scale3d(0.7, 0.7, 1) rotate3d(0, 0, 1, -15deg);
-          }
-          100% {
-            opacity: 1;
-            transform: translate3d(0, 0, 0) scale3d(1, 1, 1) rotate3d(0, 0, 1, 0deg);
-          }
-        }
-
-        @keyframes ozoTitleEntrance {
-          0% {
-            opacity: 0;
-            transform: translate3d(-60px, 0, 0);
-          }
-          100% {
-            opacity: 1;
-            transform: translate3d(0, 0, 0);
-          }
-        }
-
-        @keyframes ozoSubtitleEntrance {
-          0% {
-            opacity: 0;
-            transform: translate3d(0, 10px, 0);
-          }
-          100% {
-            opacity: 1;
-            transform: translate3d(0, 0, 0);
-          }
-        }
-
-        @keyframes ozoIconSeqFirst {
-          0%, 75% {
-            opacity: 1;
-            transform: scale3d(1, 1, 1) rotate3d(0, 0, 1, 0deg);
-          }
-          100% {
-            opacity: 0;
-            transform: scale3d(0.4, 0.4, 1) rotate3d(0, 0, 1, 45deg);
-          }
-        }
-
-        @keyframes ozoIconSeq {
-          0% {
-            opacity: 0;
-            transform: scale3d(0.4, 0.4, 1) rotate3d(0, 0, 1, -45deg);
-          }
-          15%, 85% {
-            opacity: 1;
-            transform: scale3d(1, 1, 1) rotate3d(0, 0, 1, 0deg);
-          }
-          100% {
-            opacity: 0;
-            transform: scale3d(0.4, 0.4, 1) rotate3d(0, 0, 1, 45deg);
-          }
-        }
-
-        /* Final icon (Cart) animates in and stays visible */
-        @keyframes ozoIconSeqFinal {
-          0% {
-            opacity: 0;
-            transform: scale3d(0.4, 0.4, 1) rotate3d(0, 0, 1, -45deg);
-          }
-          20%, 100% {
-            opacity: 1;
-            transform: scale3d(1, 1, 1) rotate3d(0, 0, 1, 0deg);
-          }
-        }
-
-        @keyframes ozoProgressBarFill {
-          0% { width: 0%; }
-          100% { width: 100%; }
-        }
-
-        @keyframes ozoDustTrail1 {
-          0% {
-            opacity: 0;
-            transform: translate3d(-100vw, 0, 0) scale(0.2);
-          }
-          30% {
-            opacity: 0.9;
-            transform: translate3d(-60vw, -10px, 0) scale(1.2);
-          }
-          100% {
-            opacity: 0;
-            transform: translate3d(-120vw, -20px, 0) scale(1.8) filter(blur(6px));
-          }
-        }
-
-        @keyframes ozoDustTrail2 {
-          0% {
-            opacity: 0;
-            transform: translate3d(-100vw, 0, 0) scale(0.2);
-          }
-          30% {
-            opacity: 0.8;
-            transform: translate3d(-70vw, 15px, 0) scale(1.3);
-          }
-          100% {
-            opacity: 0;
-            transform: translate3d(-130vw, 30px, 0) scale(2.2) filter(blur(8px));
-          }
-        }
-
-        @keyframes ozoDustTrail3 {
-          0% {
-            opacity: 0;
-            transform: translate3d(-100vw, 0, 0) scale(0.2);
-          }
-          30% {
-            opacity: 0.95;
-            transform: translate3d(-50vw, 5px, 0) scale(1.1);
-          }
-          100% {
-            opacity: 0;
-            transform: translate3d(-110vw, 10px, 0) scale(1.5) filter(blur(5px));
-          }
-        }
-
-        @keyframes ozoDustTrail4 {
-          0% {
-            opacity: 0;
-            transform: translate3d(-100vw, 0, 0) scale(0.2);
-          }
-          30% {
-            opacity: 0.75;
-            transform: translate3d(-80vw, -15px, 0) scale(1.4);
-          }
-          100% {
-            opacity: 0;
-            transform: translate3d(-140vw, -30px, 0) scale(2.5) filter(blur(10px));
-          }
         }
 
         @keyframes ozoOverlayExit {
@@ -437,9 +145,6 @@ const OzoSplashScreen = ({ onAnimationComplete }) => {
             opacity: 1;
             transform: scale3d(1, 1, 1);
             filter: blur(0px);
-          }
-          1% {
-            pointer-events: none;
           }
           100% {
             opacity: 0;
@@ -450,40 +155,59 @@ const OzoSplashScreen = ({ onAnimationComplete }) => {
         }
       `}</style>
 
-      {/* Decorative Cinematic Effects */}
-      <div className="ozo-splash-glow" />
-      <div className="ozo-splash-grid" />
-
-      {/* Content wrapper */}
-      <div className="ozo-splash-content">
-        {/* Red Icon Container */}
-        {/* Red Icon Container Wrapper with Dust Trail */}
-        <div className="ozo-brand-box-wrapper">
-          {/* Dust Particles */}
-          <div className="ozo-dust-particle ozo-dust-1" />
-          <div className="ozo-dust-particle ozo-dust-2" />
-          <div className="ozo-dust-particle ozo-dust-3" />
-          <div className="ozo-dust-particle ozo-dust-4" />
-
-          <div className="ozo-brand-box">
-            <OzoLogo mode="logo" size="splash" />
-          </div>
-        </div>
-
-        {/* Text Container */}
-        <div className="ozo-text-container font-display">
-          <OzoLogo
-            mode="text"
-            size="splash"
-            textClassName="ozo-title flex items-baseline justify-center gap-1.5"
-            subText="JO CHAHIYE, JAB CHAHIYE."
-            subTextClassName="ozo-subtitle mt-1.5 ml-0.5"
+      <div className="ozo-video-container">
+        {!error ? (
+          <video
+            ref={videoRef}
+            className="ozo-intro-video"
+            src="/A_professional_D_minimalist_t.mp4"
+            autoPlay
+            muted={isMuted}
+            playsInline
+            onTimeUpdate={handleTimeUpdate}
+            onPlay={() => setHasStarted(true)}
+            onError={() => setError(true)}
           />
-        </div>
-      </div>
+        ) : (
+          <div className="text-white text-sm font-semibold opacity-60">Loading intro...</div>
+        )}
 
-      {/* Loading Progress Bar */}
-      <div className="ozo-progress-bar" />
+        {/* Audio Mute/Unmute Toggle */}
+        <button 
+          className="ozo-splash-control ozo-splash-mute" 
+          onClick={toggleMute}
+          aria-label={isMuted ? "Unmute audio" : "Mute audio"}
+        >
+          {isMuted ? (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5">
+                <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.063.922-2.063 2.063v4.875c0 1.141.922 2.062 2.063 2.062h1.932l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06zM17.78 9.22a.75.75 0 10-1.06 1.06L18.44 12l-1.72 1.72a.75.75 0 001.06 1.06l1.72-1.72 1.72 1.72a.75.75 0 101.06-1.06L20.56 12l1.72-1.72a.75.75 0 00-1.06-1.06l-1.72 1.72-1.72-1.72z" />
+              </svg>
+              <span>Unmute</span>
+            </>
+          ) : (
+            <>
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5">
+                <path d="M13.5 4.06c0-1.336-1.616-2.005-2.56-1.06l-4.5 4.5H4.508c-1.141 0-2.063.922-2.063 2.063v4.875c0 1.141.922 2.062 2.063 2.062h1.932l4.5 4.5c.944.945 2.56.276 2.56-1.06V4.06zM18.563 12c0-2.183-1.374-4.05-3.313-4.785a.75.75 0 10-.53 1.403C16.1 9.1 17.063 10.45 17.063 12c0 1.55-.964 2.9-2.343 3.418a.75.75 0 10.53 1.403C17.189 16.05 18.563 14.183 18.563 12z" />
+                <path d="M20.43 5.47a.75.75 0 00-1.06 1.06 9.71 9.71 0 010 10.94.75.75 0 101.06 1.06 11.21 11.21 0 000-13.06z" />
+              </svg>
+              <span>Mute</span>
+            </>
+          )}
+        </button>
+
+        {/* Skip Button */}
+        <button 
+          className="ozo-splash-control ozo-splash-skip" 
+          onClick={handleSkip}
+          aria-label="Skip Intro"
+        >
+          <span>Skip Intro</span>
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4.5 h-4.5">
+            <path fillRule="evenodd" d="M16.28 11.47a.75.75 0 010 1.06l-7.5 7.5a.75.75 0 01-1.06-1.06L14.69 12 7.72 5.03a.75.75 0 011.06-1.06l7.5 7.5z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
     </div>
   );
 };
