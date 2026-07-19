@@ -1403,8 +1403,7 @@ const Cities = () => {
                     type="text"
                     required
                     placeholder="e.g., Bihar"
-                    value={formData.state} delte krte hai 
-                    
+                    value={formData.state}
                     onChange={(e) => setFormData({ ...formData, state: e.target.value })}
                     className="w-full px-4 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-semibold"
                   />

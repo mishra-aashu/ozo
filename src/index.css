@@ -765,13 +765,11 @@ iframe.goog-te-banner-frame.skiptranslate,
 }
 
 /* Page body position reset taaki banner hide hone ke baad top par extra white space na rahe */
-body {
+html, body, html[style], body[style] {
     top: 0px !important;
     position: static !important;
-}
-
-html {
     padding-top: 0px !important;
+    margin-top: 0px !important;
 }
 
 /* Hover karne par translated text par jo automatic tooltip popup/highlight aata hai use remove karo */
