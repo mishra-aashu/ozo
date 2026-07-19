@@ -59,6 +59,7 @@ const Users = () => {
     customer: 0,
     captain: 0,
     mart_operator: 0,
+    city_manager: 0,
     admin: 0
   })
 
@@ -160,12 +161,14 @@ WHERE id = '${selectedUser.id}';`
         { count: customer },
         { count: captain },
         { count: mart_operator },
+        { count: city_manager },
         { count: admin }
       ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'customer'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'captain'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'mart_operator'),
+        supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'city_manager'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'admin')
       ])
 
@@ -174,6 +177,7 @@ WHERE id = '${selectedUser.id}';`
         customer: customer || 0,
         captain: captain || 0,
         mart_operator: mart_operator || 0,
+        city_manager: city_manager || 0,
         admin: admin || 0
       })
     } catch (err) {
@@ -658,6 +662,13 @@ WHERE id = '${selectedUser.id}';`
       icon: Store,
       color: 'text-amber-600 dark:text-amber-400',
       bgColor: 'bg-amber-50 dark:bg-amber-950/20'
+    },
+    {
+      title: 'City Managers',
+      value: stats.city_manager,
+      icon: UserCheck,
+      color: 'text-purple-600 dark:text-purple-400',
+      bgColor: 'bg-purple-50 dark:bg-purple-950/20'
     }
   ]
 
@@ -669,6 +680,12 @@ WHERE id = '${selectedUser.id}';`
         return (
           <span className={`${defaultStyle} bg-rose-100 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900/30`}>
             <Shield className="w-3.5 h-3.5" /> Admin
+          </span>
+        )
+      case 'city_manager':
+        return (
+          <span className={`${defaultStyle} bg-purple-100 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-900/30`}>
+            <UserCheck className="w-3.5 h-3.5" /> City Manager
           </span>
         )
       case 'mart_operator':
@@ -736,7 +753,7 @@ WHERE id = '${selectedUser.id}';`
       </div>
 
       {/* Stats Section */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         {statCards.map((card, idx) => (
           <motion.div
             key={idx}
@@ -808,6 +825,7 @@ WHERE id = '${selectedUser.id}';`
               <option value="customer" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Customers</option>
               <option value="captain" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Captains</option>
               <option value="mart_operator" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Mart Operators</option>
+              <option value="city_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">City Managers</option>
               <option value="admin" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Admins</option>
             </select>
           </div>
@@ -1098,6 +1116,7 @@ WHERE id = '${selectedUser.id}';`
                               <option value="customer" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Customer (Default)</option>
                               <option value="captain" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Captain (Rider Portal)</option>
                               <option value="mart_operator" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Mart Operator (Store Portal)</option>
+                              <option value="city_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">City Manager (Assigned City Portal)</option>
                               <option value="admin" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Administrator (Full Control)</option>
                             </select>
                           </div>
@@ -1109,6 +1128,14 @@ WHERE id = '${selectedUser.id}';`
                             <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                             <span>
                               <strong>Warning:</strong> Admin status authorizes full reading, writing, and permission modifications.
+                            </span>
+                          </div>
+                        )}
+                        {selectedUser.role === 'city_manager' && (
+                          <div className="p-3 bg-purple-50 dark:bg-purple-950/20 border border-purple-200 dark:border-purple-900/30 rounded-xl flex gap-2 text-xs text-purple-600 dark:text-purple-400 font-medium">
+                            <UserCheck className="w-4 h-4 flex-shrink-0" />
+                            <span>
+                              <strong>Notice:</strong> City Managers can view and manage riders, orders, reviews, products, and marts within their scope.
                             </span>
                           </div>
                         )}
