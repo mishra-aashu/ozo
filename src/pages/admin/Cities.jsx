@@ -23,6 +23,7 @@ import {
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
+import { useAuthStore } from '../../stores/authStore'
 
 // Helper to generate URL-friendly slug while typing
 const slugifyForTyping = (text) => {
@@ -34,11 +35,21 @@ const slugifyForTyping = (text) => {
 }
 
 const Cities = () => {
+  const { profile } = useAuthStore()
+  const isSuperAdmin = profile?.isSuperAdmin || profile?.role === 'admin' || profile?.role === 'super_admin'
+
   const [cities, setCities] = useState([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [editingCity, setEditingCity] = useState(null)
+
+  // City Manager management states
+  const [allCityManagers, setAllCityManagers] = useState([])
+  const [loadingManagers, setLoadingManagers] = useState(false)
+  const [selectedCityForManagers, setSelectedCityForManagers] = useState(null)
+  const [showManagersModal, setShowManagersModal] = useState(false)
+  const [managerSearchQuery, setManagerSearchQuery] = useState('')
 
   // Filters & Search for Cities
   const [searchQuery, setSearchQuery] = useState('')
@@ -107,6 +118,87 @@ const Cities = () => {
     }
   }
 
+  const fetchCityManagers = async () => {
+    setLoadingManagers(true)
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('id, full_name, email, phone, user_roles!user_roles_user_id_fkey(id, role, city_id)')
+        .eq('role', 'city_manager')
+
+      if (error) throw error
+      setAllCityManagers(data || [])
+    } catch (error) {
+      console.error('Error fetching city managers:', error)
+    } finally {
+      setLoadingManagers(false)
+    }
+  }
+
+  const handleToggleManagerAssignment = async (manager, isAssigned) => {
+    const toastId = toast.loading(isAssigned ? 'Removing manager...' : 'Assigning manager...')
+    try {
+      if (isAssigned) {
+        // Delete assignment row
+        const { error: deleteErr } = await supabase
+          .from('user_roles')
+          .delete()
+          .eq('user_id', manager.id)
+          .eq('role', 'city_manager')
+          .eq('city_id', selectedCityForManagers.id)
+
+        if (deleteErr) throw deleteErr
+
+        // Check remaining assignments
+        const remainingRoles = manager.user_roles?.filter(r => r.role === 'city_manager' && r.city_id !== selectedCityForManagers.id) || []
+        if (remainingRoles.length === 0) {
+          // Fallback row with null city_id
+          const { error: insertErr } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: manager.id,
+              role: 'city_manager',
+              city_id: null
+            })
+          if (insertErr) throw insertErr
+        }
+        toast.success('Manager removed from city successfully!', { id: toastId })
+      } else {
+        // Look for null city row
+        const nullCityRole = manager.user_roles?.find(r => r.role === 'city_manager' && r.city_id === null)
+        if (nullCityRole) {
+          const { error: updateErr } = await supabase
+            .from('user_roles')
+            .update({ city_id: selectedCityForManagers.id })
+            .eq('id', nullCityRole.id)
+
+          if (updateErr) throw updateErr
+        } else {
+          // Insert new assignment
+          const { error: insertErr } = await supabase
+            .from('user_roles')
+            .insert({
+              user_id: manager.id,
+              role: 'city_manager',
+              city_id: selectedCityForManagers.id
+            })
+          if (insertErr) throw insertErr
+        }
+        toast.success('Manager assigned to city successfully!', { id: toastId })
+      }
+      await fetchCityManagers()
+    } catch (err) {
+      console.error('Failed to toggle manager assignment:', err)
+      toast.error('Failed to update assignment: ' + err.message, { id: toastId })
+    }
+  }
+
+  const getManagersForCity = (cityId) => {
+    return allCityManagers.filter(manager =>
+      manager.user_roles?.some(role => role.role === 'city_manager' && role.city_id === cityId)
+    )
+  }
+
   const fetchVisCategories = async () => {
     try {
       const { data, error } = await supabase
@@ -135,6 +227,7 @@ const Cities = () => {
     fetchCities()
     fetchVisCategories()
     fetchVisBrands()
+    fetchCityManagers()
   }, [])
 
   useEffect(() => {
@@ -692,7 +785,10 @@ const Cities = () => {
           </select>
 
           <button
-            onClick={fetchCities}
+            onClick={async () => {
+              await fetchCities()
+              await fetchCityManagers()
+            }}
             className="p-2.5 hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-250 dark:border-white/10 rounded-xl text-gray-500 hover:text-gray-700 dark:text-gray-400 transition-all active:scale-95"
             title="Refresh List"
           >
@@ -727,6 +823,7 @@ const Cities = () => {
                     <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">State</th>
                     <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Coordinates</th>
                     <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Radius</th>
+                    <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">City Managers</th>
                     <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Status</th>
                     <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                   </tr>
@@ -752,6 +849,34 @@ const Cities = () => {
                         </td>
                         <td className="p-4 text-sm font-bold text-center text-gray-750 dark:text-gray-250">
                           {city.service_radius_km} km
+                        </td>
+                        <td className="p-4">
+                          <div className="flex flex-wrap gap-1.5 items-center">
+                            {getManagersForCity(city.id).map(manager => (
+                              <span 
+                                key={manager.id}
+                                className="inline-flex items-center gap-1 bg-purple-50 dark:bg-purple-950/40 text-purple-650 dark:text-purple-300 px-2.5 py-1 rounded-full text-xs font-semibold border border-purple-250/20 shadow-sm"
+                                title={`${manager.email} | ${manager.phone || 'No phone'}`}
+                              >
+                                {manager.full_name}
+                              </span>
+                            ))}
+                            {getManagersForCity(city.id).length === 0 && (
+                              <span className="text-xs text-gray-400 italic">None Assigned</span>
+                            )}
+                            {isSuperAdmin && (
+                              <button
+                                onClick={() => {
+                                  setSelectedCityForManagers(city)
+                                  setShowManagersModal(true)
+                                }}
+                                className="p-1 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-lg transition-all active:scale-90"
+                                title="Manage City Managers"
+                              >
+                                <Plus className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
                         </td>
                         <td className="p-4 text-center">
                           <button
@@ -1415,6 +1540,152 @@ const Cities = () => {
                 </div>
               </form>
             </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* City Managers Modal */}
+      <AnimatePresence>
+        {showManagersModal && selectedCityForManagers && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowManagersModal(false)}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+            />
+            {/* Modal Box */}
+            <div className="fixed inset-0 flex items-center justify-center p-4 z-50 pointer-events-none">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                transition={{ type: 'spring', duration: 0.4 }}
+                className="w-full max-w-lg bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 shadow-2xl overflow-hidden pointer-events-auto flex flex-col max-h-[85vh]"
+              >
+                {/* Modal Header */}
+                <div className="p-6 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-white/[0.02]">
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900 dark:text-white">
+                      City Managers
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Assign or remove managers for <span className="font-bold text-ozo-red">{selectedCityForManagers.name}</span>
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowManagersModal(false)}
+                    className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-505 hover:text-gray-700 dark:text-gray-400 rounded-xl transition-all"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                {/* Search Manager */}
+                <div className="p-4 border-b border-gray-100 dark:border-white/5 bg-white dark:bg-[#1a1a1a]">
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-450">
+                      <Search className="w-4 h-4" />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search managers by name or email..."
+                      value={managerSearchQuery}
+                      onChange={(e) => setManagerSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white"
+                    />
+                    {managerSearchQuery && (
+                      <button
+                        onClick={() => setManagerSearchQuery('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Managers List */}
+                <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  {loadingManagers ? (
+                    <div className="flex flex-col items-center justify-center py-10 gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-ozo-red" />
+                      <p className="text-xs text-gray-505 font-semibold">Loading managers list...</p>
+                    </div>
+                  ) : allCityManagers.length === 0 ? (
+                    <div className="text-center py-10 text-gray-450 italic text-sm">
+                      No users with the "City Manager" role found. Update user roles to City Manager first in User Management.
+                    </div>
+                  ) : (
+                    (() => {
+                      const filtered = allCityManagers.filter(m =>
+                        m.full_name?.toLowerCase().includes(managerSearchQuery.toLowerCase()) ||
+                        m.email?.toLowerCase().includes(managerSearchQuery.toLowerCase())
+                      )
+                      if (filtered.length === 0) {
+                        return <div className="text-center py-8 text-gray-400 text-sm">No managers match search.</div>
+                      }
+                      return filtered.map(manager => {
+                        const isAssigned = manager.user_roles?.some(r => r.role === 'city_manager' && r.city_id === selectedCityForManagers.id)
+                        
+                        return (
+                          <div 
+                            key={manager.id} 
+                            className="flex items-center justify-between p-4 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-2xl hover:border-purple-200 dark:hover:border-purple-900/30 transition-all"
+                          >
+                            <div className="min-w-0 pr-4">
+                              <p className="font-bold text-gray-850 dark:text-white truncate text-sm">
+                                {manager.full_name}
+                              </p>
+                              <p className="text-xs text-gray-400 truncate mt-0.5">
+                                {manager.email}
+                              </p>
+                              {manager.phone && (
+                                <p className="text-[10px] text-gray-500 font-mono mt-0.5">
+                                  {manager.phone}
+                                </p>
+                              )}
+                            </div>
+                            <button
+                              onClick={() => handleToggleManagerAssignment(manager, isAssigned)}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all hover:scale-[1.02] active:scale-95 flex items-center gap-1.5 ${
+                                isAssigned 
+                                  ? 'bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100'
+                                  : 'bg-gradient-ozo text-white shadow-ozo'
+                              }`}
+                            >
+                              {isAssigned ? (
+                                <>
+                                  <X className="w-3.5 h-3.5" />
+                                  Remove
+                                </>
+                              ) : (
+                                <>
+                                  <Plus className="w-3.5 h-3.5" />
+                                  Assign
+                                </>
+                              )}
+                            </button>
+                          </div>
+                        )
+                      })
+                    })()
+                  )}
+                </div>
+
+                {/* Modal Footer */}
+                <div className="p-4 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] flex justify-end">
+                  <button
+                    onClick={() => setShowManagersModal(false)}
+                    className="px-5 py-2.5 bg-gray-200 dark:bg-white/10 hover:bg-gray-300 dark:hover:bg-white/15 text-gray-700 dark:text-white text-sm font-bold rounded-xl transition-all active:scale-95"
+                  >
+                    Done
+                  </button>
+                </div>
+              </motion.div>
+            </div>
           </>
         )}
       </AnimatePresence>
