@@ -2,9 +2,13 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldAlert, Lock, Unlock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import useAuthStore from '../stores/authStore'
 import toast from 'react-hot-toast'
 
 const AdminLockScreen = ({ onUnlock }) => {
+  const { profile } = useAuthStore()
+  const isCityManager = profile?.isCityManager
+
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -12,7 +16,7 @@ const AdminLockScreen = ({ onUnlock }) => {
   const handleUnlock = async (e) => {
     e.preventDefault()
     if (!password.trim()) {
-      toast.error('Please enter the admin password')
+      toast.error(isCityManager ? 'Please enter the passcode' : 'Please enter the admin password')
       return
     }
 
@@ -29,14 +33,14 @@ const AdminLockScreen = ({ onUnlock }) => {
 
       if (token) {
         localStorage.setItem('ozo-admin-token', token)
-        toast.success('Admin panel unlocked successfully')
+        toast.success(isCityManager ? 'City Manager console unlocked successfully' : 'Admin panel unlocked successfully')
         onUnlock()
       } else {
         throw new Error('Authentication failed: No token returned.')
       }
     } catch (err) {
       console.error('[Admin Unlock Error]:', err)
-      toast.error(err.message || 'Incorrect admin password. Please try again.')
+      toast.error(err.message || (isCityManager ? 'Incorrect passcode. Please try again.' : 'Incorrect admin password. Please try again.'))
     } finally {
       setIsLoading(false)
     }
@@ -78,10 +82,12 @@ const AdminLockScreen = ({ onUnlock }) => {
 
         {/* Heading */}
         <h2 className="text-2xl font-black text-gray-150 dark:text-white tracking-tight uppercase notranslate" translate="no">
-          Admin Panel Locked
+          {isCityManager ? 'City Manager Portal Locked' : 'Admin Panel Locked'}
         </h2>
         <p className="mt-2 text-sm text-gray-400 font-medium px-4">
-          This section contains sensitive options. Please enter the master admin password to confirm identity.
+          {isCityManager 
+            ? 'This section contains sensitive city operations. Please enter the master passcode to confirm identity.' 
+            : 'This section contains sensitive options. Please enter the master admin password to confirm identity.'}
         </p>
 
         {/* Form */}
@@ -91,7 +97,7 @@ const AdminLockScreen = ({ onUnlock }) => {
               type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter Admin Password"
+              placeholder={isCityManager ? "Enter Passcode" : "Enter Admin Password"}
               disabled={isLoading}
               className="w-full px-5 py-4 bg-black/40 border border-white/10 focus:border-ozo-red focus:ring-1 focus:ring-ozo-red/30 rounded-2xl text-white placeholder-gray-500 font-mono text-center tracking-wider text-lg focus:outline-none transition-all duration-300 disabled:opacity-50"
               autoFocus
