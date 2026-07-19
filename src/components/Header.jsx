@@ -691,7 +691,7 @@ const Header = () => {
                         </div>
                         <div className="space-y-1">
                           {[
-                            ...(isAdmin ? [{ to: '/admin', icon: Shield, label: 'Admin Panel' }] : []),
+                            ...(isAdmin ? [{ to: '/admin', icon: Shield, label: profile?.isSuperAdmin ? 'Admin Panel' : 'City Manager Portal' }] : []),
                             { to: '/profile', icon: User, label: 'My Profile' },
                             { to: '/orders', icon: Package, label: 'My Orders' },
                             { to: '/referral', icon: Gift, label: 'Refer & Earn' },
@@ -977,7 +977,7 @@ const Header = () => {
                 <div className="space-y-1">
                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ozo-gray dark:text-gray-500 mb-4 px-2">Navigation</h4>
                   {[
-                    ...(isAdmin ? [{ to: '/admin', icon: Shield, label: 'Admin Panel' }] : []),
+                    ...(isAdmin ? [{ to: '/admin', icon: Shield, label: profile?.isSuperAdmin ? 'Admin Panel' : 'City Manager Portal' }] : []),
                     { to: '/', icon: HomeIcon, label: 'Home' },
                     ...(isAuthenticated ? [
                       { to: '/orders', icon: Package, label: 'My Orders' },

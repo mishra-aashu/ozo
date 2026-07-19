@@ -353,7 +353,7 @@ const AdminLayout = () => {
               />
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-semibold truncate text-gray-900 dark:text-white">{profile?.full_name || 'Admin'}</p>
-                <p className="text-xs text-ozo-gray dark:text-gray-400">Administrator</p>
+                <p className="text-xs text-ozo-gray dark:text-gray-400">{isSuperAdmin ? 'Administrator' : 'City Manager'}</p>
               </div>
               <span className="px-2 py-1 bg-green-100 dark:bg-green-950/20 text-green-600 dark:text-green-400 text-xs rounded-full flex-shrink-0 font-bold">
                 Active
@@ -528,7 +528,7 @@ const AdminLayout = () => {
                     className="w-8 h-8 rounded-full overflow-hidden bg-white/20 text-white font-bold flex items-center justify-center text-xs uppercase"
                     imgClassName="w-full h-full object-cover"
                   />
-                  <span className="text-sm font-medium hidden sm:block">Admin</span>
+                  <span className="text-sm font-medium hidden sm:block">{isSuperAdmin ? 'Admin' : 'City Manager'}</span>
                 </div>
               </div>
             </div>

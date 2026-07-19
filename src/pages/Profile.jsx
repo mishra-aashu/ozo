@@ -52,7 +52,8 @@ const Profile = () => {
   })))
   const isCaptain = profile?.role === 'captain' || isAdmin
   const isMartOperator = profile?.role === 'mart_operator' || isAdmin
-  const isCustomerOnly = !isCaptain && !isMartOperator
+  const isCityManager = profile?.isCityManager
+  const isCustomerOnly = !isCaptain && !isMartOperator && !isCityManager
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -64,6 +65,7 @@ const Profile = () => {
   const [uploading, setUploading] = useState(false)
   const [isRiderExpanded, setIsRiderExpanded] = useState(false)
   const [isMartExpanded, setIsMartExpanded] = useState(false)
+  const [isCityExpanded, setIsCityExpanded] = useState(false)
 
 
 
@@ -109,7 +111,7 @@ const Profile = () => {
   }
 
   const menuItems = [
-    ...(isAdmin ? [{ label: 'Admin Panel', icon: Shield, to: '/admin', color: 'text-ozo-red', bgColor: 'bg-red-50 dark:bg-ozo-red/10' }] : []),
+    ...(isAdmin ? [{ label: profile?.isSuperAdmin ? 'Admin Panel' : 'City Manager Portal', icon: Shield, to: '/admin', color: 'text-ozo-red', bgColor: 'bg-red-50 dark:bg-ozo-red/10' }] : []),
     { label: t('myOrders'), icon: Package, to: '/orders', color: 'text-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-500/10' },
     { label: 'Refer & Earn', icon: Gift, to: '/referral', color: 'text-yellow-500', bgColor: 'bg-yellow-50 dark:bg-yellow-500/10' },
     { label: t('wishlist'), icon: Heart, to: '/wishlist', color: 'text-pink-500', bgColor: 'bg-pink-50 dark:bg-pink-500/10' },
@@ -281,6 +283,53 @@ const Profile = () => {
                 {isCustomerOnly ? 'Earn with OZO' : 'Service Portals'}
               </h2>
               <div className="flex flex-col gap-4">
+                {isCityManager && (
+                  <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
+                    <button
+                      onClick={() => setIsCityExpanded(!isCityExpanded)}
+                      className="w-full p-6 flex items-center justify-between gap-4 text-left outline-none"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 bg-red-50 dark:bg-ozo-red/10 rounded-2xl flex items-center justify-center text-ozo-red flex-shrink-0">
+                          <Shield size={24} />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-base font-black text-gray-900 dark:text-white truncate">City Manager Portal</h3>
+                          <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider bg-red-500/10 border border-red-500/20 px-2.5 py-0.5 rounded-full text-ozo-red">City</span>
+                        </div>
+                      </div>
+                      <motion.div
+                        animate={{ rotate: isCityExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-gray-400"
+                      >
+                        <ChevronDown size={20} />
+                      </motion.div>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isCityExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-6 pb-6 pt-2 border-t border-gray-50 dark:border-white/5">
+                            <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-4 leading-relaxed">
+                              Manage products, orders, reviews, rider settings, and mart settings scoped to your assigned city.
+                            </p>
+                            <Link to="/admin" className="inline-flex items-center gap-2 text-ozo-red font-bold text-sm bg-red-50 dark:bg-ozo-red/10 px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
+                              Open City Manager Console <ChevronRight size={16} />
+                            </Link>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
                 {isCaptain && (
                   <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
                     <button
