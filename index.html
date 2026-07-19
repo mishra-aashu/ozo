@@ -207,8 +207,14 @@
           // Reset any body/html offsets injected by the translate widget
           if (document.body) {
             document.body.style.setProperty('top', '0px', 'important');
+            document.body.style.setProperty('margin-top', '0px', 'important');
+            document.body.style.setProperty('padding-top', '0px', 'important');
           }
-          document.documentElement.style.setProperty('padding-top', '0px', 'important');
+          if (document.documentElement) {
+            document.documentElement.style.setProperty('top', '0px', 'important');
+            document.documentElement.style.setProperty('margin-top', '0px', 'important');
+            document.documentElement.style.setProperty('padding-top', '0px', 'important');
+          }
         };
 
         // Run once immediately in case translate is already active (e.g. cached state)
