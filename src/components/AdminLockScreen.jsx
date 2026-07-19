@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldAlert, Lock, Unlock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import useAuthStore from '../stores/authStore'
+import { useAuthStore } from '../stores/authStore'
 import toast from 'react-hot-toast'
 
 const AdminLockScreen = ({ onUnlock }) => {
