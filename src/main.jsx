@@ -2,7 +2,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import * as Sentry from "@sentry/react"
 import { AlertCircle, RefreshCcw } from 'lucide-react'
-import { Toaster } from 'react-hot-toast'
+import toast, { Toaster, ToastBar } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
 import './lib/firebase'
@@ -209,7 +209,22 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             },
           },
         }}
-      />
+      >
+        {(t) => (
+          <ToastBar toast={t}>
+            {({ icon, message }) => (
+              <div 
+                onClick={() => toast.dismiss(t.id)} 
+                className="flex items-center gap-2 cursor-pointer select-none active:scale-[0.99] transition-transform duration-100"
+                style={{ width: '100%' }}
+              >
+                {icon}
+                {message}
+              </div>
+            )}
+          </ToastBar>
+        )}
+      </Toaster>
     </ErrorBoundary>
   </React.StrictMode>,
 )
