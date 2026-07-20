@@ -550,7 +550,7 @@ function ProductCard({ product, variant = 'default', index }) {
       {/* Product Image (Left on mobile, top centered on desktop) */}
       <Link 
         to={productLink} 
-        className="relative w-26 h-26 xs:w-28 xs:h-28 sm:w-full sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
+        className="relative w-28 h-28 sm:w-full sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
       >
         <OptimizedImage
           src={selectedProduct.image_url}
