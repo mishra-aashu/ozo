@@ -390,6 +390,26 @@ export const useAuthStore = create(
                   user: session.user,
                   isAuthenticated: true,
                 })
+
+                // Refresh profile in background so role changes are picked up
+                // without requiring a hard page reload.
+                setTimeout(async () => {
+                  try {
+                    const userId = session.user.id
+                    const { data } = await authHelpers.getUserProfile(userId)
+                    if (data) {
+                      const currentProfile = get().profile
+                      const merged = enrichProfileRoles(
+                        currentProfile && currentProfile.id === userId
+                          ? { ...currentProfile, ...data, role: data.role, avatar_url: data.avatar_url || currentProfile.avatar_url || '' }
+                          : data
+                      )
+                      set({ profile: merged, isAdmin: checkAdmin(merged) })
+                    }
+                  } catch (err) {
+                    console.warn('[authStore] Background profile refresh on TOKEN_REFRESHED failed:', err)
+                  }
+                }, 0)
               }
             }
           )
@@ -403,12 +423,15 @@ export const useAuthStore = create(
             const { session: earlySess } = earlySignedInCapture
             // Only replay if the store didn't already pick up this session
             if (earlySess?.user && !get().isAuthenticated) {
-              const enrichedLocal = enrichProfileRoles(localProfile)
+              // Use get().profile instead of the block-scoped localProfile
+              // variable which is not accessible here.
+              const cachedProfile = get().profile
+              const enrichedCached = enrichProfileRoles(cachedProfile)
               set({
                 user: earlySess.user,
                 isAuthenticated: true,
-                ...(localProfile && localProfile.id === earlySess.user.id
-                  ? { profile: enrichedLocal, isAdmin: checkAdmin(enrichedLocal) }
+                ...(cachedProfile && cachedProfile.id === earlySess.user.id
+                  ? { profile: enrichedCached, isAdmin: checkAdmin(enrichedCached) }
                   : {}),
               })
               oneSignalLogin(earlySess.user.id)
@@ -718,5 +741,50 @@ export const useAuthStore = create(
 if (typeof window !== 'undefined') {
   window.addEventListener('ozo-session-expired', () => {
     useAuthStore.getState().signOut('session_expired').catch(() => {})
+  })
+
+  // ─── Session Health Check on Tab Visibility ─────────────────────────────
+  // When the user returns to a backgrounded/sleeping tab, the Supabase auto-
+  // refresh timer may have been throttled by the browser and the JWT could be
+  // expired. We re-validate the session proactively to prevent blank pages or
+  // silent 401 failures on stale tokens.
+  let lastVisibilityCheck = Date.now()
+
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible') return
+
+    // Throttle: only check if the tab was hidden for at least 2 minutes
+    const elapsed = Date.now() - lastVisibilityCheck
+    if (elapsed < 2 * 60 * 1000) return
+    lastVisibilityCheck = Date.now()
+
+    const store = useAuthStore.getState()
+    if (!store.isAuthenticated || !store.user) return
+
+    try {
+      // getSession() returns the cached session; getUser() actually hits the
+      // server and verifies the access token is still valid.
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+
+      if (!session || sessionError) {
+        console.warn('[authStore] Session invalid on tab refocus, signing out.')
+        useAuthStore.getState().signOut('session_expired').catch(() => {})
+        return
+      }
+
+      // If the token is close to expiry (within 60s), force a refresh
+      if (session.expires_at) {
+        const expiresInMs = (session.expires_at * 1000) - Date.now()
+        if (expiresInMs < 60_000) {
+          const { data, error } = await supabase.auth.refreshSession()
+          if (error || !data.session) {
+            console.warn('[authStore] Token refresh failed on tab refocus:', error)
+            useAuthStore.getState().signOut('session_expired').catch(() => {})
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('[authStore] Visibility check failed:', err)
+    }
   })
 }
