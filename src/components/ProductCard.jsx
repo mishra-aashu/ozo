@@ -647,23 +647,23 @@ function ProductCard({ product, variant = 'default', index }) {
           </div>
 
           {/* Add Button */}
-          <div className="w-[48px] sm:w-[60px] md:w-[70px] flex-shrink-0">
+          <div className="w-[64px] sm:w-[72px] md:w-[84px] flex-shrink-0">
             {quantity > 0 ? (
-              <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-lg py-1 px-1 sm:py-1.5 sm:px-1.5 shadow-md shadow-emerald-600/10">
+              <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-xl py-1.5 px-1.5 sm:py-2 sm:px-2 shadow-md shadow-emerald-600/10">
                 <button
                   onClick={handleDecrement}
                   aria-label="Decrease quantity"
-                  className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-90"
+                  className="p-1 hover:bg-white/10 rounded transition-colors active:scale-90"
                 >
-                  <Minus className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 stroke-[3px] text-white" />
+                  <Minus className="w-2 h-2 sm:w-3 sm:h-3 stroke-[3px] text-white" />
                 </button>
-                <span className="font-black text-[9px] sm:text-xs select-none text-white">{quantity}</span>
+                <span className="font-black text-[10px] sm:text-xs select-none text-white">{quantity}</span>
                 <button
                   onClick={handleIncrement}
                   aria-label="Increase quantity"
-                  className="p-0.5 hover:bg-white/10 rounded transition-colors active:scale-95"
+                  className="p-1 hover:bg-white/10 rounded transition-colors active:scale-95"
                 >
-                  <Plus className="w-1.5 h-1.5 sm:w-2.5 sm:h-2.5 stroke-[3px] text-white" />
+                  <Plus className="w-2 h-2 sm:w-3 sm:h-3 stroke-[3px] text-white" />
                 </button>
               </div>
             ) : !selectedProduct?.is_available || isQtyOOS ? (
@@ -674,7 +674,7 @@ function ProductCard({ product, variant = 'default', index }) {
               <button
                 onClick={handleAddToCart}
                 disabled={!selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price}
-                className={`w-full py-1 sm:py-1.5 rounded-lg font-black text-[9px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
+                className={`w-full py-1.5 sm:py-2 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
                   !selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
                     : 'bg-ozo-red hover:bg-red-600 text-white hover:shadow-lg hover:shadow-red-600/20 active:scale-95'

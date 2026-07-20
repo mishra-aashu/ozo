@@ -1890,27 +1890,27 @@ const Home = () => {
                                     </button>
                                   )
                                 ) : qty > 0 ? (
-                                  <div className="flex items-center gap-1 xs:gap-1.5 bg-ozo-green text-white rounded-full p-0.5 xs:p-1">
+                                  <div className="flex items-center gap-1.5 bg-emerald-600 text-white rounded-full py-1 px-2.5 xs:py-1.5 xs:px-3 shadow-md shadow-emerald-600/10">
                                     <button
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         handleCustomDecrement(product);
                                       }}
-                                      className="p-0.5 xs:p-1 hover:bg-white/20 rounded-full transition-colors"
+                                      className="p-1 hover:bg-white/20 rounded-full transition-colors active:scale-90"
                                     >
-                                      <Minus size={8} className="stroke-[3px] scale-75 xs:scale-100" />
+                                      <Minus size={10} className="stroke-[3.5px] text-white" />
                                     </button>
-                                    <span className="font-black text-[9px] xs:text-[10px] min-w-[6px] xs:min-w-[8px] text-center">{qty}</span>
+                                    <span className="font-black text-[10px] xs:text-xs min-w-[12px] text-center text-white">{qty}</span>
                                     <button
                                       onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
                                         handleCustomIncrement(product);
                                       }}
-                                      className="p-0.5 xs:p-1 hover:bg-white/20 rounded-full transition-colors"
+                                      className="p-1 hover:bg-white/20 rounded-full transition-colors active:scale-90"
                                     >
-                                      <Plus size={8} className="stroke-[3px] scale-75 xs:scale-100" />
+                                      <Plus size={10} className="stroke-[3.5px] text-white" />
                                     </button>
                                   </div>
                                 ) : (
@@ -1920,9 +1920,10 @@ const Home = () => {
                                       e.stopPropagation();
                                       handleCustomAddToCart(product);
                                     }}
-                                    className="p-1.5 xs:p-2 rounded-lg xs:rounded-xl bg-ozo-green hover:bg-opacity-90 text-white flex items-center justify-center transition-all shadow-md active:scale-95 cursor-pointer"
+                                    className="px-3.5 py-1.5 rounded-full bg-ozo-red hover:bg-red-650 text-white font-black text-[10px] xs:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
                                   >
-                                    <Plus size={10} className="stroke-[3px] xs:scale-110" />
+                                    <Plus size={10} className="stroke-[3px]" />
+                                    <span>ADD</span>
                                   </button>
                                 )}
                               </div>
@@ -2251,27 +2252,28 @@ const Home = () => {
                                   </button>
                                 )
                               ) : qty > 0 ? (
-                                <div className="flex items-center gap-1 xs:gap-1.5 bg-ozo-green text-white rounded-full p-0.5 xs:p-1">
+                                <div className="flex items-center gap-1.5 bg-emerald-600 text-white rounded-full py-1 px-2.5 xs:py-1.5 xs:px-3 shadow-md shadow-emerald-600/10">
                                   <button
                                     onClick={() => handleCustomDecrement(product)}
-                                    className="p-0.5 xs:p-1 hover:bg-white/20 rounded-full transition-colors"
+                                    className="p-1 hover:bg-white/20 rounded-full transition-colors active:scale-90"
                                   >
-                                    <Minus size={8} className="stroke-[3px] scale-75 xs:scale-100" />
+                                    <Minus size={10} className="stroke-[3.5px] text-white" />
                                   </button>
-                                  <span className="font-black text-[9px] xs:text-[10px] min-w-[6px] xs:min-w-[8px] text-center">{qty}</span>
+                                  <span className="font-black text-[10px] xs:text-xs min-w-[12px] text-center text-white">{qty}</span>
                                   <button
                                     onClick={() => handleCustomIncrement(product)}
-                                    className="p-0.5 xs:p-1 hover:bg-white/20 rounded-full transition-colors"
+                                    className="p-1 hover:bg-white/20 rounded-full transition-colors active:scale-90"
                                   >
-                                    <Plus size={8} className="stroke-[3px] scale-75 xs:scale-100" />
+                                    <Plus size={10} className="stroke-[3.5px] text-white" />
                                   </button>
                                 </div>
                               ) : (
                                 <button
                                   onClick={() => handleCustomAddToCart(product)}
-                                  className="p-1.5 xs:p-2 rounded-lg xs:rounded-xl bg-ozo-green hover:bg-opacity-90 text-white flex items-center justify-center transition-all shadow-md active:scale-95"
+                                  className="px-3.5 py-1.5 rounded-full bg-ozo-red hover:bg-red-650 text-white font-black text-[10px] xs:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm hover:shadow-md active:scale-95"
                                 >
-                                  <Plus size={10} className="stroke-[3px] xs:scale-110" />
+                                  <Plus size={10} className="stroke-[3px]" />
+                                  <span>ADD</span>
                                 </button>
                               )}
                             </div>
