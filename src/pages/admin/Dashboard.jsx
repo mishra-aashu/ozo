@@ -509,22 +509,22 @@ const Dashboard = () => {
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-5"
+        className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5"
       >
         {statCards.map((stat, idx) => (
           <motion.div
             key={idx}
             variants={itemVariants}
             className={`p-5 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 shadow-premium flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300 ${
-              idx === 4 ? 'col-span-2 md:col-span-1' : ''
+              idx === 4 ? 'xs:col-span-2 md:col-span-1' : ''
             }`}
           >
-            <div className="flex items-start justify-between">
+            <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <span className="text-[10px] font-black text-gray-450 uppercase tracking-widest block truncate">
+                <span className="text-[10px] font-black text-gray-450 uppercase tracking-wider block">
                   {stat.title}
                 </span>
-                <h3 className="text-2xl font-black mt-1 text-gray-900 dark:text-white truncate">
+                <h3 className="text-xl sm:text-2xl font-black mt-1 text-gray-900 dark:text-white">
                   {loading ? (
                     <span className="inline-block w-16 h-7 bg-gray-200 dark:bg-white/10 rounded animate-pulse" />
                   ) : (
@@ -540,13 +540,13 @@ const Dashboard = () => {
             {/* Sparkline & Subtitle */}
             <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 flex items-end justify-between gap-2">
               <div className="text-[10px] min-w-0 flex-1">
-                <span className={`font-bold block truncate ${stat.isWarning ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                <span className={`font-bold block ${stat.isWarning ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
                   {stat.change}
                 </span>
               </div>
               
               {/* Micro-sparkline svg */}
-              <div className="opacity-80 group-hover:opacity-100 transition-opacity">
+              <div className="opacity-80 group-hover:opacity-100 transition-opacity flex-shrink-0">
                 <svg className={`w-20 h-7 ${stat.color}`} viewBox="0 0 120 36">
                   <path
                     d={getSparklinePath(stat.sparkValues)}
