@@ -214,6 +214,35 @@ const customFetch = async (input, init) => {
     } catch (e) {
       // Not JSON, ignore
     }
+  } else if (response.status === 401 && url.includes('/rest/v1/')) {
+    // ─── REST API (PostgREST) JWT expiry detection ───────────────────────
+    // PostgREST returns 401 with a JSON body containing {"message":"JWT expired",
+    // "code":"PGRST301","hint":null} when the access token is expired. This catches
+    // the scenario where the tab was backgrounded/sleeping and the auto-refresh
+    // timer was throttled, so the next data query fails silently.
+    try {
+      const clone = response.clone()
+      const body = await clone.json()
+      const errMsg = (body?.message || body?.msg || body?.error || '').toLowerCase()
+      if (errMsg.includes('jwt expired') || errMsg.includes('jwt') || body?.code === 'PGRST301') {
+        console.warn('[OZO Auth] REST API returned JWT expired. Attempting silent session refresh...')
+        // Try a silent refresh first before nuking the session — the refresh
+        // token may still be valid even though the access token expired.
+        try {
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (refreshError || !refreshData?.session) {
+            isInvalidSession = true
+          }
+          // If refresh succeeded, the caller will still see this 401 response,
+          // but subsequent requests will use the new token. The visibility
+          // change handler in authStore will also re-sync state.
+        } catch (_refreshErr) {
+          isInvalidSession = true
+        }
+      }
+    } catch (e) {
+      // Not JSON, ignore
+    }
   }
 
   if (isInvalidSession) {
