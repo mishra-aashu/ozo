@@ -313,10 +313,10 @@ function ProductCard({ product, variant = 'default', index }) {
             alt={selectedProduct.name}
             width={250}
             loading="lazy"
-            className={`w-full h-full object-contain p-3 group-hover/img:scale-110 transition-transform duration-500 bg-gray-50/50 dark:bg-white/[0.02] ${
+            className={`w-full h-full object-contain p-1.5 group-hover/img:scale-110 transition-transform duration-500 bg-gray-50/50 dark:bg-white/[0.02] ${
               !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
             }`}
-            containerClassName="w-32 h-32 rounded-2xl border border-gray-100 dark:border-white/5"
+            containerClassName="w-32 h-32 xs:w-36 xs:h-36 rounded-2xl border border-gray-100 dark:border-white/5"
           />
           {(!selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0)) && (
             <div className="absolute inset-0 flex items-center justify-center bg-black/5 pointer-events-none select-none">
@@ -550,7 +550,7 @@ function ProductCard({ product, variant = 'default', index }) {
       {/* Product Image (Left on mobile, top centered on desktop) */}
       <Link 
         to={productLink} 
-        className="relative w-20 h-20 sm:w-full sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
+        className="relative w-26 h-26 xs:w-28 xs:h-28 sm:w-full sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
       >
         <OptimizedImage
           src={selectedProduct.image_url}
@@ -558,7 +558,7 @@ function ProductCard({ product, variant = 'default', index }) {
           alt={selectedProduct.name}
           width={300}
           loading="lazy"
-          className={`w-full h-full object-contain p-1.5 sm:p-3 group-hover:scale-105 transition-transform duration-500 ${
+          className={`w-full h-full object-contain p-0.5 sm:p-2.5 group-hover:scale-105 transition-transform duration-500 ${
             !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
           }`}
           containerClassName="w-full h-full"
