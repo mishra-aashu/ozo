@@ -2302,7 +2302,7 @@ const Home = () => {
 
                 <button
                   onClick={() => setIsRequestModalOpen(true)}
-                  className="relative z-10 bg-white text-ozo-red hover:bg-red-50 px-4.5 py-2.5 md:px-6 md:py-3.5 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest transition-all shadow-md active:scale-95 hover:scale-105"
+                  className="relative z-10 bg-white text-ozo-red hover:bg-red-50 px-5 py-3 md:px-7 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest whitespace-nowrap transition-all shadow-md active:scale-95 hover:scale-105"
                 >
                   Request Product
                 </button>
