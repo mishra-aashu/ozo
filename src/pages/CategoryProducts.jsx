@@ -985,7 +985,7 @@ const CategoryProducts = () => {
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-[60px] xs:w-[72px] sm:w-[84px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full transform-gpu will-change-[transform,scroll-position]"
+              className="lg:hidden w-[68px] xs:w-[80px] sm:w-[92px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full transform-gpu will-change-[transform,scroll-position]"
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
@@ -1000,9 +1000,9 @@ const CategoryProducts = () => {
                   {slug === currentParentInfo.slug && (
                     <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
                   )}
-                  <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-xl overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                  <div className={`w-12 h-12 xs:w-[52px] xs:h-[52px] rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                     slug === currentParentInfo.slug
-                      ? 'border-ozo-red shadow-md shadow-ozo-red/10'
+                      ? 'border-ozo-red shadow-md shadow-ozo-red/15'
                       : 'border-gray-150/50 dark:border-white/5'
                   }`}>
                     {currentParentInfo.image_url && !brokenImages[currentParentInfo.image_url] ? (
@@ -1010,7 +1010,7 @@ const CategoryProducts = () => {
                         src={currentParentInfo.image_url} 
                         alt="All" 
                         onError={() => setBrokenImages(prev => ({ ...prev, [currentParentInfo.image_url]: true }))}
-                        className="w-full h-full object-contain p-1 select-none"
+                        className="w-full h-full object-contain p-0.5 select-none scale-105"
                       />
                     ) : (() => {
                       const parentFallback = getCategoryFallbackImage(currentParentInfo.slug, currentParentInfo.name);
@@ -1020,14 +1020,14 @@ const CategoryProducts = () => {
                             src={parentFallback} 
                             alt="All" 
                             onError={() => setBrokenImages(prev => ({ ...prev, [parentFallback]: true }))}
-                            className="w-full h-full object-contain p-1 select-none"
+                            className="w-full h-full object-contain p-0.5 select-none scale-105"
                           />
                         )
                       }
-                      return <Box size={16} className="text-gray-400 dark:text-gray-500" />
+                      return <Box size={18} className="text-gray-400 dark:text-gray-500" />
                     })()}
                   </div>
-                  <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
+                  <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                     All
                   </span>
                 </button>
@@ -1052,9 +1052,9 @@ const CategoryProducts = () => {
                       {isSelected && (
                         <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
                       )}
-                      <div className={`w-10 h-10 xs:w-12 xs:h-12 rounded-xl overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                      <div className={`w-12 h-12 xs:w-[52px] xs:h-[52px] rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                         isSelected
-                          ? 'border-ozo-red shadow-md shadow-ozo-red/10'
+                          ? 'border-ozo-red shadow-md shadow-ozo-red/15'
                           : 'border-gray-150/50 dark:border-white/5'
                       }`}>
                         {sub.image_url && !brokenImages[sub.image_url] ? (
@@ -1062,22 +1062,22 @@ const CategoryProducts = () => {
                             src={sub.image_url} 
                             alt={sub.name} 
                             onError={() => setBrokenImages(prev => ({ ...prev, [sub.image_url]: true }))}
-                            className="w-full h-full object-contain p-1 select-none"
+                            className="w-full h-full object-contain p-0.5 select-none scale-105"
                           />
                         ) : subFallback && !brokenImages[subFallback] ? (
                           <img 
                             src={subFallback} 
                             alt={sub.name} 
                             onError={() => setBrokenImages(prev => ({ ...prev, [subFallback]: true }))}
-                            className="w-full h-full object-contain p-1 select-none"
+                            className="w-full h-full object-contain p-0.5 select-none scale-105"
                           />
                         ) : isEmoji ? (
-                          <span className="text-[15px] xs:text-lg select-none">{sub.icon}</span>
+                          <span className="text-[17px] xs:text-xl select-none">{sub.icon}</span>
                         ) : (
-                          <IconComponent size={16} className="text-gray-400 dark:text-gray-500" />
+                          <IconComponent size={18} className="text-gray-400 dark:text-gray-500" />
                         )}
                       </div>
-                      <span className="text-[8px] xs:text-[9.5px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
+                      <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
                         {sub.name}
                       </span>
                     </button>
