@@ -1776,7 +1776,7 @@ const Home = () => {
                     <div className="min-w-0 flex-1">
                       <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-start gap-2 leading-tight">
                         <Sun className="w-5 h-5 md:w-6 md:h-6 text-orange-500 dark:text-amber-400 shrink-0 mt-0.5" />
-                        <span>Summer Selections / <span className="text-gradient">Today's Offers.</span></span>
+                        <span>Summer Offers</span>
                       </h3>
                       <div className="h-1 w-20 bg-ozo-red mt-2 rounded-full" />
                     </div>
@@ -1803,7 +1803,7 @@ const Home = () => {
                       return (
                         <div
                           key={product.id}
-                          className="flex-shrink-0 w-[130px] xs:w-[145px] sm:w-44 bg-gray-55 dark:bg-[#161616] hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-150 dark:border-white/5 rounded-[1.75rem] sm:rounded-3xl p-2.5 xs:p-3 flex flex-col justify-between h-[16.5rem] xs:h-[17.5rem] sm:h-72 relative hover:border-ozo-red/30 transition-all duration-300 shadow-sm"
+                          className="flex-shrink-0 w-[140px] xs:w-[155px] sm:w-44 bg-gray-55 dark:bg-[#161616] hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-150 dark:border-white/5 rounded-[1.5rem] sm:rounded-3xl p-3 flex flex-col justify-between h-[17.5rem] xs:h-[18.5rem] sm:h-72 relative hover:border-ozo-red/30 transition-all duration-300 shadow-sm"
                         >
                           <div>
                             {/* Floating Discount Tag */}
@@ -1842,19 +1842,19 @@ const Home = () => {
                                 </div>
                               )}
                             </Link>
-                            <Link to={selectedCitySlug ? `/${selectedCitySlug}/${product.slug}` : `/product/${product.slug}`} className="block min-h-[32px] xs:min-h-[36px]">
-                              <h4 className="font-black text-[10px] xs:text-xs md:text-sm text-gray-900 dark:text-zinc-100 line-clamp-2 leading-tight">
+                            <Link to={selectedCitySlug ? `/${selectedCitySlug}/${product.slug}` : `/product/${product.slug}`} className="block min-h-[28px] xs:min-h-[32px]">
+                              <h4 className="font-black text-[10px] xs:text-[11px] sm:text-xs text-gray-900 dark:text-zinc-100 line-clamp-2 leading-tight">
                                 {product.name}
                               </h4>
                             </Link>
                             <p className="text-[9px] xs:text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 xs:mt-1">{product.unit || '500g'}</p>
                           </div>
 
-                          <div className="mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5">
-                            <div className="flex flex-wrap items-baseline gap-1.5">
-                              <span className="text-xs xs:text-sm font-black text-gray-900 dark:text-white">₹{product.price}</span>
+                          <div className="mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 flex-shrink-0">
+                            <div className="flex flex-wrap items-baseline gap-1">
+                              <span className="text-[11px] xs:text-xs sm:text-sm font-black text-gray-900 dark:text-white">₹{product.price}</span>
                               {discount > 0 && (
-                                <span className="text-[10px] xs:text-xs text-zinc-400 dark:text-zinc-500 line-through font-bold">
+                                <span className="text-[9px] xs:text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 line-through font-bold">
                                   ₹{product.mrp}
                                 </span>
                               )}
@@ -1999,7 +1999,7 @@ const Home = () => {
                 <div className="flex items-start justify-between gap-2 md:gap-4 mb-6">
                   <div className="min-w-0 flex-1">
                     <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
-                      Steal Deals / <span className="text-gradient">Today's Offers.</span>
+                      Steal Deals
                     </h3>
                     <div className="h-1 w-20 bg-ozo-red mt-2 rounded-full" />
                   </div>
@@ -2145,7 +2145,7 @@ const Home = () => {
                 <div className="flex items-start justify-between gap-2 md:gap-4 mb-4">
                   <div className="min-w-0 flex-1">
                     <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight leading-tight">
-                      Freshly Sourced <span className="text-gradient">This Morning.</span>
+                      Fresh Mandi
                     </h3>
                     <p className="hidden sm:block text-xs text-zinc-500 dark:text-zinc-400 font-bold mt-1">Freshly sourced from the local farms to your doorstep</p>
                   </div>
@@ -2173,7 +2173,7 @@ const Home = () => {
                     return (
                        <div
                         key={product.id}
-                        className="flex-shrink-0 w-[130px] xs:w-[145px] sm:w-44 bg-zinc-900 text-white border border-zinc-800 rounded-[1.75rem] sm:rounded-3xl p-2.5 xs:p-3 flex flex-col justify-between h-[16.5rem] xs:h-[17.5rem] sm:h-72 relative hover:border-ozo-red/30 transition-all duration-300"
+                        className="flex-shrink-0 w-[140px] xs:w-[155px] sm:w-44 bg-zinc-900 text-white border border-zinc-800 rounded-[1.5rem] sm:rounded-3xl p-3 flex flex-col justify-between h-[17.5rem] xs:h-[18.5rem] sm:h-72 relative hover:border-ozo-red/30 transition-all duration-300"
                       >
                         <div>
                           <Link to={selectedCitySlug ? `/${selectedCitySlug}/${product.slug}` : `/product/${product.slug}`} className="block relative aspect-square overflow-hidden bg-zinc-800 rounded-xl xs:rounded-2xl mb-2">
@@ -2205,18 +2205,18 @@ const Home = () => {
                               </div>
                             )}
                           </Link>
-                          <Link to={selectedCitySlug ? `/${selectedCitySlug}/${product.slug}` : `/product/${product.slug}`} className="block min-h-[32px] xs:min-h-[36px]">
-                            <h4 className="font-black text-[10px] xs:text-xs md:text-sm text-gray-900 dark:text-zinc-100 line-clamp-2 leading-tight">
+                          <Link to={selectedCitySlug ? `/${selectedCitySlug}/${product.slug}` : `/product/${product.slug}`} className="block min-h-[28px] xs:min-h-[32px]">
+                            <h4 className="font-black text-[10px] xs:text-[11px] sm:text-xs text-gray-900 dark:text-zinc-100 line-clamp-2 leading-tight">
                               {product.name}
                             </h4>
                           </Link>
                           <p className="text-[9px] xs:text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 xs:mt-1">{product.unit || '500g'}</p>
                         </div>
 
-                        <div className="mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5">
-                          <div className="flex flex-wrap items-baseline gap-1.5">
-                            <span className="text-xs xs:text-sm font-black text-gray-900 dark:text-white">₹{product.price}</span>
-                            <span className="text-[10px] xs:text-xs text-zinc-400 dark:text-zinc-500 line-through font-bold">
+                        <div className="mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 flex-shrink-0">
+                          <div className="flex flex-wrap items-baseline gap-1">
+                            <span className="text-[11px] xs:text-xs sm:text-sm font-black text-gray-900 dark:text-white">₹{product.price}</span>
+                            <span className="text-[9px] xs:text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 line-through font-bold">
                               ₹{(product.mrp && product.mrp > product.price) ? product.mrp : Math.round(product.price * 1.25)}
                             </span>
                           </div>
