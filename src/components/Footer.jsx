@@ -65,9 +65,9 @@ const Footer = () => {
     <footer className="bg-white dark:bg-[#0d0d0d] border-t border-gray-100 dark:border-white/5 pt-16 pb-28 md:pb-8 transition-colors duration-300">
       <div className="container-custom">
         {/* Top Section: Branding & Newsletter */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16 text-center lg:text-left">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 mb-16 text-left">
           <div className="lg:col-span-4 space-y-6">
-            <Link to="/" className="flex items-center justify-center lg:justify-start gap-2.5 group">
+            <Link to="/" className="flex items-center justify-start gap-2.5 group">
               <OzoLogo
                 size="md"
                 subText="Jo Chahiye, Jab Chahiye"
@@ -75,10 +75,10 @@ const Footer = () => {
                 imgClassName="group-hover:scale-110 transition-transform"
               />
             </Link>
-            <p className="text-ozo-gray dark:text-gray-400 max-w-sm mx-auto lg:mx-0 font-medium leading-relaxed">
+            <p className="text-ozo-gray dark:text-gray-400 max-w-sm lg:mx-0 font-medium leading-relaxed">
               Experience the future of fresh delivery. Get fresh fruits, vegetables, and Mithila specials at your doorstep in 30 minutes. 
             </p>
-            <div className="flex items-center justify-center lg:justify-start gap-4">
+            <div className="flex items-center justify-start gap-4">
               {[
                 { 
                   icon: Facebook, 
@@ -137,18 +137,18 @@ const Footer = () => {
                 ))}
               </ul>
             </div>
-            <div className="col-span-2 sm:col-span-1 text-center sm:text-left">
+            <div className="col-span-2 sm:col-span-1 text-left">
               <h4 className="text-gray-900 dark:text-white font-black uppercase tracking-widest text-xs mb-6">Newsletter</h4>
               <p className="text-xs text-ozo-gray dark:text-gray-400 mb-4 font-medium">Subscribe to get special offers and updates.</p>
-              <form onSubmit={handleSubscribe} className="relative group max-w-md mx-auto sm:mx-0">
+              <form onSubmit={handleSubscribe} className="flex items-center bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus-within:ring-2 focus-within:ring-ozo-red/20 transition-all max-w-md p-1">
                 <input 
                   type="email" 
                   value={newsletterEmail}
                   onChange={(e) => setNewsletterEmail(e.target.value)}
                   placeholder="Your email"
-                  className="w-full pl-4 pr-12 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-ozo-red/20 transition-all font-bold text-sm text-gray-800 dark:text-white"
+                  className="flex-1 bg-transparent border-none pl-3 pr-2 py-2.5 focus:outline-none focus:ring-0 font-bold text-sm text-gray-800 dark:text-white placeholder:text-gray-400"
                 />
-                <button type="submit" className="absolute right-1 top-1 bottom-1 px-3 bg-gradient-ozo text-white rounded-lg shadow-lg hover:scale-105 active:scale-95 transition-all">
+                <button type="submit" className="p-2.5 bg-gradient-ozo text-white rounded-lg shadow-md hover:scale-105 active:scale-95 transition-all flex-shrink-0 flex items-center justify-center">
                   <ArrowRight size={16} />
                 </button>
               </form>
@@ -157,8 +157,8 @@ const Footer = () => {
         </div>
 
         {/* Middle Section: App Download & Certs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-10 border-y border-gray-100 dark:border-white/5 mb-10 text-center md:text-left">
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 sm:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 py-10 border-y border-gray-100 dark:border-white/5 mb-10 text-left">
+          <div className="flex flex-wrap items-center justify-start gap-6 sm:gap-8">
             <div className="flex items-center gap-3 text-left">
               <div className="w-10 h-10 bg-green-50 dark:bg-ozo-green/10 rounded-xl flex items-center justify-center text-ozo-green">
                 <ShieldCheck size={20} />
@@ -200,11 +200,11 @@ const Footer = () => {
         </div>
 
         {/* Bottom Section: Copyright & Legal */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-xs text-ozo-gray dark:text-gray-500 font-bold text-center md:text-left">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <p className="text-xs text-ozo-gray dark:text-gray-500 font-bold text-left">
             © 2026 <span className="notranslate" translate="no">OZO Mart Retail Pvt. Ltd.</span> All rights reserved.
           </p>
-          <div className="flex flex-wrap justify-center md:justify-end gap-6">
+          <div className="flex flex-wrap justify-start md:justify-end gap-6">
             {footerLinks.legal.slice(0, 3).map(link => (
               <Link key={link.label} to={link.to} className="text-[10px] uppercase tracking-widest font-black text-ozo-gray dark:text-gray-500 hover:text-ozo-red transition-colors">
                 {link.label}

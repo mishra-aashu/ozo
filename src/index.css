@@ -314,7 +314,7 @@ body {
 
   /* Containers */
   .container-custom {
-    @apply max-w-[1440px] mx-auto px-1.5 xs:px-3 sm:px-6 lg:px-8;
+    @apply max-w-[1440px] mx-auto px-4 xs:px-5 sm:px-6 lg:px-8;
     width: 100%;
   }
 
