@@ -101,4 +101,9 @@ mcp_config.json
 .gemini/
 .kiro/
 
+# Archive and Excel files
+archive/
+*.xlsx
+
+
 
