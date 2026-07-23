@@ -161,6 +161,23 @@ const customFetch = async (input, init) => {
   if (adminToken && isDocAdminRequest) {
     newHeaders['x-admin-token'] = adminToken
   }
+
+  // If request is from admin client or lacks auth token while a valid session exists in main client, inject token
+  const existingAuthHeader = newHeaders['Authorization'] || newHeaders['authorization'] || ''
+  if (!isAuthRequest && (!existingAuthHeader || existingAuthHeader.includes(supabaseAnonKey))) {
+    try {
+      const activeSession = (typeof window !== 'undefined' && localStorage.getItem('ozo-auth-token'))
+        ? JSON.parse(localStorage.getItem('ozo-auth-token'))
+        : null
+      const token = activeSession?.access_token || activeSession?.currentSession?.access_token
+      if (token) {
+        newHeaders['Authorization'] = `Bearer ${token}`
+      }
+    } catch (e) {
+      // Ignore parse error
+    }
+  }
+
   newInit.headers = newHeaders
 
   // Encrypt request body if sending JSON to proxy
@@ -185,13 +202,11 @@ const customFetch = async (input, init) => {
     }
   }
 
-  const response = await fetch(input, newInit)
+  let response = await fetch(input, newInit)
 
-  // Auto-clear invalid/expired sessions if Supabase Auth rejects the token or refresh token fails
+  // Auto-clear invalid/expired sessions or attempt retry on REST 401 JWT Expiry
   let isInvalidSession = false
   if ((response.status === 401 || response.status === 403) && url.includes('/auth/v1/user')) {
-    // Check if the response is JSON and indicates an auth/token error, avoiding logging users
-    // out on transient proxy/WAF HTML error pages.
     try {
       const clone = response.clone()
       const body = await clone.json()
@@ -202,7 +217,7 @@ const customFetch = async (input, init) => {
         }
       }
     } catch (e) {
-      // Not JSON, likely transient proxy/WAF response, ignore.
+      // Not JSON, ignore
     }
   } else if (response.status === 400 && url.includes('/auth/v1/token') && url.includes('refresh_token')) {
     try {
@@ -214,34 +229,39 @@ const customFetch = async (input, init) => {
     } catch (e) {
       // Not JSON, ignore
     }
-  } else if (response.status === 401 && url.includes('/rest/v1/')) {
-    // ─── REST API (PostgREST) JWT expiry detection ───────────────────────
-    // PostgREST returns 401 with a JSON body containing {"message":"JWT expired",
-    // "code":"PGRST301","hint":null} when the access token is expired. This catches
-    // the scenario where the tab was backgrounded/sleeping and the auto-refresh
-    // timer was throttled, so the next data query fails silently.
-    try {
-      const clone = response.clone()
-      const body = await clone.json()
-      const errMsg = (body?.message || body?.msg || body?.error || '').toLowerCase()
-      if (errMsg.includes('jwt expired') || errMsg.includes('jwt') || body?.code === 'PGRST301') {
-        console.warn('[OZO Auth] REST API returned JWT expired. Attempting silent session refresh...')
-        // Try a silent refresh first before nuking the session — the refresh
-        // token may still be valid even though the access token expired.
-        try {
+  } else if ((response.status === 401 || response.status === 403) && (url.includes('/rest/v1/') || url.includes('/storage/v1/'))) {
+    // ─── REST API / Storage API JWT Expiry Handling & Auto-Retry ───────────
+    if (!newInit._isRetry) {
+      try {
+        const clone = response.clone()
+        const body = await clone.json()
+        const errMsg = (body?.message || body?.msg || body?.error || '').toLowerCase()
+        if (errMsg.includes('jwt expired') || errMsg.includes('jwt') || body?.code === 'PGRST301' || response.status === 401) {
+          console.warn('[OZO Auth] REST API returned 401/JWT expired. Attempting silent session refresh and request retry...')
           const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
-          if (refreshError || !refreshData?.session) {
+          if (!refreshError && refreshData?.session) {
+            const newAccessToken = refreshData.session.access_token
+            // Sync session to supabaseAdmin
+            try {
+              await supabaseAdmin.auth.setSession({
+                access_token: newAccessToken,
+                refresh_token: refreshData.session.refresh_token,
+              })
+            } catch (e) {
+              // Ignore admin sync warning
+            }
+
+            // Retry request with fresh Authorization header
+            const retriedHeaders = { ...newInit.headers, Authorization: `Bearer ${newAccessToken}` }
+            const retriedInit = { ...newInit, headers: retriedHeaders, _isRetry: true }
+            response = await fetch(input, retriedInit)
+          } else {
             isInvalidSession = true
           }
-          // If refresh succeeded, the caller will still see this 401 response,
-          // but subsequent requests will use the new token. The visibility
-          // change handler in authStore will also re-sync state.
-        } catch (_refreshErr) {
-          isInvalidSession = true
         }
+      } catch (e) {
+        // Not JSON, ignore
       }
-    } catch (e) {
-      // Not JSON, ignore
     }
   }
 
@@ -280,10 +300,6 @@ const customFetch = async (input, init) => {
         headers: decryptedHeaders
       })
     } catch (err) {
-      // AbortError means the request was cancelled by the browser (e.g. navigation
-      // or component unmount) before the body finished streaming — this is benign.
-      // Re-throw so that the Supabase client and React can handle the cancellation
-      // cleanly rather than swallowing the error and hanging.
       if (err && err.name === 'AbortError') {
         throw err
       }

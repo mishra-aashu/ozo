@@ -247,7 +247,16 @@ export const useAuthStore = create(
                 console.warn('Failed to ensure profile on init:', err)
               }
 
-              const finalProfile = enrichProfileRoles(profile || localProfile)
+              const fallbackProfile = {
+                id: session.user.id,
+                email: session.user.email,
+                full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
+                phone: session.user.user_metadata?.phone || session.user.phone || '',
+                role: 'customer',
+                user_roles: []
+              }
+
+              const finalProfile = enrichProfileRoles(profile || localProfile || fallbackProfile)
 
               set({
                 user: session.user,
