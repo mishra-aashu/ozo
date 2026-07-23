@@ -305,6 +305,9 @@ export const useAuthStore = create(
                   }
                   if (retries >= MAX_POLL_RETRIES) {
                     console.warn('[OZO Auth] Profile polling max retries reached. Keeping fallback profile.')
+                    try {
+                      toast.error('Profile details sync delayed. Refresh page if role permissions look incorrect.', { id: 'profile-sync-warn', duration: 5000 })
+                    } catch (tErr) {}
                     clearInterval(activeProfilePollInterval)
                     activeProfilePollInterval = null
                     return
