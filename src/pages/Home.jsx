@@ -1937,19 +1937,29 @@ const Home = () => {
               )}
 
               {/* SECTION: Explore Local Marts */}
-              {marts.length > 0 && (
+              {(marts.length > 0 || isAdmin) && (
                 <div className="bg-white dark:bg-[#111] border border-gray-100 dark:border-white/5 rounded-3xl p-5 md:p-6 shadow-premium transition-colors duration-300 overflow-hidden">
-                  <div className="flex items-start justify-between gap-2 md:gap-4 mb-6">
+                  <div className="flex items-center justify-between gap-2 md:gap-4 mb-6 flex-wrap">
                     <div className="min-w-0 flex-1">
-                      <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-start gap-2 leading-tight">
-                        <Store className="w-5 h-5 md:w-6 md:h-6 text-ozo-red shrink-0 mt-0.5" />
+                      <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2 leading-tight">
+                        <Store className="w-5 h-5 md:w-6 md:h-6 text-ozo-red shrink-0" />
                         <span>Explore Nearby <span className="text-gradient">Stores.</span></span>
                       </h3>
                       <div className="h-1 w-20 bg-ozo-red mt-2 rounded-full" />
                     </div>
+
+                    {isAdmin && (
+                      <Link
+                        to="/admin/cities"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ozo-red/10 border border-ozo-red/30 text-ozo-red hover:bg-ozo-red hover:text-white text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                      >
+                        <Plus size={14} className="stroke-[3px]" />
+                        <span>Manage / Add Marts</span>
+                      </Link>
+                    )}
                   </div>
 
-                  <div className="flex overflow-x-auto scrollbar-hide gap-3.5 py-2 px-1 w-full md:grid md:grid-cols-[repeat(auto-fit,minmax(130px,1fr))] md:gap-4">
+                  <div className="grid grid-cols-2 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 sm:gap-4">
                     {marts.map((mart, index) => {
                       let isStoreOpen = true
                       if (mart.is_active && !mart.is_24_7 && mart.opens_at && mart.closes_at) {
@@ -1972,24 +1982,71 @@ const Home = () => {
                         <Link
                           key={mart.id}
                           to={`/mart/${mart.slug}`}
-                          className="w-[95px] shrink-0 bg-gray-55 dark:bg-[#161616] hover:bg-gray-100 dark:hover:bg-white/5 border border-gray-150 dark:border-white/5 rounded-xl md:rounded-[2.25rem] p-2.5 md:p-4 flex flex-col items-center justify-center hover:border-ozo-red/35 hover:-translate-y-1 transition-all duration-300 shadow-sm md:w-auto md:shrink"
+                          className="group relative bg-gray-50/80 dark:bg-[#16161c] hover:bg-white dark:hover:bg-[#1f1f28] border border-gray-200/80 dark:border-white/10 rounded-2xl md:rounded-3xl p-3 sm:p-4 flex flex-col items-center justify-between hover:border-ozo-red/40 hover:shadow-xl transition-all duration-300 transform-gpu hover:-translate-y-1"
                         >
-                          {/* Circular/Curved Shop Icon Container */}
-                          <div className={`w-11 h-11 md:w-16 md:h-16 rounded-xl md:rounded-[1.75rem] bg-gradient-to-tr ${preset.bg} border ${preset.border} flex items-center justify-center shadow-inner overflow-hidden shrink-0`}>
+                          {/* Status Badge */}
+                          <div className="w-full flex items-center justify-between gap-1 mb-2">
+                            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
+                              isStoreOpen 
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' 
+                                : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20'
+                            }`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${isStoreOpen ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+                              {isStoreOpen ? 'Open Now' : 'Closed'}
+                            </span>
+
+                            <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest flex items-center gap-0.5">
+                              <Clock size={10} /> 30m
+                            </span>
+                          </div>
+
+                          {/* Circular Shop Logo Container */}
+                          <div className={`w-14 h-14 sm:w-16 sm:h-16 rounded-2xl md:rounded-[1.5rem] bg-gradient-to-tr ${preset.bg} border ${preset.border} flex items-center justify-center shadow-md overflow-hidden shrink-0 my-1 group-hover:scale-105 transition-transform duration-300 relative`}>
                             {mart.logo_url ? (
-                              <img src={mart.logo_url} alt="" className="w-full h-full object-cover" />
+                              <OptimizedImage src={mart.logo_url} alt={mart.name} className="w-full h-full object-cover" width={120} />
                             ) : (
-                              <Store className={`w-5 h-5 md:w-8 md:h-8 ${preset.icon}`} />
+                              <Store className={`w-7 h-7 sm:w-8 sm:h-8 ${preset.icon}`} />
                             )}
                           </div>
                           
-                          {/* Mart Name */}
-                          <span className="text-[10px] md:text-xs font-black text-center mt-2 md:mt-3 text-gray-900 dark:text-white line-clamp-2 leading-tight">
-                            {mart.name}
-                          </span>
+                          {/* Mart Info */}
+                          <div className="w-full text-center mt-2">
+                            <h4 className="text-xs sm:text-sm font-black text-gray-900 dark:text-white line-clamp-1 group-hover:text-ozo-red transition-colors">
+                              {mart.name}
+                            </h4>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold truncate mt-0.5">
+                              {mart.address || mart.city?.name || 'Local Express Store'}
+                            </p>
+                          </div>
+
+                          {/* Admin Direct Edit Trigger */}
+                          {isAdmin && (
+                            <div className="mt-2.5 w-full pt-2 border-t border-gray-100 dark:border-white/5 flex items-center justify-between text-[10px] text-ozo-red font-bold">
+                              <span>Admin Controls</span>
+                              <ChevronRight size={12} />
+                            </div>
+                          )}
                         </Link>
                       )
                     })}
+
+                    {/* Admin Add New Mart Card */}
+                    {isAdmin && (
+                      <Link
+                        to="/admin/cities"
+                        className="group bg-red-50/50 dark:bg-ozo-red/5 hover:bg-ozo-red/10 border border-dashed border-ozo-red/40 rounded-2xl md:rounded-3xl p-3 sm:p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] min-h-[140px]"
+                      >
+                        <div className="w-12 h-12 rounded-2xl bg-ozo-red text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform mb-2">
+                          <Plus size={24} className="stroke-[3px]" />
+                        </div>
+                        <span className="text-xs font-black text-ozo-red uppercase tracking-wider">
+                          + Add New Mart
+                        </span>
+                        <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-1">
+                          Configure Store & Location
+                        </span>
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}
