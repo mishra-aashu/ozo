@@ -176,7 +176,7 @@ if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
 // Single-flight promise for refreshSession to prevent thundering herd and race conditions
 let globalRefreshPromise = null
 
-const waitForLeaderTabRefresh = (timeoutMs = 5000) => {
+const waitForLeaderTabRefresh = (timeoutMs = 8000) => {
   return new Promise((resolve) => {
     let resolved = false
 
@@ -205,6 +205,13 @@ const waitForLeaderTabRefresh = (timeoutMs = 5000) => {
           }
         }
       } catch (e) {}
+      
+      // Dispatch telemetry event for monitoring lock collision / timeout
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('ozo-auth-telemetry', {
+          detail: { event: 'leader_refresh_timeout', timestamp: Date.now() }
+        }))
+      }
       resolve({ data: { session: null }, error: new Error('Leader tab refresh wait timeout') })
     }, timeoutMs)
 
@@ -250,19 +257,23 @@ const refreshSessionDeduplicated = async () => {
 
   globalRefreshPromise = (async () => {
     try {
-      // 1. Lock Staleness Expiry Check (Crash Scenario Guard):
-      // Lock is only valid for 4000ms. If last lock timestamp is > 4000ms old, consider it STALE (leader tab crashed) and take over!
+      // 1. Lock Staleness Expiry Check with 7000ms threshold (survives cumulative backoff delays):
       const lastLock = typeof window !== 'undefined' ? localStorage.getItem('ozo_refresh_lock_ts') : null
       const lockAge = lastLock ? Date.now() - parseInt(lastLock, 10) : Infinity
-      const isLockedByActiveTab = lockAge < 4000
+      const isLockedByActiveTab = lockAge < 7000
 
       if (isLockedByActiveTab) {
         console.log('[OZO Auth] Leader tab is currently refreshing session. Subscribing to REFRESH_SUCCESS broadcast...')
-        const leaderResult = await waitForLeaderTabRefresh(5000)
+        const leaderResult = await waitForLeaderTabRefresh(8000)
         if (leaderResult.data?.session) {
           return leaderResult
         }
         console.warn('[OZO Auth] Leader tab broadcast timed out or failed. Taking over as lock leader...')
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('ozo-auth-telemetry', {
+            detail: { event: 'lock_takeover', lockAge, timestamp: Date.now() }
+          }))
+        }
       }
 
       // 2. Claim lock as leader tab with current timestamp
@@ -271,12 +282,17 @@ const refreshSessionDeduplicated = async () => {
         refreshBroadcastChannel?.postMessage({ type: 'REFRESH_START' })
       }
 
-      // 3. Exponential Backoff Retry Loop (500ms, 1500ms, 3000ms) for transient network/5xx errors
+      // 3. Exponential Backoff Retry Loop (500ms, 1500ms, 3000ms) with Lock Heartbeat Renewal
       const backoffDelays = [500, 1500, 3000]
       let lastResult = null
 
       for (let attempt = 0; attempt <= backoffDelays.length; attempt++) {
         try {
+          // HEARTBEAT LOCK RENEWAL: Refresh timestamp on every attempt so active leader tab never gets preempted
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('ozo_refresh_lock_ts', Date.now().toString())
+          }
+
           const result = await supabase.auth.refreshSession()
           
           if (!result.error && result.data?.session) {
@@ -296,13 +312,19 @@ const refreshSessionDeduplicated = async () => {
             if (typeof window !== 'undefined') {
               localStorage.removeItem('ozo_refresh_lock_ts')
               refreshBroadcastChannel?.postMessage({ type: 'REFRESH_FAILED', isTerminal: true, error: result.error })
+              window.dispatchEvent(new CustomEvent('ozo-auth-telemetry', {
+                detail: { event: 'terminal_auth_failure', error: result.error?.message, timestamp: Date.now() }
+              }))
             }
             break
           }
 
-          // Transient error: notify connection state reconnecting
+          // Transient error: notify connection state reconnecting & telemetry
           if (typeof window !== 'undefined') {
             window.dispatchEvent(new CustomEvent('ozo-connection-state', { detail: { status: 'reconnecting', attempt: attempt + 1 } }))
+            window.dispatchEvent(new CustomEvent('ozo-auth-telemetry', {
+              detail: { event: 'transient_refresh_error', attempt: attempt + 1, error: result.error?.message, timestamp: Date.now() }
+            }))
           }
 
           if (attempt < backoffDelays.length) {
