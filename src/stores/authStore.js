@@ -552,6 +552,39 @@ export const useAuthStore = create(
             }
             earlySignedInCapture = null
           }
+
+          // Attach tab focus & visibility listener for automatic session token revalidation
+          if (typeof window !== 'undefined' && !window._ozoVisibilityHandlerAttached) {
+            window._ozoVisibilityHandlerAttached = true
+            const handleTabRevisit = async () => {
+              if (document.visibilityState === 'visible') {
+                const currentAuth = get().isAuthenticated
+                if (currentAuth) {
+                  try {
+                    const { data } = await supabase.auth.getSession()
+                    const currentSession = data?.session
+                    if (currentSession?.access_token) {
+                      const parts = currentSession.access_token.split('.')
+                      if (parts.length >= 2) {
+                        let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+                        const pad = base64.length % 4
+                        if (pad) base64 += '='.repeat(4 - pad)
+                        const payload = JSON.parse(atob(base64))
+                        if (payload.exp && (payload.exp * 1000 - Date.now() < 300000)) {
+                          console.log('[OZO Auth] Tab regained focus with token near expiry. Triggering proactive refresh...')
+                          await supabase.auth.refreshSession()
+                        }
+                      }
+                    }
+                  } catch (e) {
+                    console.warn('[OZO Auth] Background tab focus session check failed:', e)
+                  }
+                }
+              }
+            }
+            window.addEventListener('visibilitychange', handleTabRevisit)
+            window.addEventListener('focus', handleTabRevisit)
+          }
         } catch (error) {
           console.error('Auth initialization error:', error)
           // Fallback: use whatever we have in the persisted store to keep the app functional
