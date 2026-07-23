@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import Papa from 'papaparse'
 import toast from 'react-hot-toast'
 import { supabase } from '../../lib/supabase'
-import { matchProductsForImport } from '../../lib/rpc'
+import { matchProductsForImport, confirmProductLink } from '../../lib/rpc'
 import { useMartStore } from '../../stores/martStore'
 import {
   Upload,
@@ -142,6 +142,7 @@ export default function BulkImportWizard({
     product_unit: ''
   })
   const [previewRows, setPreviewRows] = useState([])
+  const [previewBucket, setPreviewBucket] = useState('all') // 'all', 'auto_accepted', 'needs_review', 'unmatched'
   const [isMatching, setIsMatching] = useState(false)
   const [dragActive, setDragActive] = useState(false)
   const [photoModalData, setPhotoModalData] = useState(null)
@@ -588,22 +589,27 @@ export default function BulkImportWizard({
         return
       }
 
-      // Map rows for server-side matching
+      // Map rows for server-side matching with full metadata
       const payload = mappedRows.map(r => ({
         barcode: r.identifier,
-        name: r.name
+        name: r.name,
+        brand: r.brand,
+        unit: r.unit,
+        price: r.mart_price,
+        mart_id: currentMart?.id
       }))
 
       // Call our Postgres function
       const matchResponse = await matchProductsForImport(payload)
 
       const resolved = []
+      let itemIdx = 1
 
-      // 1. Process matched rows
-      matchResponse.matched.forEach((match, idx) => {
+      // 1. Process auto-accepted matched rows
+      (matchResponse.matched || []).forEach((match) => {
         const original = mappedRows.find(r => r.identifier === match.csv_data.barcode && r.name === match.csv_data.name) || match.csv_data
         resolved.push({
-          index: idx + 1,
+          index: itemIdx++,
           identifier: original.identifier,
           stock_quantity: original.stock_quantity,
           mart_price: original.mart_price,
@@ -613,16 +619,42 @@ export default function BulkImportWizard({
           unit: original.unit,
           product: match.product,
           matchConfidence: match.match_confidence,
-          matchType: match.match_confidence === 'high' ? 'Exact Match' : 'Fuzzy Match',
-          status: 'matched'
+          matchScore: match.match_score,
+          matchStage: match.match_stage,
+          matchType: match.match_confidence === 'exact' ? 'Exact Barcode / Link' : 'High Confidence Match',
+          status: 'matched',
+          bucket: 'auto_accepted'
         })
       })
 
-      // 2. Process unmatched rows
-      matchResponse.unmatched.forEach((unmatched, idx) => {
+      // 2. Process needs-review rows (medium confidence)
+      (matchResponse.review || []).forEach((review) => {
+        const original = mappedRows.find(r => r.identifier === review.csv_data.barcode && r.name === review.csv_data.name) || review.csv_data
+        resolved.push({
+          index: itemIdx++,
+          identifier: original.identifier,
+          stock_quantity: original.stock_quantity,
+          mart_price: original.mart_price,
+          mart_mrp: original.mart_mrp,
+          name: original.name,
+          brand: original.brand,
+          unit: original.unit,
+          product: review.product,
+          matchConfidence: review.match_confidence,
+          matchScore: review.match_score,
+          matchStage: review.match_stage,
+          scoreBreakdown: review.score_breakdown,
+          matchType: 'Needs Review',
+          status: 'review',
+          bucket: 'needs_review'
+        })
+      })
+
+      // 3. Process unmatched rows
+      (matchResponse.unmatched || []).forEach((unmatched) => {
         const original = mappedRows.find(r => r.identifier === unmatched.barcode && r.name === unmatched.name) || unmatched
         resolved.push({
-          index: matchResponse.matched.length + idx + 1,
+          index: itemIdx++,
           identifier: original.identifier,
           stock_quantity: original.stock_quantity,
           mart_price: original.mart_price,
@@ -632,12 +664,16 @@ export default function BulkImportWizard({
           unit: original.unit,
           product: null,
           matchConfidence: 'none',
+          matchScore: 0,
+          matchStage: 'none',
           matchType: null,
-          status: 'not_found'
+          status: 'not_found',
+          bucket: 'unmatched'
         })
       })
 
       setPreviewRows(resolved)
+      setPreviewBucket('all')
       setImportStep('preview')
     } catch (err) {
       console.error('Matching products failed', err)
@@ -645,6 +681,52 @@ export default function BulkImportWizard({
     } finally {
       setIsMatching(false)
     }
+  }
+
+  const handleConfirmLink = async (row) => {
+    if (!currentMart?.id || !row.product?.id) return
+    try {
+      await confirmProductLink(
+        currentMart.id,
+        row.name,
+        row.identifier,
+        row.product.id,
+        row.matchScore || 100
+      )
+      setPreviewRows(prev => prev.map(r => {
+        if (r.index === row.index) {
+          return {
+            ...r,
+            status: 'matched',
+            matchConfidence: 'exact',
+            matchType: 'Confirmed Link',
+            bucket: 'auto_accepted'
+          }
+        }
+        return r
+      }))
+      toast.success(`Match confirmed! Learned "${row.name}" for future imports.`)
+    } catch (err) {
+      console.error('Failed to confirm link:', err)
+      toast.error('Failed to save confirmation: ' + err.message)
+    }
+  }
+
+  const handleSkipReview = (row) => {
+    setPreviewRows(prev => prev.map(r => {
+      if (r.index === row.index) {
+        return {
+          ...r,
+          status: 'not_found',
+          product: null,
+          matchConfidence: 'none',
+          matchType: null,
+          bucket: 'unmatched'
+        }
+      }
+      return r
+    }))
+    toast('Link skipped. Product moved to Unmatched bucket.', { icon: 'ℹ️' })
   }
 
   const handleDrag = (e) => {
@@ -1235,16 +1317,24 @@ export default function BulkImportWizard({
 
   const renderPreviewStep = () => {
     const matchedCount = previewRows.filter(r => r.status === 'matched').length
+    const reviewCount = previewRows.filter(r => r.status === 'review').length
     const unmatchedCount = previewRows.filter(r => r.status === 'not_found').length
     const createdCount = previewRows.filter(r => r.status === 'not_found' && r.name && r.name.trim() !== '').length
     const totalImportCount = matchedCount + createdCount
     const matchRate = previewRows.length > 0 ? (matchedCount / previewRows.length) * 100 : 0
     const hasUnmappedName = previewRows.some(r => r.status !== 'matched' && (!r.name || r.name.trim() === ''))
 
+    const filteredRows = previewRows.filter(r => {
+      if (previewBucket === 'auto_accepted') return r.status === 'matched'
+      if (previewBucket === 'needs_review') return r.status === 'review'
+      if (previewBucket === 'unmatched') return r.status === 'not_found'
+      return true // 'all'
+    })
+
     return (
       <div className="flex-1 flex flex-col overflow-y-auto lg:overflow-hidden py-2 w-full">
         {/* Header Summary Stats */}
-        <div className="flex items-center justify-between mb-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm">
+        <div className="flex flex-col md:flex-row md:items-center justify-between mb-4 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-2xl p-5 shadow-sm gap-4">
           <div className="flex items-center gap-3">
             <button
               onClick={() => setImportStep('mapping')}
@@ -1254,20 +1344,57 @@ export default function BulkImportWizard({
             </button>
             <div>
               <h3 className="text-lg font-bold text-gray-900 dark:text-white font-sans">Review & Match Preview</h3>
-              <p className="text-xs text-gray-550">Cross-referencing global catalog</p>
+              <p className="text-xs text-gray-550">Multi-stage intelligent product resolution</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 text-xs font-sans">
-            <div className="px-3 py-1.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-gray-700 dark:text-gray-300 font-bold">
-              Total Rows: {previewRows.length}
-            </div>
-            <div className="px-3 py-1.5 bg-blue-600/10 rounded-lg text-blue-500 font-bold border border-blue-500/20">
-              Matched: {matchedCount}
-            </div>
-            <div className="px-3 py-1.5 bg-amber-500/10 rounded-lg text-amber-500 font-bold border border-amber-500/20">
-              Not Found: {unmatchedCount}
-            </div>
+          {/* Three-Bucket Filter Tabs */}
+          <div className="flex items-center gap-2 text-xs font-sans overflow-x-auto pb-1 md:pb-0">
+            <button
+              onClick={() => setPreviewBucket('all')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer ${
+                previewBucket === 'all'
+                  ? 'bg-gray-900 text-white dark:bg-white dark:text-black shadow-sm'
+                  : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+              }`}
+            >
+              All ({previewRows.length})
+            </button>
+
+            <button
+              onClick={() => setPreviewBucket('auto_accepted')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                previewBucket === 'auto_accepted'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                  : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20'
+              }`}
+            >
+              <CheckCircle className="w-3.5 h-3.5" />
+              Auto-Accepted ({matchedCount})
+            </button>
+
+            <button
+              onClick={() => setPreviewBucket('needs_review')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                previewBucket === 'needs_review'
+                  ? 'bg-amber-600 text-white border-amber-600 shadow-sm'
+                  : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20 hover:bg-amber-500/20'
+              }`}
+            >
+              <AlertCircle className="w-3.5 h-3.5" />
+              Needs Review ({reviewCount})
+            </button>
+
+            <button
+              onClick={() => setPreviewBucket('unmatched')}
+              className={`px-3 py-1.5 rounded-xl font-bold transition-all cursor-pointer border flex items-center gap-1.5 ${
+                previewBucket === 'unmatched'
+                  ? 'bg-blue-600 text-white border-blue-600 shadow-sm'
+                  : 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20 hover:bg-blue-500/20'
+              }`}
+            >
+              Unmatched ({unmatchedCount})
+            </button>
           </div>
         </div>
 
@@ -1287,7 +1414,6 @@ export default function BulkImportWizard({
                 </p>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
-                  {/* Left Column: Diagnostics */}
                   <div className="space-y-3 bg-gray-50/50 dark:bg-black/25 rounded-xl p-3.5 border border-gray-150 dark:border-white/5">
                     <span className="font-extrabold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
                       Possible Causes
@@ -1308,7 +1434,6 @@ export default function BulkImportWizard({
                     </div>
                   </div>
 
-                  {/* Right Column: Actions */}
                   <div className="space-y-3 bg-gray-50/50 dark:bg-black/25 rounded-xl p-3.5 border border-gray-150 dark:border-white/5">
                     <span className="font-extrabold text-[10px] text-gray-500 dark:text-gray-400 uppercase tracking-wider block mb-1">
                       Recommended Solutions
@@ -1341,161 +1466,128 @@ export default function BulkImportWizard({
               <thead>
                 <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
                   <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">#</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">CSV Identifier</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Matched Catalog Product</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Import Stock</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Import Price</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Match Status</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">CSV Product Details</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Matched Catalog Product & Score</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Stock & Price</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Action / Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
-                {previewRows.map((r, idx) => (
+                {filteredRows.map((r, idx) => (
                   <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
                     <td className="p-4 text-sm font-semibold text-gray-500">{r.index}</td>
-                    <td className="p-4 text-sm font-bold text-gray-800 dark:text-gray-300 font-mono">{r.identifier}</td>
+                    
+                    {/* CSV Source Data */}
+                    <td className="p-4 text-sm">
+                      <p className="font-bold text-gray-900 dark:text-gray-200">{r.name || 'Unnamed'}</p>
+                      <p className="text-xs text-gray-500 font-mono">Barcode: {r.identifier || 'N/A'}</p>
+                      {(r.brand || r.unit) && (
+                        <p className="text-[11px] text-gray-400">Unit: {r.unit || 'N/A'} | Brand: {r.brand || 'N/A'}</p>
+                      )}
+                    </td>
+
+                    {/* Matched Global Product & Score Breakdown */}
                     <td className="p-4">
                       {r.status === 'matched' ? (
                         <div className="flex items-center gap-3">
                           {r.product.image_url ? (
-                            <div className="relative group w-8 h-8 shrink-0">
-                              <img src={r.product.image_url} alt={r.product.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-white/5" />
-                              <button
-                                onClick={() => setPhotoModalData(r)}
-                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity cursor-pointer"
-                                title="Change photo via Phone"
-                              >
-                                <Camera className="w-3.5 h-3.5 text-white" />
-                              </button>
-                            </div>
+                            <img src={r.product.image_url} alt={r.product.name} className="w-9 h-9 object-contain rounded p-0.5 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-white/5 shrink-0" />
                           ) : (
-                            <button
-                              onClick={() => setPhotoModalData(r)}
-                              className="w-8 h-8 bg-gray-105 dark:bg-slate-800 hover:bg-blue-600/10 hover:text-blue-500 rounded flex items-center justify-center text-xs transition-colors cursor-pointer border border-dashed border-gray-300 dark:border-slate-700 group shrink-0"
-                              title="Capture photo via Phone"
-                            >
-                              <Camera className="w-4 h-4 text-gray-400 group-hover:text-blue-500" />
-                            </button>
+                            <div className="w-9 h-9 bg-gray-100 dark:bg-slate-800 rounded flex items-center justify-center text-xs text-gray-400 shrink-0">No Img</div>
                           )}
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <p className="font-bold text-sm text-gray-900 dark:text-gray-250">{r.product.name}</p>
-                              {r.matchType && (
-                                <span className={`px-1.5 py-0.5 text-[9px] font-extrabold uppercase rounded tracking-wider border ${
-                                  r.matchConfidence === 'high'
-                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-500 border-emerald-500/20'
-                                    : r.matchConfidence === 'medium'
-                                      ? 'bg-blue-500/10 text-blue-650 dark:text-blue-500 border-blue-500/20'
-                                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20'
-                                }`}>
-                                  {r.matchType} ({r.matchConfidence})
-                                </span>
-                              )}
+                              <span className="px-2 py-0.5 text-[9px] font-extrabold uppercase rounded tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                {r.matchType} ({r.matchScore}%)
+                              </span>
                             </div>
                             <p className="text-xs text-gray-500 dark:text-gray-400">Unit: {r.product.unit} | Brand: {r.product.brand || 'Ozo Choice'}</p>
                           </div>
                         </div>
-                      ) : r.name && r.name.trim() !== '' ? (
-                        <div className="flex items-center gap-3">
-                          {r.image_url ? (
-                            <div className="relative group w-8 h-8 shrink-0">
-                              <img src={r.image_url} alt={r.name} className="w-8 h-8 object-contain rounded p-0.5 bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-white/5" />
-                              <button
-                                onClick={() => setPhotoModalData(r)}
-                                className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center rounded transition-opacity cursor-pointer"
-                                title="Change photo via Phone"
-                              >
-                                <Camera className="w-3.5 h-3.5 text-white" />
-                              </button>
-                            </div>
-                          ) : (
-                            <button
-                              onClick={() => setPhotoModalData(r)}
-                              className="w-8 h-8 bg-blue-500/5 hover:bg-blue-500/15 rounded flex items-center justify-center text-xs transition-colors cursor-pointer border border-dashed border-blue-500/25 group shrink-0"
-                              title="Capture photo via Phone"
-                            >
-                              <Camera className="w-4 h-4 text-blue-400 group-hover:text-blue-500" />
-                            </button>
-                          )}
-                          <div>
-                            <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.name}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-555 flex items-center gap-1.5 flex-wrap">
-                              <span>Unit: {r.unit || '1 unit'} | Brand: {r.brand || 'Ozo Choice'}</span>
-                              {r.image_url && (
-                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-blue-600/10 text-blue-600 dark:text-blue-500 text-[9px] font-black uppercase tracking-wider border border-blue-500/20">
-                                  ✓ Photo Attached
+                      ) : r.status === 'review' ? (
+                        <div className="flex flex-col gap-2 p-2 bg-amber-500/5 dark:bg-amber-500/10 border border-amber-500/20 rounded-xl">
+                          <div className="flex items-center gap-3">
+                            {r.product.image_url ? (
+                              <img src={r.product.image_url} alt={r.product.name} className="w-9 h-9 object-contain rounded p-0.5 bg-white dark:bg-slate-800 border shrink-0" />
+                            ) : (
+                              <div className="w-9 h-9 bg-gray-100 dark:bg-slate-800 rounded flex items-center justify-center text-xs text-gray-400 shrink-0">No Img</div>
+                            )}
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between gap-2">
+                                <p className="font-bold text-sm text-gray-900 dark:text-gray-200">{r.product.name}</p>
+                                <span className="px-2 py-0.5 text-[10px] font-black rounded-lg bg-amber-500 text-white shadow-sm shrink-0">
+                                  Score: {r.matchScore}%
                                 </span>
-                              )}
-                            </p>
+                              </div>
+                              <p className="text-xs text-gray-500">Unit: {r.product.unit} | Brand: {r.product.brand || 'Ozo Choice'} | MRP: ₹{r.product.mrp || r.product.price}</p>
+                            </div>
                           </div>
+
+                          {/* Score Signal Breakdown */}
+                          {r.scoreBreakdown && (
+                            <div className="flex items-center gap-2 text-[10px] font-mono text-gray-600 dark:text-gray-400 pt-1 border-t border-amber-500/15 flex-wrap">
+                              <span className="font-sans font-bold text-amber-700 dark:text-amber-400">Signals:</span>
+                              <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-800">Name: {Math.round((r.scoreBreakdown.name_sim || 0) * 100)}%</span>
+                              <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-800">Tokens: {Math.round((r.scoreBreakdown.token_overlap || 0) * 100)}%</span>
+                              <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-800">Unit: {Math.round((r.scoreBreakdown.unit_match || 0) * 100)}%</span>
+                              {r.scoreBreakdown.brand_match !== null && (
+                                <span className="px-1.5 py-0.5 rounded bg-gray-100 dark:bg-slate-800">Brand: {Math.round((r.scoreBreakdown.brand_match || 0) * 100)}%</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      ) : r.name && r.name.trim() !== '' ? (
+                        <div className="flex items-center gap-2 text-gray-500">
+                          <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full dark:text-indigo-400 dark:bg-indigo-950/20 dark:border-indigo-800/30">
+                            Will create new local product
+                          </span>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-0.5">
-                          <div className="flex items-center gap-2 text-amber-500 font-semibold text-sm">
-                            <Info className="w-4 h-4" />
-                            <span>No catalog match found</span>
-                          </div>
-                          <span className="text-[10px] text-gray-550 dark:text-gray-500 leading-normal">
-                            Map the <strong className="text-blue-500">Product Name</strong> column to auto-create this product.
-                          </span>
+                        <div className="flex items-center gap-2 text-amber-500 font-semibold text-sm">
+                          <Info className="w-4 h-4" />
+                          <span>No catalog match found</span>
                         </div>
                       )}
                     </td>
 
-                    <td className="p-4 text-sm font-extrabold font-mono text-gray-800 dark:text-gray-300">{r.stock_quantity}</td>
+                    {/* Stock & Price */}
                     <td className="p-4 text-sm">
-                      {r.mart_price !== null ? (
-                        <div className="flex flex-col">
-                          <span className="font-extrabold font-mono text-blue-600 dark:text-blue-500">₹{parseFloat(r.mart_price).toFixed(2)}</span>
-                          {r.product && (
-                            <span className="text-[10px] text-gray-500 line-through">Catalog: ₹{parseFloat(r.product.price).toFixed(2)}</span>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-gray-500 text-xs italic font-medium">Inherit Catalog {r.product ? `(₹${parseFloat(r.product.price).toFixed(2)})` : ''}</span>
-                      )}
+                      <div className="flex flex-col">
+                        <span className="font-extrabold font-mono text-gray-800 dark:text-gray-300">Qty: {r.stock_quantity}</span>
+                        {r.mart_price !== null ? (
+                          <span className="font-bold text-xs text-blue-600 dark:text-blue-400">Price: ₹{parseFloat(r.mart_price).toFixed(2)}</span>
+                        ) : (
+                          <span className="text-gray-400 text-xs italic">Catalog Price</span>
+                        )}
+                      </div>
                     </td>
+
+                    {/* Action / Status */}
                     <td className="p-4">
                       {r.status === 'matched' ? (
-                        <div className="flex flex-col gap-1.5">
-                          <span className={`px-2.5 py-1 text-[10px] font-bold rounded-full border text-center w-max ${
-                            r.matchConfidence === 'high'
-                              ? 'text-emerald-600 bg-emerald-50 border-emerald-250 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-800/30'
-                              : r.matchConfidence === 'medium'
-                                ? 'text-blue-650 bg-blue-50 border-blue-200 dark:text-blue-400 dark:bg-blue-950/20 dark:border-blue-800/30'
-                                : 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950/20 dark:border-amber-800/30'
-                          }`}>
-                            {r.matchConfidence === 'high' 
-                              ? 'Ready' 
-                              : r.matchConfidence === 'medium'
-                                ? 'Fuzzy Ready'
-                                : 'Verify'}
-                          </span>
+                        <span className="px-2.5 py-1 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-250 dark:text-emerald-400 dark:bg-emerald-950/20 dark:border-emerald-800/30 rounded-full inline-flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Auto-Accepted
+                        </span>
+                      ) : r.status === 'review' ? (
+                        <div className="flex items-center gap-2">
                           <button
-                            onClick={() => setPhotoModalData(r)}
-                            className="text-[10px] text-gray-550 hover:text-blue-600 font-bold text-left underline cursor-pointer"
+                            onClick={() => handleConfirmLink(r)}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl transition-all flex items-center gap-1 cursor-pointer shadow-sm"
                           >
-                            Override Match
+                            <Check className="w-3.5 h-3.5" /> Accept
                           </button>
-                        </div>
-                      ) : r.name && r.name.trim() !== '' ? (
-                        <div className="flex flex-col gap-1.5">
-                          <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200 rounded-full dark:text-indigo-400 dark:bg-indigo-950/20 dark:border-indigo-800/30 text-center w-max">
-                            New Product
-                          </span>
                           <button
-                            onClick={() => setPhotoModalData(r)}
-                            className="text-[10px] text-blue-500 hover:underline font-bold text-left cursor-pointer"
+                            onClick={() => handleSkipReview(r)}
+                            className="px-2.5 py-1.5 bg-gray-200 dark:bg-slate-800 hover:bg-gray-300 text-gray-700 dark:text-gray-300 font-bold text-xs rounded-xl transition-all cursor-pointer"
                           >
-                            Enrich details
+                            Skip
                           </button>
                         </div>
                       ) : (
-                        <div className="flex flex-col gap-0.5">
-                          <span className="px-2.5 py-1 text-[10px] font-bold text-amber-500 bg-amber-500/10 border border-amber-500/20 rounded-full text-center w-max">
-                            Skipped
-                          </span>
-                          <span className="text-[10px] text-gray-500 dark:text-gray-500 italic">No Name Column</span>
-                        </div>
+                        <span className="px-2.5 py-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-full">
+                          Unmatched
+                        </span>
                       )}
                     </td>
                   </tr>
