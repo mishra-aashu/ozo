@@ -589,6 +589,11 @@ export default function BulkImportWizard({
         return
       }
 
+      const martIdToUse = currentMart?.id
+      if (!martIdToUse) {
+        toast('Active Mart ID context missing. Confirmed links Stage 0 will be skipped.', { icon: '⚠️' })
+      }
+
       // Map rows for server-side matching with full metadata
       const payload = mappedRows.map(r => ({
         barcode: r.identifier,
@@ -596,11 +601,15 @@ export default function BulkImportWizard({
         brand: r.brand,
         unit: r.unit,
         price: r.mart_price,
-        mart_id: currentMart?.id
+        mart_id: martIdToUse || null
       }))
 
       // Call our Postgres function
       const matchResponse = await matchProductsForImport(payload)
+
+      if (matchResponse.batchErrors && matchResponse.batchErrors.length > 0) {
+        toast.error(`Processed import with ${matchResponse.batchErrors.length} batch warning(s). Failed rows were moved to Unmatched.`)
+      }
 
       const resolved = []
       let itemIdx = 1
@@ -1585,9 +1594,18 @@ export default function BulkImportWizard({
                           </button>
                         </div>
                       ) : (
-                        <span className="px-2.5 py-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-full">
-                          Unmatched
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setPhotoModalData(r)}
+                            className="px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/40 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 rounded-lg transition-all flex items-center gap-1 cursor-pointer shadow-xs"
+                            title="Register product or add catalog photos"
+                          >
+                            <Sparkles className="w-3 h-3" /> Enrich
+                          </button>
+                          <span className="px-2 py-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 rounded-full">
+                            Unmatched
+                          </span>
+                        </div>
                       )}
                     </td>
                   </tr>

@@ -23,24 +23,32 @@ export async function matchProductsForImport(rows) {
     return data
   }
 
-  // Batching for large CSVs
+  // Batching for large CSVs with partial failure isolation
   let allMatched = []
   let allReview = []
   let allUnmatched = []
+  const batchErrors = []
 
   for (let i = 0; i < rows.length; i += BATCH_SIZE) {
     const batch = rows.slice(i, i + BATCH_SIZE)
-    const { data, error } = await supabase.rpc('match_products_for_import', {
-      import_data: batch
-    })
-    if (error) {
-      console.error(`[RPC match_products_for_import] Batch ${i} failed:`, error)
-      throw error
-    }
-    if (data) {
-      if (data.matched) allMatched.push(...data.matched)
-      if (data.review) allReview.push(...data.review)
-      if (data.unmatched) allUnmatched.push(...data.unmatched)
+    try {
+      const { data, error } = await supabase.rpc('match_products_for_import', {
+        import_data: batch
+      })
+      if (error) {
+        console.error(`[RPC match_products_for_import] Batch chunk ${i / BATCH_SIZE + 1} error:`, error)
+        batchErrors.push({ batchIndex: i, error: error.message || error })
+        // On batch error, preserve batch rows as unmatched so import can continue
+        allUnmatched.push(...batch)
+      } else if (data) {
+        if (data.matched) allMatched.push(...data.matched)
+        if (data.review) allReview.push(...data.review)
+        if (data.unmatched) allUnmatched.push(...data.unmatched)
+      }
+    } catch (err) {
+      console.error(`[RPC match_products_for_import] Batch chunk ${i / BATCH_SIZE + 1} unexpected exception:`, err)
+      batchErrors.push({ batchIndex: i, error: err.message })
+      allUnmatched.push(...batch)
     }
   }
 
@@ -48,7 +56,8 @@ export async function matchProductsForImport(rows) {
     matched: allMatched,
     review: allReview,
     unmatched: allUnmatched,
-    total: rows.length
+    total: rows.length,
+    batchErrors: batchErrors.length > 0 ? batchErrors : null
   }
 }
 
