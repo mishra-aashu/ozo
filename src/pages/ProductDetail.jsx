@@ -1116,28 +1116,52 @@ const ProductDetail = () => {
               )}
 
 
-              {/* Price Section */}
-              <div className="bg-white dark:bg-[#111111] p-4 sm:p-6 lg:p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-premium mb-8">
-                <div className="flex items-end gap-4 mb-1">
-                  <span className="text-4xl font-black text-gray-900 dark:text-white">
-                    {currentProduct?.price 
-                      ? `₹${currentProduct.price * (cartQuantity > 0 ? cartQuantity : quantity)}` 
-                      : 'Price on Request'}
-                  </span>
-                  {currentProduct?.price && currentProduct?.mrp && currentProduct.mrp > currentProduct.price && (
-                    <span className="text-xl text-ozo-gray line-through mb-1">
-                      ₹{(currentProduct?.mrp || 0) * (cartQuantity > 0 ? cartQuantity : quantity)}
+              {/* Price & Action Section */}
+              <div className="bg-white dark:bg-[#111111] p-5 sm:p-6 lg:p-8 rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-premium mb-8 relative overflow-hidden">
+                {/* Active Cart Status Banner if item is in cart */}
+                {cartQuantity > 0 && (
+                  <div className="mb-4 flex items-center justify-between px-4 py-2.5 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/15 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400">
+                    <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider">
+                      <Check size={16} className="stroke-[3px]" />
+                      <span>{cartQuantity} {cartQuantity === 1 ? 'item' : 'items'} in your Basket</span>
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest bg-emerald-500 text-white px-2.5 py-0.5 rounded-full shadow-sm">
+                      Active in Cart
                     </span>
-                  )}
+                  </div>
+                )}
+
+                <div className="flex items-baseline justify-between gap-4 mb-2">
+                  <div className="flex items-baseline gap-3 flex-wrap">
+                    <span className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
+                      {currentProduct?.price 
+                        ? `₹${currentProduct.price * (cartQuantity > 0 ? cartQuantity : quantity)}` 
+                        : 'Price on Request'}
+                    </span>
+                    {currentProduct?.price && currentProduct?.mrp && currentProduct.mrp > currentProduct.price && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg sm:text-xl text-ozo-gray line-through font-bold">
+                          ₹{(currentProduct?.mrp || 0) * (cartQuantity > 0 ? cartQuantity : quantity)}
+                        </span>
+                        {discountPercentage > 0 && (
+                          <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-lg border border-emerald-500/20">
+                            {discountPercentage}% OFF
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
+
                 {currentProduct?.unit && (
-                  <p className="text-sm font-extrabold text-ozo-gray dark:text-gray-400 mt-1 mb-2">
-                    Net Qty: {currentProduct.unit}
+                  <p className="text-xs sm:text-sm font-extrabold text-gray-500 dark:text-gray-400 mb-1">
+                    Net Quantity: {currentProduct.unit}
                   </p>
                 )}
-                <p className="text-xs text-ozo-gray mb-6">Inclusive of all taxes</p>
+                <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-6 font-semibold">Inclusive of all taxes</p>
 
-                <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 w-full">
+                {/* Main Action Bar */}
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
                   {isOutOfStock ? (
                     <div className="w-full flex flex-col gap-2">
                       {isUpcoming ? (
@@ -1176,49 +1200,71 @@ const ProductDetail = () => {
                       )}
                     </div>
                   ) : (
-                    <>
-                      <div className="flex items-center bg-gray-50 dark:bg-white/5 rounded-2xl p-1 border border-gray-100 dark:border-white/10 flex-shrink-0">
+                    <div className="flex items-center gap-3 w-full">
+                      {/* Quantity Stepper */}
+                      <div className={`flex items-center justify-between rounded-2xl p-1.5 border transition-all duration-300 shrink-0 ${
+                        cartQuantity > 0 
+                          ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm' 
+                          : 'bg-gray-50 dark:bg-[#1a1a20] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white'
+                      }`}>
                         <button 
                           onClick={handleDecrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
+                            cartQuantity > 0 
+                              ? 'hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                              : 'hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-200'
+                          }`}
+                          aria-label="Decrease quantity"
                         >
-                          <Minus size={18} className="sm:w-5 sm:h-5 w-4.5 h-4.5 stroke-[3px]" />
+                          <Minus size={20} className="stroke-[3px]" />
                         </button>
-                        <span className="w-8 sm:w-10 text-center font-black text-lg sm:text-xl">
+
+                        <span className="w-9 sm:w-11 text-center font-black text-lg sm:text-xl select-none">
                           {cartQuantity > 0 ? cartQuantity : quantity}
                         </span>
+
                         <button 
                           onClick={handleIncrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className="w-10 h-10 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl hover:bg-white dark:hover:bg-white/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                          className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
+                            cartQuantity > 0 
+                              ? 'hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
+                              : 'hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-200'
+                          }`}
+                          aria-label="Increase quantity"
                         >
-                          <Plus size={18} className="sm:w-5 sm:h-5 w-4.5 h-4.5 stroke-[3px]" />
+                          <Plus size={20} className="stroke-[3px]" />
                         </button>
                       </div>
-                      
+
+                      {/* Primary Action Button */}
                       <button 
                         onClick={cartQuantity > 0 ? () => navigate('/cart') : handleAddToCart}
                         disabled={!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)}
-                        className={`flex-1 min-w-[140px] sm:min-w-[150px] h-14 bg-gradient-ozo text-white rounded-2xl font-black text-sm lg:text-base xl:text-lg shadow-ozo hover:shadow-ozo-lg transition-all active:scale-95 flex items-center justify-center gap-2 px-3 sm:px-4 lg:px-6 ${
-                          (!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)) ? 'opacity-50 cursor-not-allowed' : ''
+                        className={`flex-1 h-14 sm:h-14 rounded-2xl font-black text-sm sm:text-base lg:text-lg tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2.5 px-4 sm:px-6 shadow-lg ${
+                          !currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)
+                            ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-white/10 text-gray-400'
+                            : cartQuantity > 0
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-600/25 hover:shadow-emerald-600/40'
+                              : 'bg-gradient-ozo text-white shadow-ozo hover:shadow-ozo-lg'
                         }`}
                       >
                         {!currentProduct?.price ? (
                           <span className="whitespace-nowrap">Price on Request</span>
                         ) : cartQuantity > 0 ? (
                           <>
-                            <span className="whitespace-nowrap">View in Cart</span>
-                            <ArrowRight size={20} className="flex-shrink-0" />
+                            <span className="whitespace-nowrap uppercase tracking-wider">View in Basket</span>
+                            <ArrowRight size={22} className="stroke-[2.5px] flex-shrink-0" />
                           </>
                         ) : (
                           <>
-                            <span className="whitespace-nowrap">Add to Basket</span>
-                            <ShoppingCart size={20} className="flex-shrink-0" />
+                            <span className="whitespace-nowrap uppercase tracking-wider">Add to Basket</span>
+                            <ShoppingCart size={22} className="stroke-[2.5px] flex-shrink-0" />
                           </>
                         )}
                       </button>
-                    </>
+                    </div>
                   )}
                 </div>
               </div>
