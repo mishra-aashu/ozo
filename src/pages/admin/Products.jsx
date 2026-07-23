@@ -1431,34 +1431,40 @@ WHERE id = '${editingProduct.id}';`
 
           <div className="flex flex-wrap gap-2 w-full lg:w-auto">
             {/* Category Filter */}
-            <select
-              value={selectedCategory}
-              onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
-              className="flex-1 lg:flex-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm text-gray-750 dark:text-gray-300 focus:outline-none focus:border-ozo-red cursor-pointer"
-            >
-              <option value="all">All Categories</option>
-              {getGroupedCategories().map((group) => (
-                <optgroup key={group.id} label={group.name} className="bg-white dark:bg-[#1c1c24] font-bold text-gray-900 dark:text-white">
-                  <option value={group.id} className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">{group.name} (All)</option>
-                  {group.children.map((child) => (
-                    <option key={child.id} value={child.id} className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">
-                      {child.name}
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-              {categories.length === 0 && FALLBACK_CATEGORIES.map((cat) => (<option key={cat.slug} value={cat.slug}>{cat.name}</option>))}
-            </select>
+            <div className="relative flex-1 lg:flex-none">
+              <select
+                value={selectedCategory}
+                onChange={(e) => { setSelectedCategory(e.target.value); setCurrentPage(1); }}
+                className="w-full pl-3.5 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm font-medium text-gray-800 dark:text-gray-200 focus:outline-none focus:border-ozo-red focus:ring-2 focus:ring-ozo-red/20 cursor-pointer appearance-none transition-all shadow-sm hover:border-gray-300 dark:hover:border-white/20"
+              >
+                <option value="all" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">All Categories</option>
+                {getGroupedCategories().map((group) => (
+                  <optgroup key={group.id} label={group.name} className="bg-white dark:bg-[#1c1c24] font-bold text-gray-900 dark:text-white">
+                    <option value={group.id} className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">{group.name} (All)</option>
+                    {group.children.map((child) => (
+                      <option key={child.id} value={child.id} className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">
+                        {child.name}
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+                {categories.length === 0 && FALLBACK_CATEGORIES.map((cat) => (<option key={cat.slug} value={cat.slug} className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">{cat.name}</option>))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
 
             {/* Mart Filter */}
-            <select
-              value={selectedMart}
-              onChange={(e) => { setSelectedMart(e.target.value); setCurrentPage(1); }}
-              className="flex-1 lg:flex-none pl-3 pr-8 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm text-gray-750 dark:text-gray-300 focus:outline-none focus:border-ozo-red cursor-pointer"
-            >
-              <option value="all">All Marts (Dukan)</option>
-              {marts.map((m) => (<option key={m.id} value={m.id}>{m.name}</option>))}
-            </select>
+            <div className="relative flex-1 lg:flex-none">
+              <select
+                value={selectedMart}
+                onChange={(e) => { setSelectedMart(e.target.value); setCurrentPage(1); }}
+                className="w-full pl-3.5 pr-9 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm font-medium text-gray-800 dark:text-gray-200 focus:outline-none focus:border-ozo-red focus:ring-2 focus:ring-ozo-red/20 cursor-pointer appearance-none transition-all shadow-sm hover:border-gray-300 dark:hover:border-white/20"
+              >
+                <option value="all" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">All Marts (Dukan)</option>
+                {marts.map((m) => (<option key={m.id} value={m.id} className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">{m.name}</option>))}
+              </select>
+              <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+            </div>
 
             {/* Advanced Filters Toggle */}
             <button
@@ -1515,17 +1521,20 @@ WHERE id = '${editingProduct.id}';`
             {/* Sort By */}
             <div className="flex flex-col gap-1">
               <label className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Sort By</label>
-              <select
-                value={sortBy}
-                onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
-                className="pl-3 pr-8 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:border-ozo-red cursor-pointer"
-              >
-                <option value="newest">Newest First</option>
-                <option value="oldest">Oldest First</option>
-                <option value="price-asc">Price: Low → High</option>
-                <option value="price-desc">Price: High → Low</option>
-                <option value="name-asc">Name: A → Z</option>
-              </select>
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => { setSortBy(e.target.value); setCurrentPage(1); }}
+                  className="w-full pl-3.5 pr-9 py-2 rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm font-medium text-gray-700 dark:text-gray-300 focus:outline-none focus:border-ozo-red focus:ring-2 focus:ring-ozo-red/20 cursor-pointer appearance-none transition-all hover:border-gray-300 dark:hover:border-white/20"
+                >
+                  <option value="newest" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Newest First</option>
+                  <option value="oldest" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Oldest First</option>
+                  <option value="price-asc" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Price: Low → High</option>
+                  <option value="price-desc" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Price: High → Low</option>
+                  <option value="name-asc" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Name: A → Z</option>
+                </select>
+                <ChevronDown className="w-4 h-4 text-gray-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
+              </div>
             </div>
 
             {/* Price Range */}
