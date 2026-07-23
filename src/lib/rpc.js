@@ -2,11 +2,6 @@ import { supabase } from './supabase'
 
 /**
  * Match CSV rows against the product catalog via server-side Postgres function.
- * @param {Array} rows - Array of objects with barcode and name strings
- * @returns {Promise<{matched: Array, unmatched: Array, total: number}>}
- */
-/**
- * Match CSV rows against the product catalog via server-side Postgres function.
  * Batches requests in chunks of 100 rows if necessary.
  * @param {Array} rows - Array of objects with barcode, name, brand, unit, price, mart_id
  * @returns {Promise<{matched: Array, review: Array, unmatched: Array, total: number}>}
