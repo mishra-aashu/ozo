@@ -250,6 +250,29 @@ const waitForLeaderTabRefresh = (timeoutMs = 8000) => {
   })
 }
 
+// Helper to execute refreshSession with a strict 4.5-second timeout limit
+// Guarantees no hung socket or frozen fetch can ever stall past the 7.0s lock staleness threshold
+const refreshSessionWithTimeout = async (timeoutMs = 4500) => {
+  let timer = null
+  const timeoutPromise = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      const err = new Error('Refresh network request timeout (4500ms exceeded)')
+      err.name = 'TimeoutError'
+      reject(err)
+    }, timeoutMs)
+  })
+
+  try {
+    const result = await Promise.race([
+      supabase.auth.refreshSession(),
+      timeoutPromise
+    ])
+    return result
+  } finally {
+    if (timer) clearTimeout(timer)
+  }
+}
+
 const refreshSessionDeduplicated = async () => {
   if (globalRefreshPromise) {
     return globalRefreshPromise
@@ -293,7 +316,7 @@ const refreshSessionDeduplicated = async () => {
             localStorage.setItem('ozo_refresh_lock_ts', Date.now().toString())
           }
 
-          const result = await supabase.auth.refreshSession()
+          const result = await refreshSessionWithTimeout(4500)
           
           if (!result.error && result.data?.session) {
             if (typeof window !== 'undefined') {
