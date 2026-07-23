@@ -294,10 +294,17 @@ export const useAuthStore = create(
                   activeProfilePollInterval = null
                 }
                 let retries = 0
+                const MAX_POLL_RETRIES = 15 // Cap at 15 retries (60s max)
                 activeProfilePollInterval = setInterval(async () => {
                   retries++
                   const currentProf = get().profile
-                  if (retries > 6 || !get().isAuthenticated || (currentProf && !currentProf.isFallback)) {
+                  if (!get().isAuthenticated || (currentProf && !currentProf.isFallback)) {
+                    clearInterval(activeProfilePollInterval)
+                    activeProfilePollInterval = null
+                    return
+                  }
+                  if (retries >= MAX_POLL_RETRIES) {
+                    console.warn('[OZO Auth] Profile polling max retries reached. Keeping fallback profile.')
                     clearInterval(activeProfilePollInterval)
                     activeProfilePollInterval = null
                     return
@@ -434,6 +441,18 @@ export const useAuthStore = create(
                 // Reset the in-progress guard so the next sign-in works correctly
                 profileFetchInProgress = false
 
+                // Explicit cleanup of background intervals on signout to prevent zombie loops
+                if (typeof window !== 'undefined') {
+                  if (window._ozoReconnectInterval) {
+                    clearInterval(window._ozoReconnectInterval)
+                    window._ozoReconnectInterval = null
+                  }
+                }
+                if (activeProfilePollInterval) {
+                  clearInterval(activeProfilePollInterval)
+                  activeProfilePollInterval = null
+                }
+
                 // Clear user mapping in OneSignal
                 oneSignalLogout()
 
@@ -449,6 +468,7 @@ export const useAuthStore = create(
                   console.warn('Failed to clear location on SIGNED_OUT:', err)
                 }
                 localStorage.removeItem('ozo-auth-token')
+                localStorage.removeItem('ozo_refresh_lock_ts')
               } else if (event === 'TOKEN_REFRESHED' && session?.user) {
                 // Proactively push fresh session to supabaseAdmin
                 try {
