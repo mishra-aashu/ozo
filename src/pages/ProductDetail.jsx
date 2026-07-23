@@ -877,49 +877,49 @@ const ProductDetail = () => {
       </div>
 
       <div className="container-custom pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-16 xl:gap-20">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-6 lg:gap-12 xl:gap-16 items-start">
           {/* Left: Product Image */}
-          <div className="md:col-span-7 lg:col-span-6 xl:col-span-7">
+          <div className="md:col-span-5 lg:col-span-5 xl:col-span-5 max-w-lg mx-auto md:max-w-none w-full">
              <motion.div 
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
-               className="relative rounded-[3rem] overflow-hidden bg-white dark:bg-[#111111] border border-gray-100 dark:border-white/5 shadow-premium group"
+               className="relative rounded-[2.5rem] overflow-hidden bg-white dark:bg-[#111111] border border-gray-150 dark:border-white/10 shadow-premium group"
              >
                 {/* Badges */}
-                <div className="absolute top-6 left-6 z-10 flex flex-col gap-3">
+                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                    {discountPercentage > 0 && (
-                     <span className="bg-ozo-red text-white text-xs font-black px-4 py-2 rounded-2xl shadow-xl backdrop-blur-md">
+                     <span className="bg-ozo-red text-white text-[11px] font-black px-3 py-1.5 rounded-xl shadow-lg backdrop-blur-md">
                        {discountPercentage}% SAVINGS
                      </span>
                    )}
                    {currentProduct?.is_featured && (
-                     <span className="bg-ozo-green text-white text-xs font-black px-4 py-2 rounded-2xl shadow-xl backdrop-blur-md flex items-center gap-2">
-                       <Zap size={14} className="fill-white" />
+                     <span className="bg-ozo-green text-white text-[11px] font-black px-3 py-1.5 rounded-xl shadow-lg backdrop-blur-md flex items-center gap-1.5">
+                       <Zap size={13} className="fill-white" />
                        FEATURED
                      </span>
                    )}
                 </div>
 
                  {/* Actions */}
-                 <div className="absolute top-6 right-6 z-10 flex flex-col gap-3">
+                 <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
                     <button 
                      onClick={handleToggleWishlist}
-                     className={`w-12 h-12 rounded-full flex items-center justify-center shadow-xl transition-all active:scale-90 ${
-                       isFavorite ? 'bg-ozo-red text-white' : 'bg-white/80 dark:bg-black/40 backdrop-blur-md text-gray-400 hover:text-ozo-red'
+                     className={`w-10 h-10 rounded-full flex items-center justify-center shadow-lg transition-all active:scale-90 ${
+                       isFavorite ? 'bg-ozo-red text-white' : 'bg-white/90 dark:bg-black/60 backdrop-blur-md text-gray-400 hover:text-ozo-red'
                      }`}
                     >
-                      <Heart size={24} className={isFavorite ? 'fill-white' : ''} />
+                      <Heart size={20} className={isFavorite ? 'fill-white' : ''} />
                     </button>
                     <button 
                        onClick={handleShare}
-                       className="w-12 h-12 rounded-full bg-white/80 dark:bg-black/40 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-ozo-red shadow-xl transition-all active:scale-90"
+                       className="w-10 h-10 rounded-full bg-white/90 dark:bg-black/60 backdrop-blur-md flex items-center justify-center text-gray-400 hover:text-ozo-red shadow-lg transition-all active:scale-90"
                      >
-                       <Share2 size={24} />
+                       <Share2 size={20} />
                      </button>
                  </div>
 
-                 <div className={`w-full aspect-square flex items-center justify-center p-4 sm:p-5 md:p-6 lg:p-8 relative transition-colors duration-300 ${
-                    (!imageBgColor || (isDark && imageBgColor !== '#ffffff')) ? 'bg-gray-50 dark:bg-[#181818]' : ''
+                 <div className={`w-full aspect-[4/3.8] max-h-[440px] flex items-center justify-center p-6 sm:p-8 md:p-10 relative transition-colors duration-300 ${
+                    (!imageBgColor || (isDark && imageBgColor !== '#ffffff')) ? 'bg-gray-50/80 dark:bg-[#181818]' : ''
                   }`}
                   style={{ 
                     backgroundColor: imageBgColor === '#ffffff' 
@@ -928,20 +928,20 @@ const ProductDetail = () => {
                   }}>
                     <button 
                       onClick={() => setIsImageModalOpen(true)}
-                      className="w-full h-full block cursor-zoom-in focus:outline-none"
+                      className="w-full h-full flex items-center justify-center cursor-zoom-in focus:outline-none"
                     >
                       <OptimizedImage 
                         src={activeImage || currentProduct?.image_url} 
                         slug={(!activeImage || activeImage === currentProduct?.image_url) ? currentProduct?.slug : undefined}
                         alt={currentProduct?.name}
-                        width={600}
+                        width={500}
                         quality={85}
                         loading="eager"
                         fetchPriority="high"
-                        className={`w-full h-full object-contain transition-transform duration-700 group-hover:scale-105 ${
+                        className={`max-h-[300px] sm:max-h-[360px] w-auto h-auto max-w-full object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-sm ${
                           isOutOfStock ? 'grayscale opacity-50 contrast-75' : ''
                         }`}
-                        containerClassName="w-full h-full"
+                        containerClassName="w-full h-full flex items-center justify-center"
                          onLoad={handleImageLoad}
                          style={{ mixBlendMode: (isDark && imageBgColor === '#ffffff') ? 'multiply' : undefined }}
                       />
@@ -966,7 +966,7 @@ const ProductDetail = () => {
                   </div>
 
                 {/* Zoom Indicator */}
-                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 bg-black/20 backdrop-blur-md rounded-full text-white/70 text-[10px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/30 backdrop-blur-md rounded-full text-white/80 text-[9px] font-black uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   Click to view full image
                 </div>
              </motion.div>
@@ -974,7 +974,7 @@ const ProductDetail = () => {
              {/* Thumbnail gallery */}
              {Array.isArray(currentProduct?.images) && 
               currentProduct.images.filter(img => img && !img.includes('raw.githubusercontent.com') && !img.includes('logo_transparent.png')).length > 0 && (
-               <div className="flex gap-4 mt-6 justify-center flex-wrap">
+               <div className="flex gap-3 mt-4 justify-center flex-wrap">
                  {currentProduct.images
                    .filter(img => img && !img.includes('raw.githubusercontent.com') && !img.includes('logo_transparent.png'))
                    .map((imgUrl, index) => (
@@ -984,16 +984,16 @@ const ProductDetail = () => {
                           setActiveImage(imgUrl)
                           setImageBgColor(null)
                         }}
-                       className={`w-20 h-20 rounded-2xl overflow-hidden border-2 bg-white dark:bg-[#111111] p-2 flex items-center justify-center transition-all ${
+                       className={`w-16 h-16 rounded-xl overflow-hidden border-2 bg-white dark:bg-[#111111] p-1.5 flex items-center justify-center transition-all ${
                          (activeImage || currentProduct?.image_url) === imgUrl
-                           ? 'border-ozo-red shadow-lg scale-105'
+                           ? 'border-ozo-red shadow-md scale-105'
                            : 'border-transparent opacity-70 hover:opacity-100'
                        }`}
                      >
                         <OptimizedImage
                           src={imgUrl}
                           alt={`${currentProduct?.name} - View ${index + 1}`}
-                          width={150}
+                          width={120}
                           className="w-full h-full object-contain"
                           containerClassName="w-full h-full"
                         />
@@ -1004,7 +1004,7 @@ const ProductDetail = () => {
           </div>
 
           {/* Right: Product Info */}
-          <div className="md:col-span-5 lg:col-span-6 xl:col-span-5 flex flex-col">
+          <div className="md:col-span-7 lg:col-span-7 xl:col-span-7 flex flex-col">
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-4 flex-wrap">
                 <span className="px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red text-[10px] font-black uppercase tracking-widest rounded-lg border border-ozo-red/10">
