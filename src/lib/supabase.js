@@ -120,6 +120,26 @@ async function decryptText(hex, secret) {
   return new TextDecoder().decode(decrypted)
 }
 
+// Helper to check if JWT access token is expired or close to expiring (<30s left)
+const isJwtExpired = (token, skewSeconds = 30) => {
+  if (!token) return true
+  try {
+    const parts = token.split('.')
+    if (parts.length < 2) return true
+    let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const pad = base64.length % 4
+    if (pad) base64 += '='.repeat(4 - pad)
+    const decoded = typeof window !== 'undefined'
+      ? window.atob(base64)
+      : Buffer.from(base64, 'base64').toString('binary')
+    const payload = JSON.parse(decoded)
+    if (!payload.exp) return false
+    return (payload.exp * 1000) - Date.now() < (skewSeconds * 1000)
+  } catch (e) {
+    return false
+  }
+}
+
 // ─── HARDENED STRUCTURED ERROR CLASSIFIER ─────────────────────────────────
 const isTerminalAuthError = (error, responseBody) => {
   if (!error && !responseBody) return false
@@ -395,23 +415,7 @@ const refreshSessionDeduplicated = async () => {
 const customFetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url
   const isProxyRequest = supabaseUrl && url.startsWith(supabaseUrl)
-
-  // ─── AUTH BYPASS ───────────────────────────────────────────────────────────
-  // Auth endpoints (PKCE token exchange, session refresh, OAuth) must NOT be
-  // encrypted or proxied — they need to go directly to Supabase so the PKCE
-  // code exchange works correctly. Encrypting these requests breaks the OAuth
-  // flow because the proxy's encrypt/decrypt round-trip interferes with the
-  // exact binary payload that GoTrue expects.
   const isAuthRequest = url.includes('/auth/v1/')
-  if (isAuthRequest && isProxyRequest && supabaseDirectUrl) {
-    // Rewrite the proxy URL to the direct Supabase URL for auth requests
-    const directUrl = url.replace(supabaseUrl, supabaseDirectUrl)
-    const newRequest = input instanceof Request
-      ? new Request(directUrl, init)
-      : directUrl
-    return fetch(newRequest, input instanceof Request ? undefined : init)
-  }
-  // ──────────────────────────────────────────────────────────────────────────
 
   let newInit = { ...init }
 
@@ -434,16 +438,29 @@ const customFetch = async (input, init) => {
     newHeaders['x-admin-token'] = adminToken
   }
 
-  // If request is from admin client or lacks auth token while a valid session exists in main client, inject token
+  // ─── SMART TOKEN INJECTION & EXPIRY PRE-CHECK ────────────────────────────
+  // Check token freshness before attaching Authorization header to prevent
+  // PostgREST 401 JWT expired errors on database queries.
   const existingAuthHeader = newHeaders['Authorization'] || newHeaders['authorization'] || ''
   if (!isAuthRequest && (!existingAuthHeader || existingAuthHeader.includes(supabaseAnonKey))) {
     try {
       const activeSession = (typeof window !== 'undefined' && localStorage.getItem('ozo-auth-token'))
         ? JSON.parse(localStorage.getItem('ozo-auth-token'))
         : null
-      const token = activeSession?.access_token || activeSession?.currentSession?.access_token
+      let token = activeSession?.access_token || activeSession?.currentSession?.access_token
       if (token) {
-        newHeaders['Authorization'] = `Bearer ${token}`
+        // If JWT token is already expired or <30s from expiring, try to refresh first
+        if (isJwtExpired(token)) {
+          const { data: refreshData } = await refreshSessionDeduplicated()
+          token = refreshData?.session?.access_token || null
+        }
+
+        if (token && !isJwtExpired(token)) {
+          newHeaders['Authorization'] = `Bearer ${token}`
+        } else {
+          // If token is expired and refresh failed, fallback to Anon Key so public queries pass
+          newHeaders['Authorization'] = `Bearer ${supabaseAnonKey}`
+        }
       }
     } catch (e) {
       // Ignore parse error
@@ -452,8 +469,8 @@ const customFetch = async (input, init) => {
 
   newInit.headers = newHeaders
 
-  // Encrypt request body if sending JSON to proxy
-  if (isProxyRequest && newInit.body && ["POST", "PUT", "PATCH", "DELETE"].includes(newInit.method || 'GET')) {
+  // Encrypt request body if sending JSON to proxy (non-auth requests only)
+  if (isProxyRequest && !isAuthRequest && newInit.body && ["POST", "PUT", "PATCH", "DELETE"].includes((newInit.method || 'GET').toUpperCase())) {
     const contentType = newHeaders['Content-Type'] || newHeaders['content-type'] || ''
     if (contentType.includes('application/json') || typeof newInit.body === 'string') {
       try {
@@ -461,13 +478,11 @@ const customFetch = async (input, init) => {
         const encryptedBody = await encryptText(textToEncrypt, CRYPTO_SECRET)
         newInit.body = encryptedBody
         newHeaders['x-encrypted'] = 'true'
-        // Switch Content-Type to text/plain so Vercel's edge infra doesn't
-        // try to JSON.parse the encrypted hex body (which causes 502).
-        // Stash the original type so the proxy can restore it for Supabase.
+        // Switch Content-Type to text/plain so Vercel edge infra doesn't JSON.parse hex body
         const origCt = newHeaders['Content-Type'] || newHeaders['content-type'] || 'application/json'
         newHeaders['x-original-content-type'] = origCt
         newHeaders['Content-Type'] = 'text/plain'
-        delete newHeaders['content-type'] // avoid duplicate casing
+        delete newHeaders['content-type']
       } catch (err) {
         console.error('[OZO Crypto] Request encryption failed:', err)
       }
@@ -526,12 +541,22 @@ const customFetch = async (input, init) => {
             const retriedHeaders = { ...newInit.headers, Authorization: `Bearer ${newAccessToken}` }
             const retriedInit = { ...newInit, headers: retriedHeaders, _isRetry: true }
             response = await fetch(input, retriedInit)
-          } else if (isTerminalAuthError(refreshError)) {
-            // ONLY force logout on genuine TERMINAL auth failures (revoked / invalid grant)
-            console.error('[OZO Auth] Single-flight refresh returned terminal error. Invalidating session.')
-            isInvalidSession = true
           } else {
-            console.warn('[OZO Auth] Refresh failed due to transient error/network hiccup. Session preserved.')
+            // Refresh failed (or user is not logged in / network issue).
+            // If request is a GET (read query for products, categories, etc.), retry ONCE with Supabase Anon Key
+            const method = (newInit.method || 'GET').toUpperCase()
+            if (method === 'GET') {
+              console.warn('[OZO Auth] Session refresh failed. Retrying GET request with Supabase Anon Key for public data access...')
+              const anonHeaders = { ...newInit.headers, Authorization: `Bearer ${supabaseAnonKey}` }
+              const anonInit = { ...newInit, headers: anonHeaders, _isRetry: true }
+              response = await fetch(input, anonInit)
+            } else if (isTerminalAuthError(refreshError)) {
+              // ONLY force logout on genuine TERMINAL auth failures (revoked / invalid grant)
+              console.error('[OZO Auth] Single-flight refresh returned terminal error. Invalidating session.')
+              isInvalidSession = true
+            } else {
+              console.warn('[OZO Auth] Refresh failed due to transient error/network hiccup. Session preserved.')
+            }
           }
         }
       } catch (e) {
