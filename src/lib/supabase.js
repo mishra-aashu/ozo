@@ -120,6 +120,233 @@ async function decryptText(hex, secret) {
   return new TextDecoder().decode(decrypted)
 }
 
+// ─── HARDENED STRUCTURED ERROR CLASSIFIER ─────────────────────────────────
+const isTerminalAuthError = (error, responseBody) => {
+  if (!error && !responseBody) return false
+
+  // Structured properties check first (GoTrue error standards)
+  const status = error?.status || responseBody?.status || responseBody?.httpStatusCode
+  const code = (error?.code || responseBody?.code || responseBody?.error || '').toString().toLowerCase()
+  const errorName = (error?.name || '').toString()
+
+  // 1. Explicit GoTrue Terminal Error Codes
+  const terminalCodes = [
+    'invalid_grant',
+    'refresh_token_not_found',
+    'session_not_found',
+    'user_not_found',
+    'invalid_credentials',
+    'token_expired',
+  ]
+
+  if (terminalCodes.includes(code)) {
+    return true
+  }
+
+  // 2. HTTP 400/401/422 with AuthApiError or invalid_grant
+  if ((status === 400 || status === 401 || status === 422) && (code === 'invalid_grant' || errorName === 'AuthApiError')) {
+    const msg = (error?.message || responseBody?.error_description || responseBody?.msg || responseBody?.message || '').toString().toLowerCase()
+    if (msg.includes('invalid') || msg.includes('revoked') || msg.includes('not found') || msg.includes('expired')) {
+      return true
+    }
+  }
+
+  // 3. Fallback string checks for legacy payloads
+  const msg = (error?.message || responseBody?.error_description || responseBody?.msg || responseBody?.message || '').toString().toLowerCase()
+  return (
+    code === 'invalid_grant' ||
+    msg.includes('invalid refresh token') ||
+    msg.includes('refresh token not found') ||
+    msg.includes('session not found') ||
+    msg.includes('user not found')
+  )
+}
+
+// ─── CROSS-TAB BROADCAST & STORAGE LOCK COORDINATOR ─────────────────────────
+const REFRESH_CHANNEL_NAME = 'ozo_session_refresh_channel'
+let refreshBroadcastChannel = null
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    refreshBroadcastChannel = new BroadcastChannel(REFRESH_CHANNEL_NAME)
+  } catch (e) {
+    // Fallback to storage events
+  }
+}
+
+// Single-flight promise for refreshSession to prevent thundering herd and race conditions
+let globalRefreshPromise = null
+
+const waitForLeaderTabRefresh = (timeoutMs = 5000) => {
+  return new Promise((resolve) => {
+    let resolved = false
+
+    const cleanup = () => {
+      if (resolved) return
+      resolved = true
+      if (refreshBroadcastChannel) {
+        refreshBroadcastChannel.removeEventListener('message', handleMessage)
+      }
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('storage', handleStorageEvent)
+      }
+    }
+
+    const timer = setTimeout(() => {
+      cleanup()
+      // Fallback read from localStorage after timeout
+      try {
+        const raw = localStorage.getItem('ozo-auth-token')
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          const session = parsed?.currentSession || parsed
+          if (session?.access_token) {
+            resolve({ data: { session }, error: null })
+            return
+          }
+        }
+      } catch (e) {}
+      resolve({ data: { session: null }, error: new Error('Leader tab refresh wait timeout') })
+    }, timeoutMs)
+
+    const handleMessage = (evt) => {
+      if (evt?.data?.type === 'REFRESH_SUCCESS' && evt?.data?.session) {
+        clearTimeout(timer)
+        cleanup()
+        resolve({ data: { session: evt.data.session }, error: null })
+      } else if (evt?.data?.type === 'REFRESH_FAILED') {
+        clearTimeout(timer)
+        cleanup()
+        resolve({ data: { session: null }, error: evt.data.error || new Error('Leader refresh failed') })
+      }
+    }
+
+    const handleStorageEvent = (e) => {
+      if (e.key === 'ozo-auth-token' && e.newValue) {
+        try {
+          const parsed = JSON.parse(e.newValue)
+          const session = parsed?.currentSession || parsed
+          if (session?.access_token) {
+            clearTimeout(timer)
+            cleanup()
+            resolve({ data: { session }, error: null })
+          }
+        } catch (err) {}
+      }
+    }
+
+    if (refreshBroadcastChannel) {
+      refreshBroadcastChannel.addEventListener('message', handleMessage)
+    }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', handleStorageEvent)
+    }
+  })
+}
+
+const refreshSessionDeduplicated = async () => {
+  if (globalRefreshPromise) {
+    return globalRefreshPromise
+  }
+
+  globalRefreshPromise = (async () => {
+    try {
+      // 1. Lock Staleness Expiry Check (Crash Scenario Guard):
+      // Lock is only valid for 4000ms. If last lock timestamp is > 4000ms old, consider it STALE (leader tab crashed) and take over!
+      const lastLock = typeof window !== 'undefined' ? localStorage.getItem('ozo_refresh_lock_ts') : null
+      const lockAge = lastLock ? Date.now() - parseInt(lastLock, 10) : Infinity
+      const isLockedByActiveTab = lockAge < 4000
+
+      if (isLockedByActiveTab) {
+        console.log('[OZO Auth] Leader tab is currently refreshing session. Subscribing to REFRESH_SUCCESS broadcast...')
+        const leaderResult = await waitForLeaderTabRefresh(5000)
+        if (leaderResult.data?.session) {
+          return leaderResult
+        }
+        console.warn('[OZO Auth] Leader tab broadcast timed out or failed. Taking over as lock leader...')
+      }
+
+      // 2. Claim lock as leader tab with current timestamp
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('ozo_refresh_lock_ts', Date.now().toString())
+        refreshBroadcastChannel?.postMessage({ type: 'REFRESH_START' })
+      }
+
+      // 3. Exponential Backoff Retry Loop (500ms, 1500ms, 3000ms) for transient network/5xx errors
+      const backoffDelays = [500, 1500, 3000]
+      let lastResult = null
+
+      for (let attempt = 0; attempt <= backoffDelays.length; attempt++) {
+        try {
+          const result = await supabase.auth.refreshSession()
+          
+          if (!result.error && result.data?.session) {
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('ozo_refresh_lock_ts')
+              refreshBroadcastChannel?.postMessage({ type: 'REFRESH_SUCCESS', session: result.data.session })
+              window.dispatchEvent(new CustomEvent('ozo-connection-state', { detail: { status: 'connected' } }))
+            }
+            return result
+          }
+
+          lastResult = result
+
+          // If it's a genuine terminal error (e.g. invalid_grant), stop retries immediately!
+          if (isTerminalAuthError(result.error)) {
+            console.error('[OZO Auth] Terminal auth failure detected (invalid_grant/revoked token):', result.error)
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('ozo_refresh_lock_ts')
+              refreshBroadcastChannel?.postMessage({ type: 'REFRESH_FAILED', isTerminal: true, error: result.error })
+            }
+            break
+          }
+
+          // Transient error: notify connection state reconnecting
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('ozo-connection-state', { detail: { status: 'reconnecting', attempt: attempt + 1 } }))
+          }
+
+          if (attempt < backoffDelays.length) {
+            console.warn(`[OZO Auth] Session refresh transient hiccup. Retrying in ${backoffDelays[attempt]}ms (Attempt ${attempt + 1})...`)
+            await new Promise(res => setTimeout(res, backoffDelays[attempt]))
+          }
+        } catch (netErr) {
+          lastResult = { data: { session: null }, error: netErr }
+          if (attempt < backoffDelays.length) {
+            await new Promise(res => setTimeout(res, backoffDelays[attempt]))
+          }
+        }
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('ozo_refresh_lock_ts')
+      }
+
+      // If transient retries exhausted without terminal error, launch background periodic reconnect loop (every 20s)
+      if (lastResult?.error && !isTerminalAuthError(lastResult.error)) {
+        console.warn('[OZO Auth] Transient refresh retries exhausted. Launching silent 20s periodic reconnect loop...')
+        if (typeof window !== 'undefined' && !window._ozoReconnectInterval) {
+          window._ozoReconnectInterval = setInterval(async () => {
+            console.log('[OZO Auth] Periodic background reconnect attempt...')
+            const res = await supabase.auth.refreshSession()
+            if (!res.error && res.data?.session) {
+              clearInterval(window._ozoReconnectInterval)
+              window._ozoReconnectInterval = null
+              window.dispatchEvent(new CustomEvent('ozo-connection-state', { detail: { status: 'connected' } }))
+              console.log('[OZO Auth] Background periodic reconnect successful!')
+            }
+          }, 20000)
+        }
+      }
+
+      return lastResult || { data: { session: null }, error: new Error('Refresh failed') }
+    } finally {
+      globalRefreshPromise = null
+    }
+  })()
+
+  return globalRefreshPromise
+}
+
 const customFetch = async (input, init) => {
   const url = typeof input === 'string' ? input : input.url
   const isProxyRequest = supabaseUrl && url.startsWith(supabaseUrl)
@@ -204,17 +431,14 @@ const customFetch = async (input, init) => {
 
   let response = await fetch(input, newInit)
 
-  // Auto-clear invalid/expired sessions or attempt retry on REST 401 JWT Expiry
+  // Auto-clear invalid/expired sessions or attempt single-flight retry on REST 401 JWT Expiry
   let isInvalidSession = false
   if ((response.status === 401 || response.status === 403) && url.includes('/auth/v1/user')) {
     try {
       const clone = response.clone()
       const body = await clone.json()
-      if (body && (body.error || body.msg || body.message)) {
-        const errMsg = (body.error || body.msg || body.message || '').toLowerCase()
-        if (errMsg.includes('invalid') || errMsg.includes('expired') || errMsg.includes('auth') || errMsg.includes('token') || errMsg.includes('unauthorized')) {
-          isInvalidSession = true
-        }
+      if (isTerminalAuthError(null, body)) {
+        isInvalidSession = true
       }
     } catch (e) {
       // Not JSON, ignore
@@ -223,22 +447,24 @@ const customFetch = async (input, init) => {
     try {
       const clone = response.clone()
       const body = await clone.json()
-      if (body && body.error === 'invalid_grant') {
+      if (isTerminalAuthError(null, body)) {
         isInvalidSession = true
       }
     } catch (e) {
       // Not JSON, ignore
     }
   } else if ((response.status === 401 || response.status === 403) && (url.includes('/rest/v1/') || url.includes('/storage/v1/'))) {
-    // ─── REST API / Storage API JWT Expiry Handling & Auto-Retry ───────────
+    // ─── REST API / Storage API JWT Expiry Handling & Deduplicated Retry ────
+    // MAX 1 RETRY CAP FOR REQUEST: If newInit._isRetry is already true, do NOT retry request again.
     if (!newInit._isRetry) {
       try {
         const clone = response.clone()
         const body = await clone.json()
         const errMsg = (body?.message || body?.msg || body?.error || '').toLowerCase()
         if (errMsg.includes('jwt expired') || errMsg.includes('jwt') || body?.code === 'PGRST301' || response.status === 401) {
-          console.warn('[OZO Auth] REST API returned 401/JWT expired. Attempting silent session refresh and request retry...')
-          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          console.warn('[OZO Auth] REST API returned 401/JWT expired. Triggering cross-tab deduplicated session refresh...')
+          // Use single-flight mutex with backoff & cross-tab locking
+          const { data: refreshData, error: refreshError } = await refreshSessionDeduplicated()
           if (!refreshError && refreshData?.session) {
             const newAccessToken = refreshData.session.access_token
             // Sync session to supabaseAdmin
@@ -251,17 +477,29 @@ const customFetch = async (input, init) => {
               // Ignore admin sync warning
             }
 
-            // Retry request with fresh Authorization header
+            // Retry request MAX 1 TIME with fresh Authorization header
             const retriedHeaders = { ...newInit.headers, Authorization: `Bearer ${newAccessToken}` }
             const retriedInit = { ...newInit, headers: retriedHeaders, _isRetry: true }
             response = await fetch(input, retriedInit)
-          } else {
+          } else if (isTerminalAuthError(refreshError)) {
+            // ONLY force logout on genuine TERMINAL auth failures (revoked / invalid grant)
+            console.error('[OZO Auth] Single-flight refresh returned terminal error. Invalidating session.')
             isInvalidSession = true
+          } else {
+            console.warn('[OZO Auth] Refresh failed due to transient error/network hiccup. Session preserved.')
           }
         }
       } catch (e) {
         // Not JSON, ignore
       }
+    } else if (response.status === 401) {
+      try {
+        const clone = response.clone()
+        const body = await clone.json()
+        if (isTerminalAuthError(null, body)) {
+          isInvalidSession = true
+        }
+      } catch (e) {}
     }
   }
 

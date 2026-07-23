@@ -13,6 +13,7 @@ let authSubscription = null
 // racing against each other (e.g. rapid token refreshes triggering the event
 // multiple times before the first fetch resolves).
 let profileFetchInProgress = false
+let activeProfilePollInterval = null
 
 // Helper to ensure user profile exists in public.users table (important for OAuth logins)
 const ensureProfileExists = async (user) => {
@@ -93,6 +94,22 @@ const ensureProfileExists = async (user) => {
 // Helper to enrich profile roles and check if admin
 const enrichProfileRoles = (profile) => {
   if (!profile) return null
+
+  // Fallback profiles are display-only placeholders. They MUST NOT grant elevated roles!
+  if (profile.isFallback) {
+    return {
+      ...profile,
+      role: 'customer',
+      roles: [],
+      isSuperAdmin: false,
+      isCityManager: false,
+      isMartOwner: false,
+      isRider: false,
+      isCustomer: true,
+      isFallback: true,
+    }
+  }
+
   const roles = profile.user_roles || []
   const hasSuperAdmin = roles.some(r => r.role === 'super_admin') || profile.role === 'admin' || profile.role === 'super_admin'
   const hasCityManager = roles.some(r => r.role === 'city_manager') || profile.role === 'city_manager'
@@ -117,11 +134,12 @@ const enrichProfileRoles = (profile) => {
     isMartOwner: hasMartOwner,
     isRider: hasRider,
     isCustomer: hasCustomer,
+    isFallback: false,
   }
 }
 
 const checkAdmin = (profile) => {
-  if (!profile) return false
+  if (!profile || profile.isFallback) return false
   const enriched = enrichProfileRoles(profile)
   return !!(enriched?.isSuperAdmin || enriched?.isCityManager)
 }
@@ -253,10 +271,12 @@ export const useAuthStore = create(
                 full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
                 phone: session.user.user_metadata?.phone || session.user.phone || '',
                 role: 'customer',
-                user_roles: []
+                user_roles: [],
+                isFallback: true,
               }
 
-              const finalProfile = enrichProfileRoles(profile || localProfile || fallbackProfile)
+              const resolvedProfile = profile || localProfile || fallbackProfile
+              const finalProfile = enrichProfileRoles(resolvedProfile)
 
               set({
                 user: session.user,
@@ -266,6 +286,41 @@ export const useAuthStore = create(
                 isLoading: false,
                 isInitialized: true,
               })
+
+              // If fallback profile was assigned due to DB fetch timeout/error, launch background retry loop
+              if (finalProfile?.isFallback) {
+                if (activeProfilePollInterval) {
+                  clearInterval(activeProfilePollInterval)
+                  activeProfilePollInterval = null
+                }
+                let retries = 0
+                activeProfilePollInterval = setInterval(async () => {
+                  retries++
+                  const currentProf = get().profile
+                  if (retries > 6 || !get().isAuthenticated || (currentProf && !currentProf.isFallback)) {
+                    clearInterval(activeProfilePollInterval)
+                    activeProfilePollInterval = null
+                    return
+                  }
+                  try {
+                    const { data: realProfile } = await authHelpers.getUserProfile(session.user.id)
+                    if (realProfile) {
+                      if (activeProfilePollInterval) {
+                        clearInterval(activeProfilePollInterval)
+                        activeProfilePollInterval = null
+                      }
+                      const enrichedReal = enrichProfileRoles(realProfile)
+                      set({
+                        profile: enrichedReal,
+                        isAdmin: checkAdmin(enrichedReal)
+                      })
+                      console.log('[OZO Auth] Fallback profile upgraded to real database profile.')
+                    }
+                  } catch (e) {
+                    // Retry next interval
+                  }
+                }, 4000)
+              }
             }
           } else {
             set({
@@ -395,6 +450,16 @@ export const useAuthStore = create(
                 }
                 localStorage.removeItem('ozo-auth-token')
               } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+                // Proactively push fresh session to supabaseAdmin
+                try {
+                  supabaseAdmin.auth.setSession({
+                    access_token: session.access_token,
+                    refresh_token: session.refresh_token,
+                  })
+                } catch (e) {
+                  // Ignore sync warning
+                }
+
                 set({
                   user: session.user,
                   isAuthenticated: true,
