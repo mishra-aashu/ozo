@@ -546,6 +546,7 @@ const Home = () => {
 
   const user = useAuthStore(state => state.user)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+  const isAdmin = useAuthStore(state => state.isAdmin)
 
   const addToCart = useCartStore(state => state.addToCart)
   const updateQuantity = useCartStore(state => state.updateQuantity)
