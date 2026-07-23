@@ -2,7 +2,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { toast } from 'react-hot-toast'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import OzoSplashScreen from './components/OzoSplashScreen'
+// Intro splash component (commented out for now)
+// import OzoSplashScreen from './components/OzoSplashScreen'
 import { syncFcmTokenWithDatabase, onMessageListener } from './firebase'
 import { supabase } from './lib/supabase'
 
@@ -255,16 +256,32 @@ const CompleteProfileRoute = ({ children }) => {
   return children
 }
 
-// Premium OZO Page Loader for React.Suspense
+// Normal OZO Shimmer Page Loader for React.Suspense
 const OzoPageLoader = () => (
-  <div className="min-h-[70vh] flex flex-col items-center justify-center bg-transparent">
-    <div className="relative flex items-center justify-center">
-      <div className="w-16 h-16 border-4 border-ozo-red/20 border-t-ozo-red rounded-full animate-spin" />
-      <div className="absolute w-8 h-8 border-4 border-ozo-green/20 border-b-ozo-green rounded-full animate-spin [animation-direction:reverse] [animation-duration:1s]" />
+  <div className="min-h-[80vh] container-custom py-6 sm:py-8 space-y-6 sm:space-y-8 animate-fade-in">
+    {/* Banner shimmer */}
+    <div className="w-full h-36 sm:h-64 rounded-3xl shimmer" />
+    
+    {/* Title shimmer */}
+    <div className="flex justify-between items-center">
+      <div className="w-40 sm:w-48 h-7 sm:h-8 rounded-xl shimmer" />
+      <div className="w-20 sm:w-24 h-5 sm:h-6 rounded-lg shimmer" />
     </div>
-    <p className="mt-6 text-gray-850 dark:text-gray-200 text-xs font-black uppercase tracking-widest animate-pulse notranslate" translate="no">
-      OZO is loading...
-    </p>
+
+    {/* Grid shimmer */}
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
+      {[...Array(6)].map((_, i) => (
+        <div key={i} className="bg-white dark:bg-[#161616] p-3 sm:p-4 rounded-3xl space-y-3 border border-gray-100 dark:border-white/5 shadow-sm">
+          <div className="w-full h-28 sm:h-32 rounded-2xl shimmer" />
+          <div className="w-3/4 h-3.5 sm:h-4 rounded-lg shimmer" />
+          <div className="w-1/2 h-3 rounded-lg shimmer" />
+          <div className="flex justify-between items-center pt-1 sm:pt-2">
+            <div className="w-12 sm:w-16 h-4 sm:h-5 rounded-lg shimmer" />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shimmer" />
+          </div>
+        </div>
+      ))}
+    </div>
   </div>
 )
 
@@ -272,6 +289,8 @@ function App() {
   const { initializeAuth, user, isInitialized } = useAuthStore()
   const { fetchCart } = useCartStore()
   const { fetchNotifications, subscribeToNotifications, unsubscribeFromNotifications } = useNotificationStore()
+  // Intro splash screen disabled for now
+  /*
   const [showSplash, setShowSplash] = useState(() => {
     try {
       // Skip splash if shown in the current tab session (handles reloads/refreshes)
@@ -293,6 +312,8 @@ function App() {
     }
     return true;
   })
+  */
+  const [showSplash, setShowSplash] = useState(false)
 
   const { initTheme } = useThemeStore()
   const { language } = useLanguageStore()
@@ -457,6 +478,7 @@ function App() {
 
   return (
     <>
+      {/* Intro splash screen disabled/commented out for now
       <AnimatePresence mode="wait">
         {showSplash && (
           <OzoSplashScreen
@@ -473,6 +495,7 @@ function App() {
           />
         )}
       </AnimatePresence>
+      */}
 
       <Router basename="/" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
