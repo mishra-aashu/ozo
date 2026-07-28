@@ -279,9 +279,12 @@ export const useCartStore = create(
           }
 
           // Check if coordinates are outside our geofence zone
-          const maxRadius = nearestCity 
-            ? (parseFloat(nearestCity.service_radius_km) || 1.5)
-            : (parseFloat(geofenceConfig.max_radius_km) || GEOFENCE_DEFAULTS.max_radius_km)
+          const maxRadius = Math.max(
+            nearestCity 
+              ? (parseFloat(nearestCity.service_radius_km) || 25.0)
+              : (parseFloat(geofenceConfig.max_radius_km) || GEOFENCE_DEFAULTS.max_radius_km || 25.0),
+            25.0
+          )
           isOutsideZone = distanceFromStore > maxRadius
         }
 

@@ -158,7 +158,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
     ...rawGeofenceConfig,
     warehouse_lat: nearestCity ? parseFloat(nearestCity.latitude) : (parseFloat(deliveryConfig.store_lat) || parseFloat(rawGeofenceConfig.warehouse_lat) || GEOFENCE_DEFAULTS.warehouse_lat),
     warehouse_lng: nearestCity ? parseFloat(nearestCity.longitude) : (parseFloat(deliveryConfig.store_lng) || parseFloat(rawGeofenceConfig.warehouse_lng) || GEOFENCE_DEFAULTS.warehouse_lng),
-    max_radius_km: nearestCity ? (parseFloat(nearestCity.service_radius_km) || GEOFENCE_DEFAULTS.max_radius_km) : (parseFloat(rawGeofenceConfig.max_radius_km) || GEOFENCE_DEFAULTS.max_radius_km)
+    max_radius_km: Math.max(nearestCity ? (parseFloat(nearestCity.service_radius_km) || GEOFENCE_DEFAULTS.max_radius_km) : (parseFloat(rawGeofenceConfig.max_radius_km) || GEOFENCE_DEFAULTS.max_radius_km), GEOFENCE_DEFAULTS.max_radius_km || 25.0)
   }
   const centerLat = parseFloat(geofenceConfig.warehouse_lat) || GEOFENCE_DEFAULTS.warehouse_lat
   const centerLng = parseFloat(geofenceConfig.warehouse_lng) || GEOFENCE_DEFAULTS.warehouse_lng

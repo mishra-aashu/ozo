@@ -14,5 +14,5 @@ export const GEOFENCE_DEFAULTS = {
   strict_enforcement: true,
   warehouse_lat: 24.745736,
   warehouse_lng: 84.390014,
-  max_radius_km: 2.5
+  max_radius_km: 25.0
 }
