@@ -383,6 +383,7 @@ const Home = () => {
   const { city } = useParams()
   const { t } = useTranslation()
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const isLocationInitialized = useLocationStore(state => state.isLocationInitialized)
   const setSelectedCitySlug = useLocationStore(state => state.setSelectedCitySlug)
   const address = useLocationStore(state => state.address)
   const coordinates = useLocationStore(state => state.coordinates)
@@ -793,12 +794,14 @@ const Home = () => {
   // Fetch standard data on mount using useOzoQuery to preserve initial loading state
   const { isLoading: isHomeDataLoading } = useOzoQuery(
     async (signal) => {
+      // Delay fetching until locationStore has initialized selectedCitySlug
+      if (!isLocationInitialized && !selectedCitySlug) return
       const res = await fetchHomePageData({ signal })
-      if (!res.success) {
-        throw res.error || new Error('Failed to load homepage data')
+      if (!res?.success) {
+        throw res?.error || new Error('Failed to load homepage data')
       }
     },
-    [fetchHomePageData, selectedCitySlug]
+    [fetchHomePageData, selectedCitySlug, isLocationInitialized]
   )
 
   // Custom quantity controls for inline cards
@@ -1595,6 +1598,60 @@ const Home = () => {
   const handleCategoryClick = useCallback((cat) => {
     navigate(`/category/${cat.slug}`)
   }, [navigate])
+
+  const isPageInitialLoading = (!isLocationInitialized || isHomeDataLoading || isHomeLoading) && categories.length === 0 && featuredProducts.length === 0
+
+  if (isPageInitialLoading) {
+    return (
+      <div className="min-h-screen pb-16 bg-ozo-gray-bg dark:bg-[#0a0a0a]">
+        <SEO 
+          title="OZO Mart | 30-Min Grocery Delivery"
+          description="Loading fresh groceries, daily essentials, and Mithila specials on OZO Mart."
+        />
+        {/* Banner Skeleton */}
+        <div className="container-custom py-4 md:py-8">
+          <div className="w-full h-[220px] sm:h-[280px] md:h-[340px] lg:h-[380px] rounded-[2rem] md:rounded-[2.5rem] shimmer" />
+        </div>
+
+        {/* Categories Grid Skeleton */}
+        <div className="container-custom py-6 space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <div className="w-44 h-7 shimmer rounded-xl" />
+            <div className="w-20 h-5 shimmer rounded-lg" />
+          </div>
+          <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-9 gap-3 sm:gap-4">
+            {[...Array(9)].map((_, i) => (
+              <div key={i} className="flex flex-col items-center space-y-2">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl shimmer" />
+                <div className="w-14 h-3 shimmer rounded" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Featured Products Grid Skeleton */}
+        <div className="container-custom py-6 space-y-4">
+          <div className="flex justify-between items-center px-1">
+            <div className="w-52 h-7 shimmer rounded-xl" />
+            <div className="w-24 h-5 shimmer rounded-lg" />
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="bg-white dark:bg-[#111111] rounded-[2rem] p-4 space-y-3 border border-gray-100 dark:border-white/5">
+                <div className="w-full h-36 shimmer rounded-2xl" />
+                <div className="w-2/3 h-4 shimmer rounded" />
+                <div className="w-1/3 h-3 shimmer rounded" />
+                <div className="flex justify-between items-center pt-2">
+                  <div className="w-16 h-5 shimmer rounded" />
+                  <div className="w-20 h-8 shimmer rounded-xl" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen pb-16">

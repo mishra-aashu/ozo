@@ -341,11 +341,6 @@ export const useAuthStore = create(
               isLoading: false,
               isInitialized: true,
             })
-            try {
-              useLocationStore.getState().clearLocation()
-            } catch (err) {
-              console.warn('Failed to clear location on auth initialization mismatch:', err)
-            }
           }
 
           // Mark init as complete and tear down the early capture listener.
