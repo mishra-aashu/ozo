@@ -19,10 +19,19 @@ let activeProfilePollInterval = null
 const ensureProfileExists = async (user, accessToken = null) => {
   if (!user) return null
   
+  let token = accessToken
+  if (!token) {
+    try {
+      const { data: sData } = await supabase.auth.getSession()
+      token = sData?.session?.access_token || null
+    } catch (_) {}
+  }
+  const queryHeaders = token ? { Authorization: `Bearer ${token}` } : {}
+
   const fetchWithRetry = async (retries = 2, delay = 500) => {
     for (let i = 0; i <= retries; i++) {
       try {
-        const { data: profile, error } = await authHelpers.getUserProfile(user.id, accessToken)
+        const { data: profile, error } = await authHelpers.getUserProfile(user.id, token)
         if (profile) return profile
         if (error) {
           console.warn(`Fetch profile attempt ${i + 1} failed:`, error)
@@ -48,6 +57,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
         .from('users')
         .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', user.id)
+        .headers(queryHeaders)
         .maybeSingle()
       if (adminProfile) {
         console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin fallback.')
@@ -73,6 +83,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
           role: 'customer',
         }
       ])
+      .headers(queryHeaders)
       .select()
       .maybeSingle()
 
@@ -85,6 +96,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
           .from('users')
           .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', user.id)
+          .headers(queryHeaders)
           .maybeSingle()
           
         if (adminProfileRetry) {

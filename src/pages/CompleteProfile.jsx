@@ -17,7 +17,7 @@ const CompleteProfile = () => {
 
   // Auto-redirect if profile finishes fetching and already has a valid phone number
   useEffect(() => {
-    if (user && profile?.phone && !profile?.isFallback) {
+    if (user && profile?.phone) {
       navigate(from, { replace: true })
     }
   }, [user, profile, navigate, from])
