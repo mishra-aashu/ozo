@@ -48,10 +48,32 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
       "destination": "/api/render-seo?homepage=true"
+    },
+    {
+      "source": "/category/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?category=:slug"
+    },
+    {
+      "source": "/:city/category/:slug",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?city=:city&category=:slug"
     },
     {
       "source": "/:city([a-zA-Z0-9_-]+)",
@@ -59,7 +81,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
       "destination": "/api/render-seo?city=:city"
@@ -70,7 +92,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
       "destination": "/api/render-seo?city=product&product=:product"
@@ -81,7 +103,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
       "destination": "/api/render-seo?city=:city&product=:product"
@@ -92,7 +114,7 @@
         {
           "type": "header",
           "key": "user-agent",
-          "value": ".*(google|bing|yandex|baidu|duckduckgo|slurp|pinterest|bot|crawler|spider|facebook|twitter|linkedin|whatsapp|telegram).*"
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
       "destination": "/api/render-seo?city=:city&product=:product"
