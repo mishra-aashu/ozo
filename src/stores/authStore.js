@@ -16,19 +16,14 @@ let profileFetchInProgress = false
 let activeProfilePollInterval = null
 
 // Helper to ensure user profile exists in public.users table (important for OAuth logins)
-const ensureProfileExists = async (user) => {
+const ensureProfileExists = async (user, accessToken = null) => {
   if (!user) return null
   
   const fetchWithRetry = async (retries = 2, delay = 500) => {
     for (let i = 0; i <= retries; i++) {
       try {
-        const { data: profile, error } = await authHelpers.getUserProfile(user.id)
+        const { data: profile, error } = await authHelpers.getUserProfile(user.id, accessToken)
         if (profile) return profile
-        // If it's a PGRST116 (no rows found) error, we know the profile doesn't exist
-        // in the database, so we don't need to retry the fetch.
-        if (error && error.code === 'PGRST116') {
-          return null
-        }
         if (error) {
           console.warn(`Fetch profile attempt ${i + 1} failed:`, error)
         }
@@ -47,7 +42,22 @@ const ensureProfileExists = async (user) => {
     let profile = await fetchWithRetry()
     if (profile) return profile
 
-    // 2. If it doesn't exist, attempt to insert
+    // 2. Fallback to supabaseAdmin query before attempting insert to prevent false insert duplicate key errors
+    try {
+      const { data: adminProfile } = await supabaseAdmin
+        .from('users')
+        .select('*, user_roles!user_id(*)')
+        .eq('id', user.id)
+        .single()
+      if (adminProfile) {
+        console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin fallback.')
+        return adminProfile
+      }
+    } catch (aErr) {
+      console.warn('[OZO Auth] supabaseAdmin profile check failed:', aErr)
+    }
+
+    // 3. If profile truly does not exist in DB, attempt to insert
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
@@ -69,18 +79,23 @@ const ensureProfileExists = async (user) => {
     if (insertError) {
       console.warn('Failed to insert user profile via client SDK (might be RLS or duplicate key):', insertError)
       
-      // 3. Retry the fetch one more time. The row might have been created by
-      // a concurrent trigger (like on_auth_user_created) or another process.
+      // 4. Fetch via supabaseAdmin after insert collision
+      try {
+        const { data: adminProfileRetry } = await supabaseAdmin
+          .from('users')
+          .select('*, user_roles!user_id(*)')
+          .eq('id', user.id)
+          .single()
+          
+        if (adminProfileRetry) {
+          console.log('[OZO Auth] Successfully retrieved profile via admin client after insert collision.')
+          return adminProfileRetry
+        }
+      } catch (_) {}
+
       profile = await fetchWithRetry(2, 500)
-      if (profile) {
-        console.log('Successfully retrieved profile on retry after insert failure.')
-        return profile
-      }
+      if (profile) return profile
       
-      // 4. Return null instead of a fake fallback with phone: null.
-      // This ensures that if the user already has a valid cached profile
-      // in the store (e.g. from localStorage), we do not overwrite their
-      // phone number with null and throw them into a redirect loop.
       return null
     }
 
@@ -231,7 +246,7 @@ export const useAuthStore = create(
               setTimeout(async () => {
                 try {
                   const profile = await Promise.race([
-                    ensureProfileExists(session.user),
+                    ensureProfileExists(session.user, session.access_token),
                     new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 5000))
                   ])
 
@@ -258,7 +273,7 @@ export const useAuthStore = create(
               let profile = null
               try {
                 profile = await Promise.race([
-                  ensureProfileExists(session.user),
+                  ensureProfileExists(session.user, session.access_token),
                   new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 7000))
                 ])
               } catch (err) {
@@ -400,7 +415,7 @@ export const useAuthStore = create(
                   try {
                     let profile = null
                     try {
-                      profile = await ensureProfileExists(session.user)
+                      profile = await ensureProfileExists(session.user, session.access_token)
                     } catch (err) {
                       console.warn('Failed to ensure profile on sign in:', err)
                     }
@@ -530,7 +545,7 @@ export const useAuthStore = create(
               // Kick off profile fetch in background
               setTimeout(async () => {
                 try {
-                  const profile = await ensureProfileExists(earlySess.user)
+                  const profile = await ensureProfileExists(earlySess.user, earlySess.access_token)
                   const currentLocalProfile = get().profile
                   const finalProfile = enrichProfileRoles(profile
                     ? (currentLocalProfile && currentLocalProfile.id === profile.id

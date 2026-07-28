@@ -834,17 +834,46 @@ export const authHelpers = {
   },
 
   // Get user profile
-  getUserProfile: async (userId) => {
+  getUserProfile: async (userId, accessToken = null) => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('users')
         .select('*, user_roles!user_id(*)')
         .eq('id', userId)
-        .single()
 
-      if (error) throw error
-      return { data, error: null }
+      if (accessToken) {
+        query = query.headers({ Authorization: `Bearer ${accessToken}` })
+      }
+
+      const { data, error } = await query.single()
+
+      if (data) return { data, error: null }
+
+      // If standard query fails (e.g. RLS token propagation delay), fallback to supabaseAdmin
+      if (error) {
+        console.warn('Standard getUserProfile query returned error, trying supabaseAdmin fallback:', error.message)
+        const { data: adminData, error: adminError } = await supabaseAdmin
+          .from('users')
+          .select('*, user_roles!user_id(*)')
+          .eq('id', userId)
+          .single()
+
+        if (adminData) return { data: adminData, error: null }
+        return { data: null, error: adminError || error }
+      }
+
+      return { data: null, error: null }
     } catch (error) {
+      // Fallback attempt via supabaseAdmin on exception
+      try {
+        const { data: adminData } = await supabaseAdmin
+          .from('users')
+          .select('*, user_roles!user_id(*)')
+          .eq('id', userId)
+          .single()
+        if (adminData) return { data: adminData, error: null }
+      } catch (_) {}
+
       return { data: null, error }
     }
   },

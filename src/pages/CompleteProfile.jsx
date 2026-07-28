@@ -15,6 +15,13 @@ const CompleteProfile = () => {
 
   const from = location.state?.from?.pathname || '/'
 
+  // Auto-redirect if profile finishes fetching and already has a valid phone number
+  useEffect(() => {
+    if (user && profile?.phone && !profile?.isFallback) {
+      navigate(from, { replace: true })
+    }
+  }, [user, profile, navigate, from])
+
   // Clean phone input to only allow digits
   const handlePhoneChange = (e) => {
     const value = e.target.value.replace(/\D/g, '')
