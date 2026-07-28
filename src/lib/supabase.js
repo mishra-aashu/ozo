@@ -887,34 +887,60 @@ export const authHelpers = {
       window.__ozo_access_token = accessToken
     }
     try {
-      const { data, error } = await supabase
-        .from('users')
-        .select('*, user_roles!user_roles_user_id_fkey(*)')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (data) return { data, error: null }
-
-      // Fallback to supabaseAdmin if standard query returns empty or errors (e.g. RLS token propagation delay)
-      const { data: adminData, error: adminError } = await supabaseAdmin
-        .from('users')
-        .select('*, user_roles!user_roles_user_id_fkey(*)')
-        .eq('id', userId)
-        .maybeSingle()
-
-      if (adminData) return { data: adminData, error: null }
-
-      return { data: null, error: error || adminError }
-    } catch (error) {
+      // 1. Try the authenticated client with explicit FK join name
       try {
-        const { data: adminData } = await supabaseAdmin
+        const { data, error } = await supabase
           .from('users')
           .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', userId)
           .maybeSingle()
-        if (adminData) return { data: adminData, error: null }
+
+        if (data && !error) return { data, error: null }
       } catch (_) {}
 
+      // 2. Try authenticated client WITHOUT join (prevents PGRST201 ambiguity errors from blocking the user)
+      try {
+        const { data: simpleData } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle()
+        if (simpleData) {
+          // Fetch user_roles separately to avoid join ambiguity
+          let userRoles = []
+          try {
+            const { data: rolesData } = await supabase
+              .from('user_roles')
+              .select('*')
+              .eq('user_id', userId)
+            userRoles = rolesData || []
+          } catch (_) {}
+          return { data: { ...simpleData, user_roles: userRoles }, error: null }
+        }
+      } catch (_) {}
+
+      // 3. Fallback to supabaseAdmin (bypasses RLS delays) — plain select first
+      try {
+        const { data: adminSimple } = await supabaseAdmin
+          .from('users')
+          .select('*')
+          .eq('id', userId)
+          .maybeSingle()
+        if (adminSimple) {
+          let userRoles = []
+          try {
+            const { data: adminRoles } = await supabaseAdmin
+              .from('user_roles')
+              .select('*')
+              .eq('user_id', userId)
+            userRoles = adminRoles || []
+          } catch (_) {}
+          return { data: { ...adminSimple, user_roles: userRoles }, error: null }
+        }
+      } catch (_) {}
+
+      return { data: null, error: new Error('Profile not found') }
+    } catch (error) {
       return { data: null, error }
     }
   },
