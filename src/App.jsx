@@ -187,26 +187,9 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
 // Public Only Route (redirect if logged in)
 const PublicOnlyRoute = ({ children }) => {
-  const { user, profile, isInitialized } = useAuthStore()
-
-  if (!isInitialized) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Initializing session...</p>
-      </div>
-    )
-  }
+  const { user, profile } = useAuthStore()
 
   if (user) {
-    if (profile === null) {
-      return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-          <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-          <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Loading profile...</p>
-        </div>
-      )
-    }
     if (!profile?.phone) {
       return <Navigate to="/complete-profile" replace />
     }
