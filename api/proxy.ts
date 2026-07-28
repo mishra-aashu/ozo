@@ -179,7 +179,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     headersToForward.forEach(header => {
       const value = req.headers[header];
       if (value) {
-        proxyHeaders.set(header, Array.isArray(value) ? value.join(', ') : value);
+        // Authorization and apikey MUST be single values — if the client sends
+        // duplicate header variants (e.g. 'Authorization' and 'authorization'),
+        // Node.js concatenates them into an array. Joining with ', ' produces a
+        // malformed JWT like "Bearer eyJ..., Bearer eyJ..." which PostgREST
+        // rejects with "Expected 3 parts in JWT; got 5".
+        if (header === 'authorization' || header === 'apikey') {
+          const single = Array.isArray(value) ? value[value.length - 1] : value;
+          proxyHeaders.set(header, single);
+        } else {
+          proxyHeaders.set(header, Array.isArray(value) ? value.join(', ') : value);
+        }
       }
     });
 
