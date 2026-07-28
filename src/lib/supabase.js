@@ -283,8 +283,22 @@ const refreshSessionWithTimeout = async (timeoutMs = 4500) => {
   })
 
   try {
+    let refreshParam = undefined
+    if (typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('ozo-auth-token')
+        if (raw) {
+          const parsed = JSON.parse(raw)
+          const rt = parsed?.refresh_token || parsed?.currentSession?.refresh_token
+          if (rt) {
+            refreshParam = { refresh_token: rt }
+          }
+        }
+      } catch (e) {}
+    }
+
     const result = await Promise.race([
-      supabase.auth.refreshSession(),
+      supabase.auth.refreshSession(refreshParam),
       timeoutPromise
     ])
     return result
@@ -340,6 +354,9 @@ const refreshSessionDeduplicated = async () => {
           
           if (!result.error && result.data?.session) {
             if (typeof window !== 'undefined') {
+              try {
+                localStorage.setItem('ozo-auth-token', JSON.stringify(result.data.session))
+              } catch (sErr) {}
               localStorage.removeItem('ozo_refresh_lock_ts')
               refreshBroadcastChannel?.postMessage({ type: 'REFRESH_SUCCESS', session: result.data.session })
               window.dispatchEvent(new CustomEvent('ozo-connection-state', { detail: { status: 'connected' } }))
@@ -441,29 +458,46 @@ const customFetch = async (input, init) => {
   // ─── SMART TOKEN INJECTION & EXPIRY PRE-CHECK ────────────────────────────
   // Check token freshness before attaching Authorization header to prevent
   // PostgREST 401 JWT expired errors on database queries.
-  const existingAuthHeader = newHeaders['Authorization'] || newHeaders['authorization'] || ''
-  if (!isAuthRequest && (!existingAuthHeader || existingAuthHeader.includes(supabaseAnonKey))) {
-    try {
-      const activeSession = (typeof window !== 'undefined' && localStorage.getItem('ozo-auth-token'))
-        ? JSON.parse(localStorage.getItem('ozo-auth-token'))
-        : null
-      let token = activeSession?.access_token || activeSession?.currentSession?.access_token
-      if (token) {
-        // If JWT token is already expired or <30s from expiring, try to refresh first
-        if (isJwtExpired(token)) {
+  let existingAuthHeader = newHeaders['Authorization'] || newHeaders['authorization'] || ''
+  
+  if (!isAuthRequest) {
+    let headerToken = existingAuthHeader.startsWith('Bearer ')
+      ? existingAuthHeader.substring(7).trim()
+      : ''
+
+    const isTokenMissingOrAnon = !headerToken || headerToken === supabaseAnonKey
+    const isHeaderTokenExpired = headerToken && headerToken !== supabaseAnonKey && isJwtExpired(headerToken)
+
+    if (isTokenMissingOrAnon || isHeaderTokenExpired) {
+      try {
+        const rawStorage = typeof window !== 'undefined' ? localStorage.getItem('ozo-auth-token') : null
+        const activeSession = rawStorage ? JSON.parse(rawStorage) : null
+        let token = activeSession?.access_token || activeSession?.currentSession?.access_token
+
+        if (isHeaderTokenExpired || (token && isJwtExpired(token))) {
+          console.log('[OZO Auth] Detected expired session token pre-flight. Triggering deduplicated refresh...')
           const { data: refreshData } = await refreshSessionDeduplicated()
           token = refreshData?.session?.access_token || null
+
+          if (refreshData?.session) {
+            try {
+              supabaseAdmin.auth.setSession({
+                access_token: refreshData.session.access_token,
+                refresh_token: refreshData.session.refresh_token,
+              }).catch(() => {})
+            } catch (e) {}
+          }
         }
 
         if (token && !isJwtExpired(token)) {
           newHeaders['Authorization'] = `Bearer ${token}`
-        } else {
-          // If token is expired and refresh failed, fallback to Anon Key so public queries pass
+        } else if (isTokenMissingOrAnon || isHeaderTokenExpired) {
+          // If refresh failed or user is unauthenticated, fallback to Anon Key so public/read queries pass
           newHeaders['Authorization'] = `Bearer ${supabaseAnonKey}`
         }
+      } catch (e) {
+        console.warn('[OZO Auth] Smart token pre-check warning:', e)
       }
-    } catch (e) {
-      // Ignore parse error
     }
   }
 

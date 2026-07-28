@@ -1299,7 +1299,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         category_id,
         updated_at,
         categories (name),
-        product_city_availability(
+        product_city_availability!left(
+          city_slug,
           city_price,
           city_mrp,
           is_featured,
@@ -1308,39 +1309,38 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `)
       .eq('slug', productStr)
       .eq('is_available', true)
-      .eq('product_city_availability.city_slug', cityStr)
       .maybeSingle();
 
     if (error || !productData) {
-      console.warn(`Product not found or not active: ${productStr} in city: ${cityStr}`);
-      return res.status(404).send('Product Not Found in this City');
+      console.warn(`Product not found or not active: ${productStr}`);
+      return res.status(404).send('Product Not Found');
     }
 
-    const pca = productData.product_city_availability?.[0] || null;
+    const pcaList = productData.product_city_availability;
+    const pca = Array.isArray(pcaList)
+      ? (pcaList.find((p: any) => p.city_slug === cityStr) || null)
+      : (pcaList || null);
+
     const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
       ? pca.is_available
       : productData.is_available;
 
     if (!isAvailable) {
-      console.warn(`Product is not available: ${productStr} in city: ${cityStr}`);
-      return res.status(404).send('Product Not Found in this City');
+      console.warn(`Product is not available: ${productStr}`);
+      return res.status(404).send('Product Not Available');
     }
 
     const prod = productData;
     const categoryObj = prod.categories as any;
-        const categoryName = (Array.isArray(categoryObj) ? categoryObj[0]?.name : categoryObj?.name) || 'Grocery';
+    const cleanCategoryName = (Array.isArray(categoryObj) ? categoryObj[0]?.name : categoryObj?.name) || 'Grocery';
 
-    const finalPrice = pca?.city_price !== null && pca?.city_price !== undefined
-      ? pca.city_price
-      : prod.base_price;
-    const finalMrp = pca?.city_mrp !== null && pca?.city_mrp !== undefined
-      ? pca.city_mrp
-      : prod.base_mrp;
+    const citySellingPrice = pca?.city_price !== null && pca?.city_price !== undefined 
+      ? parseFloat(pca.city_price) 
+      : (prod.base_price ? parseFloat(prod.base_price) : 0);
+    
+    const finalPrice = citySellingPrice;
 
-    // Construct a beautiful, keyword-rich SEO-friendly image URL hosted directly on ozomart.store
-    const absoluteImageUrl = `https://ozomart.store/product-images/${prod.slug}.png`;
-
-    // Fetch related products from the same category
+    // Fetch related products
     let relatedProducts = [];
     if (prod.category_id) {
       try {
@@ -1351,10 +1351,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             slug,
             name,
             base_price,
-            base_mrp,
             image_url,
             unit,
-            product_city_availability(
+            product_city_availability!left(
+              city_slug,
               city_price,
               city_mrp,
               is_available
@@ -1362,14 +1362,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           `)
           .eq('category_id', prod.category_id)
           .eq('is_available', true)
-          .eq('product_city_availability.city_slug', cityStr)
           .neq('id', prod.id)
           .limit(6);
 
         if (relatedData) {
           relatedProducts = relatedData.map((rp: any) => {
-            const rPca = rp.product_city_availability?.[0] || null;
-            const rpPrice = rPca?.city_price !== null && rPca?.city_price !== undefined ? rPca.city_price : rp.base_price;
+            const rPcaList = rp.product_city_availability;
+            const rPca = Array.isArray(rPcaList)
+              ? (rPcaList.find((p: any) => p.city_slug === cityStr) || null)
+              : (rPcaList || null);
+            const rpPrice = rPca?.city_price !== null && rPca?.city_price !== undefined 
+              ? parseFloat(rPca.city_price) 
+              : parseFloat(rp.base_price || 0);
             return {
               slug: rp.slug,
               name: rp.name,

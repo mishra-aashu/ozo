@@ -35,6 +35,7 @@ import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable } fr
 import { useThemeStore } from '../stores/themeStore'
 import { useNotificationStore } from '../stores/notificationStore'
 import LocationPicker from './LocationPicker'
+import BrowsingBanner from './BrowsingBanner'
 import OzoLogo from './OzoLogo'
 import toast from 'react-hot-toast'
 import UserAvatar from './UserAvatar'
@@ -392,6 +393,9 @@ const Header = () => {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Browsing & Drift Banner */}
+      <BrowsingBanner />
 
       {/* Top Bar */}
       <div className="bg-gradient-ozo text-white py-2 hidden md:block">

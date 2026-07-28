@@ -37,6 +37,8 @@ export const useCartStore = create(
     (set, get) => ({
       // State
       items: [],
+      cartCitySlug: null,
+      cartCityMismatchNotice: null,
       isLoading: false,
       totalItems: 0,
       subtotal: 0,
@@ -542,6 +544,30 @@ export const useCartStore = create(
       // Add item to cart
       addToCart: async (product, quantity = 1, showToast = true) => {
         try {
+          const locationState = useLocationStore.getState()
+          const currentBrowsingCity = locationState.browsingCitySlug || locationState.selectedCitySlug
+          const activeCartCity = get().cartCitySlug
+
+          // Cart-City Consistency check: enforce that items in cart belong to the same city catalog
+          if (get().items.length > 0 && activeCartCity && currentBrowsingCity && activeCartCity !== currentBrowsingCity) {
+            if (showToast) {
+              toast.error(`Your cart contains items for ${activeCartCity.toUpperCase()}. Clear cart to add items from ${currentBrowsingCity.toUpperCase()}.`, {
+                duration: 5000,
+                icon: '🛒'
+              })
+            }
+            set({
+              cartCityMismatchNotice: {
+                cartCity: activeCartCity,
+                browsingCity: currentBrowsingCity,
+                pendingProduct: product,
+                pendingQuantity: quantity
+              }
+            })
+            return { success: false, reason: 'CITY_MISMATCH' }
+          }
+
+          const targetCartCity = (get().items.length === 0 && currentBrowsingCity) ? currentBrowsingCity : (activeCartCity || currentBrowsingCity)
           const user = useAuthStore.getState().user
 
           if (!user) {
@@ -585,7 +611,7 @@ export const useCartStore = create(
               categorySlug: product.category?.slug || product.categorySlug || null,
             }
 
-            set({ items: [...get().items, newItem] })
+            set({ items: [...get().items, newItem], cartCitySlug: targetCartCity })
             get().calculateTotals()
             if (showToast) toast.success('Added to cart')
             return { success: true }
@@ -621,7 +647,7 @@ export const useCartStore = create(
           }
 
           const previousItems = get().items
-          set({ items: [...previousItems, newItem] })
+          set({ items: [...previousItems, newItem], cartCitySlug: targetCartCity })
           get().calculateTotals()
 
           if (showToast) {
@@ -815,6 +841,8 @@ export const useCartStore = create(
           // Optimistically clear local state
           set({
             items: [],
+            cartCitySlug: null,
+            cartCityMismatchNotice: null,
             totalItems: 0,
             subtotal: 0,
             discount: 0,
@@ -831,7 +859,7 @@ export const useCartStore = create(
               if (error) {
                 console.error('Clear cart background error:', error)
                 // Rollback
-                set({ items: previousItems })
+                set({ items: previousItems, cartCitySlug: get().cartCitySlug })
                 get().calculateTotals()
                 toast.error('Failed to clear cart')
               }
@@ -843,6 +871,13 @@ export const useCartStore = create(
           return { success: false, error }
         }
       },
+
+      clearCartAndAdd: async (product, quantity = 1) => {
+        await get().clearCart()
+        return get().addToCart(product, quantity, true)
+      },
+
+      dismissCartCityMismatch: () => set({ cartCityMismatchNotice: null }),
 
       // Reorder items from a previous order
       reorder: async (orderItems) => {
