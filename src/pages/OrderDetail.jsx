@@ -38,11 +38,18 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 
 const getGoogleMapsUrl = (address, order) => {
-  if (order && order.latitude && order.longitude) {
+  if (order?.google_maps_url) return order.google_maps_url;
+  if (address?.google_maps_url) return address.google_maps_url;
+  if (order?.latitude && order?.longitude) {
     return `https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}`;
   }
-  if (address && address.latitude && address.longitude) {
+  if (address?.latitude && address?.longitude) {
     return `https://www.google.com/maps/search/?api=1&query=${address.latitude},${address.longitude}`;
+  }
+  const rawLine = address?.address_line1 || '';
+  if (rawLine && (rawLine.includes('http://') || rawLine.includes('https://'))) {
+    const match = rawLine.match(/https?:\/\/[^\s,]+/i);
+    if (match) return match[0];
   }
   if (!address) return '';
   const addressParts = [
@@ -1471,41 +1478,42 @@ const OrderDetail = () => {
                 <MapPin size={20} className="text-ozo-green" />
                 Delivery <span className="text-gradient">Address.</span>
               </h3>
-              <div className="space-y-2 text-sm">
-                <p className="font-black text-gray-900 dark:text-white">{currentOrder.address?.label || 'Home'}</p>
-                <p className="text-ozo-gray dark:text-gray-400 font-semibold leading-relaxed">
-                  {currentOrder.address?.address_line1 && currentOrder.address.address_line1.startsWith('Location Link: ') ? (
-                    <>
-                      Location Link:{' '}
-                      <a
-                        href={currentOrder.google_maps_url || currentOrder.address.google_maps_url || currentOrder.address.address_line1.replace('Location Link: ', '')}
+              <div className="space-y-3 text-sm">
+                <p className="font-black text-gray-900 dark:text-white text-base">{currentOrder.address?.label || 'Home'}</p>
+                <div className="text-ozo-gray dark:text-gray-400 font-semibold leading-relaxed">
+                  {(() => {
+                    const rawLine1 = currentOrder.address?.address_line1 || '';
+                    const isUrlLine = rawLine1.startsWith('Location Link:') || rawLine1.includes('http://') || rawLine1.includes('https://');
+                    
+                    return (
+                      <>
+                        {!isUrlLine && rawLine1 && <p>{rawLine1}</p>}
+                        {currentOrder.address?.address_line2 && <p>{currentOrder.address.address_line2}</p>}
+                        <p>
+                          {[currentOrder.address?.city, currentOrder.address?.state].filter(Boolean).join(', ')} 
+                          {currentOrder.address?.pincode ? ` - ${currentOrder.address.pincode}` : ''}
+                        </p>
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {(() => {
+                  const mapsUrl = getGoogleMapsUrl(currentOrder.address, currentOrder);
+                  return mapsUrl ? (
+                    <div className="pt-2">
+                      <a 
+                        href={mapsUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-ozo-red hover:underline break-all font-bold"
+                        className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-50 dark:bg-green-950/30 hover:bg-green-100 dark:hover:bg-green-900/40 text-green-600 dark:text-green-400 text-xs font-black uppercase tracking-wider rounded-2xl transition-all border border-green-200 dark:border-green-800/40 shadow-sm active:scale-95"
                       >
-                        {currentOrder.google_maps_url || currentOrder.address.google_maps_url || currentOrder.address.address_line1.replace('Location Link: ', '')}
+                        <ExternalLink size={14} />
+                        View on Google Maps
                       </a>
-                    </>
-                  ) : (
-                    currentOrder.address?.address_line1
-                  )}
-                  <br />
-                  {currentOrder.address?.address_line2 && <>{currentOrder.address.address_line2}<br /></>}
-                  {currentOrder.address?.city}, {currentOrder.address?.state} - {currentOrder.address?.pincode}
-                </p>
-                {currentOrder.address && (isAdmin || profile?.role === 'captain') && (
-                  <div className="pt-2">
-                    <a 
-                      href={getGoogleMapsUrl(currentOrder.address, currentOrder)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-ozo-green/10 hover:bg-ozo-green/20 text-ozo-green text-xs font-black uppercase tracking-wider rounded-2xl transition-colors mt-2 border border-ozo-green/10"
-                    >
-                      <ExternalLink size={14} />
-                      View on Google Maps
-                    </a>
-                  </div>
-                )}
+                    </div>
+                  ) : null;
+                })()}
                 {(() => {
                   const cleaned = currentOrder.delivery_instructions 
                     ? currentOrder.delivery_instructions.replace(/\[Payment\s+ID:\s*[^\]]+\]/gi, '').trim() 
@@ -1582,7 +1590,7 @@ const OrderDetail = () => {
             </div>
 
             {/* Cancel order action with cooling period countdown */}
-            {['pending', 'PLACED_COOLING'].includes(currentOrder.status) && (
+            {['pending', 'placed', 'PLACED_COOLING', 'CONFIRMED_SYSTEM', 'confirmed'].includes(currentOrder.status) && (
               !cancelWindowExpired ? (
                 <button 
                   onClick={() => setIsCancelModalOpen(true)}
@@ -1742,41 +1750,12 @@ const OrderDetail = () => {
                     onCustomNoteChange={setCancelCustomNote}
                   />
                 </div>
-
-                <div className="space-y-4">
-                  <label className="flex items-start gap-3 cursor-pointer select-none">
-                    <input 
-                      type="checkbox" 
-                      checked={hasCalledPartner}
-                      onChange={(e) => setHasCalledPartner(e.target.checked)}
-                      className="mt-1 w-4 h-4 text-ozo-red border-gray-300 rounded focus:ring-ozo-red accent-ozo-red cursor-pointer"
-                    />
-                    <span className="text-xs text-gray-700 dark:text-gray-300 font-bold leading-relaxed">
-                      I have discussed this cancellation with {currentOrder.rider ? 'Captain' : 'Customer Support'}.
-                    </span>
-                  </label>
-
-                  <div>
-                    <label className="block text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">
-                      Type "CONFIRM" to authorize
-                    </label>
-                    <input 
-                      type="text" 
-                      value={confirmationText}
-                      onChange={(e) => setConfirmationText(e.target.value)}
-                      placeholder="Type CONFIRM here"
-                      className="w-full px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-ozo-red/20 font-bold text-sm text-center uppercase"
-                    />
-                  </div>
-                </div>
               </div>
 
               <div className="flex gap-3 flex-shrink-0 pt-2 border-t border-gray-50 dark:border-white/5">
                 <button 
                   onClick={() => {
                     setIsCancelModalOpen(false)
-                    setHasCalledPartner(false)
-                    setConfirmationText('')
                     setCancelReason('')
                     setCancelCustomNote('')
                   }}
@@ -1785,9 +1764,9 @@ const OrderDetail = () => {
                   Keep Order
                 </button>
                 <button 
-                  disabled={!cancelReason || !hasCalledPartner || confirmationText.toUpperCase() !== 'CONFIRM' || isCancelling}
+                  disabled={!cancelReason || isCancelling}
                   onClick={handleConfirmCancellation}
-                  className="flex-1 py-3 bg-red-600 text-white rounded-2xl font-black text-xs hover:bg-red-700 disabled:bg-gray-200 disabled:text-gray-400 dark:disabled:bg-white/5 dark:disabled:text-gray-600 transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
+                  className="flex-1 py-3 bg-red-600 text-white rounded-2xl font-black text-xs hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed dark:disabled:bg-white/5 dark:disabled:text-gray-600 transition-all shadow-lg shadow-red-600/20 flex items-center justify-center gap-2"
                 >
                   {isCancelling ? 'Cancelling...' : 'Confirm Cancel'}
                 </button>
