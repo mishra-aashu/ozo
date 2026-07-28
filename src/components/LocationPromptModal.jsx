@@ -163,8 +163,9 @@ export default function LocationPromptModal() {
 
         if (detectedPincode) {
           const cleanPin = detectedPincode.toString().trim()
-          const isPincodeAllowed = matchedCity.allowed_pincodes && 
-                                   Array.isArray(matchedCity.allowed_pincodes) && 
+          const isPincodeAllowed = !matchedCity.allowed_pincodes || 
+                                   !Array.isArray(matchedCity.allowed_pincodes) || 
+                                   matchedCity.allowed_pincodes.length === 0 || 
                                    matchedCity.allowed_pincodes.includes(cleanPin)
           
           if (isPincodeAllowed) {

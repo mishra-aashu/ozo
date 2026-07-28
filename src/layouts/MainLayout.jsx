@@ -38,7 +38,7 @@ const MainLayout = () => {
         sessionStorage.getItem('ozo_notification_prompt_dismissed') === 'true'
 
       if (isNotificationFlowDone) {
-        detectLocation()
+        detectLocation(false, true)
         clearInterval(checkInterval)
       }
     }

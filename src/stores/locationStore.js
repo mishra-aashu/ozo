@@ -80,7 +80,11 @@ export const useLocationStore = create(
             .select('*')
             .eq('is_active', true)
           if (activeCities) {
-            set({ activeCities })
+            const sanitizedCities = activeCities.map(c => ({
+              ...c,
+              service_radius_km: Math.max(parseFloat(c.service_radius_km) || 25.0, 25.0)
+            }))
+            set({ activeCities: sanitizedCities })
             
             // Clean up any stale fallback_default state from previous sessions to prevent forcing default city
             if (get().tracedThrough === 'fallback_default') {
@@ -766,6 +770,12 @@ export const useLocationStore = create(
           return false
         }
 
+        // Ensure active cities are loaded before checking serviceability
+        let activeCities = get().activeCities || []
+        if (activeCities.length === 0) {
+          activeCities = await get().fetchActiveCities()
+        }
+
         return new Promise((resolve) => {
           navigator.geolocation.getCurrentPosition(
             async (position) => {
@@ -791,7 +801,7 @@ export const useLocationStore = create(
                   tracedThrough: 'fallback_default'
                 })
                 await get().updateNearestCitySlug(fallback.lat, fallback.lng)
-                if (!silent) {
+                if (!silent && isManual) {
                   toast.error(`OZO is not yet serviceable at your location. Showing ${fallback.cityName}.`, { duration: 6000, id: 'out-of-zone-error' })
                 }
                 resolve(true)
@@ -924,107 +934,62 @@ export const useLocationStore = create(
 // Call sites that have useCartStore available should pass:
 //   checkDeliveryZoneStatus(lat, lng, useCartStore.getState())
 export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
-  if (!userLat || !userLng) return false;
+  if (!userLat || !userLng) return true;
   const lat = parseFloat(userLat);
   const lng = parseFloat(userLng);
-  if (isNaN(lat) || isNaN(lng)) return false;
+  if (isNaN(lat) || isNaN(lng)) return true;
 
   try {
     const locationState = useLocationStore.getState();
     const activeCities = locationState.activeCities || [];
-    const localities = locationState.localities || [];
-    const landmarks = locationState.landmarks || [];
-    const galis = locationState.galis || [];
+    
+    // 1. Check if address or details explicitly mention Aurangabad
+    const addressStr = (locationState.address || '').toLowerCase();
+    const cityDetailsStr = (locationState.addressDetails?.city || locationState.addressDetails?.town || locationState.addressDetails?.state || '').toLowerCase();
+    if (addressStr.includes('aurangabad') || cityDetailsStr.includes('aurangabad')) {
+      return true;
+    }
 
-    // If we have active cities loaded, check if coordinates fall within any active city's radius
+    // 2. Dual Aurangabad coordinates check (Bihar: 24.7522, 84.3742 & MH: 19.8762, 75.3433)
+    const AURANGABAD_BIHAR = { lat: 24.7522, lng: 84.3742 };
+    const AURANGABAD_MH = { lat: 19.8762, lng: 75.3433 };
+    const distBihar = getDistanceKm(lat, lng, AURANGABAD_BIHAR.lat, AURANGABAD_BIHAR.lng);
+    const distMH = getDistanceKm(lat, lng, AURANGABAD_MH.lat, AURANGABAD_MH.lng);
+
+    if (distBihar <= 50.0 || distMH <= 50.0) {
+      return true;
+    }
+
+    // 3. Check distance against all active cities in DB (min 50km radius)
     if (activeCities.length > 0) {
-      let matchedCity = null;
       for (const city of activeCities) {
         if (!city.latitude || !city.longitude) continue;
         const cLat = parseFloat(city.latitude);
         const cLng = parseFloat(city.longitude);
-        const maxRadius = parseFloat(city.service_radius_km) || 15.0;
+        const maxRadius = Math.max(parseFloat(city.service_radius_km) || 50.0, 50.0);
         const dist = getDistanceKm(lat, lng, cLat, cLng);
         if (dist <= maxRadius) {
-          matchedCity = city;
-          break;
+          return true;
         }
       }
+    }
 
-      if (!matchedCity) return false;
-
-      // If the matched city is Aurangabad, apply hyper-local boundary check
-      if (matchedCity.slug?.includes('aurangabad')) {
-        // 1. Check Localities
-        for (const loc of localities) {
-          if (loc.latitude && loc.longitude) {
-            const distMeters = getDistanceKm(lat, lng, parseFloat(loc.latitude), parseFloat(loc.longitude)) * 1000;
-            const radius = parseFloat(loc.radius) || 250;
-            if (distMeters <= radius) {
-              return true;
-            }
-          }
-        }
-        
-        // 2. Check Landmarks
-        for (const lm of landmarks) {
-          if (lm.latitude && lm.longitude) {
-            const distMeters = getDistanceKm(lat, lng, parseFloat(lm.latitude), parseFloat(lm.longitude)) * 1000;
-            const radius = parseFloat(lm.radius) || 100;
-            if (distMeters <= radius) {
-              return true;
-            }
-          }
-        }
-        
-        // 3. Check Galis
-        for (const gali of galis) {
-          if (gali.latitude && gali.longitude) {
-            const distMeters = getDistanceKm(lat, lng, parseFloat(gali.latitude), parseFloat(gali.longitude)) * 1000;
-            const stretch = parseFloat(gali.length) || 300;
-            if (distMeters <= stretch) {
-              return true;
-            }
-          }
-        }
-        
-        // If it's Aurangabad, we still deliver to the city as a whole!
-        return true;
-      }
-
-      // For other cities, return true as it's within the city radius
+    // 4. Check selectedCitySlug / nearestCity
+    const selectedSlug = (locationState.selectedCitySlug || locationState.nearestCity?.slug || '').toLowerCase();
+    if (selectedSlug.includes('aurangabad') || !selectedSlug) {
       return true;
     }
 
-    // Fallback: If activeCities are not loaded yet
+    // 5. Fallback check with safe default 50km radius
     let centerLat = GEOFENCE_DEFAULTS.warehouse_lat;
     let centerLng = GEOFENCE_DEFAULTS.warehouse_lng;
-    let maxRadius = GEOFENCE_DEFAULTS.max_radius_km;
-
-    const nearestCity = locationState.nearestCity;
-    if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
-      centerLat = parseFloat(nearestCity.latitude);
-      centerLng = parseFloat(nearestCity.longitude);
-      maxRadius = parseFloat(nearestCity.service_radius_km) || 2.5;
-    } else if (config) {
-      const { deliveryConfig, geofenceConfig } = config;
-      if (deliveryConfig && deliveryConfig.store_lat) {
-        centerLat = parseFloat(deliveryConfig.store_lat);
-        centerLng = parseFloat(deliveryConfig.store_lng);
-      } else if (geofenceConfig) {
-        if (geofenceConfig.warehouse_lat) centerLat = parseFloat(geofenceConfig.warehouse_lat);
-        if (geofenceConfig.warehouse_lng) centerLng = parseFloat(geofenceConfig.warehouse_lng);
-      }
-      if (geofenceConfig && geofenceConfig.max_radius_km) {
-        maxRadius = parseFloat(geofenceConfig.max_radius_km);
-      }
-    }
+    let maxRadius = Math.max(parseFloat(GEOFENCE_DEFAULTS.max_radius_km) || 50.0, 50.0);
 
     const dist = getDistanceKm(lat, lng, centerLat, centerLng);
     return dist <= maxRadius;
   } catch (e) {
     console.error("Error checking dynamic delivery zone:", e);
-    return false;
+    return true;
   }
 };
 
@@ -1059,19 +1024,26 @@ export const findCityByPincode = (pincode) => {
 };
 
 export const checkPincodeServiceable = (pincode, cityName = null) => {
-  if (!pincode) return false;
+  if (!pincode) return true;
   const cleanPin = pincode.toString().trim();
   const activeCities = useLocationStore.getState().activeCities || [];
   
   if (cityName) {
     const cleanCity = cityName.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
-    const city = activeCities.find(c => c.name.toLowerCase().replace(/[^a-z0-9]/g, '').trim().includes(cleanCity));
+    const city = activeCities.find(c => {
+      const cleanName = c.name.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+      const cleanSlug = c.slug.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+      return cleanName.includes(cleanCity) || cleanCity.includes(cleanName) || cleanSlug.includes(cleanCity) || cleanCity.includes(cleanSlug);
+    });
     if (city) {
-      return city.allowed_pincodes && Array.isArray(city.allowed_pincodes) && city.allowed_pincodes.includes(cleanPin);
+      if (city.allowed_pincodes && Array.isArray(city.allowed_pincodes) && city.allowed_pincodes.length > 0) {
+        return city.allowed_pincodes.includes(cleanPin);
+      }
+      return true;
     }
   }
   
-  return activeCities.some(c => c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.includes(cleanPin));
+  return activeCities.some(c => !c.allowed_pincodes || c.allowed_pincodes.length === 0 || (Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.includes(cleanPin)));
 };
 
 export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => {
