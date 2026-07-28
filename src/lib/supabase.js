@@ -501,6 +501,14 @@ const customFetch = async (input, init) => {
           }
         }
 
+        // If ozo-auth-token wasn't in localStorage yet, try getting in-memory session from supabase auth
+        if (!token) {
+          try {
+            const { data: memData } = await supabase.auth.getSession()
+            token = memData?.session?.access_token || null
+          } catch (_) {}
+        }
+
         if (token && !isJwtExpired(token)) {
           newHeaders['Authorization'] = `Bearer ${token}`
         } else {
@@ -834,12 +842,22 @@ export const authHelpers = {
   },
 
   // Get user profile
-  getUserProfile: async (userId) => {
+  getUserProfile: async (userId, accessToken = null) => {
     try {
+      let token = accessToken
+      if (!token) {
+        try {
+          const { data: sessionData } = await supabase.auth.getSession()
+          token = sessionData?.session?.access_token || null
+        } catch (_) {}
+      }
+      const queryHeaders = token ? { Authorization: `Bearer ${token}` } : {}
+
       const { data, error } = await supabase
         .from('users')
         .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', userId)
+        .headers(queryHeaders)
         .maybeSingle()
 
       if (data) return { data, error: null }
@@ -849,6 +867,7 @@ export const authHelpers = {
         .from('users')
         .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', userId)
+        .headers(queryHeaders)
         .maybeSingle()
 
       if (adminData) return { data: adminData, error: null }
@@ -856,10 +875,17 @@ export const authHelpers = {
       return { data: null, error: error || adminError }
     } catch (error) {
       try {
+        let token = accessToken
+        if (!token) {
+          const { data: sessionData } = await supabase.auth.getSession()
+          token = sessionData?.session?.access_token || null
+        }
+        const queryHeaders = token ? { Authorization: `Bearer ${token}` } : {}
         const { data: adminData } = await supabaseAdmin
           .from('users')
           .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', userId)
+          .headers(queryHeaders)
           .maybeSingle()
         if (adminData) return { data: adminData, error: null }
       } catch (_) {}
@@ -871,10 +897,18 @@ export const authHelpers = {
   // Update user profile
   updateProfile: async (userId, updates) => {
     try {
+      let token = null
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        token = sessionData?.session?.access_token || null
+      } catch (_) {}
+      const queryHeaders = token ? { Authorization: `Bearer ${token}` } : {}
+
       const { data, error } = await supabase
         .from('users')
         .update(updates)
         .eq('id', userId)
+        .headers(queryHeaders)
         .select()
         .single()
 
