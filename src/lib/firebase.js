@@ -17,32 +17,6 @@ const firebaseConfig = {
 // Check if required configuration is present
 const hasConfig = firebaseConfig.apiKey && firebaseConfig.projectId
 
-// Safely resolve Firebase Messaging IndexedDB VersionError by resetting the database if version > 1
-if (typeof window !== 'undefined' && 'indexedDB' in window) {
-  try {
-    const dbName = 'firebase-messaging-database';
-    const req = indexedDB.open(dbName);
-    req.onsuccess = (e) => {
-      const db = e.target.result;
-      const version = db.version;
-      db.close();
-      if (version > 1) {
-        console.warn(`[Firebase] Detected legacy messaging DB version ${version} > 1. Resetting database...`);
-        indexedDB.deleteDatabase(dbName);
-      }
-    };
-    req.onerror = (e) => {
-      // If version mismatch error is encountered, delete the DB
-      if (e.target.error && e.target.error.name === 'VersionError') {
-        console.warn('[Firebase] Messaging DB VersionError detected. Resetting database...');
-        indexedDB.deleteDatabase(dbName);
-      }
-    };
-  } catch (err) {
-    console.error('[Firebase] Error checking legacy DB:', err);
-  }
-}
-
 // Initialize Firebase safely (prevents duplicate app registration)
 const app = hasConfig
   ? (getApps().length === 0 ? initializeApp(firebaseConfig) : getApp())
@@ -88,15 +62,11 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
 
     const permission = await Notification.requestPermission()
     if (permission === 'granted') {
-      // Register service worker at a fixed URL (config is hardcoded in the SW file)
-      // This ensures Chrome Android can reliably wake the SW for background pushes
       let registration = null
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        console.log('[FCM] Service Worker registered successfully')
       }
 
-      console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
       const tokenOptions = {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
       }
@@ -106,28 +76,16 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
       const token = await getToken(messaging, tokenOptions)
 
       if (token) {
-        console.log('[FCM] Token generated successfully:', token)
-        
-        // Delete any old tokens for this user on the same device (userAgent) to avoid duplicates
         const userAgent = navigator.userAgent || 'Web PWA Client'
         try {
-          const { error: deleteError } = await supabase
+          await supabase
             .from('user_fcm_tokens')
             .delete()
             .eq('user_id', userId)
             .eq('device_info', userAgent)
             .neq('token', token)
-            
-          if (deleteError) {
-            console.warn('[FCM] Error clearing old device tokens:', deleteError)
-          } else {
-            console.log('[FCM] Cleared stale tokens for this device.')
-          }
-        } catch (delErr) {
-          console.error('[FCM] Failed to clear old tokens:', delErr)
-        }
+        } catch (_) {}
 
-        // Sync token to user_fcm_tokens table
         const { error } = await supabase
           .from('user_fcm_tokens')
           .upsert({
@@ -138,21 +96,24 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
           }, { onConflict: 'token' })
 
         if (error) {
-          console.error('[FCM] Error saving token to DB:', error)
+          console.warn('[FCM] Error saving token to DB:', error.message || error)
         } else {
           console.log('[FCM] Token synced to DB successfully.')
         }
         return token
-      } else {
-        console.warn('[FCM] No registration token available.')
-        return null
       }
-    } else {
-      console.warn('[FCM] Notification permission denied.')
       return null
     }
+    return null
   } catch (err) {
-    console.error('[FCM] An error occurred while retrieving token:', err)
+    if (err?.name === 'NotFoundError' || err?.message?.includes('IDBDatabase') || err?.message?.includes('store')) {
+      console.warn('[FCM] Resetting corrupted IndexedDB object store...')
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        try { indexedDB.deleteDatabase('firebase-messaging-database') } catch (_) {}
+      }
+    } else {
+      console.warn('[FCM] Could not retrieve FCM token:', err?.message || err)
+    }
     return null
   }
 }
@@ -167,14 +128,11 @@ export const requestForToken = async () => {
   try {
     const permission = await Notification.requestPermission()
     if (permission === 'granted') {
-      // Register service worker at a fixed URL (config is hardcoded in the SW file)
       let registration = null
       if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
         registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js')
-        console.log('[FCM] Service Worker registered successfully')
       }
 
-      console.log('[FCM] Attempting to retrieve token with VAPID Key:', import.meta.env.VITE_FIREBASE_VAPID_KEY)
       const tokenOptions = {
         vapidKey: import.meta.env.VITE_FIREBASE_VAPID_KEY
       }
@@ -182,19 +140,16 @@ export const requestForToken = async () => {
         tokenOptions.serviceWorkerRegistration = registration
       }
       const currentToken = await getToken(messaging, tokenOptions)
-      if (currentToken) {
-        console.log('[FCM] Token generated successfully:', currentToken)
-        return currentToken
-      } else {
-        console.warn('[FCM] No registration token available.')
-        return null
-      }
-    } else {
-      console.warn('[FCM] Notification permission denied.')
-      return null
+      return currentToken || null
     }
+    return null
   } catch (err) {
-    console.error('[FCM] An error occurred while retrieving token:', err)
+    if (err?.name === 'NotFoundError' || err?.message?.includes('IDBDatabase') || err?.message?.includes('store')) {
+      console.warn('[FCM] Resetting corrupted IndexedDB object store...')
+      if (typeof window !== 'undefined' && 'indexedDB' in window) {
+        try { indexedDB.deleteDatabase('firebase-messaging-database') } catch (_) {}
+      }
+    }
     return null
   }
 }

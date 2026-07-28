@@ -713,6 +713,20 @@ const customFetch = async (input, init) => {
   return response
 }
 
+// Pre-hydrate in-memory access token from localStorage at module parse time
+if (typeof window !== 'undefined') {
+  try {
+    const raw = localStorage.getItem('ozo-auth-token')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      const token = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token
+      if (token) {
+        window.__ozo_access_token = token
+      }
+    }
+  } catch (_) {}
+}
+
 // Create main Supabase client (all REST/Auth calls → Cloudflare Proxy)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
