@@ -996,6 +996,100 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
   return res.status(200).send(html);
 }
 
+async function renderCategoryPage(res: VercelResponse, categorySlug: string, citySlug: string | null, activeCities: any[]) {
+  const currentCitySlug = citySlug || activeCities[0]?.slug || '';
+  
+  let categoryName = categorySlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+  let categoryId: string | null = null;
+  
+  try {
+    const { data } = await supabase
+      .from('categories')
+      .select('id, name, slug, icon')
+      .eq('slug', categorySlug)
+      .maybeSingle();
+    if (data) {
+      categoryName = data.name;
+      categoryId = data.id;
+    }
+  } catch (err) {
+    console.error('Error fetching category:', err);
+  }
+
+  let products: any[] = [];
+  try {
+    let query = supabase
+      .from('products')
+      .select('slug, name, base_price, unit, image_url')
+      .eq('is_available', true)
+      .limit(36);
+
+    if (categoryId) {
+      query = query.eq('category_id', categoryId);
+    }
+    const { data } = await query;
+    if (data) products = data;
+  } catch (err) {
+    console.error('Error fetching category products for SEO:', err);
+  }
+
+  const title = `${categoryName} Online | OZO Mart Grocery Delivery`;
+  const description = `Buy fresh ${categoryName} online on OZO Mart. Fast 10-30 minute grocery delivery. सोचो मत, #OZOपेखोजो!`;
+  const keywords = `buy ${categoryName} online, ${categoryName} delivery, OZO ${categoryName}, online grocery Bihar`;
+  const canonicalUrl = citySlug ? `https://ozomart.store/${citySlug}/category/${categorySlug}` : `https://ozomart.store/category/${categorySlug}`;
+
+  const itemListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": `${categoryName} on OZO Mart`,
+    "numberOfItems": products.length,
+    "itemListElement": products.map((p, index) => ({
+      "@type": "ListItem",
+      "position": index + 1,
+      "name": p.name,
+      "url": `https://ozomart.store/${currentCitySlug}/${p.slug}`
+    }))
+  };
+
+  const categoryProductsHTML = products.map(p => `
+    <div class="related-card">
+      <a href="/${currentCitySlug}/${p.slug}">
+        <img src="${p.image_url}" alt="${p.name} - ${categoryName} on OZO Mart" loading="lazy" />
+        <h3>${p.name}</h3>
+        <p>₹${p.base_price}</p>
+        <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
+      </a>
+    </div>
+  `).join('');
+
+  const contentHTML = `
+    <h1 style="text-align: center; margin-top: 20px;">Buy ${categoryName} Online</h1>
+    <p style="text-align: center; max-width: 700px; margin: 0 auto 40px auto; color: var(--text-muted); font-size: 16px;">
+      Explore wide selection of fresh <strong>${categoryName}</strong> on OZO Mart. Get 10 to 30 minute express delivery directly to your home. सोचो मत, #OZOपेखोजो!
+    </p>
+
+    <h2 class="section-title">${categoryName} Products</h2>
+    <div class="related-products">
+      ${categoryProductsHTML || '<p style="color: var(--text-muted);">Products loading...</p>'}
+    </div>
+  `;
+
+  const html = renderPageWrapper({
+    title,
+    description,
+    keywords,
+    canonicalUrl,
+    schemas: [itemListSchema],
+    contentHTML,
+    activeCities,
+    currentCitySlug
+  });
+
+  res.setHeader('Content-Type', 'text/html');
+  res.setHeader('Cache-Control', 'public, max-age=3600, s-maxage=3600, stale-while-revalidate=60');
+  return res.status(200).send(html);
+}
+
 function renderStaticPage(res: VercelResponse, slug: string, activeCities: any[]) {
   let title = '';
   let description = '';
@@ -1127,9 +1221,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     `);
   }
 
-  const { city, product, homepage } = req.query;
+  const { city, product, homepage, category } = req.query;
 
   const activeCities = await getActiveCities();
+
+  if (category) {
+    return renderCategoryPage(res, String(category), city ? String(city) : null, activeCities);
+  }
 
   const isHomepage = homepage === 'true' || (!city && !product);
 
