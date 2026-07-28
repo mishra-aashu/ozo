@@ -77,6 +77,13 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
 
       if (token) {
         const userAgent = navigator.userAgent || 'Web PWA Client'
+        const activeToken = (typeof window !== 'undefined' && window.__ozo_access_token) || (typeof window !== 'undefined' ? (JSON.parse(localStorage.getItem('ozo-auth-token') || '{}')?.access_token || JSON.parse(localStorage.getItem('ozo-auth-token') || '{}')?.currentSession?.access_token) : null)
+
+        if (!activeToken) {
+          console.log('[FCM] Skipping token sync: active user session token not initialized yet.')
+          return token
+        }
+
         try {
           await supabase
             .from('user_fcm_tokens')
