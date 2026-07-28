@@ -1333,12 +1333,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const prod = productData;
     const categoryObj = prod.categories as any;
     const cleanCategoryName = (Array.isArray(categoryObj) ? categoryObj[0]?.name : categoryObj?.name) || 'Grocery';
+    const categoryName = cleanCategoryName;
 
     const citySellingPrice = pca?.city_price !== null && pca?.city_price !== undefined 
       ? parseFloat(pca.city_price) 
       : (prod.base_price ? parseFloat(prod.base_price) : 0);
     
     const finalPrice = citySellingPrice;
+
+    const finalMrp = pca?.city_mrp !== null && pca?.city_mrp !== undefined
+      ? parseFloat(pca.city_mrp)
+      : (prod.base_mrp ? parseFloat(prod.base_mrp) : finalPrice);
+
+    const absoluteImageUrl = prod.image_url || 'https://ozomart.store/logo.png';
 
     // Fetch related products
     let relatedProducts = [];
