@@ -353,8 +353,36 @@ export const useOrderStore = create((set, get) => ({
       return { success: true, data: order }
     } catch (error) {
       console.error('Place order error:', error)
-      const errMsg = error?.message || 'Failed to place order'
-      toast.error(errMsg)
+      let rawMsg = error?.message || 'Failed to place order'
+      
+      // Clean up raw Product UUIDs in error messages to display friendly product names or clean descriptions
+      const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
+      const uuids = rawMsg.match(uuidRegex) || []
+      
+      if (uuids.length > 0) {
+        uuids.forEach(uuid => {
+          const item = cartItems.find(i => 
+            (i.productId && i.productId.toLowerCase() === uuid.toLowerCase()) || 
+            (i.id && i.id.toString().toLowerCase() === uuid.toLowerCase())
+          )
+          const itemName = item?.name || item?.productName || item?.title
+          if (itemName) {
+            rawMsg = rawMsg.replace(new RegExp(uuid, 'gi'), `"${itemName}"`)
+          } else {
+            rawMsg = rawMsg
+              .replace(new RegExp(`Product ${uuid}`, 'gi'), 'An item')
+              .replace(new RegExp(`product ${uuid}`, 'gi'), 'an item')
+              .replace(new RegExp(`product ID ${uuid}`, 'gi'), 'an item')
+              .replace(new RegExp(uuid, 'gi'), 'Item')
+          }
+        })
+      }
+
+      if (rawMsg.includes('is not available in the selected mart')) {
+        rawMsg = rawMsg.replace('is not available in the selected mart', 'is not available in your delivery area')
+      }
+
+      toast.error(rawMsg)
       set({ isPlacingOrder: false })
       return { success: false, error }
     }
