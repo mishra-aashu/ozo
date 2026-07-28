@@ -23,30 +23,14 @@ const ensureProfileExists = async (user, accessToken = null) => {
     window.__ozo_access_token = accessToken
   }
 
-  const fetchWithRetry = async (retries = 2, delay = 500) => {
-    for (let i = 0; i <= retries; i++) {
-      try {
-        const { data: profile, error } = await authHelpers.getUserProfile(user.id, accessToken)
-        if (profile) return profile
-        if (error) {
-          console.warn(`Fetch profile attempt ${i + 1} failed:`, error)
-        }
-      } catch (err) {
-        console.warn(`Fetch profile attempt ${i + 1} threw:`, err)
-      }
-      if (i < retries) {
-        await new Promise(res => setTimeout(res, delay * Math.pow(2, i)))
-      }
-    }
-    return null
-  }
-
   try {
-    // 1. Try to fetch the profile with retries for transient issues
-    let profile = await fetchWithRetry()
-    if (profile) return profile
+    // 1. First attempt: fetch via standard client SDK / authHelpers
+    try {
+      const { data: profile } = await authHelpers.getUserProfile(user.id, accessToken)
+      if (profile) return profile
+    } catch (_) {}
 
-    // 2. Fallback to supabaseAdmin query before attempting insert to prevent false insert duplicate key errors
+    // 2. Direct database query via supabaseAdmin (bypasses RLS token propagation delays)
     try {
       const { data: adminProfile } = await supabaseAdmin
         .from('users')
@@ -54,19 +38,19 @@ const ensureProfileExists = async (user, accessToken = null) => {
         .eq('id', user.id)
         .maybeSingle()
       if (adminProfile) {
-        console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin fallback.')
+        console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin.')
         return adminProfile
       }
     } catch (aErr) {
       console.warn('[OZO Auth] supabaseAdmin profile check failed:', aErr)
     }
 
-    // 3. If profile truly does not exist in DB, attempt to insert
+    // 3. If profile truly does not exist in DB, attempt to insert using admin client
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
 
-    const { data: newProfile, error: insertError } = await supabase
+    const { data: newProfile, error: insertError } = await supabaseAdmin
       .from('users')
       .insert([
         {
@@ -81,9 +65,9 @@ const ensureProfileExists = async (user, accessToken = null) => {
       .maybeSingle()
 
     if (insertError) {
-      console.warn('Failed to insert user profile via client SDK (might be RLS or duplicate key):', insertError)
+      console.warn('Admin profile insertion failed (might be duplicate key):', insertError)
       
-      // 4. Fetch via supabaseAdmin after insert collision
+      // Retry fetch via supabaseAdmin after insert collision
       try {
         const { data: adminProfileRetry } = await supabaseAdmin
           .from('users')
@@ -92,14 +76,10 @@ const ensureProfileExists = async (user, accessToken = null) => {
           .maybeSingle()
           
         if (adminProfileRetry) {
-          console.log('[OZO Auth] Successfully retrieved profile via admin client after insert collision.')
           return adminProfileRetry
         }
       } catch (_) {}
 
-      profile = await fetchWithRetry(2, 500)
-      if (profile) return profile
-      
       return null
     }
 
