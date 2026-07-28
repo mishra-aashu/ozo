@@ -941,15 +941,29 @@ export const authHelpers = {
   // Update user profile
   updateProfile: async (userId, updates) => {
     try {
+      // Use maybeSingle() to avoid PGRST116 when RLS blocks the return
       const { data, error } = await supabase
         .from('users')
         .update(updates)
         .eq('id', userId)
         .select()
-        .single()
+        .maybeSingle()
+
+      if (data) return { data, error: null }
+
+      // If update returned no data (RLS or token issue), try upsert via authenticated client
+      if (!data && !error) {
+        const { data: upsertData, error: upsertError } = await supabase
+          .from('users')
+          .upsert({ id: userId, ...updates }, { onConflict: 'id' })
+          .select()
+          .maybeSingle()
+        if (upsertData) return { data: upsertData, error: null }
+        if (upsertError) return { data: null, error: upsertError }
+      }
 
       if (error) throw error
-      return { data, error: null }
+      return { data: null, error: new Error('Update returned no data') }
     } catch (error) {
       return { data: null, error }
     }
