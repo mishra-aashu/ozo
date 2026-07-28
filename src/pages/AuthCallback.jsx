@@ -88,29 +88,23 @@ const AuthCallback = () => {
       })
     }
 
-    // Poll for the store's profile fetch to complete (max 5s / 10 attempts).
+    // Poll for the store's profile fetch to complete (max 6s / 12 attempts).
     // The store's SIGNED_IN handler fires ensureProfileExists() in a setTimeout,
     // so it may lag slightly behind this callback.
     let attempts = 0
-    const maxAttempts = 10
+    const maxAttempts = 12
 
     while (attempts < maxAttempts) {
       const { profile, isAuthenticated } = useAuthStore.getState()
 
       if (isAuthenticated) {
-        if (profile !== null) {
-          // Profile loaded — route based on whether phone is set
+        // Only make routing decision if profile is loaded and is NOT a temporary fallback profile
+        if (profile !== null && !profile.isFallback) {
           if (profile.phone) {
             navigate('/', { replace: true })
           } else {
             navigate('/complete-profile', { replace: true })
           }
-          return
-        }
-
-        // Profile still null after 3s → assume new user (no DB row yet)
-        if (attempts >= 6) {
-          navigate('/complete-profile', { replace: true })
           return
         }
       }
@@ -119,10 +113,14 @@ const AuthCallback = () => {
       attempts++
     }
 
-    // Timed out polling — make a safe decision
+    // Timed out polling — make a safe decision with final state
     const { isAuthenticated, profile } = useAuthStore.getState()
     if (isAuthenticated) {
-      navigate(profile?.phone ? '/' : '/complete-profile', { replace: true })
+      if (profile && profile.phone) {
+        navigate('/', { replace: true })
+      } else {
+        navigate('/complete-profile', { replace: true })
+      }
     } else {
       navigate('/auth', { replace: true })
     }
