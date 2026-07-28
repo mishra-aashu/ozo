@@ -164,17 +164,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/auth" replace />
   }
 
-  // Profile state is null (initial fetch in-flight) — show brief loader
-  if (profile === null) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Loading profile...</p>
-      </div>
-    )
-  }
-
-  if (user && !profile?.phone) {
+  // If profile is fully hydrated from DB (not fallback) and phone is missing -> prompt to complete profile
+  if (profile && !profile.isFallback && !profile.phone) {
     return <Navigate to="/complete-profile" replace />
   }
 
@@ -190,7 +181,8 @@ const PublicOnlyRoute = ({ children }) => {
   const { user, profile } = useAuthStore()
 
   if (user) {
-    if (!profile?.phone) {
+    // Only redirect to /complete-profile if profile hydration is complete and phone is confirmed missing
+    if (profile && !profile.isFallback && !profile.phone) {
       return <Navigate to="/complete-profile" replace />
     }
     return <Navigate to="/" replace />
@@ -221,7 +213,17 @@ const CompleteProfileRoute = ({ children }) => {
     return <Navigate to="/" replace />
   }
 
-  // Render the Complete Profile page so user can complete their profile
+  // If profile is still in fallback hydration phase, show brief loader while DB profile fetches
+  if (profile?.isFallback) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
+        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Checking profile status...</p>
+      </div>
+    )
+  }
+
+  // Profile is hydrated from DB and phone is confirmed missing — render Complete Profile form
   return children
 }
 
