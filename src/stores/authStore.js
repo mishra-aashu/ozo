@@ -46,9 +46,9 @@ const ensureProfileExists = async (user, accessToken = null) => {
     try {
       const { data: adminProfile } = await supabaseAdmin
         .from('users')
-        .select('*, user_roles!user_id(*)')
+        .select('*, user_roles(*)')
         .eq('id', user.id)
-        .single()
+        .maybeSingle()
       if (adminProfile) {
         console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin fallback.')
         return adminProfile
@@ -74,7 +74,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
         }
       ])
       .select()
-      .single()
+      .maybeSingle()
 
     if (insertError) {
       console.warn('Failed to insert user profile via client SDK (might be RLS or duplicate key):', insertError)
@@ -83,9 +83,9 @@ const ensureProfileExists = async (user, accessToken = null) => {
       try {
         const { data: adminProfileRetry } = await supabaseAdmin
           .from('users')
-          .select('*, user_roles!user_id(*)')
+          .select('*, user_roles(*)')
           .eq('id', user.id)
-          .single()
+          .maybeSingle()
           
         if (adminProfileRetry) {
           console.log('[OZO Auth] Successfully retrieved profile via admin client after insert collision.')

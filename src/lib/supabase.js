@@ -834,43 +834,33 @@ export const authHelpers = {
   },
 
   // Get user profile
-  getUserProfile: async (userId, accessToken = null) => {
+  getUserProfile: async (userId) => {
     try {
-      let query = supabase
+      const { data, error } = await supabase
         .from('users')
-        .select('*, user_roles!user_id(*)')
+        .select('*, user_roles(*)')
         .eq('id', userId)
-
-      if (accessToken) {
-        query = query.headers({ Authorization: `Bearer ${accessToken}` })
-      }
-
-      const { data, error } = await query.single()
+        .maybeSingle()
 
       if (data) return { data, error: null }
 
-      // If standard query fails (e.g. RLS token propagation delay), fallback to supabaseAdmin
-      if (error) {
-        console.warn('Standard getUserProfile query returned error, trying supabaseAdmin fallback:', error.message)
-        const { data: adminData, error: adminError } = await supabaseAdmin
-          .from('users')
-          .select('*, user_roles!user_id(*)')
-          .eq('id', userId)
-          .single()
+      // Fallback to supabaseAdmin if standard query returns empty or errors (e.g. RLS token propagation delay)
+      const { data: adminData, error: adminError } = await supabaseAdmin
+        .from('users')
+        .select('*, user_roles(*)')
+        .eq('id', userId)
+        .maybeSingle()
 
-        if (adminData) return { data: adminData, error: null }
-        return { data: null, error: adminError || error }
-      }
+      if (adminData) return { data: adminData, error: null }
 
-      return { data: null, error: null }
+      return { data: null, error: error || adminError }
     } catch (error) {
-      // Fallback attempt via supabaseAdmin on exception
       try {
         const { data: adminData } = await supabaseAdmin
           .from('users')
-          .select('*, user_roles!user_id(*)')
+          .select('*, user_roles(*)')
           .eq('id', userId)
-          .single()
+          .maybeSingle()
         if (adminData) return { data: adminData, error: null }
       } catch (_) {}
 
