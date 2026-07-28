@@ -19,19 +19,14 @@ let activeProfilePollInterval = null
 const ensureProfileExists = async (user, accessToken = null) => {
   if (!user) return null
   
-  let token = accessToken
-  if (!token) {
-    try {
-      const { data: sData } = await supabase.auth.getSession()
-      token = sData?.session?.access_token || null
-    } catch (_) {}
+  if (accessToken && typeof window !== 'undefined') {
+    window.__ozo_access_token = accessToken
   }
-  const queryHeaders = token ? { Authorization: `Bearer ${token}` } : {}
 
   const fetchWithRetry = async (retries = 2, delay = 500) => {
     for (let i = 0; i <= retries; i++) {
       try {
-        const { data: profile, error } = await authHelpers.getUserProfile(user.id, token)
+        const { data: profile, error } = await authHelpers.getUserProfile(user.id, accessToken)
         if (profile) return profile
         if (error) {
           console.warn(`Fetch profile attempt ${i + 1} failed:`, error)
@@ -57,7 +52,6 @@ const ensureProfileExists = async (user, accessToken = null) => {
         .from('users')
         .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', user.id)
-        .headers(queryHeaders)
         .maybeSingle()
       if (adminProfile) {
         console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin fallback.')
@@ -83,7 +77,6 @@ const ensureProfileExists = async (user, accessToken = null) => {
           role: 'customer',
         }
       ])
-      .headers(queryHeaders)
       .select()
       .maybeSingle()
 
@@ -96,7 +89,6 @@ const ensureProfileExists = async (user, accessToken = null) => {
           .from('users')
           .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', user.id)
-          .headers(queryHeaders)
           .maybeSingle()
           
         if (adminProfileRetry) {
@@ -226,6 +218,9 @@ export const useAuthStore = create(
           ])
 
           if (session?.user) {
+            if (typeof window !== 'undefined' && session.access_token) {
+              window.__ozo_access_token = session.access_token
+            }
             // Sync session to supabaseAdmin client so admin requests are authenticated
             try {
               await supabaseAdmin.auth.setSession({
@@ -378,8 +373,11 @@ export const useAuthStore = create(
           // subscription handle so it can be torn down if initializeAuth is called again.
           const { data: { subscription } } = supabase.auth.onAuthStateChange(
             (event, session) => {
-              // Sync session to supabaseAdmin
+              // Sync session to supabaseAdmin and window memory cache
               if (session) {
+                if (typeof window !== 'undefined' && session.access_token) {
+                  window.__ozo_access_token = session.access_token
+                }
                 supabaseAdmin.auth.setSession({
                   access_token: session.access_token,
                   refresh_token: session.refresh_token,
@@ -387,6 +385,9 @@ export const useAuthStore = create(
                   console.warn('Failed to sync session to supabaseAdmin on auth change:', err)
                 })
               } else {
+                if (typeof window !== 'undefined') {
+                  window.__ozo_access_token = null
+                }
                 supabaseAdmin.auth.setSession({
                   access_token: '',
                   refresh_token: '',
@@ -724,6 +725,9 @@ export const useAuthStore = create(
           }
 
           // 2. Manually clear Supabase local storage key to guarantee session is deleted from the root
+          if (typeof window !== 'undefined') {
+            window.__ozo_access_token = null
+          }
           localStorage.removeItem('ozo-auth-token')
           localStorage.removeItem('ozo-admin-token')
           sessionStorage.removeItem('ozo-admin-token')
