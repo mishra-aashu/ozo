@@ -46,7 +46,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
     try {
       const { data: adminProfile } = await supabaseAdmin
         .from('users')
-        .select('*, user_roles(*)')
+        .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', user.id)
         .maybeSingle()
       if (adminProfile) {
@@ -83,7 +83,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
       try {
         const { data: adminProfileRetry } = await supabaseAdmin
           .from('users')
-          .select('*, user_roles(*)')
+          .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', user.id)
           .maybeSingle()
           

@@ -838,7 +838,7 @@ export const authHelpers = {
     try {
       const { data, error } = await supabase
         .from('users')
-        .select('*, user_roles(*)')
+        .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', userId)
         .maybeSingle()
 
@@ -847,7 +847,7 @@ export const authHelpers = {
       // Fallback to supabaseAdmin if standard query returns empty or errors (e.g. RLS token propagation delay)
       const { data: adminData, error: adminError } = await supabaseAdmin
         .from('users')
-        .select('*, user_roles(*)')
+        .select('*, user_roles!user_roles_user_id_fkey(*)')
         .eq('id', userId)
         .maybeSingle()
 
@@ -858,7 +858,7 @@ export const authHelpers = {
       try {
         const { data: adminData } = await supabaseAdmin
           .from('users')
-          .select('*, user_roles(*)')
+          .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', userId)
           .maybeSingle()
         if (adminData) return { data: adminData, error: null }
