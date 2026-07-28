@@ -654,6 +654,7 @@ function App() {
 
             {/* Dynamic parameters routes placed last to prevent greeting static routes like auth/v1/callback */}
             <Route path=":city" element={<Home />} />
+            <Route path=":city/category/:slug" element={<CategoryProducts />} />
             <Route path=":city/:category/:slug" element={<ProductDetail />} />
             <Route path=":city/:slug" element={<ProductDetail />} />
 
