@@ -147,10 +147,9 @@ import { useNotificationStore } from './stores/notificationStore'
 import { useLanguageStore } from './stores/languageStore'
 import { useLocationStore } from './stores/locationStore'
 
-// Protected Route Component
-import { initOneSignal } from './utils/onesignal'
+// Protected Route Component (requires authentication)
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, profile, isAdmin, isInitialized } = useAuthStore()
+  const { user, profile, isInitialized, isAdmin } = useAuthStore()
 
   if (!isInitialized) {
     return (
@@ -165,8 +164,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/auth" replace />
   }
 
-  // Profile still loading or fallback placeholder — hold here to prevent premature redirect to /complete-profile
-  if (profile === null || profile?.isFallback) {
+  // Profile state is null (initial fetch in-flight) — show brief loader
+  if (profile === null) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
         <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
@@ -200,9 +199,7 @@ const PublicOnlyRoute = ({ children }) => {
   }
 
   if (user) {
-    // If profile is still loading or in fallback state, hold here instead of redirecting — avoids
-    // the /auth → /complete-profile → /auth bounce loop during profile fetch.
-    if (profile === null || profile?.isFallback) {
+    if (profile === null) {
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
           <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
@@ -236,23 +233,12 @@ const CompleteProfileRoute = ({ children }) => {
     return <Navigate to="/auth" replace />
   }
 
-  // profile === null or fallback means it is still loading — don't redirect yet to avoid
-  // bouncing the user between /complete-profile and /auth in a loop while the
-  // profile fetch is in-flight (especially right after OAuth callback).
-  if (profile === null || profile?.isFallback) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Loading profile...</p>
-      </div>
-    )
-  }
-
-  // Profile is loaded and phone is already set — send to home
-  if (user && profile?.phone) {
+  // Profile is loaded and already has a valid phone number — send to home
+  if (profile && !profile.isFallback && profile.phone) {
     return <Navigate to="/" replace />
   }
 
+  // Render the Complete Profile page so user can complete their profile
   return children
 }
 
