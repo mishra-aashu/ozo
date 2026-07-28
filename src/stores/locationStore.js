@@ -35,6 +35,7 @@ export const useLocationStore = create(
       userAddresses: [],
       isDetecting: false,
       isLoading: false,
+      isLocationInitialized: false,
       error: null,
       activeCities: [],
       localities: [],
@@ -79,30 +80,34 @@ export const useLocationStore = create(
             .from('operating_cities')
             .select('*')
             .eq('is_active', true)
-          if (activeCities) {
+          if (activeCities && activeCities.length > 0) {
             const sanitizedCities = activeCities.map(c => ({
               ...c,
               service_radius_km: Math.max(parseFloat(c.service_radius_km) || 25.0, 25.0)
             }))
-            set({ activeCities: sanitizedCities })
-            
-            // Clean up any stale fallback_default state from previous sessions to prevent forcing default city
-            if (get().tracedThrough === 'fallback_default') {
-              set({
-                coordinates: null,
-                address: null,
-                addressDetails: null,
-                selectedCitySlug: null,
-                nearestCity: null,
-                tracedThrough: null
-              })
-            }
-            
-            return activeCities
+
+            const currentSlug = get().selectedCitySlug || get().browsingCitySlug || get().deliveryCitySlug
+            const defaultCity = sanitizedCities.find(c => c.slug?.includes('aurangabad')) || sanitizedCities[0]
+            const resolvedSlug = currentSlug || defaultCity?.slug || 'aurangabad-bihar'
+
+            set({ 
+              activeCities: sanitizedCities,
+              selectedCitySlug: resolvedSlug,
+              browsingCitySlug: get().browsingCitySlug || resolvedSlug,
+              deliveryCitySlug: get().deliveryCitySlug || resolvedSlug,
+              isLocationInitialized: true 
+            })
+
+            return sanitizedCities
           }
         } catch (e) {
           console.error('Failed to fetch active cities:', e)
         }
+        const fallbackSlug = get().selectedCitySlug || 'aurangabad-bihar'
+        set({ 
+          selectedCitySlug: fallbackSlug,
+          isLocationInitialized: true 
+        })
         return []
       },
 
