@@ -1201,9 +1201,9 @@ const ProductDetail = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3 w-full min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-3 w-full">
                       {/* Quantity Stepper */}
-                      <div className={`flex items-center justify-between rounded-2xl p-1.5 border transition-all duration-300 shrink-0 ${
+                      <div className={`flex items-center justify-between rounded-2xl p-1 sm:p-1.5 border transition-all duration-300 shrink-0 ${
                         cartQuantity > 0 
                           ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm' 
                           : 'bg-gray-50 dark:bg-[#1a1a20] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white'
@@ -1211,31 +1211,31 @@ const ProductDetail = () => {
                         <button 
                           onClick={handleDecrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
+                          className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
                             cartQuantity > 0 
                               ? 'hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
                               : 'hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-200'
                           }`}
                           aria-label="Decrease quantity"
                         >
-                          <Minus size={20} className="stroke-[3px]" />
+                          <Minus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
                         </button>
 
-                        <span className="w-9 sm:w-11 text-center font-black text-lg sm:text-xl select-none">
+                        <span className="w-7 sm:w-9 text-center font-black text-base sm:text-lg select-none">
                           {cartQuantity > 0 ? cartQuantity : quantity}
                         </span>
 
                         <button 
                           onClick={handleIncrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className={`w-11 h-11 sm:w-12 sm:h-12 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
+                          className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
                             cartQuantity > 0 
                               ? 'hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
                               : 'hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-200'
                           }`}
                           aria-label="Increase quantity"
                         >
-                          <Plus size={20} className="stroke-[3px]" />
+                          <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
                         </button>
                       </div>
 
@@ -1243,7 +1243,7 @@ const ProductDetail = () => {
                       <button 
                         onClick={cartQuantity > 0 ? () => navigate('/cart') : handleAddToCart}
                         disabled={!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)}
-                        className={`flex-1 min-w-0 h-14 sm:h-14 rounded-2xl font-black text-sm sm:text-base lg:text-lg tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2.5 px-4 sm:px-6 shadow-lg overflow-hidden ${
+                        className={`flex-1 h-12 sm:h-14 rounded-2xl font-black text-xs sm:text-base lg:text-lg tracking-wide sm:tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-6 shadow-lg ${
                           !currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)
                             ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-white/10 text-gray-400'
                             : cartQuantity > 0
@@ -1255,13 +1255,13 @@ const ProductDetail = () => {
                           <span className="whitespace-nowrap">Price on Request</span>
                         ) : cartQuantity > 0 ? (
                           <>
-                            <span className="whitespace-nowrap uppercase tracking-wider">View in Basket</span>
-                            <ArrowRight size={22} className="stroke-[2.5px] flex-shrink-0" />
+                            <span className="whitespace-nowrap uppercase">View in Basket</span>
+                            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5px] flex-shrink-0" />
                           </>
                         ) : (
                           <>
-                            <span className="whitespace-nowrap uppercase tracking-wider">Add to Basket</span>
-                            <ShoppingCart size={22} className="stroke-[2.5px] flex-shrink-0" />
+                            <span className="whitespace-nowrap uppercase">Add to Basket</span>
+                            <ShoppingCart className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5px] flex-shrink-0" />
                           </>
                         )}
                       </button>
