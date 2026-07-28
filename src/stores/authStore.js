@@ -58,10 +58,26 @@ const ensureProfileExists = async (user, accessToken = null) => {
       }
     } catch (_) {}
 
-    // 4. If profile truly does not exist in DB, attempt to insert using authenticated client
+    // 4. One final definitive admin fetch before assuming the record is missing.
+    // This covers the case where earlier fetches failed due to RLS timing but the
+    // row actually exists in public.users (e.g. user already set their phone).
+    try {
+      const { data: finalCheck } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (finalCheck) {
+        console.log('[OZO Auth] Final pre-insert check found existing profile — skipping insert.')
+        return finalCheck
+      }
+    } catch (_) {}
+
+    // 5. Profile truly does not exist in DB — insert using authenticated client
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
+    // Prefer auth metadata phone (synced from public.users), then auth user phone
     const phone = metadata.phone || user.phone || ''
 
     const profileData = {
