@@ -45,10 +45,24 @@ const ensureProfileExists = async (user, accessToken = null) => {
       console.warn('[OZO Auth] supabaseAdmin profile check failed:', aErr)
     }
 
-    // 3. If profile truly does not exist in DB, attempt to insert using admin client
+    // 3. Simple query fallback without join (prevents join syntax errors from returning null)
+    try {
+      const { data: simpleProfile } = await supabaseAdmin
+        .from('users')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle()
+      if (simpleProfile) {
+        console.log('[OZO Auth] Successfully retrieved simple user profile via supabaseAdmin.')
+        return simpleProfile
+      }
+    } catch (_) {}
+
+    // 4. If profile truly does not exist in DB, attempt to insert using admin client
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
+    const phone = metadata.phone || user.phone || ''
 
     const { data: newProfile, error: insertError } = await supabaseAdmin
       .from('users')
@@ -58,6 +72,7 @@ const ensureProfileExists = async (user, accessToken = null) => {
           email: user.email,
           full_name: fullName,
           avatar_url: avatarUrl,
+          phone: phone || null,
           role: 'customer',
         }
       ])
@@ -65,13 +80,13 @@ const ensureProfileExists = async (user, accessToken = null) => {
       .maybeSingle()
 
     if (insertError) {
-      console.warn('Admin profile insertion failed (might be duplicate key):', insertError)
+      console.warn('Admin profile insertion failed (likely duplicate key):', insertError)
       
-      // Retry fetch via supabaseAdmin after insert collision
+      // Retry fetch via simple select after insert collision
       try {
         const { data: adminProfileRetry } = await supabaseAdmin
           .from('users')
-          .select('*, user_roles!user_roles_user_id_fkey(*)')
+          .select('*')
           .eq('id', user.id)
           .maybeSingle()
           
@@ -217,7 +232,7 @@ export const useAuthStore = create(
             // Fetch and ensure user profile
             const localProfile = get().profile
 
-            if (localProfile && localProfile.id === session.user.id) {
+            if (localProfile && localProfile.id === session.user.id && !localProfile.isFallback) {
               const enrichedLocal = enrichProfileRoles(localProfile)
               // Set initialized state immediately with cached local profile so the UI doesn't hang
               set({
@@ -765,6 +780,18 @@ export const useAuthStore = create(
 
           if (!userId) throw new Error('User not authenticated')
 
+          // Also sync phone / full_name updates to Supabase Auth metadata
+          if (updates.phone || updates.full_name) {
+            const metaUpdates = {}
+            if (updates.phone) metaUpdates.phone = updates.phone
+            if (updates.full_name) metaUpdates.full_name = updates.full_name
+            try {
+              await supabase.auth.updateUser({ data: metaUpdates })
+            } catch (metaErr) {
+              console.warn('[OZO Auth] Failed to sync auth user metadata:', metaErr)
+            }
+          }
+
           const { data, error } = await authHelpers.updateProfile(userId, updates)
 
           if (error) {
@@ -862,8 +889,7 @@ export const useAuthStore = create(
     {
       name: 'ozo-auth-storage',
       partialize: (state) => {
-        const persistedProfile = state.profile ? { ...state.profile } : null
-        // Do not delete role to avoid redirecting admins on page refresh
+        const persistedProfile = (state.profile && !state.profile.isFallback) ? { ...state.profile } : null
         return {
           user: state.user,
           profile: persistedProfile,

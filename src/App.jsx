@@ -165,8 +165,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/auth" replace />
   }
 
-  // Profile still loading — hold here to prevent premature redirect to /complete-profile
-  if (profile === null) {
+  // Profile still loading or fallback placeholder — hold here to prevent premature redirect to /complete-profile
+  if (profile === null || profile?.isFallback) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
         <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
@@ -200,9 +200,9 @@ const PublicOnlyRoute = ({ children }) => {
   }
 
   if (user) {
-    // If profile is still loading, hold here instead of redirecting — avoids
+    // If profile is still loading or in fallback state, hold here instead of redirecting — avoids
     // the /auth → /complete-profile → /auth bounce loop during profile fetch.
-    if (profile === null) {
+    if (profile === null || profile?.isFallback) {
       return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
           <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
@@ -236,10 +236,10 @@ const CompleteProfileRoute = ({ children }) => {
     return <Navigate to="/auth" replace />
   }
 
-  // profile === null means it is still loading — don't redirect yet to avoid
+  // profile === null or fallback means it is still loading — don't redirect yet to avoid
   // bouncing the user between /complete-profile and /auth in a loop while the
   // profile fetch is in-flight (especially right after OAuth callback).
-  if (profile === null) {
+  if (profile === null || profile?.isFallback) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
         <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
