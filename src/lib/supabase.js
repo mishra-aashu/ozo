@@ -458,6 +458,18 @@ const customFetch = async (input, init) => {
   // ─── SMART TOKEN INJECTION & EXPIRY PRE-CHECK ────────────────────────────
   // Check token freshness before attaching Authorization header to prevent
   // PostgREST 401 JWT expired errors on database queries.
+  //
+  // IMPORTANT: The Supabase SDK may set both 'Authorization' and 'authorization'
+  // (or 'apikey' and 'Apikey') header variants. When both exist, Node.js/Vercel
+  // treats them as an array and the proxy joins them with ', ', creating a
+  // malformed JWT like "Bearer eyJ..., Bearer eyJ..." which PostgREST rejects
+  // with "Expected 3 parts in JWT; got 5". We must normalize to a single key.
+
+  // Deduplicate: remove lowercase variants so only one canonical key exists
+  if (newHeaders['authorization'] && newHeaders['Authorization']) {
+    delete newHeaders['authorization']
+  }
+
   let existingAuthHeader = newHeaders['Authorization'] || newHeaders['authorization'] || ''
   
   if (!isAuthRequest) {
@@ -507,10 +519,15 @@ const customFetch = async (input, init) => {
     }
   }
 
+  // Ensure only the canonical 'Authorization' key is used (remove lowercase variant)
+  delete newHeaders['authorization']
+
   // Guarantee apikey header is always present for Supabase API requests
-  if (supabaseAnonKey && (!newHeaders['apikey'] && !newHeaders['ApiKey'])) {
-    newHeaders['apikey'] = supabaseAnonKey
-  }
+  // Also deduplicate: remove any variant casing first
+  delete newHeaders['Apikey']
+  delete newHeaders['ApiKey']
+  delete newHeaders['APIKEY']
+  newHeaders['apikey'] = supabaseAnonKey
 
   newInit.headers = newHeaders
 
