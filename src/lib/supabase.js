@@ -465,7 +465,7 @@ const customFetch = async (input, init) => {
       ? existingAuthHeader.substring(7).trim()
       : ''
 
-    const isTokenMissingOrAnon = !headerToken || headerToken === supabaseAnonKey
+    const isTokenMissingOrAnon = !headerToken || headerToken === supabaseAnonKey || headerToken === 'null' || headerToken === 'undefined'
     const isHeaderTokenExpired = headerToken && headerToken !== supabaseAnonKey && isJwtExpired(headerToken)
 
     if (isTokenMissingOrAnon || isHeaderTokenExpired) {
@@ -491,14 +491,25 @@ const customFetch = async (input, init) => {
 
         if (token && !isJwtExpired(token)) {
           newHeaders['Authorization'] = `Bearer ${token}`
-        } else if (isTokenMissingOrAnon || isHeaderTokenExpired) {
-          // If refresh failed or user is unauthenticated, fallback to Anon Key so public/read queries pass
+        } else {
+          // If user is unauthenticated or refresh failed, fallback to Anon Key so public/read queries pass
           newHeaders['Authorization'] = `Bearer ${supabaseAnonKey}`
         }
       } catch (e) {
         console.warn('[OZO Auth] Smart token pre-check warning:', e)
+        newHeaders['Authorization'] = `Bearer ${supabaseAnonKey}`
       }
     }
+  } else {
+    // For auth requests, ensure Authorization is present if provided or fallback to Anon Key
+    if (!existingAuthHeader && supabaseAnonKey) {
+      newHeaders['Authorization'] = `Bearer ${supabaseAnonKey}`
+    }
+  }
+
+  // Guarantee apikey header is always present for Supabase API requests
+  if (supabaseAnonKey && (!newHeaders['apikey'] && !newHeaders['ApiKey'])) {
+    newHeaders['apikey'] = supabaseAnonKey
   }
 
   newInit.headers = newHeaders
@@ -571,8 +582,12 @@ const customFetch = async (input, init) => {
               // Ignore admin sync warning
             }
 
-            // Retry request MAX 1 TIME with fresh Authorization header
-            const retriedHeaders = { ...newInit.headers, Authorization: `Bearer ${newAccessToken}` }
+            // Retry request MAX 1 TIME with fresh Authorization header and apikey
+            const retriedHeaders = { 
+              ...newInit.headers, 
+              Authorization: `Bearer ${newAccessToken}`,
+              apikey: supabaseAnonKey 
+            }
             const retriedInit = { ...newInit, headers: retriedHeaders, _isRetry: true }
             response = await fetch(input, retriedInit)
           } else {
@@ -581,7 +596,11 @@ const customFetch = async (input, init) => {
             const method = (newInit.method || 'GET').toUpperCase()
             if (method === 'GET') {
               console.warn('[OZO Auth] Session refresh failed. Retrying GET request with Supabase Anon Key for public data access...')
-              const anonHeaders = { ...newInit.headers, Authorization: `Bearer ${supabaseAnonKey}` }
+              const anonHeaders = { 
+                ...newInit.headers, 
+                Authorization: `Bearer ${supabaseAnonKey}`,
+                apikey: supabaseAnonKey 
+              }
               const anonInit = { ...newInit, headers: anonHeaders, _isRetry: true }
               response = await fetch(input, anonInit)
             } else if (isTerminalAuthError(refreshError)) {
