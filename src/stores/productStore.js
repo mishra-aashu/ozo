@@ -21,7 +21,7 @@ const buildProductQuery = (supabaseClient, citySlug, fields = 'id, name, slug, b
       .from('products')
       .select(`
         ${fields},
-        product_city_availability(
+        product_city_availability!left(
           city_slug,
           city_price,
           city_mrp,
@@ -31,7 +31,6 @@ const buildProductQuery = (supabaseClient, citySlug, fields = 'id, name, slug, b
           is_upcoming
         )
       `)
-      .eq('product_city_availability.city_slug', citySlug)
 
     if (!includeUnavailable) {
       query = query.eq('is_available', true)
@@ -74,7 +73,7 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
 
     const pcaList = product.product_city_availability
     const pca = citySlug && Array.isArray(pcaList)
-      ? pcaList[0]
+      ? (pcaList.find(row => row.city_slug === citySlug) || null)
       : (citySlug && pcaList ? pcaList : null)
 
     const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined

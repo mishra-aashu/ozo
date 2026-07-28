@@ -533,18 +533,11 @@ const Checkout = () => {
       }
 
       if (!isAddressServiceable) {
-        if (activeAddr.latitude && activeAddr.longitude) {
-          const { geofenceConfig } = useCartStore.getState()
-          if (geofenceConfig?.strict_enforcement) {
-            toast.error('Selected address is outside our active delivery zone.')
-            return
-          } else {
-            toast.success('Proceeding with out-of-zone address (double delivery fee applied).')
-          }
-        } else {
-          showServiceabilityModal(activeAddr.city, activeAddr.pincode)
-          return
-        }
+        showServiceabilityModal(activeAddr.city || 'Your Area', activeAddr.pincode || '')
+        toast.error(`Delivery to "${activeAddr.city || 'selected location'}" is currently unserviceable. Please select a serviceable address.`, {
+          duration: 5000
+        })
+        return
       }
     }
 

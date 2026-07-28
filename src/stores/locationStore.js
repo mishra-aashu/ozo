@@ -24,7 +24,12 @@ export const useLocationStore = create(
       address: null,
       coordinates: null,
       addressDetails: null,
+      browsingCitySlug: null,
+      deliveryCitySlug: null,
       selectedCitySlug: null,
+      invalidCitySlugNotice: null,
+      hasLocationDrift: false,
+      driftDistanceKm: 0,
       nearestCity: null,
       tracedThrough: null,
       userAddresses: [],
@@ -254,8 +259,81 @@ export const useLocationStore = create(
         };
       },
 
-      setAddress: (address) => set({ address }),
-      setSelectedCitySlug: (selectedCitySlug) => set({ selectedCitySlug }),
+      setAddress: (address) => {
+        set({ address });
+        if (typeof localStorage !== 'undefined' && address) {
+          localStorage.setItem('ozo_delivery_address', JSON.stringify(address));
+        }
+      },
+      setSelectedCitySlug: (selectedCitySlug) => set({ 
+        selectedCitySlug, 
+        browsingCitySlug: selectedCitySlug || get().browsingCitySlug 
+      }),
+      setBrowsingCitySlug: (slug) => {
+        if (!slug) {
+          set({ browsingCitySlug: null, selectedCitySlug: get().deliveryCitySlug || null });
+          return;
+        }
+
+        const cleanSlug = slug.toLowerCase().trim();
+        const activeCities = get().activeCities || [];
+
+        const matched = activeCities.find(c => c.slug.toLowerCase() === cleanSlug);
+
+        if (matched) {
+          set({
+            browsingCitySlug: matched.slug,
+            selectedCitySlug: matched.slug,
+            invalidCitySlugNotice: null
+          });
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('ozo_browsing_city', matched.slug);
+          }
+        } else if (activeCities.length > 0) {
+          const defaultCity = activeCities[0].slug;
+          console.warn(`[LocationStore] City slug "${slug}" not found. Soft falling back to "${defaultCity}".`);
+          set({
+            browsingCitySlug: defaultCity,
+            selectedCitySlug: defaultCity,
+            invalidCitySlugNotice: `City "${slug}" was not found. Showing default catalog for ${activeCities[0].name || defaultCity}.`
+          });
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('ozo_browsing_city', defaultCity);
+          }
+        } else {
+          set({
+            browsingCitySlug: cleanSlug,
+            selectedCitySlug: cleanSlug,
+            invalidCitySlugNotice: null
+          });
+        }
+      },
+
+      clearInvalidCitySlugNotice: () => set({ invalidCitySlugNotice: null }),
+
+      checkLocationDrift: (liveLat, liveLng) => {
+        const storedCoords = get().coordinates;
+        if (!storedCoords || !storedCoords.lat || !storedCoords.lng || !liveLat || !liveLng) {
+          set({ hasLocationDrift: false, driftDistanceKm: 0 });
+          return;
+        }
+
+        const R = 6371;
+        const dLat = (liveLat - storedCoords.lat) * Math.PI / 180;
+        const dLon = (liveLng - storedCoords.lng) * Math.PI / 180;
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(storedCoords.lat * Math.PI / 180) * Math.cos(liveLat * Math.PI / 180) *
+          Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        const distance = R * c;
+
+        if (distance > 15) {
+          set({ hasLocationDrift: true, driftDistanceKm: Math.round(distance) });
+        } else {
+          set({ hasLocationDrift: false, driftDistanceKm: 0 });
+        }
+      },
       setCoordinates: async (coordinates) => {
         set({ coordinates })
         if (coordinates) {
@@ -817,7 +895,9 @@ export const useLocationStore = create(
         address: state.address, 
         coordinates: state.coordinates,
         addressDetails: state.addressDetails,
-        selectedCitySlug: state.selectedCitySlug,
+        browsingCitySlug: state.browsingCitySlug,
+        deliveryCitySlug: state.deliveryCitySlug,
+        selectedCitySlug: state.selectedCitySlug || state.browsingCitySlug || state.deliveryCitySlug,
         nearestCity: state.nearestCity,
         activeCities: state.activeCities,
         localities: state.localities,
