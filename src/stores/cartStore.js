@@ -787,16 +787,24 @@ export const useCartStore = create(
       },
 
       // Remove from cart
-      removeFromCart: async (cartItemId) => {
+      removeFromCart: async (cartItemIdOrProductId) => {
         try {
-          const item = get().items.find(i => i.id === cartItemId)
+          if (!cartItemIdOrProductId) return { success: false }
+          const targetKey = String(cartItemIdOrProductId).toLowerCase()
+          const item = get().items.find(i => 
+            (i.id && String(i.id).toLowerCase() === targetKey) ||
+            (i.productId && String(i.productId).toLowerCase() === targetKey)
+          )
           if (!item) return { success: false }
 
           const previousItems = get().items
 
           // Optimistically update local state
           set({
-            items: get().items.filter(i => i.id !== cartItemId),
+            items: get().items.filter(i => 
+              !(i.id && String(i.id).toLowerCase() === targetKey) &&
+              !(i.productId && String(i.productId).toLowerCase() === targetKey)
+            ),
           })
           get().calculateTotals()
           toast.success('Removed from cart')
@@ -806,7 +814,8 @@ export const useCartStore = create(
           if (!user || !isValidUUID(item.productId)) return { success: true }
 
           // Perform network request in background
-          const deleteQuery = cartItemId.toString().startsWith('temp-')
+          const realCartItemId = item.id
+          const deleteQuery = (realCartItemId && realCartItemId.toString().startsWith('temp-')) || !realCartItemId
             ? supabase
                 .from('cart_items')
                 .delete()
@@ -815,7 +824,7 @@ export const useCartStore = create(
             : supabase
                 .from('cart_items')
                 .delete()
-                .eq('id', cartItemId)
+                .eq('id', realCartItemId)
 
           deleteQuery.then(({ error }) => {
             if (error) {

@@ -11,6 +11,7 @@ import {
   Clock, 
   ShieldCheck, 
   AlertTriangle,
+  PackageX,
   ArrowLeft,
   Pencil,
   Truck,
@@ -80,6 +81,7 @@ const Checkout = () => {
     distanceCharge: state.distanceCharge,
     discount: state.discount,
     clearCart: state.clearCart,
+    removeFromCart: state.removeFromCart,
     orderConfig: state.orderConfig,
     deliveryConfig: state.deliveryConfig,
     couponCode: state.couponCode,
@@ -105,9 +107,12 @@ const Checkout = () => {
   const addUserAddress = useLocationStore(state => state.addUserAddress)
   const updateUserAddress = useLocationStore(state => state.updateUserAddress)
   const deleteUserAddress = useLocationStore(state => state.deleteUserAddress)
-  const { placeOrder, isPlacingOrder } = useOrderStore(useShallow(state => ({
+  const { placeOrder, isPlacingOrder, unserviceableOrderError, clearUnserviceableOrderError, setUnserviceableError } = useOrderStore(useShallow(state => ({
     placeOrder: state.placeOrder,
     isPlacingOrder: state.isPlacingOrder,
+    unserviceableOrderError: state.unserviceableOrderError,
+    clearUnserviceableOrderError: state.clearUnserviceableOrderError,
+    setUnserviceableError: state.setUnserviceableError
   })))
   const profile = useAuthStore(state => state.profile)
 
@@ -631,12 +636,11 @@ const Checkout = () => {
           }
         } else {
           setIsProcessing(false)
-          toast.error('Failed to initialize order details')
         }
       } catch (err) {
         toast.dismiss(pendingOrderToast)
         console.error('Pending order creation error:', err)
-        toast.error(`Transaction initialization error: ${err.message}`)
+        setUnserviceableError(err)
         setIsProcessing(false)
       }
       return
@@ -697,14 +701,14 @@ const Checkout = () => {
             } else if (totalsData && totalsData.error) {
               errMsg = totalsData.error;
             }
-            toast.error(`Order Placement Blocked: ${errMsg}`);
+            setUnserviceableError(errMsg);
             setIsProcessing(false)
             return;
           }
           orderTotals = totalsData.calculatedDetails;
         } catch (err) {
           toast.dismiss(loadingToast);
-          toast.error(`Failed to verify pricing structure: ${err.message}`);
+          setUnserviceableError(err);
           setIsProcessing(false)
           return;
         }
@@ -767,7 +771,7 @@ const Checkout = () => {
       }
     } catch (err) {
       console.error(err)
-      toast.error(`Order placement error: ${err.message}`)
+      setUnserviceableError(err)
       setIsProcessing(false)
     }
   }
@@ -887,7 +891,7 @@ const Checkout = () => {
     }
   }
 
-  if (isPlacingOrder || isSuccessRedirecting || isProcessing) {
+  if ((isPlacingOrder || isSuccessRedirecting || isProcessing) && !unserviceableOrderError) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] flex flex-col items-center justify-center p-8 text-center transition-colors duration-300">
         <div className="relative mb-8">
@@ -1850,6 +1854,152 @@ const Checkout = () => {
                     </button>
                   </>
                 )}
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Product Stock / Availability Error Modal */}
+      <AnimatePresence>
+        {unserviceableOrderError && (
+          <div className="fixed inset-0 z-[2050] flex items-center justify-center p-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={clearUnserviceableOrderError}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            {/* Modal Content */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-6 md:p-8 shadow-2xl border border-gray-100 dark:border-white/10 w-full max-w-md relative z-10 text-gray-800 dark:text-white max-h-[90vh] flex flex-col"
+            >
+              {/* Top Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="w-14 h-14 bg-red-50 dark:bg-ozo-red/10 text-ozo-red rounded-2xl flex items-center justify-center shadow-sm">
+                  <PackageX size={28} />
+                </div>
+                <button
+                  type="button"
+                  onClick={clearUnserviceableOrderError}
+                  className="w-9 h-9 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 flex items-center justify-center transition-colors text-gray-500 dark:text-gray-400"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <h3 className="text-xl font-black mb-2 text-gray-900 dark:text-white">
+                Item Availability Issue
+              </h3>
+              <p className="text-xs md:text-sm text-ozo-gray dark:text-gray-400 font-medium mb-5 leading-relaxed">
+                {unserviceableOrderError.message || 'Some items in your cart are unavailable at your delivery store.'}
+              </p>
+
+              {/* Items List */}
+              {unserviceableOrderError.items && unserviceableOrderError.items.length > 0 && (
+                <div className="mb-6 flex-1 overflow-y-auto pr-1 space-y-3 max-h-60 custom-scrollbar">
+                  <p className="text-[11px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                    Problematic Items ({unserviceableOrderError.items.length})
+                  </p>
+                  {unserviceableOrderError.items.map((item) => (
+                    <div 
+                      key={item.id || item.productId}
+                      className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 gap-3"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-12 h-12 rounded-xl bg-white dark:bg-[#222] p-1 border border-gray-100 dark:border-white/10 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                          <OptimizedImage
+                            src={item.image || item.productImage}
+                            alt={item.name}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                        <div className="min-w-0">
+                          <h4 className="text-xs font-bold text-gray-900 dark:text-white truncate">
+                            {item.name}
+                          </h4>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] font-bold text-ozo-gray">
+                              Qty: {item.quantity} {item.unit ? `• ${item.unit}` : ''}
+                            </span>
+                            <span className="text-[10px] font-black text-red-500 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full border border-red-200/50 dark:border-red-900/30">
+                              Unavailable
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const targetId = item.id || item.productId
+                          if (targetId) {
+                            await removeFromCart(targetId)
+                            if (item.productId) await removeFromCart(item.productId)
+                          }
+                          const updated = (unserviceableOrderError.items || []).filter(i => 
+                            (i.id || i.productId) !== (item.id || item.productId) &&
+                            (i.productId && item.productId ? i.productId !== item.productId : true)
+                          )
+                          if (updated.length === 0) {
+                            clearUnserviceableOrderError()
+                          } else {
+                            useOrderStore.setState(state => ({
+                              unserviceableOrderError: {
+                                ...state.unserviceableOrderError,
+                                items: updated
+                              }
+                            }))
+                          }
+                        }}
+                        className="p-2 text-gray-400 hover:text-ozo-red hover:bg-red-50 dark:hover:bg-ozo-red/10 rounded-xl transition-all flex-shrink-0"
+                        title="Remove from cart"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                {unserviceableOrderError.items && unserviceableOrderError.items.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const itemsToRemove = unserviceableOrderError.items || []
+                      for (const item of itemsToRemove) {
+                        const targetId = item.id || item.productId
+                        if (targetId) {
+                          await removeFromCart(targetId)
+                          if (item.productId) await removeFromCart(item.productId)
+                        }
+                      }
+                      clearUnserviceableOrderError()
+                    }}
+                    className="flex-1 py-3.5 bg-gradient-ozo text-white font-black rounded-2xl shadow-ozo hover:scale-[1.02] active:scale-[0.98] transition-all text-xs flex items-center justify-center gap-2"
+                  >
+                    <Trash2 size={16} />
+                    Remove Items & Continue
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    clearUnserviceableOrderError()
+                    navigate('/cart')
+                  }}
+                  className="flex-1 py-3.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 transition-all text-xs text-center"
+                >
+                  Review Cart
+                </button>
               </div>
             </motion.div>
           </div>

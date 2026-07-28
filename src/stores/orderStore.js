@@ -12,6 +12,77 @@ export const useOrderStore = create((set, get) => ({
   isLoading: false,
   isPlacingOrder: false,
   serverTimeOffset: 0,
+  unserviceableOrderError: null,
+
+  clearUnserviceableOrderError: () => set({ unserviceableOrderError: null }),
+
+  setUnserviceableError: (errorOrMsg) => {
+    const cartItems = useCartStore.getState().items || []
+    let rawMsg = typeof errorOrMsg === 'string' 
+      ? errorOrMsg 
+      : (errorOrMsg?.message || errorOrMsg?.details || errorOrMsg?.error || 'Failed to place order')
+    
+    let matchedItems = []
+
+    try {
+      const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
+      const uuids = (typeof rawMsg === 'string' ? rawMsg.match(uuidRegex) : null) || []
+      
+      if (uuids.length > 0) {
+        uuids.forEach(uuid => {
+          const item = cartItems.find(i => 
+            (i.productId && String(i.productId).toLowerCase() === String(uuid).toLowerCase()) || 
+            (i.id && String(i.id).toLowerCase() === String(uuid).toLowerCase())
+          )
+          if (item && !matchedItems.some(m => (m.productId || m.id) === (item.productId || item.id))) {
+            matchedItems.push(item)
+          }
+          const itemName = item?.name || item?.productName || item?.title
+          if (itemName) {
+            rawMsg = rawMsg.replace(new RegExp(uuid, 'gi'), `"${itemName}"`)
+          } else {
+            rawMsg = rawMsg
+              .replace(new RegExp(`Product ${uuid}`, 'gi'), 'An item')
+              .replace(new RegExp(`product ${uuid}`, 'gi'), 'an item')
+              .replace(new RegExp(`product ID ${uuid}`, 'gi'), 'an item')
+              .replace(new RegExp(uuid, 'gi'), 'Item')
+          }
+        })
+      } else {
+        cartItems.forEach(i => {
+          const name = i.name || i.productName || i.title
+          if (name && typeof rawMsg === 'string' && rawMsg.toLowerCase().includes(String(name).toLowerCase())) {
+            if (!matchedItems.some(m => (m.productId || m.id) === (i.productId || i.id))) {
+              matchedItems.push(i)
+            }
+          }
+        })
+      }
+
+      if (typeof rawMsg === 'string' && rawMsg.includes('is not available in the selected mart')) {
+        rawMsg = rawMsg.replace('is not available in the selected mart', 'is not available in your delivery area')
+      }
+
+      if (matchedItems.length === 0 && typeof rawMsg === 'string' && (
+        rawMsg.toLowerCase().includes('not available') || 
+        rawMsg.toLowerCase().includes('stock') || 
+        rawMsg.toLowerCase().includes('mart')
+      )) {
+        matchedItems = [...cartItems]
+      }
+    } catch (e) {
+      console.warn('Error parsing checkout error message:', e)
+    }
+
+    set({ 
+      isPlacingOrder: false,
+      unserviceableOrderError: {
+        message: String(rawMsg),
+        items: matchedItems,
+        rawError: errorOrMsg
+      }
+    })
+  },
 
   // Fetch user orders
   fetchOrders: async (options = {}) => {
@@ -184,7 +255,7 @@ export const useOrderStore = create((set, get) => ({
           )
         `)
         .eq('id', orderId)
-        .single()
+        .maybeSingle()
 
       if (options.signal) {
         query = query.abortSignal(options.signal)
@@ -240,22 +311,22 @@ export const useOrderStore = create((set, get) => ({
 
   // Place new order
   placeOrder: async (orderData) => {
+    const user = useAuthStore.getState().user
+    const cartItems = useCartStore.getState().items || []
+
+    if (!user) {
+      toast.error('Please login to place order')
+      return { success: false }
+    }
+
+    if (cartItems.length === 0) {
+      toast.error('Cart is empty')
+      return { success: false }
+    }
+
+    set({ isPlacingOrder: true })
+
     try {
-      const user = useAuthStore.getState().user
-      const cartItems = useCartStore.getState().items
-
-      if (!user) {
-        toast.error('Please login to place order')
-        return { success: false }
-      }
-
-      if (cartItems.length === 0) {
-        toast.error('Cart is empty')
-        return { success: false }
-      }
-
-      set({ isPlacingOrder: true })
-
       // Fetch latitude/longitude/google_maps_url of the selected address to save directly on order
       let lat = orderData.latitude || null
       let lng = orderData.longitude || null
@@ -338,7 +409,6 @@ export const useOrderStore = create((set, get) => ({
         console.warn('Failed to refresh profile after order placement:', profileErr)
       }
 
-
       set({
         isPlacingOrder: false,
         activeOrder: {
@@ -353,44 +423,25 @@ export const useOrderStore = create((set, get) => ({
       return { success: true, data: order }
     } catch (error) {
       console.error('Place order error:', error)
-      let rawMsg = error?.message || 'Failed to place order'
-      
-      // Clean up raw Product UUIDs in error messages to display friendly product names or clean descriptions
-      const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
-      const uuids = rawMsg.match(uuidRegex) || []
-      
-      if (uuids.length > 0) {
-        uuids.forEach(uuid => {
-          const item = cartItems.find(i => 
-            (i.productId && i.productId.toLowerCase() === uuid.toLowerCase()) || 
-            (i.id && i.id.toString().toLowerCase() === uuid.toLowerCase())
-          )
-          const itemName = item?.name || item?.productName || item?.title
-          if (itemName) {
-            rawMsg = rawMsg.replace(new RegExp(uuid, 'gi'), `"${itemName}"`)
-          } else {
-            rawMsg = rawMsg
-              .replace(new RegExp(`Product ${uuid}`, 'gi'), 'An item')
-              .replace(new RegExp(`product ${uuid}`, 'gi'), 'an item')
-              .replace(new RegExp(`product ID ${uuid}`, 'gi'), 'an item')
-              .replace(new RegExp(uuid, 'gi'), 'Item')
-          }
-        })
+      get().setUnserviceableError(error)
+      const errState = get().unserviceableOrderError
+      return { 
+        success: false, 
+        error, 
+        message: errState?.message || 'Failed to place order', 
+        unserviceableItems: errState?.items || [] 
       }
-
-      if (rawMsg.includes('is not available in the selected mart')) {
-        rawMsg = rawMsg.replace('is not available in the selected mart', 'is not available in your delivery area')
-      }
-
-      toast.error(rawMsg)
-      set({ isPlacingOrder: false })
-      return { success: false, error }
     }
   },
 
   // Cancel order
   cancelOrder: async (orderId, cancellationDetails) => {
     try {
+      if (!orderId) {
+        console.warn('cancelOrder called without orderId')
+        return { success: false, error: 'No order ID provided' }
+      }
+
       const updatePayload = {
         status: 'CANCELLED_BY_USER',
         updated_at: new Date().toISOString(),
@@ -408,21 +459,22 @@ export const useOrderStore = create((set, get) => ({
         .update(updatePayload)
         .eq('id', orderId)
         .select()
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 
-      // Update orders list and activeOrder
-      const updatedOrders = get().orders.map(order =>
-        order.id === orderId ? { ...order, status: 'CANCELLED_BY_USER' } : order
-      )
-      const activeOrder = get().activeOrder
-      const updatedActiveOrder = activeOrder && activeOrder.id === orderId ? null : activeOrder
+      if (!data) {
+        console.warn('cancelOrder: No row updated. Order might already be cancelled or not eligible.')
+      }
 
-      set({
-        orders: updatedOrders,
-        activeOrder: updatedActiveOrder
-      })
+      // Update orders list, activeOrder, and currentOrder
+      set(state => ({
+        orders: state.orders.map(order =>
+          order.id === orderId ? { ...order, status: 'CANCELLED_BY_USER' } : order
+        ),
+        activeOrder: state.activeOrder && state.activeOrder.id === orderId ? null : state.activeOrder,
+        currentOrder: state.currentOrder && state.currentOrder.id === orderId ? { ...state.currentOrder, status: 'CANCELLED_BY_USER' } : state.currentOrder
+      }))
 
       toast.success('Order cancelled successfully')
       return { success: true, data }
@@ -440,7 +492,7 @@ export const useOrderStore = create((set, get) => ({
         .from('orders')
         .select('status, estimated_delivery, delivered_at')
         .eq('id', orderId)
-        .single()
+        .maybeSingle()
 
       if (error) throw error
 
