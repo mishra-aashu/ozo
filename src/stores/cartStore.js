@@ -787,24 +787,43 @@ export const useCartStore = create(
       },
 
       // Remove from cart
-      removeFromCart: async (cartItemIdOrProductId) => {
+      removeFromCart: async (cartItemIdOrProductIdOrItem) => {
         try {
-          if (!cartItemIdOrProductId) return { success: false }
-          const targetKey = String(cartItemIdOrProductId).toLowerCase()
-          const item = get().items.find(i => 
-            (i.id && String(i.id).toLowerCase() === targetKey) ||
-            (i.productId && String(i.productId).toLowerCase() === targetKey)
-          )
-          if (!item) return { success: false }
+          if (!cartItemIdOrProductIdOrItem) return { success: false }
+          
+          let targetKey = ''
+          let targetName = ''
+          if (typeof cartItemIdOrProductIdOrItem === 'object' && cartItemIdOrProductIdOrItem !== null) {
+            targetKey = String(cartItemIdOrProductIdOrItem.productId || cartItemIdOrProductIdOrItem.product_id || cartItemIdOrProductIdOrItem.id || '').toLowerCase()
+            targetName = String(cartItemIdOrProductIdOrItem.name || cartItemIdOrProductIdOrItem.productName || cartItemIdOrProductIdOrItem.title || '').toLowerCase()
+          } else {
+            targetKey = String(cartItemIdOrProductIdOrItem).toLowerCase()
+          }
 
-          const previousItems = get().items
+          const currentCartItems = get().items || []
+          const item = currentCartItems.find(i => 
+            (targetKey && i.id && String(i.id).toLowerCase() === targetKey) ||
+            (targetKey && i.productId && String(i.productId).toLowerCase() === targetKey) ||
+            (targetKey && i.product_id && String(i.product_id).toLowerCase() === targetKey) ||
+            (targetKey && i.name && String(i.name).toLowerCase() === targetKey) ||
+            (targetName && i.name && String(i.name).toLowerCase() === targetName)
+          )
+
+          if (!item) {
+            console.warn('removeFromCart: Item not found in cart matching', cartItemIdOrProductIdOrItem)
+            return { success: false }
+          }
+
+          const previousItems = currentCartItems
+
+          const itemMatch = (i) => 
+            (item.id && i.id && String(i.id).toLowerCase() === String(item.id).toLowerCase()) ||
+            (item.productId && i.productId && String(i.productId).toLowerCase() === String(item.productId).toLowerCase()) ||
+            (item.name && i.name && String(i.name).toLowerCase() === String(item.name).toLowerCase())
 
           // Optimistically update local state
           set({
-            items: get().items.filter(i => 
-              !(i.id && String(i.id).toLowerCase() === targetKey) &&
-              !(i.productId && String(i.productId).toLowerCase() === targetKey)
-            ),
+            items: currentCartItems.filter(i => !itemMatch(i)),
           })
           get().calculateTotals()
           toast.success('Removed from cart')

@@ -1938,15 +1938,22 @@ const Checkout = () => {
                       <button
                         type="button"
                         onClick={async () => {
-                          const targetId = item.id || item.productId
-                          if (targetId) {
-                            await removeFromCart(targetId)
-                            if (item.productId) await removeFromCart(item.productId)
-                          }
-                          const updated = (unserviceableOrderError.items || []).filter(i => 
-                            (i.id || i.productId) !== (item.id || item.productId) &&
-                            (i.productId && item.productId ? i.productId !== item.productId : true)
-                          )
+                          await removeFromCart(item)
+                          if (item.productId) await removeFromCart(item.productId)
+                          if (item.id) await removeFromCart(item.id)
+                          if (item.product_id) await removeFromCart(item.product_id)
+                          
+                          const targetId = item.id || item.productId || item.product_id
+                          const targetName = (item.name || item.productName || item.title || '').toLowerCase()
+
+                          const updated = (unserviceableOrderError.items || []).filter(i => {
+                            const iId = i.id || i.productId || i.product_id
+                            const iName = (i.name || i.productName || i.title || '').toLowerCase()
+                            if (targetId && iId) return String(iId).toLowerCase() !== String(targetId).toLowerCase()
+                            if (targetName && iName) return iName !== targetName
+                            return true
+                          })
+
                           if (updated.length === 0) {
                             clearUnserviceableOrderError()
                           } else {
@@ -1976,13 +1983,17 @@ const Checkout = () => {
                     onClick={async () => {
                       const itemsToRemove = unserviceableOrderError.items || []
                       for (const item of itemsToRemove) {
-                        const targetId = item.id || item.productId
-                        if (targetId) {
-                          await removeFromCart(targetId)
-                          if (item.productId) await removeFromCart(item.productId)
-                        }
+                        await removeFromCart(item)
+                        if (item.productId) await removeFromCart(item.productId)
+                        if (item.id) await removeFromCart(item.id)
+                        if (item.product_id) await removeFromCart(item.product_id)
                       }
                       clearUnserviceableOrderError()
+                      
+                      const remainingItems = useCartStore.getState().items || []
+                      if (remainingItems.length > 0) {
+                        handlePlaceOrder()
+                      }
                     }}
                     className="flex-1 py-3.5 bg-gradient-ozo text-white font-black rounded-2xl shadow-ozo hover:scale-[1.02] active:scale-[0.98] transition-all text-xs flex items-center justify-center gap-2"
                   >
