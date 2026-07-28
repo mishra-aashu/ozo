@@ -1201,7 +1201,7 @@ const ProductDetail = () => {
                       )}
                     </div>
                   ) : (
-                    <div className="flex items-center gap-3 w-full">
+                    <div className="flex items-center gap-3 w-full min-w-0">
                       {/* Quantity Stepper */}
                       <div className={`flex items-center justify-between rounded-2xl p-1.5 border transition-all duration-300 shrink-0 ${
                         cartQuantity > 0 
@@ -1243,7 +1243,7 @@ const ProductDetail = () => {
                       <button 
                         onClick={cartQuantity > 0 ? () => navigate('/cart') : handleAddToCart}
                         disabled={!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)}
-                        className={`flex-1 h-14 sm:h-14 rounded-2xl font-black text-sm sm:text-base lg:text-lg tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2.5 px-4 sm:px-6 shadow-lg ${
+                        className={`flex-1 min-w-0 h-14 sm:h-14 rounded-2xl font-black text-sm sm:text-base lg:text-lg tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-2.5 px-4 sm:px-6 shadow-lg overflow-hidden ${
                           !currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)
                             ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-white/10 text-gray-400'
                             : cartQuantity > 0
