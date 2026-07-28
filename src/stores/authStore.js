@@ -58,31 +58,49 @@ const ensureProfileExists = async (user, accessToken = null) => {
       }
     } catch (_) {}
 
-    // 4. If profile truly does not exist in DB, attempt to insert using admin client
+    // 4. If profile truly does not exist in DB, attempt to insert using authenticated client
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
     const phone = metadata.phone || user.phone || ''
 
-    const { data: newProfile, error: insertError } = await supabaseAdmin
-      .from('users')
-      .insert([
-        {
-          id: user.id,
-          email: user.email,
-          full_name: fullName,
-          avatar_url: avatarUrl,
-          phone: phone || null,
-          role: 'customer',
-        }
-      ])
-      .select()
-      .maybeSingle()
+    const profileData = {
+      id: user.id,
+      email: user.email,
+      full_name: fullName,
+      avatar_url: avatarUrl,
+      phone: phone || null,
+      role: 'customer',
+    }
 
-    if (insertError) {
-      console.warn('Admin profile insertion failed (likely duplicate key):', insertError)
-      
-      // Retry fetch via simple select after insert collision
+    // Try insert via standard client first (passes authenticated user token to satisfy auth.uid() = id RLS policy)
+    let newProfile = null
+    let insertError = null
+
+    try {
+      const res = await supabase
+        .from('users')
+        .insert([profileData])
+        .select()
+        .maybeSingle()
+      newProfile = res.data
+      insertError = res.error
+    } catch (e) {
+      insertError = e
+    }
+
+    if (insertError || !newProfile) {
+      // Fallback to admin client insert
+      try {
+        const adminRes = await supabaseAdmin
+          .from('users')
+          .insert([profileData])
+          .select()
+          .maybeSingle()
+        if (adminRes.data) return adminRes.data
+      } catch (_) {}
+
+      // Retry fetch via simple select after insert collision or error
       try {
         const { data: adminProfileRetry } = await supabaseAdmin
           .from('users')

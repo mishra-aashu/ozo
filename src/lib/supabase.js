@@ -482,31 +482,39 @@ const customFetch = async (input, init) => {
 
     if (isTokenMissingOrAnon || isHeaderTokenExpired) {
       try {
-        const rawStorage = typeof window !== 'undefined' ? localStorage.getItem('ozo-auth-token') : null
-        const activeSession = rawStorage ? JSON.parse(rawStorage) : null
-        let token = activeSession?.access_token || activeSession?.currentSession?.access_token
+        let token = null
 
-        if (isHeaderTokenExpired || (token && isJwtExpired(token))) {
-          console.log('[OZO Auth] Detected expired session token pre-flight. Triggering deduplicated refresh...')
-          const { data: refreshData } = await refreshSessionDeduplicated()
-          token = refreshData?.session?.access_token || null
-
-          if (refreshData?.session) {
-            try {
-              supabaseAdmin.auth.setSession({
-                access_token: refreshData.session.access_token,
-                refresh_token: refreshData.session.refresh_token,
-              }).catch(() => {})
-            } catch (e) {}
-          }
-        }
-
-        // 1. Check window global access token memory cache
-        if (!token && typeof window !== 'undefined' && window.__ozo_access_token) {
+        // 1. First check in-memory active access token if valid
+        if (typeof window !== 'undefined' && window.__ozo_access_token && !isJwtExpired(window.__ozo_access_token)) {
           token = window.__ozo_access_token
         }
 
-        // 2. Check localStorage fallback keys if not resolved yet
+        // 2. Check localStorage primary key if not found in memory
+        if (!token && typeof window !== 'undefined') {
+          const rawStorage = localStorage.getItem('ozo-auth-token')
+          const activeSession = rawStorage ? JSON.parse(rawStorage) : null
+          const candidateToken = activeSession?.access_token || activeSession?.currentSession?.access_token
+          if (candidateToken && !isJwtExpired(candidateToken)) {
+            token = candidateToken
+            window.__ozo_access_token = token
+          } else if (candidateToken && isJwtExpired(candidateToken)) {
+            console.log('[OZO Auth] Detected expired session token pre-flight. Triggering deduplicated refresh...')
+            const { data: refreshData } = await refreshSessionDeduplicated()
+            token = refreshData?.session?.access_token || null
+
+            if (refreshData?.session?.access_token) {
+              window.__ozo_access_token = refreshData.session.access_token
+              try {
+                supabaseAdmin.auth.setSession({
+                  access_token: refreshData.session.access_token,
+                  refresh_token: refreshData.session.refresh_token,
+                }).catch(() => {})
+              } catch (e) {}
+            }
+          }
+        }
+
+        // 3. Check fallback sb-* storage keys if still not found
         if (!token && typeof window !== 'undefined') {
           try {
             for (let i = 0; i < localStorage.length; i++) {
@@ -516,8 +524,9 @@ const customFetch = async (input, init) => {
                 if (raw) {
                   const parsed = JSON.parse(raw)
                   const t = parsed?.access_token || parsed?.currentSession?.access_token || parsed?.session?.access_token
-                  if (t) {
+                  if (t && !isJwtExpired(t)) {
                     token = t
+                    window.__ozo_access_token = token
                     break
                   }
                 }
