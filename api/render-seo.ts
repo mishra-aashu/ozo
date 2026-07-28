@@ -1036,7 +1036,7 @@ async function renderCategoryPage(res: VercelResponse, categorySlug: string, cit
   const title = `${categoryName} Online | OZO Mart Grocery Delivery`;
   const description = `Buy fresh ${categoryName} online on OZO Mart. Fast 10-30 minute grocery delivery. सोचो मत, #OZOपेखोजो!`;
   const keywords = `buy ${categoryName} online, ${categoryName} delivery, OZO ${categoryName}, online grocery Bihar`;
-  const canonicalUrl = citySlug ? `https://ozomart.store/${citySlug}/category/${categorySlug}` : `https://ozomart.store/category/${categorySlug}`;
+  const canonicalUrl = `https://www.ozomart.store/category/${categorySlug}`;
 
   const itemListSchema = {
     "@context": "https://schema.org",
@@ -1732,7 +1732,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="al:android:app_name" content="OZO Mart">
 
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://ozomart.store/${cityStr}/${productStr}">
+  <link rel="canonical" href="https://www.ozomart.store/product/${prod.slug}">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="product">

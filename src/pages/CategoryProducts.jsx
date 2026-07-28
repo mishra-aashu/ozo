@@ -595,6 +595,7 @@ const CategoryProducts = () => {
         title={`Buy ${catName} Online | OZO Mart Aurangabad`}
         description={catDesc}
         keywords={`buy ${catName} online, ${catName} delivery Aurangabad, ${catName} online grocery, OZO Mart ${catName}, fresh ${catName} Bihar`}
+        canonical={`https://www.ozomart.store/category/${slug}`}
         schema={categorySchema}
       />
       <motion.div 

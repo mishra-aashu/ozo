@@ -857,6 +857,7 @@ const ProductDetail = () => {
             title={`${currentProduct.name} (${currentProduct.unit}) | OZO Mart`}
             description={currentProduct.description || `Order ${currentProduct.name} (${currentProduct.unit}) online on OZO Mart. Swift 30-minute grocery delivery in Patna & Aurangabad.`}
             keywords={`${currentProduct.name}, buy ${currentProduct.name} online, ${currentProduct.brand || 'Ozo Fresh'} products, Patna grocery, Aurangabad grocery`}
+            canonical={`https://www.ozomart.store/product/${slug}`}
             schema={breadcrumbSchema}
           />
         )}
