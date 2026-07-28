@@ -887,18 +887,22 @@ export const authHelpers = {
       window.__ozo_access_token = accessToken
     }
     try {
-      // 1. Try the authenticated client with explicit FK join name
+      // ── FASTEST PATH: RPC get_my_profile (SECURITY DEFINER, no RLS issues) ──
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*, user_roles!user_roles_user_id_fkey(*)')
-          .eq('id', userId)
-          .maybeSingle()
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('get_my_profile')
 
-        if (data && !error) return { data, error: null }
+        if (rpcData && !rpcError) {
+          // Normalise: RPC returns a plain JSON object, ensure user_roles is array
+          const profile = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData
+          if (profile && profile.id) {
+            if (!profile.user_roles) profile.user_roles = []
+            return { data: profile, error: null }
+          }
+        }
       } catch (_) {}
 
-      // 2. Try authenticated client WITHOUT join (prevents PGRST201 ambiguity errors from blocking the user)
+      // ── FALLBACK 1: authenticated client plain select (no join) ──
       try {
         const { data: simpleData } = await supabase
           .from('users')
@@ -906,7 +910,6 @@ export const authHelpers = {
           .eq('id', userId)
           .maybeSingle()
         if (simpleData) {
-          // Fetch user_roles separately to avoid join ambiguity
           let userRoles = []
           try {
             const { data: rolesData } = await supabase
@@ -919,24 +922,14 @@ export const authHelpers = {
         }
       } catch (_) {}
 
-      // 3. Fallback to supabaseAdmin (bypasses RLS delays) — plain select first
+      // ── FALLBACK 2: authenticated client with explicit FK join ──
       try {
-        const { data: adminSimple } = await supabaseAdmin
+        const { data, error } = await supabase
           .from('users')
-          .select('*')
+          .select('*, user_roles!user_roles_user_id_fkey(*)')
           .eq('id', userId)
           .maybeSingle()
-        if (adminSimple) {
-          let userRoles = []
-          try {
-            const { data: adminRoles } = await supabaseAdmin
-              .from('user_roles')
-              .select('*')
-              .eq('user_id', userId)
-            userRoles = adminRoles || []
-          } catch (_) {}
-          return { data: { ...adminSimple, user_roles: userRoles }, error: null }
-        }
+        if (data && !error) return { data, error: null }
       } catch (_) {}
 
       return { data: null, error: new Error('Profile not found') }
