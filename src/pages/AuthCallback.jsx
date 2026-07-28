@@ -113,10 +113,24 @@ const AuthCallback = () => {
       attempts++
     }
 
-    // Timed out polling — make a safe decision with final state
+    // Timed out polling — attempt direct fetch before falling back to complete-profile
+    try {
+      const { data: realProfile } = await authHelpers.getUserProfile(session.user.id)
+      if (realProfile) {
+        const enriched = useAuthStore.getState().enrichProfileRoles
+          ? useAuthStore.getState().enrichProfileRoles(realProfile)
+          : realProfile
+        useAuthStore.setState({ profile: enriched })
+        if (realProfile.phone) {
+          navigate('/', { replace: true })
+          return
+        }
+      }
+    } catch (_) {}
+
     const { isAuthenticated, profile } = useAuthStore.getState()
     if (isAuthenticated) {
-      if (profile && profile.phone) {
+      if (profile && !profile.isFallback && profile.phone) {
         navigate('/', { replace: true })
       } else {
         navigate('/complete-profile', { replace: true })
