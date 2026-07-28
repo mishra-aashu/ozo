@@ -224,11 +224,17 @@ export const useAuthStore = create(
             }
           )
 
-          // Get current session with a timeout to prevent absolute block if auth endpoints hang
-          const { data: { session } } = await Promise.race([
-            supabase.auth.getSession(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 5000))
-          ])
+          // Get current session with a short timeout so UI is never blocked
+          let session = null
+          try {
+            const res = await Promise.race([
+              supabase.auth.getSession(),
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 1500))
+            ])
+            session = res?.data?.session || null
+          } catch (sessErr) {
+            console.warn('[OZO Auth] Session pre-fetch timeout/error:', sessErr)
+          }
 
           if (session?.user) {
             if (typeof window !== 'undefined' && session.access_token) {
@@ -236,137 +242,61 @@ export const useAuthStore = create(
             }
             // Sync session to supabaseAdmin client so admin requests are authenticated
             try {
-              await supabaseAdmin.auth.setSession({
+              supabaseAdmin.auth.setSession({
                 access_token: session.access_token,
                 refresh_token: session.refresh_token,
-              })
-            } catch (adminErr) {
-              console.warn('Failed to sync session to supabaseAdmin on init:', adminErr)
-            }
+              }).catch(() => {})
+            } catch (_) {}
 
             // Sync user to OneSignal push notification service
             oneSignalLogin(session.user.id)
 
-            // Fetch and ensure user profile
+            // Prepare cached or metadata profile
             const localProfile = get().profile
-
-            if (localProfile && localProfile.id === session.user.id && !localProfile.isFallback) {
-              const enrichedLocal = enrichProfileRoles(localProfile)
-              // Set initialized state immediately with cached local profile so the UI doesn't hang
-              set({
-                user: session.user,
-                profile: enrichedLocal,
-                isAuthenticated: true,
-                isAdmin: checkAdmin(enrichedLocal),
-                isLoading: false,
-                isInitialized: true,
-              })
-
-              // Fetch the latest profile in the background to ensure it is up to date
-              setTimeout(async () => {
-                try {
-                  const profile = await Promise.race([
-                    ensureProfileExists(session.user, session.access_token),
-                    new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 5000))
-                  ])
-
-                  if (profile) {
-                    // Always let the fresh DB profile win for role — never use stale cached role
-                    const finalProfile = enrichProfileRoles({
-                      ...localProfile,
-                      ...profile,
-                      role: profile.role, // DB role always wins
-                      avatar_url: profile.avatar_url || localProfile.avatar_url || ''
-                    })
-
-                    set({
-                      profile: finalProfile,
-                      isAdmin: checkAdmin(finalProfile)
-                    })
-                  }
-                } catch (err) {
-                  console.warn('Failed to refresh profile in background on init:', err)
-                }
-              }, 0)
-            } else {
-              // No cached profile for this user. Wait for the database query.
-              let profile = null
-              try {
-                profile = await Promise.race([
-                  ensureProfileExists(session.user, session.access_token),
-                  new Promise((_, reject) => setTimeout(() => reject(new Error('Profile fetch timeout')), 7000))
-                ])
-              } catch (err) {
-                console.warn('Failed to ensure profile on init:', err)
-              }
-
-              const fallbackProfile = {
-                id: session.user.id,
-                email: session.user.email,
-                full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
-                phone: session.user.user_metadata?.phone || session.user.phone || '',
-                role: 'customer',
-                user_roles: [],
-                isFallback: true,
-              }
-
-              const resolvedProfile = profile || localProfile || fallbackProfile
-              const finalProfile = enrichProfileRoles(resolvedProfile)
-
-              set({
-                user: session.user,
-                profile: finalProfile,
-                isAuthenticated: true,
-                isAdmin: checkAdmin(finalProfile),
-                isLoading: false,
-                isInitialized: true,
-              })
-
-              // If fallback profile was assigned due to DB fetch timeout/error, launch background retry loop
-              if (finalProfile?.isFallback) {
-                if (activeProfilePollInterval) {
-                  clearInterval(activeProfilePollInterval)
-                  activeProfilePollInterval = null
-                }
-                let retries = 0
-                const MAX_POLL_RETRIES = 15 // Cap at 15 retries (60s max)
-                activeProfilePollInterval = setInterval(async () => {
-                  retries++
-                  const currentProf = get().profile
-                  if (!get().isAuthenticated || (currentProf && !currentProf.isFallback)) {
-                    clearInterval(activeProfilePollInterval)
-                    activeProfilePollInterval = null
-                    return
-                  }
-                  if (retries >= MAX_POLL_RETRIES) {
-                    console.warn('[OZO Auth] Profile polling max retries reached. Keeping fallback profile.')
-                    try {
-                      toast.error('Profile details sync delayed. Refresh page if role permissions look incorrect.', { id: 'profile-sync-warn', duration: 5000 })
-                    } catch (tErr) {}
-                    clearInterval(activeProfilePollInterval)
-                    activeProfilePollInterval = null
-                    return
-                  }
-                  try {
-                    const { data: realProfile } = await authHelpers.getUserProfile(session.user.id)
-                    if (realProfile) {
-                      if (activeProfilePollInterval) {
-                        clearInterval(activeProfilePollInterval)
-                        activeProfilePollInterval = null
-                      }
-                      const enrichedReal = enrichProfileRoles(realProfile)
-                      set({
-                        profile: enrichedReal,
-                        isAdmin: checkAdmin(enrichedReal)
-                      })
-                      console.log('[OZO Auth] Fallback profile upgraded to real database profile.')
-                    }
-                  } catch (e) {
-                    // Retry next interval
-                  }
-                }, 4000)
-              }
+            const fallbackProfile = {
+              id: session.user.id,
+              email: session.user.email,
+              full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
+              phone: session.user.user_metadata?.phone || session.user.phone || '',
+              role: 'customer',
+              user_roles: [],
+              isFallback: true,
             }
+
+            const initialProfile = (localProfile && localProfile.id === session.user.id)
+              ? enrichProfileRoles(localProfile)
+              : enrichProfileRoles(fallbackProfile)
+
+            // SET INITIALIZED IMMEDIATELY — do not wait for DB profile query
+            set({
+              user: session.user,
+              profile: initialProfile,
+              isAuthenticated: true,
+              isAdmin: checkAdmin(initialProfile),
+              isLoading: false,
+              isInitialized: true,
+            })
+
+            // Hydrate / verify real DB profile in the background
+            setTimeout(async () => {
+              try {
+                const dbProfile = await ensureProfileExists(session.user, session.access_token)
+                if (dbProfile) {
+                  const finalProfile = enrichProfileRoles({
+                    ...(get().profile || {}),
+                    ...dbProfile,
+                    role: dbProfile.role || get().profile?.role || 'customer',
+                    isFallback: false,
+                  })
+                  set({
+                    profile: finalProfile,
+                    isAdmin: checkAdmin(finalProfile),
+                  })
+                }
+              } catch (bgErr) {
+                console.warn('[OZO Auth] Background profile hydration warning:', bgErr)
+              }
+            }, 0)
           } else {
             set({
               user: null,

@@ -392,15 +392,17 @@ function App() {
   useEffect(() => {
     // Initialize auth, local/sync addresses, theme, and OneSignal on app load
     const init = async () => {
-      initOneSignal().catch(console.error)
+      // Non-blocking OneSignal init
+      initOneSignal().catch((err) => console.warn('[OneSignal] Non-fatal init warning:', err))
+
       await initializeAuth()
       try {
-        await useLocationStore.getState().fetchUserAddresses()
+        useLocationStore.getState().fetchUserAddresses().catch(() => {})
       } catch (err) {
         console.error('Failed to fetch/sync addresses on app init:', err)
       }
       try {
-        await useCartStore.getState().fetchSettings()
+        useCartStore.getState().fetchSettings().catch(() => {})
       } catch (err) {
         console.error('Failed to fetch system settings on app init:', err)
       }
