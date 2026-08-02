@@ -94,10 +94,14 @@ build/
 # Model Context Protocol (MCP) and local agent configurations
 .mcp/
 mcp/
+mcp.json
 mcp_config.json
 .mcp_config.json
 .cursor/mcp.json
 .cursor/mcp_config.json
+.vscode/mcp.json
+*mcp*.json
+scripts/supabase-mcp-server.js
 .gemini/
 .kiro/
 
@@ -107,3 +111,4 @@ archive/
 
 
 
+.aider*

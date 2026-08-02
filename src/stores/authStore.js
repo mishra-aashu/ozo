@@ -492,38 +492,10 @@ export const useAuthStore = create(
             earlySignedInCapture = null
           }
 
-          // Attach tab focus & visibility listener for automatic session token revalidation
-          if (typeof window !== 'undefined' && !window._ozoVisibilityHandlerAttached) {
-            window._ozoVisibilityHandlerAttached = true
-            const handleTabRevisit = async () => {
-              if (document.visibilityState === 'visible') {
-                const currentAuth = get().isAuthenticated
-                if (currentAuth) {
-                  try {
-                    const { data } = await supabase.auth.getSession()
-                    const currentSession = data?.session
-                    if (currentSession?.access_token) {
-                      const parts = currentSession.access_token.split('.')
-                      if (parts.length >= 2) {
-                        let base64 = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-                        const pad = base64.length % 4
-                        if (pad) base64 += '='.repeat(4 - pad)
-                        const payload = JSON.parse(atob(base64))
-                        if (payload.exp && (payload.exp * 1000 - Date.now() < 300000)) {
-                          console.log('[OZO Auth] Tab regained focus with token near expiry. Triggering proactive refresh...')
-                          await supabase.auth.refreshSession()
-                        }
-                      }
-                    }
-                  } catch (e) {
-                    console.warn('[OZO Auth] Background tab focus session check failed:', e)
-                  }
-                }
-              }
-            }
-            window.addEventListener('visibilitychange', handleTabRevisit)
-            window.addEventListener('focus', handleTabRevisit)
-          }
+          // BUG-19 FIX: Removed duplicate visibilitychange listener from here.
+          // The module-level listener at the bottom of this file (with 2-min throttle)
+          // is the correct one and already handles tab-focus session revalidation.
+          // Keeping two listeners caused double session checks on every tab refocus.
         } catch (error) {
           console.error('Auth initialization error:', error)
           // Fallback: use whatever we have in the persisted store to keep the app functional
@@ -580,8 +552,22 @@ export const useAuthStore = create(
 
           if (error) throw error
 
-          // Fetch profile
-          const { data: profile } = await authHelpers.getUserProfile(data.user.id)
+          // BUG-13 FIX: Fetch profile with fallback to ensureProfileExists.
+          // If getUserProfile() returns null (network blip, RLS miss), we don't
+          // leave profile = null which would break all role checks post-login.
+          let profile = null
+          try {
+            const { data: profileData } = await authHelpers.getUserProfile(data.user.id)
+            profile = profileData
+          } catch (_) {}
+
+          // Fallback: ensure profile row exists in DB (handles first-time email signups)
+          if (!profile) {
+            try {
+              profile = await ensureProfileExists(data.user, data.session?.access_token)
+            } catch (_) {}
+          }
+
           const enrichedProfile = enrichProfileRoles(profile)
 
           set({

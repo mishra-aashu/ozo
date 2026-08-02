@@ -12,7 +12,8 @@
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "scan-barcodes": "python3 scratch/batch_process_barcodes.py",
-    "enrich-barcodes": "python3 scratch/enrich_barcodes.py"
+    "enrich-barcodes": "python3 scratch/enrich_barcodes.py",
+    "mcp:supabase": "node scripts/supabase-mcp-server.js"
   },
   "dependencies": {
     "@sentry/react": "^10.59.0",
