@@ -17,67 +17,36 @@ let activeProfilePollInterval = null
 
 // Helper to ensure user profile exists in public.users table (important for OAuth logins)
 const ensureProfileExists = async (user, accessToken = null) => {
-  if (!user) return null
-  
+  if (!user?.id) return null
+
+  if (!accessToken && typeof window !== 'undefined' && window.__ozo_access_token) {
+    accessToken = window.__ozo_access_token
+  }
   if (accessToken && typeof window !== 'undefined') {
     window.__ozo_access_token = accessToken
   }
 
   try {
-    // 1. First attempt: fetch via standard client SDK / authHelpers
+    // 1. Fetch via RPC / authHelpers
     try {
       const { data: profile } = await authHelpers.getUserProfile(user.id, accessToken)
-      if (profile) return profile
+      if (profile && profile.id) return { ...profile, isFallback: false }
     } catch (_) {}
 
-    // 2. Direct database query via supabaseAdmin (bypasses RLS token propagation delays)
+    // 2. Direct table fetch with authenticated supabase client (passes Bearer token to satisfy auth.uid() RLS policy)
     try {
-      const { data: adminProfile } = await supabaseAdmin
-        .from('users')
-        .select('*, user_roles!user_roles_user_id_fkey(*)')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (adminProfile) {
-        console.log('[OZO Auth] Successfully retrieved user profile via supabaseAdmin.')
-        return adminProfile
-      }
-    } catch (aErr) {
-      console.warn('[OZO Auth] supabaseAdmin profile check failed:', aErr)
-    }
-
-    // 3. Simple query fallback without join (prevents join syntax errors from returning null)
-    try {
-      const { data: simpleProfile } = await supabaseAdmin
+      const { data: directProfile } = await supabase
         .from('users')
         .select('*')
         .eq('id', user.id)
         .maybeSingle()
-      if (simpleProfile) {
-        console.log('[OZO Auth] Successfully retrieved simple user profile via supabaseAdmin.')
-        return simpleProfile
-      }
+      if (directProfile) return { ...directProfile, isFallback: false }
     } catch (_) {}
 
-    // 4. One final definitive admin fetch before assuming the record is missing.
-    // This covers the case where earlier fetches failed due to RLS timing but the
-    // row actually exists in public.users (e.g. user already set their phone).
-    try {
-      const { data: finalCheck } = await supabaseAdmin
-        .from('users')
-        .select('*')
-        .eq('id', user.id)
-        .maybeSingle()
-      if (finalCheck) {
-        console.log('[OZO Auth] Final pre-insert check found existing profile — skipping insert.')
-        return finalCheck
-      }
-    } catch (_) {}
-
-    // 5. Profile truly does not exist in DB — insert using authenticated client
+    // 3. Truly missing in DB — insert new row
     const metadata = user.user_metadata || {}
     const fullName = metadata.full_name || metadata.name || user.email?.split('@')[0] || 'Ozo User'
     const avatarUrl = metadata.avatar_url || metadata.picture || ''
-    // Prefer auth metadata phone (synced from public.users), then auth user phone
     const phone = metadata.phone || user.phone || ''
 
     const profileData = {
@@ -89,52 +58,30 @@ const ensureProfileExists = async (user, accessToken = null) => {
       role: 'customer',
     }
 
-    // Try insert via standard client first (passes authenticated user token to satisfy auth.uid() = id RLS policy)
-    let newProfile = null
-    let insertError = null
-
     try {
-      const res = await supabase
+      const { data: newProfile, error: insertError } = await supabase
         .from('users')
         .insert([profileData])
         .select()
         .maybeSingle()
-      newProfile = res.data
-      insertError = res.error
-    } catch (e) {
-      insertError = e
-    }
 
-    if (insertError || !newProfile) {
-      // Fallback to admin client insert
-      try {
-        const adminRes = await supabaseAdmin
-          .from('users')
-          .insert([profileData])
-          .select()
-          .maybeSingle()
-        if (adminRes.data) return adminRes.data
-      } catch (_) {}
+      if (newProfile) return { ...newProfile, isFallback: false }
 
-      // Retry fetch via simple select after insert collision or error
-      try {
-        const { data: adminProfileRetry } = await supabaseAdmin
+      // If insert collision (row already exists) or error, re-select via authenticated client
+      if (insertError) {
+        const { data: existingProfile } = await supabase
           .from('users')
           .select('*')
           .eq('id', user.id)
           .maybeSingle()
-          
-        if (adminProfileRetry) {
-          return adminProfileRetry
-        }
-      } catch (_) {}
 
-      return null
-    }
+        if (existingProfile) return { ...existingProfile, isFallback: false }
+      }
+    } catch (_) {}
 
-    return newProfile
+    return null
   } catch (err) {
-    console.error('Error ensuring profile exists:', err)
+    console.error('[OZO Auth] Error in ensureProfileExists:', err)
     return null
   }
 }
@@ -158,12 +105,16 @@ const enrichProfileRoles = (profile) => {
     }
   }
 
-  const roles = profile.user_roles || []
-  const hasSuperAdmin = roles.some(r => r.role === 'super_admin') || profile.role === 'admin' || profile.role === 'super_admin'
-  const hasCityManager = roles.some(r => r.role === 'city_manager') || profile.role === 'city_manager'
-  const hasMartOwner = roles.some(r => r.role === 'mart_owner') || profile.role === 'mart_owner'
-  const hasRider = roles.some(r => r.role === 'rider') || profile.role === 'rider'
-  const hasCustomer = roles.some(r => r.role === 'customer') || profile.role === 'customer'
+  const rawRoles = profile.user_roles || profile.roles
+  const rolesList = Array.isArray(rawRoles)
+    ? rawRoles
+    : (rawRoles && typeof rawRoles === 'object' ? [rawRoles] : [])
+
+  const hasSuperAdmin = rolesList.some(r => r?.role === 'super_admin') || profile.role === 'admin' || profile.role === 'super_admin'
+  const hasCityManager = rolesList.some(r => r?.role === 'city_manager') || profile.role === 'city_manager'
+  const hasMartOwner = rolesList.some(r => r?.role === 'mart_owner') || profile.role === 'mart_owner'
+  const hasRider = rolesList.some(r => r?.role === 'rider') || profile.role === 'rider'
+  const hasCustomer = rolesList.some(r => r?.role === 'customer') || profile.role === 'customer'
 
   // Set top-level role for backward compatibility
   let primaryRole = profile.role
@@ -176,20 +127,24 @@ const enrichProfileRoles = (profile) => {
   return {
     ...profile,
     role: primaryRole,
-    roles: roles,
-    isSuperAdmin: hasSuperAdmin,
-    isCityManager: hasCityManager,
-    isMartOwner: hasMartOwner,
-    isRider: hasRider,
-    isCustomer: hasCustomer,
+    roles: rolesList,
+    isSuperAdmin: !!hasSuperAdmin,
+    isCityManager: !!hasCityManager,
+    isMartOwner: !!hasMartOwner,
+    isRider: !!hasRider,
+    isCustomer: !!hasCustomer,
     isFallback: false,
   }
 }
 
 const checkAdmin = (profile) => {
   if (!profile || profile.isFallback) return false
-  const enriched = enrichProfileRoles(profile)
-  return !!(enriched?.isSuperAdmin || enriched?.isCityManager)
+  try {
+    const enriched = enrichProfileRoles(profile)
+    return !!(enriched?.isSuperAdmin || enriched?.isCityManager || profile.role === 'admin' || profile.role === 'super_admin')
+  } catch (e) {
+    return profile.role === 'admin' || profile.role === 'super_admin'
+  }
 }
 
 export const useAuthStore = create(
@@ -396,16 +351,18 @@ export const useAuthStore = create(
                     // details only if the user ID matches.
                     // DB role always wins to prevent stale-cache role mismatch issues.
                     const currentLocalProfile = get().profile
-                    const finalProfile = enrichProfileRoles(profile
+                    const rawProfile = profile
                       ? (currentLocalProfile && currentLocalProfile.id === profile.id
                           ? {
                               ...currentLocalProfile,
                               ...profile,
                               role: profile.role, // DB role always wins
-                              avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || ''
+                              avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || '',
+                              isFallback: false,
                             }
-                          : profile)
-                      : currentLocalProfile)
+                          : { ...profile, isFallback: false })
+                      : currentLocalProfile
+                    const finalProfile = enrichProfileRoles(rawProfile)
 
                     set({
                       profile: finalProfile,
@@ -480,8 +437,8 @@ export const useAuthStore = create(
                       const currentProfile = get().profile
                       const merged = enrichProfileRoles(
                         currentProfile && currentProfile.id === userId
-                          ? { ...currentProfile, ...data, role: data.role, avatar_url: data.avatar_url || currentProfile.avatar_url || '' }
-                          : data
+                          ? { ...currentProfile, ...data, role: data.role, avatar_url: data.avatar_url || currentProfile.avatar_url || '', isFallback: false }
+                          : { ...data, isFallback: false }
                       )
                       set({ profile: merged, isAdmin: checkAdmin(merged) })
                     }
@@ -521,8 +478,8 @@ export const useAuthStore = create(
                   const currentLocalProfile = get().profile
                   const finalProfile = enrichProfileRoles(profile
                     ? (currentLocalProfile && currentLocalProfile.id === profile.id
-                        ? { ...currentLocalProfile, ...profile, role: profile.role, avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || '' }
-                        : profile)
+                        ? { ...currentLocalProfile, ...profile, role: profile.role, avatar_url: profile.avatar_url || currentLocalProfile.avatar_url || '', isFallback: false }
+                        : { ...profile, isFallback: false })
                     : currentLocalProfile)
                   set({ profile: finalProfile, isAdmin: checkAdmin(finalProfile) })
                 } catch (err) {
@@ -570,17 +527,28 @@ export const useAuthStore = create(
         } catch (error) {
           console.error('Auth initialization error:', error)
           // Fallback: use whatever we have in the persisted store to keep the app functional
-          const cachedUser = get().user
-          const cachedProfile = get().profile
-          const enrichedCached = enrichProfileRoles(cachedProfile)
-          set({
-            user: cachedUser || null,
-            profile: enrichedCached || null,
-            isAuthenticated: !!cachedUser,
-            isAdmin: checkAdmin(enrichedCached),
-            isLoading: false,
-            isInitialized: true
-          })
+          try {
+            const cachedUser = get().user
+            const cachedProfile = get().profile
+            const enrichedCached = cachedProfile ? enrichProfileRoles(cachedProfile) : null
+            set({
+              user: cachedUser || null,
+              profile: enrichedCached || null,
+              isAuthenticated: !!cachedUser,
+              isAdmin: checkAdmin(enrichedCached),
+              isLoading: false,
+              isInitialized: true
+            })
+          } catch (_) {
+            set({
+              user: null,
+              profile: null,
+              isAuthenticated: false,
+              isAdmin: false,
+              isLoading: false,
+              isInitialized: true
+            })
+          }
         }
       },
 
@@ -765,7 +733,7 @@ export const useAuthStore = create(
             return { success: false, error }
           }
 
-          const enrichedProfile = enrichProfileRoles(data)
+          const enrichedProfile = enrichProfileRoles({ ...(get().profile || {}), ...data, isFallback: false })
           set({ profile: enrichedProfile, isLoading: false })
           toast.success('Profile updated successfully')
           return { success: true, data }
@@ -804,7 +772,7 @@ export const useAuthStore = create(
 
           const { data } = await authHelpers.getUserProfile(userId)
           if (data) {
-            const enrichedProfile = enrichProfileRoles(data)
+            const enrichedProfile = enrichProfileRoles({ ...data, isFallback: false })
             set({
               profile: enrichedProfile,
               isAdmin: checkAdmin(enrichedProfile)
@@ -858,6 +826,7 @@ export const useAuthStore = create(
           user: state.user,
           profile: persistedProfile,
           isAuthenticated: state.isAuthenticated,
+          isAdmin: checkAdmin(persistedProfile),
         }
       },
     }

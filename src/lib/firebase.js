@@ -83,6 +83,7 @@ export const syncFcmTokenWithDatabase = async (userId, forcePrompt = false) => {
           console.log('[FCM] Skipping token sync: active user session token not initialized yet.')
           return token
         }
+        window.__ozo_access_token = activeToken
 
         try {
           await supabase

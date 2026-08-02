@@ -890,7 +890,7 @@ export const authHelpers = {
       // ── FASTEST PATH: RPC get_my_profile (SECURITY DEFINER, no RLS issues) ──
       try {
         const { data: rpcData, error: rpcError } = await supabase
-          .rpc('get_my_profile')
+          .rpc('get_my_profile', { p_user_id: userId })
 
         if (rpcData && !rpcError) {
           // Normalise: RPC returns a plain JSON object, ensure user_roles is array
@@ -941,7 +941,32 @@ export const authHelpers = {
   // Update user profile
   updateProfile: async (userId, updates) => {
     try {
-      // Use maybeSingle() to avoid PGRST116 when RLS blocks the return
+      if (typeof window !== 'undefined') {
+        const { data: sessionData } = await supabase.auth.getSession()
+        if (sessionData?.session?.access_token) {
+          window.__ozo_access_token = sessionData.session.access_token
+        }
+      }
+
+      // ── FASTEST & MOST RELIABLE PATH: RPC update_my_profile (SECURITY DEFINER) ──
+      try {
+        const { data: rpcData, error: rpcError } = await supabase
+          .rpc('update_my_profile', {
+            p_user_id: userId,
+            p_phone: updates.phone || null,
+            p_full_name: updates.full_name || null,
+            p_avatar_url: updates.avatar_url || null,
+          })
+
+        if (rpcData && !rpcError) {
+          const profile = typeof rpcData === 'string' ? JSON.parse(rpcData) : rpcData
+          if (profile && profile.id) {
+            return { data: profile, error: null }
+          }
+        }
+      } catch (_) {}
+
+      // ── FALLBACK 1: Standard authenticated UPDATE ──
       const { data, error } = await supabase
         .from('users')
         .update(updates)
@@ -951,7 +976,7 @@ export const authHelpers = {
 
       if (data) return { data, error: null }
 
-      // If update returned no data (RLS or token issue), try upsert via authenticated client
+      // ── FALLBACK 2: Standard authenticated UPSERT ──
       if (!data && !error) {
         const { data: upsertData, error: upsertError } = await supabase
           .from('users')

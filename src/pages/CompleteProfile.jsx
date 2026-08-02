@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Phone, Loader2, LogOut, CheckCircle } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
+import { supabase, authHelpers } from '../lib/supabase'
 import toast from 'react-hot-toast'
 
 const CompleteProfile = () => {
@@ -15,12 +16,40 @@ const CompleteProfile = () => {
 
   const from = location.state?.from?.pathname || '/'
 
-  // Auto-redirect if profile finishes fetching and already has a valid phone number
+  // Auto-redirect if DB or store confirms valid phone number exists
   useEffect(() => {
-    if (user && profile?.phone && !profile?.isFallback) {
+    if (!user?.id) return
+
+    // 1. Instant check if store already has phone
+    if (profile?.phone && !profile?.isFallback) {
       navigate(from, { replace: true })
+      return
     }
-  }, [user, profile, navigate, from])
+
+    // 2. Direct DB verification check on mount
+    const verifyPhoneDirect = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const token = sessionData?.session?.access_token
+        const { data: dbUser } = await authHelpers.getUserProfile(user.id, token)
+
+        if (dbUser?.phone) {
+          useAuthStore.setState((state) => ({
+            profile: {
+              ...(state.profile || {}),
+              ...dbUser,
+              isFallback: false,
+            }
+          }))
+          navigate(from, { replace: true })
+        }
+      } catch (err) {
+        console.warn('[CompleteProfile] Direct DB check error:', err)
+      }
+    }
+
+    verifyPhoneDirect()
+  }, [user?.id, profile?.phone, profile?.isFallback, navigate, from])
 
   // Clean phone input to only allow digits
   const handlePhoneChange = (e) => {
