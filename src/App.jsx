@@ -5,7 +5,8 @@ import { AnimatePresence, motion } from 'framer-motion'
 // Intro splash component (commented out for now)
 // import OzoSplashScreen from './components/OzoSplashScreen'
 import { syncFcmTokenWithDatabase, onMessageListener } from './firebase'
-import { supabase } from './lib/supabase'
+import { supabase, authHelpers } from './lib/supabase'
+import { useRef } from 'react'
 
 // Layouts
 import MainLayout from './layouts/MainLayout'
@@ -149,7 +150,21 @@ import { useLocationStore } from './stores/locationStore'
 
 // Protected Route Component (requires authentication)
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, profile, isInitialized, isAdmin } = useAuthStore()
+  const { user, isInitialized, isAdmin } = useAuthStore()
+
+  useEffect(() => {
+    // Safety fallback: If session initialization takes more than 2.5 seconds,
+    // force isInitialized to true so the user is never stuck on a blank/spinner screen.
+    if (!isInitialized) {
+      const timer = setTimeout(() => {
+        if (!useAuthStore.getState().isInitialized) {
+          console.warn('[ProtectedRoute] Session init timeout safety triggered.')
+          useAuthStore.setState({ isInitialized: true })
+        }
+      }, 2500)
+      return () => clearTimeout(timer)
+    }
+  }, [isInitialized])
 
   if (!isInitialized) {
     return (
@@ -162,11 +177,6 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
   if (!user) {
     return <Navigate to="/auth" replace />
-  }
-
-  // If profile is fully hydrated from DB (not fallback) and phone is missing -> prompt to complete profile
-  if (profile && !profile.isFallback && !profile.phone) {
-    return <Navigate to="/complete-profile" replace />
   }
 
   if (adminOnly && !isAdmin) {
@@ -178,43 +188,58 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
 
 // Public Only Route (redirect if logged in)
 const PublicOnlyRoute = ({ children }) => {
-  const { user, profile } = useAuthStore()
+  const { user } = useAuthStore()
 
   if (user) {
-    // Only redirect to /complete-profile if profile hydration is complete and phone is confirmed missing
-    if (profile && !profile.isFallback && !profile.phone) {
-      return <Navigate to="/complete-profile" replace />
-    }
     return <Navigate to="/" replace />
   }
 
   return children
 }
 
-// Complete Profile Route (only for authenticated users with incomplete profiles)
+// Complete Profile Route — directly queries public.users to verify phone.
+// Never trusts the in-memory store profile, which may be stale or missing.
 const CompleteProfileRoute = ({ children }) => {
-  const { user, profile, isInitialized } = useAuthStore()
+  const { user, isInitialized } = useAuthStore()
+  const [checking, setChecking] = useState(true)
+  const [hasPhone, setHasPhone] = useState(false)
+  const checkedRef = useRef(false)
 
-  if (!isInitialized) {
-    return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Initializing session...</p>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (!user?.id || checkedRef.current) return
+    checkedRef.current = true
 
-  if (!user) {
-    return <Navigate to="/auth" replace />
-  }
+    const checkPhone = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const token = sessionData?.session?.access_token
+        if (token && typeof window !== 'undefined') {
+          window.__ozo_access_token = token
+        }
 
-  // Profile is loaded and already has a valid phone number — send to home
-  if (profile && !profile.isFallback && profile.phone) {
-    return <Navigate to="/" replace />
-  }
+        const { data: dbProfile } = await authHelpers.getUserProfile(user.id, token)
 
-  // If profile is still in fallback hydration phase, show brief loader while DB profile fetches
-  if (profile?.isFallback) {
+        if (dbProfile?.phone) {
+          setHasPhone(true)
+          useAuthStore.setState((state) => ({
+            profile: {
+              ...(state.profile || {}),
+              ...dbProfile,
+              isFallback: false,
+            }
+          }))
+        }
+      } catch (err) {
+        console.warn('[CompleteProfileRoute] DB phone check failed:', err)
+      } finally {
+        setChecking(false)
+      }
+    }
+
+    checkPhone()
+  }, [user?.id])
+
+  if (!isInitialized || (user && checking)) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
         <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
@@ -223,7 +248,16 @@ const CompleteProfileRoute = ({ children }) => {
     )
   }
 
-  // Profile is hydrated from DB and phone is confirmed missing — render Complete Profile form
+  if (!user) {
+    return <Navigate to="/auth" replace />
+  }
+
+  // Phone confirmed in DB — no need to complete profile
+  if (hasPhone) {
+    return <Navigate to="/" replace />
+  }
+
+  // Phone is genuinely missing in DB — show the form
   return children
 }
 

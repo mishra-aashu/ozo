@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import { supabase } from '../lib/supabase'
+import { supabase, authHelpers } from '../lib/supabase'
 import { Loader2 } from 'lucide-react'
 
 const AuthCallback = () => {
@@ -115,12 +115,12 @@ const AuthCallback = () => {
 
     // Timed out polling — attempt direct fetch before falling back to complete-profile
     try {
-      const { data: realProfile } = await authHelpers.getUserProfile(session.user.id)
+      const { data: realProfile } = await authHelpers.getUserProfile(session.user.id, session.access_token)
       if (realProfile) {
         const enriched = useAuthStore.getState().enrichProfileRoles
           ? useAuthStore.getState().enrichProfileRoles(realProfile)
           : realProfile
-        useAuthStore.setState({ profile: enriched })
+        useAuthStore.setState({ profile: { ...enriched, isFallback: false } })
         if (realProfile.phone) {
           navigate('/', { replace: true })
           return
