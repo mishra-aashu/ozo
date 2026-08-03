@@ -343,16 +343,16 @@ const MartDashboard = () => {
                   <button 
                     onClick={handleToggleStatus}
                     disabled={togglingStatus}
-                    className={`relative w-11 h-6 rounded-full transition-all duration-300 focus:outline-none disabled:opacity-50 cursor-pointer shadow-inner ${
+                    className={`relative w-12 h-6 rounded-full transition-all duration-300 focus:outline-none disabled:opacity-50 cursor-pointer shadow-inner p-0 border-none outline-none ${
                       currentMart.is_active 
-                        ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 dark:from-emerald-500 dark:to-cyan-500 shadow-emerald-500/10' 
-                        : 'bg-gray-250 dark:bg-slate-800'
+                        ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 dark:from-emerald-500 dark:to-cyan-500' 
+                        : 'bg-gray-350 dark:bg-slate-800'
                     }`}
                     title={currentMart.is_active ? 'Click to go offline' : 'Click to go live'}
                   >
                     <span 
-                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 transform ${
-                        currentMart.is_active ? 'translate-x-5' : 'translate-x-0'
+                      className={`absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow transition-all duration-300 transform ${
+                        currentMart.is_active ? 'translate-x-[24px]' : 'translate-x-0'
                       }`}
                     />
                   </button>
@@ -364,10 +364,10 @@ const MartDashboard = () => {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 select-none shrink-0">
-                  <span className="relative w-11 h-6 rounded-full bg-gray-250 dark:bg-slate-800 opacity-60">
-                    <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md" />
+                  <span className="relative w-12 h-6 rounded-full bg-gray-250 dark:bg-slate-800 opacity-60">
+                    <span className="absolute top-[2px] left-[2px] w-5 h-5 bg-white rounded-full shadow" />
                   </span>
-                  <span className="text-[10px] sm:text-xs font-bold text-gray-500">Offline</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-550">Offline</span>
                 </div>
               )}
             </div>
