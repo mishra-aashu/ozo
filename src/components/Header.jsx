@@ -134,8 +134,11 @@ const Header = () => {
     signOut: state.signOut,
     isAdmin: state.isAdmin,
   })))
-  const isCaptain = profile?.role === 'captain' || isAdmin
-  const isMartOperator = profile?.role === 'mart_operator' || isAdmin
+  const isSuperAdmin = profile?.isSuperAdmin || profile?.role === 'super_admin' || profile?.role === 'admin'
+  const isCityManager = profile?.isCityManager || profile?.role === 'city_manager'
+  const hasAdminPermission = isAdmin || isSuperAdmin || isCityManager
+  const isCaptain = profile?.role === 'captain' || profile?.role === 'rider' || profile?.isRider || hasAdminPermission
+  const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || hasAdminPermission
   const { totalItems, deliveryConfig, serviceHoursConfig } = useCartStore(useShallow(state => ({
     totalItems: state.totalItems,
     deliveryConfig: state.deliveryConfig,
@@ -695,7 +698,7 @@ const Header = () => {
                         </div>
                         <div className="space-y-1">
                           {[
-                            ...(isAdmin ? [{ to: '/admin', icon: Shield, label: (profile?.isSuperAdmin || profile?.role === 'admin' || profile?.role === 'super_admin') ? 'Admin Panel' : 'City Manager Portal' }] : []),
+                            ...(hasAdminPermission ? [{ to: '/admin', icon: Shield, label: isSuperAdmin ? 'Admin Panel' : 'City Manager Portal' }] : []),
                             { to: '/profile', icon: User, label: 'My Profile' },
                             { to: '/orders', icon: Package, label: 'My Orders' },
                             { to: '/referral', icon: Gift, label: 'Refer & Earn' },
@@ -981,7 +984,7 @@ const Header = () => {
                 <div className="space-y-1">
                   <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-ozo-gray dark:text-gray-500 mb-4 px-2">Navigation</h4>
                   {[
-                    ...(isAdmin ? [{ to: '/admin', icon: Shield, label: (profile?.isSuperAdmin || profile?.role === 'admin' || profile?.role === 'super_admin') ? 'Admin Panel' : 'City Manager Portal' }] : []),
+                    ...(hasAdminPermission ? [{ to: '/admin', icon: Shield, label: isSuperAdmin ? 'Admin Panel' : 'City Manager Portal' }] : []),
                     { to: '/', icon: HomeIcon, label: 'Home' },
                     ...(isAuthenticated ? [
                       { to: '/orders', icon: Package, label: 'My Orders' },

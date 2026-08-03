@@ -138,7 +138,7 @@ const enrichProfileRoles = (profile) => {
 }
 
 const checkAdmin = (profile) => {
-  if (!profile || profile.isFallback) return false
+  if (!profile) return false
   try {
     const enriched = enrichProfileRoles(profile)
     return !!(enriched?.isSuperAdmin || enriched?.isCityManager || profile.role === 'admin' || profile.role === 'super_admin')
@@ -157,6 +157,10 @@ export const useAuthStore = create(
       isInitialized: false,
       isAuthenticated: false,
       isAdmin: false,
+
+      // Helpers
+      enrichProfileRoles: (p) => enrichProfileRoles(p),
+      checkAdmin: (p) => checkAdmin(p),
 
       // Initialize auth
       initializeAuth: async () => {
