@@ -557,7 +557,13 @@ const customFetch = async (input, init) => {
     }
   }
 
-  // Ensure only the canonical 'Authorization' key is used (remove lowercase variant)
+  // Ensure only the canonical 'Authorization' key is used.
+  // CRITICAL: if the SDK set only the lowercase variant (which it does),
+  // promote it to uppercase BEFORE deleting — otherwise the token is lost
+  // and auth.uid() becomes NULL in every database call.
+  if (newHeaders['authorization'] && !newHeaders['Authorization']) {
+    newHeaders['Authorization'] = newHeaders['authorization']
+  }
   delete newHeaders['authorization']
 
   // Guarantee apikey header is always present for Supabase API requests
