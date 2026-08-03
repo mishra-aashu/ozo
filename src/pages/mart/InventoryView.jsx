@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   ChevronDown,
   Plus,
+  Minus,
   X,
   Image,
   Loader2,
@@ -72,6 +73,12 @@ const InventoryView = () => {
   // Photo enrichment capture states
   const [enrichmentProduct, setEnrichmentProduct] = useState(null)
   const [isEnrichmentModalOpen, setIsEnrichmentModalOpen] = useState(false)
+
+  // Stock status modal states
+  const [statusModalProduct, setStatusModalProduct] = useState(null)
+  const [statusModalQty, setStatusModalQty] = useState(10)
+  const [statusModalAvailable, setStatusModalAvailable] = useState(true)
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
 
   // Pending / Draft Queue local states
   const [inventorySubView, setInventorySubView] = useState('active') // 'active' | 'pending'
@@ -508,20 +515,23 @@ const InventoryView = () => {
     setEditingStockId(null)
   }
 
-  const handleStatusToggle = async (product) => {
-    if (product.is_available) {
-      const confirmed = window.confirm(`Are you sure you want to mark "${product.name}" as Out of Stock? This will set its stock quantity to 0.`)
-      if (!confirmed) return
-      await updateStockQuantity(product.id, 0)
-    } else {
-      const qtyStr = window.prompt(`Enter stock quantity for "${product.name}":`, "10")
-      if (qtyStr === null) return
-      const qty = parseInt(qtyStr, 10)
-      if (isNaN(qty) || qty <= 0) {
-        toast.error('Please enter a valid stock quantity greater than 0.')
-        return
-      }
-      await updateStockQuantity(product.id, qty)
+  const handleStatusToggle = (product) => {
+    setStatusModalProduct(product)
+    setStatusModalAvailable(product.is_available)
+    setStatusModalQty(product.stock_quantity || (product.is_available ? 0 : 10))
+  }
+
+  const handleStatusModalSave = async () => {
+    if (!statusModalProduct) return
+    setIsUpdatingStatus(true)
+    try {
+      const targetQty = statusModalAvailable ? statusModalQty : 0
+      await updateStockQuantity(statusModalProduct.id, targetQty)
+      setStatusModalProduct(null)
+    } catch (err) {
+      console.error('Failed to update status:', err)
+    } finally {
+      setIsUpdatingStatus(false)
     }
   }
 
@@ -2308,6 +2318,174 @@ const InventoryView = () => {
           }}
           onComplete={handleEnrichPendingComplete}
         />
+      )}
+
+      {/* Stock Status Modal */}
+      {statusModalProduct && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-fadeIn">
+          <style>{`
+            @keyframes fadeIn {
+              from { opacity: 0; }
+              to { opacity: 1; }
+            }
+            @keyframes scaleUp {
+              from { transform: scale(0.95); opacity: 0; }
+              to { transform: scale(1); opacity: 1; }
+            }
+            .animate-fadeIn {
+              animation: fadeIn 0.2s ease-out forwards;
+            }
+            .animate-scaleUp {
+              animation: scaleUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            }
+          `}</style>
+          <div className="bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-3xl w-full max-w-md flex flex-col shadow-2xl overflow-hidden font-sans animate-scaleUp">
+            {/* Header */}
+            <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-950/50">
+              <div>
+                <h3 className="text-base font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  <Package className="w-5 h-5 text-blue-500" />
+                  Update Stock Status
+                </h3>
+                <p className="text-xs text-gray-500 mt-0.5">Manage availability and quantity</p>
+              </div>
+              <button
+                onClick={() => setStatusModalProduct(null)}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-white/5 rounded-xl text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Product Card Info */}
+              <div className="flex items-center gap-3.5 bg-gray-50 dark:bg-slate-850 p-3.5 rounded-2xl border border-gray-150 dark:border-slate-800">
+                {statusModalProduct.image_url ? (
+                  <img 
+                    src={statusModalProduct.image_url} 
+                    alt={statusModalProduct.name} 
+                    className="w-12 h-12 object-contain bg-white dark:bg-slate-900 rounded-xl p-1 border border-gray-100 dark:border-slate-800"
+                  />
+                ) : (
+                  <div className="w-12 h-12 bg-amber-50 dark:bg-amber-950/20 rounded-xl flex items-center justify-center border border-amber-200 dark:border-amber-900/40 text-amber-600 dark:text-amber-500">
+                    <AlertTriangle className="w-6 h-6" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <h4 className="font-bold text-sm text-gray-800 dark:text-gray-255 truncate">
+                    {statusModalProduct.name}
+                  </h4>
+                  <p className="text-xs text-gray-500 truncate mt-0.5">
+                    Unit: {statusModalProduct.unit || 'N/A'} • Barcode: {statusModalProduct.barcode || 'N/A'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Status Picker Buttons */}
+              <div className="space-y-2">
+                <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                  Availability Status
+                </label>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStatusModalAvailable(true)
+                      if (statusModalQty <= 0) setStatusModalQty(10)
+                    }}
+                    className={`py-3 px-4 rounded-2xl font-bold text-sm border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                      statusModalAvailable
+                        ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-500 text-blue-600 dark:text-blue-400 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 hover:border-gray-300 dark:hover:border-slate-750'
+                    }`}
+                  >
+                    <span className={`w-2.5 h-2.5 rounded-full ${statusModalAvailable ? 'bg-blue-500' : 'bg-gray-300 dark:bg-slate-700'}`} />
+                    In Stock
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStatusModalAvailable(false)
+                      setStatusModalQty(0)
+                    }}
+                    className={`py-3 px-4 rounded-2xl font-bold text-sm border flex flex-col items-center gap-1.5 transition-all cursor-pointer ${
+                      !statusModalAvailable
+                        ? 'bg-red-50 dark:bg-red-505/10 border-red-500 text-red-600 dark:text-red-400 shadow-sm'
+                        : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-800 text-gray-500 hover:border-gray-300 dark:hover:border-slate-750'
+                    }`}
+                  >
+                    <span className={`w-2.5 h-2.5 rounded-full ${!statusModalAvailable ? 'bg-red-500' : 'bg-gray-300 dark:bg-slate-700'}`} />
+                    Out of Stock
+                  </button>
+                </div>
+              </div>
+
+              {/* Quantity Input with controls */}
+              <div className={`space-y-2 transition-all duration-200 ${statusModalAvailable ? 'opacity-100 scale-100' : 'opacity-40 scale-95 pointer-events-none'}`}>
+                <label className="block text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                  Stock Quantity
+                </label>
+                <div className="flex items-center justify-center gap-4 bg-gray-50 dark:bg-slate-850 p-4 rounded-2xl border border-gray-150 dark:border-slate-800/80">
+                  <button
+                    type="button"
+                    onClick={() => setStatusModalQty(q => Math.max(0, q - 1))}
+                    disabled={!statusModalAvailable || statusModalQty <= 0}
+                    className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-750 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-90 cursor-pointer"
+                  >
+                    <Minus className="w-4 h-4" />
+                  </button>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    disabled={!statusModalAvailable}
+                    value={statusModalQty}
+                    onChange={(e) => {
+                      const val = parseInt(e.target.value, 10)
+                      setStatusModalQty(isNaN(val) ? 0 : Math.max(0, val))
+                    }}
+                    className="w-24 text-center bg-transparent border-0 font-extrabold text-2xl text-gray-900 dark:text-white focus:outline-none focus:ring-0 font-mono"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setStatusModalQty(q => q + 1)}
+                    disabled={!statusModalAvailable}
+                    className="w-10 h-10 rounded-xl bg-white dark:bg-slate-850 border border-gray-200 dark:border-slate-700 flex items-center justify-center hover:bg-gray-50 dark:hover:bg-slate-750 text-gray-700 dark:text-gray-300 disabled:opacity-40 disabled:pointer-events-none transition-all active:scale-90 cursor-pointer"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="flex gap-3 p-5 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-slate-950/50">
+              <button
+                type="button"
+                onClick={() => setStatusModalProduct(null)}
+                className="flex-1 py-3 px-4 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 font-bold text-sm hover:bg-gray-50 dark:hover:bg-white/5 transition-all active:scale-[0.98] cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleStatusModalSave}
+                disabled={isUpdatingStatus}
+                className="flex-1 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-lg shadow-blue-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60 disabled:pointer-events-none"
+              >
+                {isUpdatingStatus ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Status'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
