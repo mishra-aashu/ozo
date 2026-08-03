@@ -86,11 +86,16 @@ const AuthCallback = () => {
         realProfile = data
       } catch (_) {}
 
-      // 2. Fallback to ensureProfileExists if RPC missed
+      // 2. Fallback: minimal profile from auth metadata if DB fetch failed
       if (!realProfile) {
-        try {
-          realProfile = await ensureProfileExists(session.user, session.access_token)
-        } catch (_) {}
+        realProfile = {
+          id: session.user.id,
+          email: session.user.email,
+          full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0],
+          phone: session.user.user_metadata?.phone || session.user.phone || '',
+          role: 'customer',
+          user_roles: [],
+        }
       }
 
       // 3. Enrich profile with roles and admin status
