@@ -224,18 +224,10 @@ export const useAuthStore = create(
           }
 
           if (session?.user) {
-            // ── ALWAYS sync token to window & supabaseAdmin FIRST ──────────
-            // This is the critical step that prevents admin RPC calls from
-            // hitting the database with a null/anon token on page reload.
+            // Warm the in-memory token cache for customFetch fast-path
             if (typeof window !== 'undefined' && session.access_token) {
               window.__ozo_access_token = session.access_token
             }
-            try {
-              supabaseAdmin.auth.setSession({
-                access_token: session.access_token,
-                refresh_token: session.refresh_token,
-              }).catch(() => {})
-            } catch (_) {}
 
             // Sync user to OneSignal push notification service
             oneSignalLogin(session.user.id)
@@ -298,25 +290,14 @@ export const useAuthStore = create(
             (event, session) => {
               // Sync session to supabaseAdmin and window memory cache
               if (session) {
+                // Warm the in-memory token cache for customFetch fast-path
                 if (typeof window !== 'undefined' && session.access_token) {
                   window.__ozo_access_token = session.access_token
                 }
-                supabaseAdmin.auth.setSession({
-                  access_token: session.access_token,
-                  refresh_token: session.refresh_token,
-                }).catch((err) => {
-                  console.warn('Failed to sync session to supabaseAdmin on auth change:', err)
-                })
               } else {
                 if (typeof window !== 'undefined') {
                   window.__ozo_access_token = null
                 }
-                supabaseAdmin.auth.setSession({
-                  access_token: '',
-                  refresh_token: '',
-                }).catch((err) => {
-                  console.warn('Failed to clear session on supabaseAdmin:', err)
-                })
               }
 
               if (event === 'SIGNED_IN' && session?.user) {
@@ -421,18 +402,9 @@ export const useAuthStore = create(
                 localStorage.removeItem('ozo-auth-token')
                 localStorage.removeItem('ozo_refresh_lock_ts')
               } else if (event === 'TOKEN_REFRESHED' && session?.user) {
-                // Always sync fresh token to window memory cache FIRST
+                // Warm the in-memory token cache for customFetch fast-path
                 if (typeof window !== 'undefined' && session.access_token) {
                   window.__ozo_access_token = session.access_token
-                }
-                // Proactively push fresh session to supabaseAdmin
-                try {
-                  supabaseAdmin.auth.setSession({
-                    access_token: session.access_token,
-                    refresh_token: session.refresh_token,
-                  })
-                } catch (e) {
-                  // Ignore sync warning
                 }
 
                 set({
