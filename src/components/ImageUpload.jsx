@@ -190,7 +190,7 @@ const ImageUpload = ({
     }
 
     handleUploadingState(true)
-    const toastId = toast.loading('Uploading to ImgBB...')
+    const toastId = toast.loading('Uploading to OZO CDN...')
 
     try {
       // Enforce filename sanitization using lowercase alphanumeric characters, underscores, and unique timestamp
@@ -320,7 +320,7 @@ const ImageUpload = ({
           {localUploading ? (
             <div className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center gap-2 z-10 animate-fadeIn">
               <Loader2 className="w-8 h-8 animate-spin text-white" />
-              <span className="text-xs font-bold text-white">Uploading to ImgBB...</span>
+              <span className="text-xs font-bold text-white">Uploading to OZO CDN...</span>
             </div>
           ) : (
             !disabled && (

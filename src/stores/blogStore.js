@@ -150,7 +150,7 @@ export const useBlogStore = create((set, get) => ({
 
       // 1. Upload new image if provided
       if (imageFile) {
-        const uploadToast = toast.loading('Uploading cover image to ImgBB...')
+        const uploadToast = toast.loading('Uploading cover image to OZO CDN...')
         const uploadResult = await uploadToImgbb(imageFile, `blog-${postData.slug}`)
         toast.dismiss(uploadToast)
 
