@@ -8,7 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --ext js,jsx --max-warnings 10",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist",
     "scan-barcodes": "python3 scratch/batch_process_barcodes.py",

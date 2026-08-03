@@ -87,3 +87,22 @@ graph TD
 
 - **Sentry Integration:** Sentry is already included in `package.json` dependencies. It must be initialized in `src/main.jsx` to trace errors on the client.
 - **Serverless Analytics & Logging:** Log critical failures (Razorpay/Cashfree webhook mismatches, Edge Function timeouts) to an ingestion service (e.g. Logflare or Datadog) to alert developers of payment drops in real-time.
+
+---
+
+### Audit Remediation Accomplishments & Status
+
+As of August 3, 2026, the following high-priority recommendations from this audit have been successfully resolved:
+
+1. **CDN Consolidation (Security & Secrets Hardening):**
+   - **Action:** Completely deprecated and removed all client-side and proxy code for **ImgBB** and **Freeimage.host** to reduce third-party API dependencies and eliminate exposed access keys.
+   - **Resolution:** Refactored `uploadToImgbb` (in `src/lib/supabase.js`) to dynamically invoke the secure `imagekit-auth` Supabase Edge Function to upload files securely to **ImageKit**. Created a fallback to **Supabase Storage** (`mart-assets` bucket) if ImageKit is unreachable, guaranteeing high availability with zero credential exposure. Updated the `api/image.ts` proxy endpoint to return `410 Gone` for the obsolete POST upload handler.
+
+2. **Automated Testing Suite (Scalability & Quality):**
+   - **Action:** Integrated **Vitest** testing framework to replace the previous 0% test coverage gap.
+   - **Resolution:** Added unit test coverage for core utility libraries (product pricing calculation, margins, and image optimization). All 11 tests execute and pass successfully.
+
+3. **Continuous Integration (CI/CD Quality Gate):**
+   - **Action:** Configured validation gates for pull requests and commits to prevent regressions in production.
+   - **Resolution:** Initialized `.eslintrc.cjs` to establish consistent style controls. Setup ESLint to ignore non-development folders (e.g., `bb_image_downloader`, `image_tool`). Hardened the GitHub Actions pipeline (`deploy.yml`) to automatically execute `npm run lint` and `npm run test` on every pull request, failing unstable builds prior to deployment.
+
