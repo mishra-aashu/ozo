@@ -1750,7 +1750,7 @@ const InventoryView = () => {
 
                     {/* Results Dropdown */}
                     {catalogResults.length > 0 && !selectedCatalogProduct && (
-                      <div className="absolute z-10 left-0 right-0 mt-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-xl max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5">
+                      <div className="relative z-10 mt-2 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-md max-h-60 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5">
                         {catalogResults.map((p) => (
                           <div
                             key={p.id}
@@ -1957,7 +1957,7 @@ const InventoryView = () => {
                           </button>
 
                           {isCategoryDropdownOpen && (
-                            <div className="absolute z-[100] w-full mt-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
+                            <div className="relative z-[100] w-full mt-1.5 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-md p-2.5 space-y-2.5 max-h-64 overflow-y-auto flex flex-col animate-fadeIn">
                               <div className="relative">
                                 <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-500 absolute left-3 top-1/2 -translate-y-1/2" />
                                 <input
