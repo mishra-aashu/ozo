@@ -1272,7 +1272,7 @@ export const uploadToImgbb = async (file, customName = null) => {
   // --- METHOD 3: ImageKit (via imagekit-auth Edge Function) ---
   try {
     console.log('[Upload System] Requesting ImageKit auth signature...')
-    const { data: authData, error: authError } = await supabase.functions.invoke('imagekit-auth')
+    const { data: authData, error: authError } = await supabase.functions.invoke('imagekit-auth', { method: 'GET' })
     if (authError || !authData) {
       throw authError || new Error('No auth details returned from Edge Function')
     }
@@ -1326,7 +1326,7 @@ export const uploadCatalogImage = async (file, barcode, imageIndex) => {
 
     // 1. Fetch ImageKit Authentication Parameters from Supabase Edge Function
     const authPromise = (async () => {
-      const { data, error: authError } = await supabase.functions.invoke('imagekit-auth');
+      const { data, error: authError } = await supabase.functions.invoke('imagekit-auth', { method: 'GET' });
       if (authError || !data) {
         throw authError || new Error('No authentication details returned from Edge Function');
       }
