@@ -76,67 +76,48 @@ const AuthCallback = () => {
    * the SIGNED_IN event due to late registration), then decides where to navigate.
    */
   const handleAuthSuccess = async (session) => {
-    const store = useAuthStore.getState()
+    try {
+      const store = useAuthStore.getState()
 
-    // Manually sync user + isAuthenticated into the store if the store's own
-    // onAuthStateChange listener hasn't fired yet (race condition on PKCE exchange).
-    if (!store.isAuthenticated) {
+      // 1. Fetch real profile from DB via RPC / helper immediately
+      let realProfile = null
+      try {
+        const { data } = await authHelpers.getUserProfile(session.user.id, session.access_token)
+        realProfile = data
+      } catch (_) {}
+
+      // 2. Fallback to ensureProfileExists if RPC missed
+      if (!realProfile) {
+        try {
+          realProfile = await ensureProfileExists(session.user, session.access_token)
+        } catch (_) {}
+      }
+
+      // 3. Enrich profile with roles and admin status
+      const enrichedProfile = realProfile
+        ? store.enrichProfileRoles(realProfile)
+        : store.enrichProfileRoles({ id: session.user.id, email: session.user.email, role: 'customer' })
+
+      const isAdmin = store.checkAdmin(enrichedProfile)
+
+      // 4. Update authStore state synchronously
       useAuthStore.setState({
         user: session.user,
+        profile: enrichedProfile,
         isAuthenticated: true,
+        isAdmin: isAdmin,
         isInitialized: true,
       })
-    }
 
-    // Poll for the store's profile fetch to complete (max 6s / 12 attempts).
-    // The store's SIGNED_IN handler fires ensureProfileExists() in a setTimeout,
-    // so it may lag slightly behind this callback.
-    let attempts = 0
-    const maxAttempts = 12
-
-    while (attempts < maxAttempts) {
-      const { profile, isAuthenticated } = useAuthStore.getState()
-
-      if (isAuthenticated) {
-        // Only make routing decision if profile is loaded and is NOT a temporary fallback profile
-        if (profile !== null && !profile.isFallback) {
-          if (profile.phone) {
-            navigate('/', { replace: true })
-          } else {
-            navigate('/complete-profile', { replace: true })
-          }
-          return
-        }
-      }
-
-      await new Promise((r) => setTimeout(r, 500))
-      attempts++
-    }
-
-    // Timed out polling — attempt direct fetch before falling back to complete-profile
-    try {
-      const { data: realProfile } = await authHelpers.getUserProfile(session.user.id, session.access_token)
-      if (realProfile) {
-        const enriched = useAuthStore.getState().enrichProfileRoles
-          ? useAuthStore.getState().enrichProfileRoles(realProfile)
-          : realProfile
-        useAuthStore.setState({ profile: { ...enriched, isFallback: false } })
-        if (realProfile.phone) {
-          navigate('/', { replace: true })
-          return
-        }
-      }
-    } catch (_) {}
-
-    const { isAuthenticated, profile } = useAuthStore.getState()
-    if (isAuthenticated) {
-      if (profile && !profile.isFallback && profile.phone) {
+      // 5. Navigate immediately
+      if (enrichedProfile.phone) {
         navigate('/', { replace: true })
       } else {
         navigate('/complete-profile', { replace: true })
       }
-    } else {
-      navigate('/auth', { replace: true })
+    } catch (err) {
+      console.error('[AuthCallback] Error handling auth success:', err)
+      navigate('/', { replace: true })
     }
   }
 
