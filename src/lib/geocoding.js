@@ -70,9 +70,21 @@ export const findNearestStreet = (lat, lng, streetsList) => {
  *   If omitted, the enrichment that depends on store state is skipped gracefully.
  */
 export const reverseGeocode = async (lat, lng, providedStreets = null, locationState = null) => {
-  // Extract what we need from the passed-in state (safe defaults if not provided)
-  const nearestCity = locationState?.nearestCity || null;
+  let nearestCity = locationState?.nearestCity || null;
   const activeCities = locationState?.activeCities || [];
+
+  if (!nearestCity && activeCities.length > 0) {
+    let minDistance = Infinity;
+    for (const city of activeCities) {
+      if (city.latitude && city.longitude) {
+        const dist = getDistance(lat, lng, parseFloat(city.latitude), parseFloat(city.longitude));
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestCity = city;
+        }
+      }
+    }
+  }
 
   let displayName = '';
   let addressDetails = {};
@@ -189,8 +201,11 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
   let nearestCityNameFallback = 'Unknown';
   let nearestStateFallback = 'Unknown';
   if (nearestCity) {
-    nearestCityNameFallback = nearestCity.name || nearestCityNameFallback;
-    nearestStateFallback = nearestCity.state || nearestStateFallback;
+    const distToNearest = getDistance(lat, lng, parseFloat(nearestCity.latitude), parseFloat(nearestCity.longitude));
+    if (distToNearest <= 50.0) {
+      nearestCityNameFallback = nearestCity.name || nearestCityNameFallback;
+      nearestStateFallback = nearestCity.state || nearestStateFallback;
+    }
   }
   
   const city = addressDetails.city || addressDetails.town || nearestCityNameFallback;
