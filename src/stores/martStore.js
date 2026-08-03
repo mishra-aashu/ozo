@@ -152,7 +152,8 @@ export const useMartStore = create((set, get) => {
               is_cancelled,
               products (
                 price,
-                barcode
+                barcode,
+                slug
               )
             ),
             user:users (
@@ -176,6 +177,7 @@ export const useMartStore = create((set, get) => {
               unit_price: rawSellingPrice,
               total_price: rawSellingPrice * item.quantity,
               barcode: item.products?.barcode || '',
+              product_slug: item.products?.slug || '',
               checked: item.is_packed || false,
               packed_quantity: item.packed_quantity || 0,
               is_cancelled: item.is_cancelled || false
@@ -231,7 +233,8 @@ export const useMartStore = create((set, get) => {
               total_price,
               is_cancelled,
               products (
-                price
+                price,
+                slug
               )
             ),
             user:users (
@@ -254,6 +257,7 @@ export const useMartStore = create((set, get) => {
               ...item,
               unit_price: rawSellingPrice,
               total_price: rawSellingPrice * item.quantity,
+              product_slug: item.products?.slug || '',
               is_cancelled: item.is_cancelled || false
             }
           })
@@ -659,7 +663,8 @@ export const useMartStore = create((set, get) => {
                       is_cancelled,
                       products (
                         price,
-                        barcode
+                        barcode,
+                        slug
                       )
                     ),
                     user:users (
@@ -680,6 +685,7 @@ export const useMartStore = create((set, get) => {
                       unit_price: rawSellingPrice,
                       total_price: rawSellingPrice * item.quantity,
                       barcode: item.products?.barcode || '',
+                      product_slug: item.products?.slug || '',
                       checked: item.is_packed || false,
                       packed_quantity: item.packed_quantity || 0,
                       is_cancelled: item.is_cancelled || false

@@ -41,6 +41,7 @@ import toast from 'react-hot-toast'
 import RiderAdmin from './RiderAdmin'
 import { useMartStore } from '../../stores/martStore'
 import MartAdmin from './MartAdmin'
+import OptimizedImage from '../../components/OptimizedImage'
 
 const getGoogleMapsUrl = (address, order) => {
   if (order && order.latitude && order.longitude) {
@@ -1691,10 +1692,13 @@ const Orders = () => {
                         <div key={item.id} className={`p-4 transition-colors duration-200 ${item.is_cancelled ? 'opacity-60 bg-red-500/[0.02]' : 'bg-gray-50/20 dark:bg-white/[0.01]'}`}>
                           <div className="flex items-center justify-between gap-4">
                             <div className="flex items-center gap-3 flex-1 min-w-0">
-                              <img
-                                src={item.product_image || 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=80'}
+                              <OptimizedImage
+                                src={item.product_image}
+                                slug={item.product_slug}
                                 alt={item.product_name}
-                                className={`w-10 h-10 object-cover rounded-lg border border-gray-200/50 dark:border-white/10 transition-all ${item.is_cancelled ? 'grayscale contrast-75' : ''}`}
+                                width={80}
+                                className={`w-10 h-10 object-contain rounded-lg border border-gray-200/50 dark:border-white/10 transition-all ${item.is_cancelled ? 'grayscale contrast-75' : ''}`}
+                                containerClassName="w-10 h-10 flex-shrink-0"
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center gap-1.5">

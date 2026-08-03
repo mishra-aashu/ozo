@@ -35,6 +35,8 @@ import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import AdminMapPickerModal from '../../components/admin/AdminMapPickerModal'
 import { useAuthStore } from '../../stores/authStore'
+import OptimizedImage from '../../components/OptimizedImage'
+
 
 // Helper to generate URL-friendly slug while typing
 const slugifyForTyping = (text) => {
@@ -212,10 +214,18 @@ const MartManageAdmin = () => {
       if (orderIds.length > 0) {
         const { data: items, error: itemsError } = await supabase
           .from('order_items')
-          .select('*')
+          .select(`
+            *,
+            product:products (
+              slug
+            )
+          `)
           .in('order_id', orderIds)
         if (itemsError) throw itemsError
-        itemsData = items || []
+        itemsData = (items || []).map(item => ({
+          ...item,
+          product_slug: item.product?.slug || ''
+        }))
       }
 
       // Attach items to orders
@@ -1434,11 +1444,14 @@ const MartManageAdmin = () => {
                             {order.items && order.items.map((item) => (
                               <div key={item.id} className="flex justify-between items-center text-[11px] bg-gray-50 dark:bg-white/[0.02] border border-gray-150 dark:border-white/5 p-2 rounded-xl">
                                 <div className="flex items-center gap-2">
-                                  {item.product_image ? (
-                                    <img src={item.product_image} alt={item.product_name} className="w-8 h-8 rounded-lg object-cover border border-gray-100 dark:border-white/5" />
-                                  ) : (
-                                    <div className="w-8 h-8 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center"><FileText className="w-4 h-4 text-gray-400" /></div>
-                                  )}
+                                  <OptimizedImage
+                                    src={item.product_image}
+                                    slug={item.product_slug}
+                                    alt={item.product_name}
+                                    width={40}
+                                    className="w-8 h-8 rounded-lg object-contain border border-gray-100 dark:border-white/5"
+                                    containerClassName="w-8 h-8 flex-shrink-0"
+                                  />
                                   <div>
                                     <span className="font-bold text-gray-750 dark:text-gray-100 block max-w-[200px] truncate">{item.product_name}</span>
                                     <span className="text-[9px] text-gray-450 font-mono">₹{parseFloat(item.unit_price).toFixed(2)} × {item.quantity}</span>
