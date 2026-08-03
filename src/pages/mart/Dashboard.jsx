@@ -22,7 +22,7 @@ import toast from 'react-hot-toast'
 
 const MartDashboard = () => {
   const { profile } = useAuthStore()
-  const isMartOperator = profile?.role === 'mart_operator'
+  const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner
 
   const {
     currentMart,

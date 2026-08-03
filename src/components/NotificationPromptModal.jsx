@@ -9,7 +9,7 @@ export default function NotificationPromptModal() {
   const [isOpen, setIsOpen] = useState(false)
   const [permissionState, setPermissionState] = useState('default') // 'default', 'granted', 'denied'
 
-  const isMartOperator = profile?.role === 'mart_operator'
+  const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner
 
   const checkPermission = () => {
     if (!('Notification' in window)) return
