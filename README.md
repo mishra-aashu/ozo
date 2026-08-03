@@ -152,73 +152,17 @@ OZO enforces security and consistency directly inside PostgreSQL:
 
 ---
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/wrench.svg" width="24" height="24" /> Local Setup & Configuration
+## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/book-open.svg" width="24" height="24" /> Project Documentation & Resources
 
-### 1. Prerequisites
-* **Node.js** v18+ and `npm`
-* **Python 3.10+** (if running the local catalog enrichment tools)
-* A **Supabase** Project
-* **ImgBB API Key** or **ImageKit CDN** credentials
+For detailed installation instructions, architecture breakdown, and database migrations sequence, please refer to the following documents in the [docs/](./docs) directory:
 
-### 2. Frontend Installation & Running
-```bash
-# Clone the repository
-git clone https://github.com/mishra-aashu/Ozo.git
-cd Ozo
-
-# Install dependencies
-npm install
-
-# Start Vite local development server
-npm run dev
-```
-Open `http://localhost:5173` in your browser.
-
-### 3. Running the Local Image Tool (Flask Service)
-The `OzoMartImageTool` runs locally to scan database products with missing images and scrape matching catalog details:
-```bash
-# Setup virtual environment (optional but recommended)
-python3 -m venv .venv
-source .venv/bin/activate
-
-# Install requirements
-pip install -r image_tool/requirements.txt
-
-# Start the Flask helper service
-python3 run_image_tool.py
-```
-This starts a service on `http://localhost:5000` (or next free port) and automatically hooks into your OzoMart Admin Portal layout.
+* **[Architecture Audit & Review](./docs/architecture_audit_report.md)**: Deep technical review of components, database design, and scaling action plans.
+* **[Developer Onboarding & Local Setup](./docs/onboarding_and_setup.md)**: Guide on configuring your local workspace, setting up Vite, running the local Flask scraper, and launching the application.
+* **[Database Migrations Sequence](./docs/onboarding_and_setup.md#4-database-migration-execution)**: Step-by-step SQL scripts applying process and table setups.
+* **[Troubleshooting Guide](./docs/troubleshooting.md)**: Standard resolutions for WebSockets issues, invalid file formats, and dashboard authorization redirects.
 
 ---
 
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/database.svg" width="24" height="24" /> Database Migration Execution
-Apply the versioned migration scripts located under `supabase/migrations/` in chronological order to prepare your Supabase instance:
-
-1. **Tables & RLS Setup**: Run standard table definitions and apply core RLS policies.
-2. **Session Limiters**: Run `20260611020000_session_limit_trigger.sql` to activate device count limits.
-3. **Smart Pricing Triggers**: Run `20260705150000_mart_specific_margin_pricing.sql` and `20260705170000_margin_rule_sync_triggers.sql` to enable dynamic markups.
-4. **Catalog Enrichment**: Apply `20260705185000_allow_webcam_phone_enrichment_sources.sql` and `20260705185500_add_product_id_to_capture_sessions.sql` to support QR-linked mobile photo captures.
-
----
-
-## <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/help-circle.svg" width="24" height="24" /> Troubleshooting & Support
-
-### WebSocket Timeout / Realtime Disconnects
-* **Symptom**: Order checklists or PhoneCapture steps do not update instantly.
-* **Fix**: Ensure that `VITE_SUPABASE_DIRECT_URL` is pointing directly to your `*.supabase.co` endpoint. WebSockets will fail if routed through a caching CDN or Cloudflare proxy that terminates long-lived TCP connections.
-
-### "Invalid File Format" during Captures
-* **Symptom**: Onboarding documents or mobile webcam captures fail during upload.
-* **Fix**: OZO reads the initial bytes of files (magic numbers) to ensure they are valid images (`PNG`, `JPG`, `WEBP`) or `PDF`. Ensure you are not uploading compressed ZIPs or renamed files.
-
-### Access Denied to Dashboard
-* **Symptom**: Trying to access `/admin` or `/mart` redirects you back to the home page.
-* **Fix**: Assign the proper role to your user in the Supabase SQL Console:
-  ```sql
-  UPDATE public.users SET role = 'admin' WHERE email = 'your-email@example.com';
-  ```
-
----
 
 <div align="center">
   <h3>Made with <img src="https://raw.githubusercontent.com/lucide-icons/lucide/main/icons/heart.svg" width="20" height="20" /> by the OZO Team</h3>
