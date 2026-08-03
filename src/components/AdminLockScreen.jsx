@@ -22,42 +22,23 @@ const AdminLockScreen = ({ onUnlock }) => {
 
     setIsLoading(true)
     try {
-      // Step 1: Get session — if token is expired or missing, refresh it first
-      const { data: initialSessionData } = await supabase.auth.getSession()
-      let currentToken = initialSessionData?.session?.access_token
-
-      if (!currentToken) {
-        // No session at all — try a refresh
-        const { data: refreshed } = await supabase.auth.refreshSession()
-        currentToken = refreshed?.session?.access_token
-      } else {
-        // Check if the token is close to expiry (within 60s)
-        const exp = initialSessionData.session?.expires_at
-        if (exp && (exp * 1000) < Date.now() + 60_000) {
-          const { data: refreshed } = await supabase.auth.refreshSession()
-          if (refreshed?.session?.access_token) {
-            currentToken = refreshed.session.access_token
-          }
-        }
+      // Warm the in-memory token cache before the RPC call.
+      // customFetch will handle refresh automatically if the token is expired.
+      const { data: sessionData } = await supabase.auth.getSession()
+      if (sessionData?.session?.access_token && typeof window !== 'undefined') {
+        window.__ozo_access_token = sessionData.session.access_token
       }
 
-      if (!currentToken) {
+      if (!sessionData?.session) {
         throw new Error('Your session has expired. Please refresh the page and sign in again.')
       }
 
-      // Step 2: Sync fresh token to window so the custom fetch interceptor sends it as Bearer
-      if (typeof window !== 'undefined') {
-        window.__ozo_access_token = currentToken
-      }
-
-      // Step 3: Call RPC verify_admin_login with the fresh session
+      // Call RPC — customFetch will inject the correct Bearer token automatically
       const { data: token, error } = await supabase.rpc('verify_admin_login', {
         p_password: password
       })
 
-      if (error) {
-        throw error
-      }
+      if (error) throw error
 
       if (token) {
         localStorage.setItem('ozo-admin-token', token)
