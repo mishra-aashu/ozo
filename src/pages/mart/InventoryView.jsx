@@ -508,6 +508,23 @@ const InventoryView = () => {
     setEditingStockId(null)
   }
 
+  const handleStatusToggle = async (product) => {
+    if (product.is_available) {
+      const confirmed = window.confirm(`Are you sure you want to mark "${product.name}" as Out of Stock? This will set its stock quantity to 0.`)
+      if (!confirmed) return
+      await updateStockQuantity(product.id, 0)
+    } else {
+      const qtyStr = window.prompt(`Enter stock quantity for "${product.name}":`, "10")
+      if (qtyStr === null) return
+      const qty = parseInt(qtyStr, 10)
+      if (isNaN(qty) || qty <= 0) {
+        toast.error('Please enter a valid stock quantity greater than 0.')
+        return
+      }
+      await updateStockQuantity(product.id, qty)
+    }
+  }
+
   const handleAddCatalogProduct = async (e) => {
     e.preventDefault()
     if (!selectedCatalogProduct) {
@@ -1257,7 +1274,7 @@ const InventoryView = () => {
                               {/* Stock status toggle */}
                               <td className="p-4 text-center">
                                 <button
-                                  onClick={() => toggleStock(product.id, !product.is_available)}
+                                  onClick={() => handleStatusToggle(product)}
                                   className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer ${
                                     product.is_available
                                       ? 'bg-blue-50 dark:bg-blue-600/10 border border-blue-100 dark:border-blue-500/20 text-blue-600 dark:text-blue-500 hover:bg-blue-100 dark:hover:bg-blue-600/20'
@@ -1442,7 +1459,7 @@ const InventoryView = () => {
 
                               {/* Status Toggle Button */}
                               <button
-                                onClick={() => toggleStock(product.id, !product.is_available)}
+                                onClick={() => handleStatusToggle(product)}
                                 className={`flex items-center justify-center gap-1.5 flex-1 py-1.5 rounded-xl text-xs font-bold transition-all border whitespace-nowrap cursor-pointer ${
                                   product.is_available
                                     ? 'bg-blue-50 dark:bg-blue-600/10 border-blue-150 dark:border-blue-500/20 text-blue-600 dark:text-blue-505'
