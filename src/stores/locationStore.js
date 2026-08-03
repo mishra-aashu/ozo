@@ -787,30 +787,13 @@ export const useLocationStore = create(
               const { latitude, longitude } = position.coords
               localStorage.removeItem('ozo_location_permission_denied')
               
-               // Validate serviceability using checkDeliveryZoneStatus
+              // First update the nearest city slug so geocoding lookup has the correct city context
+              await get().updateNearestCitySlug(latitude, longitude)
+
+              // Verify if the detected location is serviceable, warn the user if not, but preserve their coordinates
               const isServiceable = checkDeliveryZoneStatus(latitude, longitude)
-              if (!isServiceable) {
-                const fallback = await get().getFallbackLocation(latitude, longitude)
-                set({ 
-                  coordinates: { lat: fallback.lat, lng: fallback.lng },
-                  address: `${fallback.cityName} - ${fallback.pincode}`,
-                  addressDetails: {
-                    road: '',
-                    suburb: '',
-                    city: fallback.rawCity,
-                    state: fallback.stateName,
-                    postcode: fallback.pincode
-                  },
-                  error: null, // Clear error so the UI isn't blocked by unserviceable error state
-                  isDetecting: false,
-                  tracedThrough: 'fallback_default'
-                })
-                await get().updateNearestCitySlug(fallback.lat, fallback.lng)
-                if (!silent && isManual) {
-                  toast.error(`OZO is not yet serviceable at your location. Showing ${fallback.cityName}.`, { duration: 6000, id: 'out-of-zone-error' })
-                }
-                resolve(true)
-                return
+              if (!isServiceable && !silent) {
+                toast.error("OZO is not yet serviceable at your location. Showing detected location.", { duration: 6000, id: 'out-of-zone-warning' })
               }
 
               try {
@@ -848,15 +831,18 @@ export const useLocationStore = create(
                 // Fallback to simple display using dynamic active city
                 const fallback = await get().getFallbackLocation(latitude, longitude)
                 const nearestCity = get().nearestCity
+                const distToNearest = nearestCity ? getDistanceKm(latitude, longitude, parseFloat(nearestCity.latitude), parseFloat(nearestCity.longitude)) : Infinity
+                const useNearest = nearestCity && distToNearest <= 50.0
+
                 set({ 
                   coordinates: { lat: latitude, lng: longitude },
                   address: `GPS: ${latitude.toFixed(4)}, ${longitude.toFixed(4)}`,
                   addressDetails: {
                     road: '',
                     suburb: '',
-                    city: nearestCity?.name || fallback.rawCity,
-                    state: nearestCity?.state || fallback.stateName,
-                    postcode: nearestCity?.allowed_pincodes?.[0] || fallback.pincode
+                    city: useNearest ? nearestCity.name : 'Unknown',
+                    state: useNearest ? nearestCity.state : 'Unknown',
+                    postcode: (useNearest && nearestCity.allowed_pincodes) ? nearestCity.allowed_pincodes[0] : ''
                   },
                   isDetecting: false,
                   tracedThrough: 'gps'
