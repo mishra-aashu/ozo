@@ -339,24 +339,36 @@ const MartDashboard = () => {
                 <span className="hidden sm:inline">OZO Mart Portal</span>
               </h1>
               {currentMart ? (
-                <button 
-                  onClick={handleToggleStatus}
-                  disabled={togglingStatus}
-                  className={`border text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-1 sm:gap-1.5 transition-all cursor-pointer hover:scale-105 active:scale-95 disabled:opacity-50 select-none shrink-0 ${
-                    currentMart.is_active 
-                      ? 'bg-emerald-100 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-200 dark:hover:bg-emerald-500/20' 
-                      : 'bg-red-100 dark:bg-red-500/10 border-red-200 dark:border-red-500/20 text-red-700 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-500/20'
-                  }`}
-                  title={currentMart.is_active ? 'Click to go offline' : 'Click to go live'}
-                >
-                  <span className={`w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full ${currentMart.is_active ? 'bg-emerald-600 dark:bg-emerald-400 animate-pulse' : 'bg-red-500'}`}></span>
-                  {currentMart.is_active ? 'Live' : 'Offline'}
-                </button>
+                <div className="flex items-center gap-2 select-none shrink-0">
+                  <button 
+                    onClick={handleToggleStatus}
+                    disabled={togglingStatus}
+                    className={`relative w-11 h-6 rounded-full transition-all duration-300 focus:outline-none disabled:opacity-50 cursor-pointer shadow-inner ${
+                      currentMart.is_active 
+                        ? 'bg-gradient-to-r from-emerald-400 to-cyan-400 dark:from-emerald-500 dark:to-cyan-500 shadow-emerald-500/10' 
+                        : 'bg-gray-250 dark:bg-slate-800'
+                    }`}
+                    title={currentMart.is_active ? 'Click to go offline' : 'Click to go live'}
+                  >
+                    <span 
+                      className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md transition-all duration-300 transform ${
+                        currentMart.is_active ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-[10px] sm:text-xs font-bold transition-colors duration-300 ${
+                    currentMart.is_active ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+                  }`}>
+                    {currentMart.is_active ? 'Live' : 'Offline'}
+                  </span>
+                </div>
               ) : (
-                <span className="bg-gray-500/15 border border-gray-500/30 text-gray-500 text-[9px] sm:text-[11px] font-bold px-1.5 sm:px-2 py-0.5 rounded-full flex items-center gap-1 sm:gap-1.5 shrink-0">
-                  <span className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-gray-500"></span>
-                  Offline
-                </span>
+                <div className="flex items-center gap-2 select-none shrink-0">
+                  <span className="relative w-11 h-6 rounded-full bg-gray-250 dark:bg-slate-800 opacity-60">
+                    <span className="absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow-md" />
+                  </span>
+                  <span className="text-[10px] sm:text-xs font-bold text-gray-500">Offline</span>
+                </div>
               )}
             </div>
             <div className="text-[10px] sm:text-sm text-gray-550 dark:text-slate-400 mt-0.5 flex items-center gap-1 max-w-[180px] sm:max-w-none">
