@@ -104,5 +104,6 @@ As of August 3, 2026, the following high-priority recommendations from this audi
 
 3. **Continuous Integration (CI/CD Quality Gate):**
    - **Action:** Configured validation gates for pull requests and commits to prevent regressions in production.
-   - **Resolution:** Initialized `.eslintrc.cjs` to establish consistent style controls. Setup ESLint to ignore non-development folders (e.g., `bb_image_downloader`, `image_tool`). Hardened the GitHub Actions pipeline (`deploy.yml`) to automatically execute `npm run lint` and `npm run test` on every pull request, failing unstable builds prior to deployment.
+   - **Resolution:** Initialized `.eslintrc.cjs` to establish consistent style controls. Setup ESLint to ignore non-development folders (e.g., `bb_image_downloader`, `image_tool`). Hardened the GitHub Actions pipeline (`deploy.yml`) to automatically execute `npm run lint` and `npm run test` on every pull request, failing unstable builds prior to deployment. Upgraded standard workflow actions (`actions/checkout`, `actions/setup-node`, `actions/upload-artifact`) to **`v7`** to target the **Node.js 24** runner environment natively.
+
 
