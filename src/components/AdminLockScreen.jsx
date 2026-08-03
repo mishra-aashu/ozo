@@ -22,6 +22,13 @@ const AdminLockScreen = ({ onUnlock }) => {
 
     setIsLoading(true)
     try {
+      // Ensure active session & access token
+      const { data: sessionData } = await supabase.auth.getSession()
+      const currentToken = sessionData?.session?.access_token
+      if (currentToken && typeof window !== 'undefined') {
+        window.__ozo_access_token = currentToken
+      }
+
       // Call RPC verify_admin_login to verify password and get session token
       const { data: token, error } = await supabase.rpc('verify_admin_login', {
         p_password: password
