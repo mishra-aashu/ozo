@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import toast from 'react-hot-toast'
 import { useMartStore } from '../../stores/martStore'
+import OptimizedImage from '../../components/OptimizedImage'
 import {
   ShoppingBag,
   Clock,
@@ -342,6 +343,7 @@ const LiveOrdersView = () => {
             quantity: matchedItem.quantity,
             packed_quantity: newQty,
             image: matchedItem.product_image,
+            slug: matchedItem.product_slug,
             barcode: barcode,
             isCompleted: isFullyPacked
           });
@@ -621,11 +623,14 @@ const LiveOrdersView = () => {
                     }`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-4">
-                          {lastScannedItem.success && lastScannedItem.image && (
-                            <img 
-                              src={lastScannedItem.image} 
-                              alt={lastScannedItem.name} 
+                          {lastScannedItem.success && (
+                            <OptimizedImage
+                              src={lastScannedItem.image}
+                              slug={lastScannedItem.slug}
+                              alt={lastScannedItem.name}
+                              width={60}
                               className="w-12 h-12 object-contain bg-white dark:bg-slate-900 rounded-lg border border-gray-200 dark:border-slate-700 p-1 flex-shrink-0"
+                              containerClassName="w-12 h-12 flex-shrink-0"
                             />
                           )}
                           <div>
@@ -694,17 +699,14 @@ const LiveOrdersView = () => {
                           )}
 
                           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
-                            {item.product_image ? (
-                              <img 
-                                src={item.product_image} 
-                                alt={item.product_name} 
-                                className={`w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 flex-shrink-0 p-1 transition-all duration-300 hover:scale-[2.5] hover:z-10 hover:shadow-2xl relative cursor-zoom-in ${item.is_cancelled ? 'grayscale contrast-75' : ''}`}
-                              />
-                            ) : (
-                              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gray-200 dark:bg-slate-700 flex items-center justify-center text-gray-400 border border-gray-200 dark:border-slate-700 flex-shrink-0">
-                                <Package className="w-6 h-6 sm:w-8 h-8" />
-                              </div>
-                            )}
+                            <OptimizedImage
+                              src={item.product_image}
+                              slug={item.product_slug}
+                              alt={item.product_name}
+                              width={80}
+                              className={`w-12 h-12 sm:w-16 sm:h-16 object-contain rounded-xl sm:rounded-2xl bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 flex-shrink-0 p-1 transition-all duration-300 hover:scale-[2.5] hover:z-10 hover:shadow-2xl relative cursor-zoom-in ${item.is_cancelled ? 'grayscale contrast-75' : ''}`}
+                              containerClassName="w-12 h-12 sm:w-16 sm:h-16 flex-shrink-0 rounded-xl sm:rounded-2xl overflow-hidden"
+                            />
 
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-1.5">

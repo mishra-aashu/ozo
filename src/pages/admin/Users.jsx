@@ -37,6 +37,8 @@ import {
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import UserAvatar from '../../components/UserAvatar'
+import OptimizedImage from '../../components/OptimizedImage'
+
 
 const Users = () => {
   // Lists
@@ -589,12 +591,21 @@ WHERE id = '${selectedUser.id}';`
       try {
         const { data, error } = await supabase
           .from('order_items')
-          .select('*')
+          .select(`
+            *,
+            product:products (
+              slug
+            )
+          `)
           .eq('order_id', orderId)
 
         if (error) throw error
 
-        setOrderItemsMap((prev) => ({ ...prev, [orderId]: data || [] }))
+        const items = (data || []).map(item => ({
+          ...item,
+          product_slug: item.product?.slug || ''
+        }))
+        setOrderItemsMap((prev) => ({ ...prev, [orderId]: items }))
       } catch (err) {
         console.error('Failed to fetch order items:', err)
         toast.error('Failed to load order items')
@@ -1762,20 +1773,16 @@ WHERE id = '${selectedUser.id}';`
                                               className="flex items-center justify-between text-xs"
                                             >
                                               <div className="flex items-center gap-2 min-w-0">
-                                                {item.product_image ? (
-                                                  <div className="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center border border-gray-200 dark:border-white/5 flex-shrink-0 transition-all duration-300 hover:scale-[7] hover:z-50 hover:shadow-2xl relative cursor-zoom-in">
-                                                    <img
-                                                      src={item.product_image}
-                                                      alt={item.product_name}
-                                                      className="w-full h-full object-cover"
-                                                    />
-                                                  </div>
-                                                ) : (
-                                                  <div className="w-8 h-8 bg-gray-100 dark:bg-white/5 rounded-lg flex items-center justify-center">
-                                                    📦
-                                                  </div>
-                                                )}
+                                                <OptimizedImage
+                                                  src={item.product_image}
+                                                  slug={item.product_slug}
+                                                  alt={item.product_name}
+                                                  width={40}
+                                                  className="w-full h-full object-contain"
+                                                  containerClassName="w-8 h-8 rounded-lg bg-white overflow-hidden flex items-center justify-center border border-gray-200 dark:border-white/5 flex-shrink-0 transition-all duration-300 hover:scale-[7] hover:z-50 hover:shadow-2xl relative cursor-zoom-in"
+                                                />
                                                 <div className="min-w-0">
+
                                                   <p className="font-bold text-gray-800 dark:text-gray-200 truncate max-w-[200px]">
                                                     {item.product_name}
                                                   </p>

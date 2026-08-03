@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useMartStore } from '../../stores/martStore'
 import toast from 'react-hot-toast'
+import OptimizedImage from '../../components/OptimizedImage'
 import {
   TrendingUp,
   ShoppingBag,
@@ -665,17 +666,14 @@ const EarningsView = () => {
                           {selectedPastOrder.order_items?.map((item) => (
                              <tr key={item.id} className="hover:bg-gray-50/50 dark:hover:bg-slate-850 transition-all">
                               <td className="p-2 sm:p-4 flex items-center gap-2 sm:gap-3 min-w-0">
-                                {item.product_image ? (
-                                  <img 
-                                    src={item.product_image} 
-                                    alt={item.product_name} 
-                                    className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg bg-gray-55 dark:bg-slate-900 border border-gray-105 dark:border-white/5 shrink-0"
-                                  />
-                                ) : (
-                                  <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gray-100 dark:bg-slate-800 flex items-center justify-center text-gray-400 border border-gray-105 dark:border-white/5 shrink-0">
-                                    <Package className="w-4 h-4 sm:w-5 h-5" />
-                                  </div>
-                                )}
+                                <OptimizedImage
+                                  src={item.product_image}
+                                  slug={item.product_slug}
+                                  alt={item.product_name}
+                                  width={40}
+                                  className="w-8 h-8 sm:w-10 sm:h-10 object-contain rounded-lg bg-gray-55 dark:bg-slate-900 border border-gray-105 dark:border-white/5 shrink-0"
+                                  containerClassName="w-8 h-8 sm:w-10 sm:h-10 shrink-0"
+                                />
                                 <div className="min-w-0 flex-1">
                                   <p className="font-bold text-gray-800 dark:text-gray-200 break-words">{item.product_name}</p>
                                 </div>

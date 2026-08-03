@@ -242,7 +242,7 @@ export const useCaptainStore = create((set, get) => {
           .select(`
             *,
             address:addresses (*),
-            order_items (*),
+            order_items (*, product:products (slug)),
             user:users (full_name)
           `)
           .eq('status', 'packed')
@@ -256,7 +256,11 @@ export const useCaptainStore = create((set, get) => {
           subtotal: parseFloat(order.subtotal),
           delivery_fee: parseFloat(order.delivery_fee),
           total: parseFloat(order.total),
-          estimatedEarnings: calculateRiderEarnings(order)
+          estimatedEarnings: calculateRiderEarnings(order),
+          order_items: order.order_items ? order.order_items.map(item => ({
+            ...item,
+            product_slug: item.product?.slug || ''
+          })) : []
         }))
 
         set({ nearbyOrders: formatted, isLoadingRadar: false })
@@ -278,7 +282,7 @@ export const useCaptainStore = create((set, get) => {
           .select(`
             *,
             address:addresses (*),
-            order_items (*),
+            order_items (*, product:products (slug)),
             user:users (full_name, phone)
           `)
           .in('status', ['assigned', 'dispatched'])
@@ -293,7 +297,11 @@ export const useCaptainStore = create((set, get) => {
             subtotal: parseFloat(data.subtotal),
             delivery_fee: parseFloat(data.delivery_fee),
             total: parseFloat(data.total),
-            estimatedEarnings: calculateRiderEarnings(data)
+            estimatedEarnings: calculateRiderEarnings(data),
+            order_items: data.order_items ? data.order_items.map(item => ({
+              ...item,
+              product_slug: item.product?.slug || ''
+            })) : []
           }
           set({ activeOrder: formatted })
           get().subscribeToActiveOrder(data.id)
@@ -337,7 +345,7 @@ export const useCaptainStore = create((set, get) => {
           .select(`
             *,
             address:addresses (*),
-            order_items (*),
+            order_items (*, product:products (slug)),
             user:users (full_name, phone)
           `)
           .single()
@@ -355,7 +363,11 @@ export const useCaptainStore = create((set, get) => {
           subtotal: parseFloat(data.subtotal),
           delivery_fee: parseFloat(data.delivery_fee),
           total: parseFloat(data.total),
-          estimatedEarnings: calculateRiderEarnings(data)
+          estimatedEarnings: calculateRiderEarnings(data),
+          order_items: data.order_items ? data.order_items.map(item => ({
+            ...item,
+            product_slug: item.product?.slug || ''
+          })) : []
         }
 
         // Update local state
@@ -393,7 +405,7 @@ export const useCaptainStore = create((set, get) => {
           .select(`
             *,
             address:addresses (*),
-            order_items (*),
+            order_items (*, product:products (slug)),
             user:users (full_name, phone)
           `)
           .single()
@@ -405,7 +417,11 @@ export const useCaptainStore = create((set, get) => {
           subtotal: parseFloat(data.subtotal),
           delivery_fee: parseFloat(data.delivery_fee),
           total: parseFloat(data.total),
-          estimatedEarnings: calculateRiderEarnings(data)
+          estimatedEarnings: calculateRiderEarnings(data),
+          order_items: data.order_items ? data.order_items.map(item => ({
+            ...item,
+            product_slug: item.product?.slug || ''
+          })) : []
         }
 
         set({ activeOrder: formatted })
@@ -432,7 +448,7 @@ export const useCaptainStore = create((set, get) => {
           .select(`
             *,
             address:addresses (*),
-            order_items (*),
+            order_items (*, product:products (slug)),
             user:users (full_name, phone)
           `)
           .single()
@@ -444,7 +460,11 @@ export const useCaptainStore = create((set, get) => {
           subtotal: parseFloat(data.subtotal),
           delivery_fee: parseFloat(data.delivery_fee),
           total: parseFloat(data.total),
-          estimatedEarnings: calculateRiderEarnings(data)
+          estimatedEarnings: calculateRiderEarnings(data),
+          order_items: data.order_items ? data.order_items.map(item => ({
+            ...item,
+            product_slug: item.product?.slug || ''
+          })) : []
         }
 
         set({ activeOrder: formatted })
@@ -592,7 +612,7 @@ export const useCaptainStore = create((set, get) => {
                   .select(`
                     *,
                     address:addresses (*),
-                    order_items (*),
+                    order_items (*, product:products (slug)),
                     user:users (full_name)
                   `)
                   .eq('id', newRecord.id)
@@ -604,7 +624,11 @@ export const useCaptainStore = create((set, get) => {
                     subtotal: parseFloat(data.subtotal),
                     delivery_fee: parseFloat(data.delivery_fee),
                     total: parseFloat(data.total),
-                    estimatedEarnings: calculateRiderEarnings(data)
+                    estimatedEarnings: calculateRiderEarnings(data),
+                    order_items: data.order_items ? data.order_items.map(item => ({
+                      ...item,
+                      product_slug: item.product?.slug || ''
+                    })) : []
                   }
 
                   // Update radar

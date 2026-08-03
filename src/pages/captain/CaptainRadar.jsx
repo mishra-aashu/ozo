@@ -5,6 +5,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { motion, AnimatePresence } from 'framer-motion'
 import ImageUpload from '../../components/ImageUpload'
 import toast from 'react-hot-toast'
+import OptimizedImage from '../../components/OptimizedImage'
 import { parseLandmark } from '../../lib/addressHelpers'
 import { 
   Wifi, 
@@ -221,13 +222,14 @@ const OrderCard = React.memo(({ order, onAccept }) => {
             order.order_items.map((item, idx) => (
               <div key={item.id || idx} className="py-2 flex items-center justify-between gap-3 first:pt-0 last:pb-0">
                 <div className="flex items-center gap-2">
-                  {item.product_image && (
-                    <img 
-                      src={item.product_image} 
-                      alt={item.product_name} 
-                      className="w-7 h-7 object-cover rounded border border-gray-200 dark:border-[#232338]" 
-                    />
-                  )}
+                  <OptimizedImage
+                    src={item.product_image}
+                    slug={item.product_slug}
+                    alt={item.product_name}
+                    width={40}
+                    className="w-7 h-7 object-contain rounded border border-gray-200 dark:border-[#232338]"
+                    containerClassName="w-7 h-7 flex-shrink-0"
+                  />
                   <span className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-1">
                     {item.product_name}
                   </span>
@@ -637,13 +639,14 @@ const CaptainRadar = () => {
                       {activeOrder.order_items?.map((item, idx) => (
                         <div key={item.id || idx} className="pt-2 first:pt-0 flex items-center justify-between gap-3">
                           <div className="flex items-center gap-2.5">
-                            {item.product_image && (
-                              <img 
-                                src={item.product_image} 
-                                alt={item.product_name} 
-                                className="w-9 h-9 object-cover rounded-lg border border-gray-200 dark:border-[#232338]" 
-                              />
-                            )}
+                            <OptimizedImage
+                              src={item.product_image}
+                              slug={item.product_slug}
+                              alt={item.product_name}
+                              width={40}
+                              className="w-9 h-9 object-contain rounded-lg border border-gray-200 dark:border-[#232338]"
+                              containerClassName="w-9 h-9 flex-shrink-0"
+                            />
                             <div>
                               <p className="text-sm font-semibold text-gray-800 dark:text-gray-200 leading-tight line-clamp-1">
                                 {item.product_name}
@@ -924,13 +927,14 @@ const CaptainRadar = () => {
                         {activeOrder.order_items?.map((item, idx) => (
                           <div key={item.id || idx} className="pt-2 first:pt-0 flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2.5">
-                              {item.product_image && (
-                                <img 
-                                  src={item.product_image} 
-                                  alt={item.product_name} 
-                                  className="w-8 h-8 object-cover rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm" 
-                                />
-                              )}
+                              <OptimizedImage
+                                src={item.product_image}
+                                slug={item.product_slug}
+                                alt={item.product_name}
+                                width={40}
+                                className="w-8 h-8 object-contain rounded-lg border border-gray-200 dark:border-gray-800 shadow-sm"
+                                containerClassName="w-8 h-8 flex-shrink-0"
+                              />
                               <span className="font-bold text-xs text-gray-800 dark:text-gray-200 line-clamp-1">{item.product_name}</span>
                             </div>
                             <span className="font-mono text-xs font-bold text-gray-400 dark:text-gray-550">x{item.quantity}</span>
