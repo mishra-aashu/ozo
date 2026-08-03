@@ -66,6 +66,7 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
   const [categoriesList, setCategoriesList] = useState([])
   const [loadingCategories, setLoadingCategories] = useState(false)
   const [savingInfo, setSavingInfo] = useState(false)
+  const [savingOnly, setSavingOnly] = useState(false)
 
   // Searchable Category Dropdown States
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
@@ -143,6 +144,80 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
+
+  // ==========================================
+  // SAVE FORM INFO & CLOSE MODAL (SAVE ONLY)
+  // ==========================================
+  const handleSaveOnly = async () => {
+    if (!editedProduct.name.trim()) {
+      toast.error('Product Name is required')
+      return
+    }
+    if (!editedProduct.category_id) {
+      toast.error('Category is required')
+      return
+    }
+    if (!editedProduct.price || parseFloat(editedProduct.price) <= 0) {
+      toast.error('Valid Price is required')
+      return
+    }
+
+    try {
+      setSavingOnly(true)
+      
+      const baseSlug = editedProduct.name.toLowerCase().trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)+/g, '')
+      const fallbackSlug = `${baseSlug}-${Date.now()}`
+
+      const payload = {
+        name: editedProduct.name.trim(),
+        slug: product?.slug || fallbackSlug,
+        category_id: editedProduct.category_id,
+        brand: editedProduct.brand.trim() || null,
+        unit: editedProduct.unit.trim() || '1 unit',
+        price: parseFloat(editedProduct.price) || 0,
+        mrp: parseFloat(editedProduct.mrp) || parseFloat(editedProduct.price) || 0,
+        barcode: barcode || product?.barcode || null,
+        is_available: true,
+        enrichment_status: product?.image_url ? 'merchant_upload' : 'pending_photo',
+        enrichment_source: product?.image_url ? 'merchant_upload' : 'placeholder'
+      }
+
+      let savedProduct = null
+      if (product?.id) {
+        const { data, error } = await supabase
+          .from('products')
+          .update(payload)
+          .eq('id', product.id)
+          .select()
+          .single()
+        if (error) throw error
+        savedProduct = data
+      } else {
+        const { data, error } = await supabase
+          .from('products')
+          .upsert(payload, { onConflict: 'barcode' })
+          .select()
+          .single()
+        if (error) throw error
+        savedProduct = data
+      }
+
+      toast.success('Product details saved successfully!')
+      if (onComplete) {
+        onComplete({
+          ...savedProduct,
+          stock_quantity: parseInt(editedProduct.stock_quantity) || 0
+        })
+      }
+    } catch (err) {
+      console.error('Error saving product info:', err)
+      toast.error('Failed to save product details: ' + err.message)
+    } finally {
+      setSavingOnly(false)
+    }
+  }
 
   // ==========================================
   // SAVE FORM INFO & PROCEED TO PHOTO STEP
@@ -902,24 +977,45 @@ export default function BarcodeEnrichmentModal({ barcode, product, onClose, onCo
                 Cancel
               </button>
 
-              <button
-                type="button"
-                onClick={handleNextToPhoto}
-                disabled={savingInfo}
-                className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-indigo-600/15 disabled:opacity-50"
-              >
-                {savingInfo ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Saving Details...
-                  </>
-                ) : (
-                  <>
-                    Next: Add Photos
-                    <ChevronRight className="w-4 h-4" />
-                  </>
-                )}
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSaveOnly}
+                  disabled={savingInfo || savingOnly}
+                  className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-emerald-600/15 disabled:opacity-50 animate-fadeIn"
+                >
+                  {savingOnly ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check className="w-4 h-4" />
+                      Save Details
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleNextToPhoto}
+                  disabled={savingInfo || savingOnly}
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-extrabold text-xs rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-lg shadow-indigo-600/15 disabled:opacity-50"
+                >
+                  {savingInfo ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving Details...
+                    </>
+                  ) : (
+                    <>
+                      Next: Add Photos
+                      <ChevronRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         )}
