@@ -51,7 +51,7 @@ const Profile = () => {
     isAdmin: state.isAdmin,
   })))
   const isCaptain = profile?.role === 'captain' || isAdmin
-  const isMartOperator = profile?.role === 'mart_operator' || isAdmin
+  const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || isAdmin
   const isCityManager = profile?.isCityManager
   const isCustomerOnly = !isCaptain && !isMartOperator && !isCityManager
   const navigate = useNavigate()
