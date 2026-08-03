@@ -13,7 +13,8 @@
     "deploy": "gh-pages -d dist",
     "scan-barcodes": "python3 scratch/batch_process_barcodes.py",
     "enrich-barcodes": "python3 scratch/enrich_barcodes.py",
-    "mcp:supabase": "node scripts/supabase-mcp-server.js"
+    "mcp:supabase": "node scripts/supabase-mcp-server.js",
+    "test": "vitest run"
   },
   "dependencies": {
     "@sentry/react": "^10.59.0",
@@ -51,6 +52,7 @@
     "postcss": "^8.4.32",
     "tailwindcss": "^3.4.0",
     "terser": "^5.44.1",
-    "vite": "^6.4.3"
+    "vite": "^6.4.3",
+    "vitest": "^1.6.0"
   }
 }
