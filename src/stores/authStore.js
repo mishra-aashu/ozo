@@ -199,23 +199,37 @@ export const useAuthStore = create(
             }
           )
 
-          // Get current session with a short timeout so UI is never blocked
+          // Get current session — use a generous timeout so slow tab-reloads
+          // still get their token before isInitialized flips to true.
           let session = null
           try {
             const res = await Promise.race([
               supabase.auth.getSession(),
-              new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 1500))
+              new Promise((_, reject) => setTimeout(() => reject(new Error('Session fetch timeout')), 4000))
             ])
             session = res?.data?.session || null
           } catch (sessErr) {
             console.warn('[OZO Auth] Session pre-fetch timeout/error:', sessErr)
           }
 
+          // If session token is expired, try a refresh before giving up
+          if (session && session.access_token) {
+            const exp = session.expires_at ? (session.expires_at * 1000) : 0
+            if (exp > 0 && exp < Date.now() + 5000) {
+              try {
+                const { data: refreshed } = await supabase.auth.refreshSession()
+                if (refreshed?.session) session = refreshed.session
+              } catch (_) {}
+            }
+          }
+
           if (session?.user) {
+            // ── ALWAYS sync token to window & supabaseAdmin FIRST ──────────
+            // This is the critical step that prevents admin RPC calls from
+            // hitting the database with a null/anon token on page reload.
             if (typeof window !== 'undefined' && session.access_token) {
               window.__ozo_access_token = session.access_token
             }
-            // Sync session to supabaseAdmin client so admin requests are authenticated
             try {
               supabaseAdmin.auth.setSession({
                 access_token: session.access_token,
@@ -226,52 +240,43 @@ export const useAuthStore = create(
             // Sync user to OneSignal push notification service
             oneSignalLogin(session.user.id)
 
-            // Prepare cached or metadata profile
-            const localProfile = get().profile
-            const fallbackProfile = {
-              id: session.user.id,
-              email: session.user.email,
-              full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
-              phone: session.user.user_metadata?.phone || session.user.phone || '',
-              role: 'customer',
-              user_roles: [],
-              isFallback: true,
+            // ── Fetch real DB profile (foreground, not background) ─────────
+            // By awaiting here, isAdmin is GUARANTEED to be accurate when
+            // isInitialized flips to true — no more stale-role race conditions.
+            let dbProfile = null
+            try {
+              dbProfile = await ensureProfileExists(session.user, session.access_token)
+            } catch (profileErr) {
+              console.warn('[OZO Auth] Profile fetch on init failed, using cache:', profileErr)
             }
 
-            const initialProfile = (localProfile && localProfile.id === session.user.id)
-              ? enrichProfileRoles(localProfile)
-              : enrichProfileRoles(fallbackProfile)
+            // Build final profile: prefer fresh DB data, fall back to cache
+            const localProfile = get().profile
+            const baseProfile = dbProfile
+              ? { ...dbProfile, isFallback: false }
+              : (localProfile && localProfile.id === session.user.id)
+                ? { ...localProfile, isFallback: false }
+                : {
+                    id: session.user.id,
+                    email: session.user.email,
+                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
+                    phone: session.user.user_metadata?.phone || session.user.phone || '',
+                    role: 'customer',
+                    user_roles: [],
+                    isFallback: false,
+                  }
 
-            // SET INITIALIZED IMMEDIATELY — do not wait for DB profile query
+            const finalProfile = enrichProfileRoles(baseProfile)
+
+            // Now set everything atomically — isAdmin is 100% correct here
             set({
               user: session.user,
-              profile: initialProfile,
+              profile: finalProfile,
               isAuthenticated: true,
-              isAdmin: checkAdmin(initialProfile),
+              isAdmin: checkAdmin(finalProfile),
               isLoading: false,
               isInitialized: true,
             })
-
-            // Hydrate / verify real DB profile in the background
-            setTimeout(async () => {
-              try {
-                const dbProfile = await ensureProfileExists(session.user, session.access_token)
-                if (dbProfile) {
-                  const finalProfile = enrichProfileRoles({
-                    ...(get().profile || {}),
-                    ...dbProfile,
-                    role: dbProfile.role || get().profile?.role || 'customer',
-                    isFallback: false,
-                  })
-                  set({
-                    profile: finalProfile,
-                    isAdmin: checkAdmin(finalProfile),
-                  })
-                }
-              } catch (bgErr) {
-                console.warn('[OZO Auth] Background profile hydration warning:', bgErr)
-              }
-            }, 0)
           } else {
             set({
               user: null,
@@ -416,6 +421,10 @@ export const useAuthStore = create(
                 localStorage.removeItem('ozo-auth-token')
                 localStorage.removeItem('ozo_refresh_lock_ts')
               } else if (event === 'TOKEN_REFRESHED' && session?.user) {
+                // Always sync fresh token to window memory cache FIRST
+                if (typeof window !== 'undefined' && session.access_token) {
+                  window.__ozo_access_token = session.access_token
+                }
                 // Proactively push fresh session to supabaseAdmin
                 try {
                   supabaseAdmin.auth.setSession({

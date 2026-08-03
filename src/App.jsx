@@ -150,18 +150,19 @@ import { useLocationStore } from './stores/locationStore'
 
 // Protected Route Component (requires authentication)
 const ProtectedRoute = ({ children, adminOnly = false }) => {
-  const { user, isInitialized, isAdmin } = useAuthStore()
+  const { user, isInitialized, isAdmin, profile } = useAuthStore()
 
   useEffect(() => {
-    // Safety fallback: If session initialization takes more than 2.5 seconds,
-    // force isInitialized to true so the user is never stuck on a blank/spinner screen.
+    // Safety fallback: If session initialization takes more than 5 seconds
+    // (matching the 4s session-fetch timeout + margin), force isInitialized
+    // so the user is never stuck on a blank/spinner screen.
     if (!isInitialized) {
       const timer = setTimeout(() => {
         if (!useAuthStore.getState().isInitialized) {
           console.warn('[ProtectedRoute] Session init timeout safety triggered.')
           useAuthStore.setState({ isInitialized: true })
         }
-      }, 2500)
+      }, 5000)
       return () => clearTimeout(timer)
     }
   }, [isInitialized])
@@ -179,8 +180,18 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     return <Navigate to="/auth" replace />
   }
 
-  if (adminOnly && !isAdmin) {
-    return <Navigate to="/" replace />
+  if (adminOnly) {
+    // Check both the store flag AND direct profile roles as a safety net
+    // in case the persisted isAdmin is stale from a previous session.
+    const hasAdminRole = isAdmin ||
+      profile?.isSuperAdmin ||
+      profile?.isCityManager ||
+      profile?.role === 'super_admin' ||
+      profile?.role === 'admin' ||
+      profile?.role === 'city_manager'
+    if (!hasAdminRole) {
+      return <Navigate to="/" replace />
+    }
   }
 
   return children
