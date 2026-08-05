@@ -142,11 +142,11 @@ const OrderTrackingMap = ({ order }) => {
       el.className = 'customer-home-pin'
       el.innerHTML = `
         <div class="relative flex flex-col items-center">
-          <div class="absolute w-8 h-8 bg-[#E23744]/25 rounded-full animate-pulse -bottom-4"></div>
-          <div class="relative w-10 h-10 rounded-full border-2 border-[#E23744] bg-white shadow-lg overflow-hidden flex items-center justify-center">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E23744" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-ozo-red"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          <div class="absolute w-8 h-8 rounded-full animate-pulse -bottom-4" style="background-color: rgba(var(--color-ozo-red-rgb, 226, 55, 68), 0.25);"></div>
+          <div class="relative w-10 h-10 rounded-full border-2 bg-white shadow-lg overflow-hidden flex items-center justify-center" style="border-color: var(--color-ozo-red, #E23744);">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-ozo-red, #E23744);"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
           </div>
-          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] border-t-[#E23744] -mt-0.5"></div>
+          <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[8px] -mt-0.5" style="border-top-color: var(--color-ozo-red, #E23744);"></div>
         </div>
       `
       customerMarkerRef.current = new maplibregl.Marker({ element: el, anchor: 'bottom' })

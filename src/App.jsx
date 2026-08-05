@@ -142,7 +142,7 @@ import LocationPromptModal from './components/LocationPromptModal'
 
 // Hooks
 import { useAuthStore } from './stores/authStore'
-import { useCartStore } from './stores/cartStore'
+import { useCartStore, applyDynamicTheme } from './stores/cartStore'
 import { useThemeStore } from './stores/themeStore'
 import { useNotificationStore } from './stores/notificationStore'
 import { useLanguageStore } from './stores/languageStore'
@@ -330,6 +330,13 @@ function App() {
   })
   */
   const [showSplash, setShowSplash] = useState(false)
+  const themeConfig = useCartStore(state => state.themeConfig)
+
+  useEffect(() => {
+    if (themeConfig) {
+      applyDynamicTheme(themeConfig)
+    }
+  }, [themeConfig])
 
   const { initTheme } = useThemeStore()
   const { language } = useLanguageStore()
