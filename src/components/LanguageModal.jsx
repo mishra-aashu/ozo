@@ -83,7 +83,7 @@ const LanguageModal = ({ isOpen, onClose }) => {
 
         {/* Title */}
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-1.5 h-6 bg-[#E23744] rounded-full"></div>
+          <div className="w-1.5 h-6 bg-ozo-red rounded-full"></div>
           <h2 className="text-xl font-bold text-gray-900">Select Language</h2>
         </div>
         <p className="text-gray-500 text-xs mb-6">Choose your preferred language for the OZO application.</p>
@@ -98,12 +98,12 @@ const LanguageModal = ({ isOpen, onClose }) => {
                 onClick={() => changeLanguageViaBrowser(lang.code)}
                 className={`w-full flex items-center justify-between border py-3.5 px-4 rounded-xl transition-all duration-200 text-sm focus:outline-none ${
                   isSelected 
-                    ? 'border-[#E23744] bg-[#E23744]/5 text-[#E23744] font-bold' 
+                    ? 'border-ozo-red bg-ozo-red/5 text-ozo-red font-bold' 
                     : 'border-gray-200/80 bg-gray-50/50 text-gray-700 hover:bg-gray-50 hover:border-gray-300'
                 }`}
               >
-                <span className={isSelected ? 'text-[#E23744]' : 'text-gray-700'}>{lang.label}</span>
-                {isSelected && <Check size={18} strokeWidth={3} className="text-[#E23744]" />}
+                <span className={isSelected ? 'text-ozo-red' : 'text-gray-700'}>{lang.label}</span>
+                {isSelected && <Check size={18} strokeWidth={3} className="text-ozo-red" />}
               </button>
             );
           })}

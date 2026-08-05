@@ -6,7 +6,7 @@ import { supabase } from '../lib/supabase'
 import { checkDeliveryZoneStatus, useLocationStore } from '../stores/locationStore'
 import { reverseGeocode, findNearestStreet } from '../lib/geocoding'
 import toast from 'react-hot-toast'
-import { useCartStore } from '../stores/cartStore'
+import { useCartStore, adjustColorBrightness } from '../stores/cartStore'
 import { GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
 
 const isLatLngInDeliveryZone = (lat, lng, config) => {
@@ -150,6 +150,10 @@ const satelliteStyle = {
 
 
 const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" }) => {
+  const themeConfig = useCartStore((state) => state.themeConfig) || {}
+  const primaryColor = themeConfig.primary_color || '#E23744'
+  const primaryLightColor = themeConfig.primary_light_color || adjustColorBrightness(primaryColor, 30)
+
   const nearestCity = useLocationStore((state) => state.nearestCity)
   const rawGeofenceConfig = useCartStore((state) => state.geofenceConfig) || GEOFENCE_DEFAULTS
   const deliveryConfig = useCartStore((state) => state.deliveryConfig) || {}
@@ -674,7 +678,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
       source: 'geofence',
       layout: {},
       paint: {
-        'fill-color': '#E23744',
+        'fill-color': primaryColor,
         'fill-opacity': 0.12
       }
     })
@@ -685,7 +689,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
       source: 'geofence',
       layout: {},
       paint: {
-        'line-color': '#E23744',
+        'line-color': primaryColor,
         'line-width': 3,
         'line-dasharray': [2, 2]
       }
@@ -716,7 +720,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
           'line-color': [
             'case',
             ['in', ['get', 'highway'], ['literal', ['primary', 'secondary']]],
-            '#E23744',
+            primaryColor,
             '#3B82F6'
           ],
           'line-width': [
@@ -861,10 +865,10 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
       el.className = 'custom-ozo-pin'
       el.innerHTML = `
         <div class="relative flex flex-col items-center">
-          <div class="absolute w-6 h-6 bg-[#E23744]/25 rounded-full animate-ping -bottom-3"></div>
+          <div class="absolute w-6 h-6 rounded-full animate-ping -bottom-3" style="background-color: ${primaryColor}40;"></div>
           <div class="absolute w-2 h-1 bg-black/40 rounded-full blur-[1px] -bottom-0.5"></div>
           <div class="relative w-8 h-8 flex items-center justify-center">
-            <div class="absolute w-8 h-8 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]"></div>
+            <div class="absolute w-8 h-8 rounded-full rounded-tr-none border-2 border-white dark:border-[#1a1a1a] shadow-lg transform rotate-[135deg]" style="background: linear-gradient(to top right, ${primaryColor}, ${primaryLightColor});"></div>
             <div class="relative z-10 w-2.5 h-2.5 bg-white rounded-full shadow-inner"></div>
           </div>
         </div>
@@ -997,7 +1001,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
             onClick={() => setUseSteppedSearch(true)}
             className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
               useSteppedSearch 
-                ? 'bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] text-white shadow-md' 
+                ? 'bg-gradient-ozo text-white shadow-md' 
                 : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800'
             }`}
           >
@@ -1008,7 +1012,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
             onClick={() => setUseSteppedSearch(false)}
             className={`flex-1 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
               !useSteppedSearch 
-                ? 'bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] text-white shadow-md' 
+                ? 'bg-gradient-ozo text-white shadow-md' 
                 : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800'
             }`}
           >
@@ -1040,7 +1044,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
             <button
               type="button"
               onClick={handleSearch}
-              className="px-4 py-3 bg-gradient-to-tr from-[#E23744] to-[#FF6B6B] hover:shadow-[0_4px_15px_rgba(226,55,68,0.3)] text-white font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center"
+              className="px-4 py-3 bg-gradient-ozo hover:shadow-ozo text-white font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-md flex items-center justify-center"
             >
               Find
             </button>
@@ -1059,7 +1063,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
                     ← Back
                   </button>
                 )}
-                <span className="text-[10px] font-black uppercase tracking-widest text-[#E23744]">
+                <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
                   Step {step} of 4
                 </span>
               </div>
@@ -1094,7 +1098,7 @@ const OzoMapPicker = ({ onLocationSelect, initialPosition, className = "h-96" })
                         setSelectedZone(zone)
                         setStep(2)
                       }}
-                      className="p-3 bg-gray-50 dark:bg-zinc-850 hover:bg-[#E23744]/10 dark:hover:bg-[#E23744]/10 border border-gray-150 dark:border-zinc-800 hover:border-[#E23744]/30 rounded-2xl flex flex-col text-left transition-all active:scale-[0.98]"
+                      className="p-3 bg-gray-50 dark:bg-zinc-850 hover:bg-ozo-red/10 dark:hover:bg-ozo-red/10 border border-gray-150 dark:border-zinc-800 hover:border-ozo-red/30 rounded-2xl flex flex-col text-left transition-all active:scale-[0.98]"
                     >
                       <span className="text-xs font-black text-gray-900 dark:text-white leading-tight">
                         {zone.name.split(':')[1]?.split('(')[0]?.trim() || zone.name}

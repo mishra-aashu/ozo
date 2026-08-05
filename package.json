@@ -14,6 +14,7 @@
     "scan-barcodes": "python3 scratch/batch_process_barcodes.py",
     "enrich-barcodes": "python3 scratch/enrich_barcodes.py",
     "mcp:supabase": "node scripts/supabase-mcp-server.js",
+    "mindmap": "python3 scripts/generate_ozo_mindmap.py",
     "test": "vitest run"
   },
   "dependencies": {

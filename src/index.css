@@ -45,11 +45,11 @@
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(226, 55, 68, 0.8) !important; /* OZO Red hover state */
+    background-color: var(--color-ozo-red, #E23744) !important; /* OZO Red hover state */
   }
 
   .dark ::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(226, 55, 68, 0.8) !important;
+    background-color: var(--color-ozo-red, #E23744) !important;
   }
 
   /* Firefox compatibility */
@@ -168,18 +168,13 @@ body {
 }
 
 ::selection {
-  background-color: rgba(226, 55, 68, 0.2);
-  color: #E23744;
+  background-color: rgba(var(--color-ozo-red-rgb, 226, 55, 68), 0.2);
+  color: var(--color-ozo-red, #E23744);
 }
 
 .dark ::selection {
-  background-color: rgba(226, 55, 68, 0.4);
-  color: #FF6B6B;
-}
-
-::selection {
-  background-color: rgba(226, 55, 68, 0.2);
-  color: #E23744;
+  background-color: rgba(var(--color-ozo-red-rgb, 226, 55, 68), 0.4);
+  color: var(--color-ozo-red-light, #FF6B6B);
 }
 
 /* =============================================

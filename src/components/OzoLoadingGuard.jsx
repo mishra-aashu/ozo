@@ -20,8 +20,8 @@ export const OzoLoadingGuard = ({ isLoading, isError, isEmpty, skeleton, childre
           bottom: showBottomNav ? '80px' : '0px'
         }}
       >
-        <div className="card-premium p-8 md:p-12 text-center rounded-[2.5rem] max-w-md w-full border border-dashed border-red-100 dark:border-red-900/20 shadow-2xl bg-white dark:bg-[#151521] my-auto">
-          <div className="w-16 h-16 bg-red-50 dark:bg-red-950/20 text-[#E23744] rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+        <div className="card-premium p-8 md:p-12 text-center rounded-[2.5rem] max-w-md w-full border border-dashed border-ozo-red/20 dark:border-ozo-red/20 shadow-2xl bg-white dark:bg-[#151521] my-auto">
+          <div className="w-16 h-16 bg-ozo-red/10 dark:bg-ozo-red/10 text-ozo-red rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
              <AlertCircle size={28} />
           </div>
           <h2 className="text-xl font-black text-gray-900 dark:text-white mb-2">Unable to load data</h2>

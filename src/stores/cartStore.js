@@ -30,6 +30,74 @@ const isValidUUID = (id) => typeof id === 'string' && UUID_RE.test(id)
 
 const roundTo2Decimals = (num) => Math.round((num + Number.EPSILON) * 100) / 100
 
+export const adjustColorBrightness = (hex, percent) => {
+  try {
+    const rawHex = hex.replace(/^\s*#|\s*$/g, '');
+    let R = parseInt(rawHex.substring(0, 2), 16);
+    let G = parseInt(rawHex.substring(2, 4), 16);
+    let B = parseInt(rawHex.substring(4, 6), 16);
+
+    R = parseInt((R * (100 + percent)) / 100);
+    G = parseInt((G * (100 + percent)) / 100);
+    B = parseInt((B * (100 + percent)) / 100);
+
+    R = Math.min(255, Math.max(0, R));
+    G = Math.min(255, Math.max(0, G));
+    B = Math.min(255, Math.max(0, B));
+
+    const rHex = R.toString(16).padStart(2, '0');
+    const gHex = G.toString(16).padStart(2, '0');
+    const bHex = B.toString(16).padStart(2, '0');
+
+    return `#${rHex}${gHex}${bHex}`;
+  } catch (e) {
+    console.error('Error adjusting color brightness:', e);
+    return hex;
+  }
+};
+
+export const hexToRgb = (hex) => {
+  try {
+    const rawHex = hex.replace(/^\s*#|\s*$/g, '');
+    const R = parseInt(rawHex.substring(0, 2), 16);
+    const G = parseInt(rawHex.substring(2, 4), 16);
+    const B = parseInt(rawHex.substring(4, 6), 16);
+    return isNaN(R) || isNaN(G) || isNaN(B) ? null : `${R}, ${G}, ${B}`;
+  } catch (e) {
+    return null;
+  }
+};
+
+export const applyDynamicTheme = (themeConfig) => {
+  if (typeof window === 'undefined' || !themeConfig) return;
+  const root = document.documentElement;
+  
+  const primary = themeConfig.primary_color || '#E23744';
+  const secondary = themeConfig.secondary_color || '#0D9E4F';
+  
+  const primaryLight = themeConfig.primary_light_color || adjustColorBrightness(primary, 30);
+  const primaryDark = themeConfig.primary_dark_color || adjustColorBrightness(primary, -20);
+  const secondaryLight = themeConfig.secondary_light_color || adjustColorBrightness(secondary, 30);
+  const secondaryDark = themeConfig.secondary_dark_color || adjustColorBrightness(secondary, -20);
+  
+  root.style.setProperty('--color-ozo-red', primary);
+  root.style.setProperty('--color-ozo-red-light', primaryLight);
+  root.style.setProperty('--color-ozo-red-dark', primaryDark);
+  
+  root.style.setProperty('--color-ozo-green', secondary);
+  root.style.setProperty('--color-ozo-green-light', secondaryLight);
+  root.style.setProperty('--color-ozo-green-dark', secondaryDark);
+  
+  const primaryRgb = hexToRgb(primary);
+  if (primaryRgb) {
+    root.style.setProperty('--color-ozo-red-rgb', primaryRgb);
+  }
+  const secondaryRgb = hexToRgb(secondary);
+  if (secondaryRgb) {
+    root.style.setProperty('--color-ozo-green-rgb', secondaryRgb);
+  }
+};
+
 let roadDistanceTimeout = null
 
 export const useCartStore = create(
@@ -69,6 +137,11 @@ export const useCartStore = create(
         prevent_checkout: false,
         banner_text: '⏰ OZO Service Update: Our delivery services are active from 6:00 AM to 9:00 PM daily. Orders placed after 9:00 PM will be automatically scheduled for delivery first thing tomorrow morning. We are actively upgrading our systems to launch 24/7 Night Delivery very soon! Thank you for your patience.',
         checkout_text: '⚠️ Late-Night Delivery Notice: Please note that OZO Mart does not deliver overnight yet. Orders placed after 9:00 PM are queued for next-morning delivery. We are currently scaling our operations to transition into a 24-hour system shortly. Thank you for supporting a local startup!'
+      },
+      themeConfig: {
+        primary_color: '#E23744',
+        secondary_color: '#0D9E4F',
+        theme_name: 'Default Red'
       },
 
       // Refresh prices for guest cart items from the database.
@@ -178,8 +251,12 @@ export const useCartStore = create(
               if (item.key === 'launch_config') updates.launchConfig = item.value
               if (item.key === 'payment_config') updates.paymentConfig = { cashfree_enabled: true, cod_enabled: true, razorpay_enabled: false, ...item.value }
               if (item.key === 'service_hours_config') updates.serviceHoursConfig = item.value
+              if (item.key === 'theme_config') updates.themeConfig = item.value
             })
             set(updates)
+            if (updates.themeConfig) {
+              applyDynamicTheme(updates.themeConfig)
+            }
             get().calculateTotals()
           }
         } catch (error) {

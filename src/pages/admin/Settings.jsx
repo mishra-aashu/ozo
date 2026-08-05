@@ -28,11 +28,12 @@ import {
   FileUp,
   Play,
   AlertTriangle,
-  Image
+  Image,
+  Palette
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
-import { useCartStore } from '../../stores/cartStore'
+import { useCartStore, adjustColorBrightness } from '../../stores/cartStore'
 import { useLocationStore } from '../../stores/locationStore'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -200,6 +201,17 @@ const AdminSettings = () => {
   // State for Localhost Image Tool Config
   const [imageToolConfig, setImageToolConfig] = useState({
     download_url: ''
+  })
+
+  // State for Admin Dynamic Theme Config
+  const [themeConfig, setThemeConfig] = useState({
+    primary_color: '#E23744',
+    secondary_color: '#0D9E4F',
+    theme_name: 'Default Red',
+    primary_light_color: '',
+    primary_dark_color: '',
+    secondary_light_color: '',
+    secondary_dark_color: ''
   })
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -885,6 +897,15 @@ const AdminSettings = () => {
         let imageTool = {
           download_url: ''
         }
+        let theme = {
+          primary_color: '#E23744',
+          secondary_color: '#0D9E4F',
+          theme_name: 'Default Red',
+          primary_light_color: '',
+          primary_dark_color: '',
+          secondary_light_color: '',
+          secondary_dark_color: ''
+        }
 
         data.forEach(item => {
           switch (item.key) {
@@ -941,6 +962,10 @@ const AdminSettings = () => {
               imageTool = { ...imageTool, ...item.value }
               addLog('Image Resolver tool configuration loaded successfully.', 'success')
               break
+            case 'theme_config':
+              theme = { ...theme, ...item.value }
+              addLog('App branding theme configuration loaded successfully.', 'success')
+              break
             default:
               addLog(`Unknown configuration key: ${item.key}`, 'warning')
           }
@@ -959,6 +984,7 @@ const AdminSettings = () => {
         setPaymentConfig(payment)
         setMandiSyncConfig(mandiSync)
         setImageToolConfig(imageTool)
+        setThemeConfig(theme)
       }
 
       // Load active offers list for notification dropdown
@@ -1457,6 +1483,26 @@ const AdminSettings = () => {
       if (errImageTool) throw errImageTool
       addLog('image_tool_config updated successfully.', 'success')
 
+      // 14. Save Theme configuration
+      addLog('Updating theme_config...', 'info')
+      const { error: errTheme } = await supabase
+        .from('app_settings')
+        .upsert({
+          key: 'theme_config',
+          value: {
+            primary_color: themeConfig.primary_color || '#E23744',
+            secondary_color: themeConfig.secondary_color || '#0D9E4F',
+            theme_name: themeConfig.theme_name || 'Default Red',
+            primary_light_color: themeConfig.primary_light_color || '',
+            primary_dark_color: themeConfig.primary_dark_color || '',
+            secondary_light_color: themeConfig.secondary_light_color || '',
+            secondary_dark_color: themeConfig.secondary_dark_color || ''
+          },
+          description: 'Custom branding theme colors for the application'
+        })
+      if (errTheme) throw errTheme
+      addLog('theme_config updated successfully.', 'success')
+
       // Reload settings & trigger success
       await fetchSettings()
       try {
@@ -1532,6 +1578,180 @@ const AdminSettings = () => {
             animate="show"
             className="grid grid-cols-1 md:grid-cols-2 gap-8"
           >
+            {/* Theme & Branding Configuration */}
+            <motion.div
+              variants={cardVariants}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-premium flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-3 bg-rose-100 dark:bg-rose-950/20 text-rose-650 dark:text-rose-400 rounded-2xl animate-pulse">
+                    <Palette className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-black text-gray-800 dark:text-white">Branding & Theme</h2>
+                    <p className="text-xs text-gray-400">Festival & seasonal app brand colors</p>
+                  </div>
+                </div>
+
+                {/* Preset Festivals */}
+                <div className="mb-6">
+                  <label className="block text-xs font-bold text-gray-400 dark:text-gray-400 uppercase mb-3">
+                    Preset Festival Themes
+                  </label>
+                  <div className="grid grid-cols-2 xs:grid-cols-3 gap-2">
+                    {[
+                      { name: 'OZO Classic', desc: 'Default Red & Green', primary: '#E23744', secondary: '#0D9E4F' },
+                      { name: 'Diwali Gold', desc: 'Festival of Lights', primary: '#D4AF37', secondary: '#8A3324' },
+                      { name: 'Holi Vibrant', desc: 'Festival of Colors', primary: '#FF1493', secondary: '#00BFFF' },
+                      { name: 'Eid Emerald', desc: 'Graceful Teal & Gold', primary: '#008080', secondary: '#D4AF37' },
+                      { name: 'Christmas', desc: 'Holly Red & Gold', primary: '#C41E3A', secondary: '#FFD700' },
+                      { name: 'Tricolor Pride', desc: 'National Theme', primary: '#FF9933', secondary: '#138808' },
+                    ].map((preset) => (
+                      <button
+                        key={preset.name}
+                        type="button"
+                        onClick={() => {
+                          setThemeConfig({
+                            ...themeConfig,
+                            theme_name: preset.name,
+                            primary_color: preset.primary,
+                            secondary_color: preset.secondary,
+                            primary_light_color: '',
+                            primary_dark_color: '',
+                            secondary_light_color: '',
+                            secondary_dark_color: ''
+                          });
+                          toast.success(`Preset "${preset.name}" loaded! Click Save to apply system-wide.`);
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all hover:scale-[1.02] flex flex-col justify-between ${
+                          themeConfig.theme_name === preset.name
+                            ? 'border-rose-500 bg-rose-50/30 dark:bg-rose-950/10'
+                            : 'border-gray-150 dark:border-white/5 bg-gray-50/50 dark:bg-white/5'
+                        }`}
+                      >
+                        <div className="font-bold text-[10px] text-gray-800 dark:text-white leading-tight mb-1">{preset.name}</div>
+                        <div className="flex items-center gap-1.5 mt-1">
+                          <span className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: preset.primary }}></span>
+                          <span className="w-3.5 h-3.5 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: preset.secondary }}></span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  {/* Primary Color Picker */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 dark:text-gray-400 uppercase mb-2">
+                      Primary Brand Color (Red Replacement)
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={themeConfig.primary_color}
+                          onChange={e => setThemeConfig({ ...themeConfig, primary_color: e.target.value })}
+                          className="pl-4 pr-12 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold"
+                          placeholder="#E23744"
+                          required
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md border border-gray-200 dark:border-white/20 shadow-sm" style={{ backgroundColor: themeConfig.primary_color || '#E23744' }}></span>
+                      </div>
+                      <input
+                        type="color"
+                        value={themeConfig.primary_color || '#E23744'}
+                        onChange={e => setThemeConfig({ ...themeConfig, primary_color: e.target.value })}
+                        className="w-12 h-11 p-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Secondary Color Picker */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 dark:text-gray-400 uppercase mb-2">
+                      Secondary Brand Color (Green Replacement)
+                    </label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <input
+                          type="text"
+                          value={themeConfig.secondary_color}
+                          onChange={e => setThemeConfig({ ...themeConfig, secondary_color: e.target.value })}
+                          className="pl-4 pr-12 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold"
+                          placeholder="#0D9E4F"
+                          required
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-md border border-gray-200 dark:border-white/20 shadow-sm" style={{ backgroundColor: themeConfig.secondary_color || '#0D9E4F' }}></span>
+                      </div>
+                      <input
+                        type="color"
+                        value={themeConfig.secondary_color || '#0D9E4F'}
+                        onChange={e => setThemeConfig({ ...themeConfig, secondary_color: e.target.value })}
+                        className="w-12 h-11 p-1 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl cursor-pointer"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Custom Theme Name */}
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 dark:text-gray-400 uppercase mb-2">
+                      Theme Display Name
+                    </label>
+                    <input
+                      type="text"
+                      value={themeConfig.theme_name}
+                      onChange={e => setThemeConfig({ ...themeConfig, theme_name: e.target.value })}
+                      className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-rose-500 text-sm font-semibold"
+                      placeholder="e.g. Diwali Dhamaka Theme"
+                      required
+                    />
+                  </div>
+
+                  {/* Live Mini Preview */}
+                  <div className="mt-6 p-4 rounded-2xl border border-dashed border-gray-250 dark:border-zinc-800 bg-gray-50/30 dark:bg-white/2 bg-opacity-40">
+                    <div className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase mb-3 flex items-center justify-between">
+                      <span>Real-Time Theme Preview</span>
+                      <span className="text-[10px] text-gray-400 lowercase italic">updates instantly here</span>
+                    </div>
+                    <div className="space-y-3">
+                      {/* Nav mock */}
+                      <div className="flex items-center justify-between p-2.5 rounded-xl bg-white dark:bg-zinc-900 border border-gray-100 dark:border-zinc-800 shadow-sm">
+                        <div className="flex items-center gap-2">
+                          <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black text-white" style={{ backgroundColor: themeConfig.primary_color || '#E23744' }}>O</span>
+                          <span className="text-xs font-bold text-gray-800 dark:text-white">OZO Mart</span>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold text-white" style={{ backgroundColor: themeConfig.secondary_color || '#0D9E4F' }}>OPEN</span>
+                      </div>
+                      
+                      {/* Button/Badge Mock */}
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          className="flex-1 py-2 text-xs font-bold text-white rounded-xl shadow-md transition-all active:scale-[0.98]"
+                          style={{
+                            backgroundImage: `linear-gradient(135deg, ${themeConfig.primary_color || '#E23744'} 0%, ${themeConfig.primary_dark_color || adjustColorBrightness(themeConfig.primary_color || '#E23744', -20)} 100%)`
+                          }}
+                        >
+                          Checkout Now
+                        </button>
+                        <span 
+                          className="px-3 py-2 text-xs font-bold rounded-xl border flex items-center justify-center"
+                          style={{
+                            color: themeConfig.primary_color || '#E23744',
+                            borderColor: `${themeConfig.primary_color || '#E23744'}30`,
+                            backgroundColor: `${themeConfig.primary_color || '#E23744'}10`
+                          }}
+                        >
+                          ₹99.00
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
             {/* Delivery Charge Card */}
             <motion.div
               variants={cardVariants}
