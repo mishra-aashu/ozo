@@ -39,3 +39,28 @@ export const formatLandmark = (receiverName, receiverPhone, landmark, notes = ''
   }
   return `[${contactPart}] ${cleanLandmark}`
 }
+
+import { useLocationStore } from '../stores/locationStore'
+
+export const resolveSnappedAddress = (loc) => {
+  const addr = loc.addressDetails || {}
+  const nearest = loc.nearestStreet || null
+  
+  const street = nearest 
+    ? (nearest.name_hi ? `${nearest.name} (${nearest.name_hi})` : nearest.name)
+    : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
+  
+  const nearestCity = useLocationStore.getState().nearestCity
+  const cityVal = nearest ? (nearestCity?.name || '') : (addr.city || addr.town || addr.village || addr.county || '')
+  const stateVal = nearest ? (nearestCity?.state || '') : (addr.state || '')
+  const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
+  const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
+
+  return {
+    street,
+    cityVal,
+    stateVal,
+    pincodeVal,
+    landmarkVal
+  }
+}

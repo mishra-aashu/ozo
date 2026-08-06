@@ -24,7 +24,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useTranslation } from '../hooks/useTranslation'
 import { useAuthStore } from '../stores/authStore'
 import { useShallow } from 'zustand/react/shallow'
-import { parseLandmark, formatLandmark } from '../lib/addressHelpers'
+import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
 import toast from 'react-hot-toast'
 import OzoMapPicker from '../components/OzoMapPicker'
 import AddressForm from '../components/AddressForm'
@@ -65,7 +65,7 @@ const Addresses = () => {
       address_line1: '',
       address_line2: '',
       city: '',
-      state: nearestCity?.state || 'Bihar',
+      state: nearestCity?.state || '',
       pincode: '',
       landmark: '',
       receiver_name: '',
@@ -100,7 +100,7 @@ const Addresses = () => {
       address_line1: '',
       address_line2: '',
       city: '',
-      state: nearestCity?.state || 'Bihar',
+      state: nearestCity?.state || '',
       pincode: '',
       landmark: '',
       receiver_name: profile?.full_name || '',
@@ -172,19 +172,7 @@ const Addresses = () => {
       }
     }
 
-    const addr = loc.addressDetails || {}
-    const nearest = loc.nearestStreet || null
-    
-    // Use nearest street name if available, fallback to Nominatim street
-    const street = nearest 
-      ? (nearest.name_hi ? `${nearest.name} (${nearest.name_hi})` : nearest.name)
-      : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
-    
-    const nearestCity = useLocationStore.getState().nearestCity
-    const cityVal = nearest ? (nearestCity?.name || 'Aurangabad') : (addr.city || addr.town || addr.village || addr.county || '')
-    const stateVal = nearest ? (nearestCity?.state || 'Bihar') : (addr.state || '')
-    const pincodeVal = nearest ? (nearestCity?.slug?.includes('aurangabad') ? '824101' : '') : (addr.postcode || '')
-    const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
+    const { street, cityVal, stateVal, pincodeVal, landmarkVal } = resolveSnappedAddress(loc)
 
     // Compute smart snapping from hierarchical database nodes
     const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
