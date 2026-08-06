@@ -23,7 +23,7 @@ import { Link } from 'react-router-dom'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findMatchingActiveCity, findCityByPincode } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore'
-import { parseLandmark, formatLandmark } from '../lib/addressHelpers'
+import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
 import OzoMapPicker from './OzoMapPicker'
 import AddressForm from './AddressForm'
 import toast from 'react-hot-toast'
@@ -104,18 +104,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
       }
     }
 
-    const addr = loc.addressDetails || {}
-    const nearest = loc.nearestStreet || null
-    
-    const street = nearest 
-      ? (nearest.name_hi ? `${nearest.name} (${nearest.name_hi})` : nearest.name)
-      : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
-    
-    const nearestCity = useLocationStore.getState().nearestCity
-    const cityVal = nearest ? (nearestCity?.name || 'Aurangabad') : (addr.city || addr.town || addr.village || addr.county || '')
-    const stateVal = nearest ? (nearestCity?.state || 'Bihar') : (addr.state || '')
-    const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
-    const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
+    const { street, cityVal, stateVal, pincodeVal, landmarkVal } = resolveSnappedAddress(loc)
 
     // Compute smart snapping from hierarchical database nodes
     const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
@@ -374,6 +363,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
     if (!query) return []
 
     const matches = []
+    const nearestCity = useLocationStore.getState().nearestCity
 
     // 1. Search localities
     localities.forEach(loc => {
@@ -391,7 +381,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
             type: 'Locality / Area',
             lat,
             lng,
-            city: 'Aurangabad'
+            city: nearestCity?.name || ''
           })
         }
       }
@@ -416,7 +406,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
             lat,
             lng,
             description: `Near ${lm.name}${parentName}`,
-            city: 'Aurangabad'
+            city: nearestCity?.name || ''
           })
         }
       }
@@ -441,7 +431,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
             lat,
             lng,
             description: `${g.name}${parentName}`,
-            city: 'Aurangabad'
+            city: nearestCity?.name || ''
           })
         }
       }
@@ -701,7 +691,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
                                 </span>
                               </div>
                               <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1">
-                                {match.description || `${match.name}, Aurangabad`}
+                                {match.description || `${match.name}, ${nearestCity?.name || ''}`}
                               </p>
                             </div>
                           </div>
@@ -1013,7 +1003,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
                                       <span className="text-ozo-red/80 font-black uppercase text-[8px] tracking-wider mr-1">
                                         {match.type === 'gali' ? 'Street' : match.type === 'landmark' ? 'Landmark' : 'Area'}
                                       </span>
-                                      • {match.description || `${match.name}, Aurangabad`}
+                                      • {match.description || `${match.name}, ${nearestCity?.name || ''}`}
                                     </p>
                                   </div>
                                 </div>

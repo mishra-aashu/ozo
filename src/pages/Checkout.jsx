@@ -35,7 +35,7 @@ import { useOrderStore } from '../stores/orderStore'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useTranslation } from '../hooks/useTranslation'
-import { parseLandmark, formatLandmark } from '../lib/addressHelpers'
+import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
 import OzoMapPicker from '../components/OzoMapPicker'
 import AddressForm from '../components/AddressForm'
 import { useAuthStore } from '../stores/authStore'
@@ -378,19 +378,7 @@ const Checkout = () => {
       }
     }
 
-    const addr = loc.addressDetails || {}
-    const nearest = loc.nearestStreet || null
-    
-    // Use nearest street name if available, fallback to Nominatim street
-    const street = nearest 
-      ? (nearest.name_hi ? `${nearest.name} (${nearest.name_hi})` : nearest.name)
-      : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
-    
-    const nearestCity = useLocationStore.getState().nearestCity
-    const cityVal = nearest ? (nearestCity?.name || '') : (addr.city || addr.town || addr.village || addr.county || '')
-    const stateVal = nearest ? (nearestCity?.state || '') : (addr.state || '')
-    const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
-    const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
+    const { street, cityVal, stateVal, pincodeVal, landmarkVal } = resolveSnappedAddress(loc)
 
     // Compute smart snapping from hierarchical database nodes
     const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)

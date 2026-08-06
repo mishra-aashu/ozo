@@ -24,7 +24,7 @@ import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, sho
 import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore'
 import { useShallow } from 'zustand/react/shallow'
-import { parseLandmark, formatLandmark } from '../lib/addressHelpers'
+import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
 import OzoMapPicker from '../components/OzoMapPicker'
 import AddressForm from '../components/AddressForm'
 import { Link } from 'react-router-dom'
@@ -136,18 +136,7 @@ const SelectLocation = () => {
       }
     }
 
-    const addr = loc.addressDetails || {}
-    const nearest = loc.nearestStreet || null
-    
-    const street = nearest 
-      ? (nearest.name_hi ? `${nearest.name} (${nearest.name_hi})` : nearest.name)
-      : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
-    
-    const nearestCity = useLocationStore.getState().nearestCity
-    const cityVal = nearest ? (nearestCity?.name || 'Aurangabad') : (addr.city || addr.town || addr.village || addr.county || '')
-    const stateVal = nearest ? (nearestCity?.state || 'Bihar') : (addr.state || '')
-    const pincodeVal = nearest ? (nearestCity?.slug?.includes('aurangabad') ? '824101' : '') : (addr.postcode || '')
-    const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
+    const { street, cityVal, stateVal, pincodeVal, landmarkVal } = resolveSnappedAddress(loc)
 
     // Compute smart snapping from hierarchical database nodes
     const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
@@ -587,7 +576,7 @@ const SelectLocation = () => {
                               <span className="text-ozo-red/80 font-black uppercase text-[8px] tracking-wider mr-1">
                                 {match.type === 'gali' ? 'Street' : match.type === 'landmark' ? 'Landmark' : 'Area'}
                               </span>
-                              • {match.description || `${match.name}, Aurangabad`}
+                              • {match.description || `${match.name}, ${nearestCity?.name || ''}`}
                             </p>
                           </div>
                         </div>
@@ -836,7 +825,7 @@ const SelectLocation = () => {
                     if (currentCoords) {
                       setAddress(currentAddress)
                       setCoordinates({ lat: currentCoords.lat, lng: currentCoords.lng })
-                      toast.success('Location set to Aurangabad successfully')
+                      toast.success(`Location set to ${useLocationStore.getState().nearestCity?.name || 'your area'} successfully`)
                     }
                     navigate(-1)
                   }
@@ -902,7 +891,7 @@ const SelectLocation = () => {
                               </span>
                             </div>
                             <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1">
-                              {match.description || `${match.name}, Aurangabad`}
+                              {match.description || `${match.name}, ${nearestCity?.name || ''}`}
                             </p>
                           </div>
                         </div>
