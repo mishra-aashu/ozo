@@ -387,8 +387,8 @@ const Checkout = () => {
       : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
     
     const nearestCity = useLocationStore.getState().nearestCity
-    const cityVal = nearest ? (nearestCity?.name || 'Aurangabad') : (addr.city || addr.town || addr.village || addr.county || '')
-    const stateVal = nearest ? (nearestCity?.state || 'Bihar') : (addr.state || '')
+    const cityVal = nearest ? (nearestCity?.name || '') : (addr.city || addr.town || addr.village || addr.county || '')
+    const stateVal = nearest ? (nearestCity?.state || '') : (addr.state || '')
     const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
     const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
 
@@ -581,7 +581,7 @@ const Checkout = () => {
         const isMyself = recipientName.trim().toLowerCase() === (profile?.full_name || '').trim().toLowerCase()
         const orderFor = isMyself ? 'myself' : 'other'
         const landmarkPart = landmarkVal.trim() ? `, Near ${landmarkVal.trim()}` : ''
-        const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || 'Aurangabad'}, Bihar, India`
+        const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || ''}, ${activeAddr?.state || ''}, India`
         const googleMapsUrl = activeAddr?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullTextAddress)}`
 
         let etaMinutes = deliveryConfig?.estimated_minutes ?? 30;
@@ -613,7 +613,7 @@ const Checkout = () => {
           houseNo,
           streetGali,
           landmark: landmarkVal,
-          deliveryCity: activeAddr?.city || 'Aurangabad',
+          deliveryCity: activeAddr?.city || '',
           googleMapsUrl,
           latitude: activeAddr?.latitude ? parseFloat(activeAddr.latitude) : null,
           longitude: activeAddr?.longitude ? parseFloat(activeAddr.longitude) : null,
@@ -727,7 +727,7 @@ const Checkout = () => {
       
       // Dynamic Google Maps URL Generation using universal query formatting
       const landmarkPart = landmarkVal.trim() ? `, Near ${landmarkVal.trim()}` : ''
-      const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || 'Aurangabad'}, Bihar, India`
+      const fullTextAddress = `${houseNo}, ${streetGali}${landmarkPart}, ${activeAddr?.city || ''}, ${activeAddr?.state || ''}, India`
       const googleMapsUrl = activeAddr?.google_maps_url || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(fullTextAddress)}`
 
       const orderData = {
@@ -751,7 +751,7 @@ const Checkout = () => {
         houseNo,
         streetGali,
         landmark: landmarkVal,
-        deliveryCity: activeAddr?.city || 'Aurangabad',
+        deliveryCity: activeAddr?.city || '',
         googleMapsUrl,
         latitude: activeAddr?.latitude ? parseFloat(activeAddr.latitude) : null,
         longitude: activeAddr?.longitude ? parseFloat(activeAddr.longitude) : null,

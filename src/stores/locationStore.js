@@ -86,15 +86,15 @@ export const useLocationStore = create(
               service_radius_km: Math.max(parseFloat(c.service_radius_km) || 25.0, 25.0)
             }))
 
-            const currentSlug = get().selectedCitySlug || get().browsingCitySlug || get().deliveryCitySlug
-            const defaultCity = sanitizedCities.find(c => c.slug?.includes('aurangabad')) || sanitizedCities[0]
-            const resolvedSlug = currentSlug || defaultCity?.slug || 'aurangabad-bihar'
+                        const currentSlug = get().selectedCitySlug || get().browsingCitySlug || get().deliveryCitySlug
+            const isValid = sanitizedCities.some(c => c.slug === currentSlug)
+            const resolvedSlug = isValid ? currentSlug : null
 
             set({ 
               activeCities: sanitizedCities,
               selectedCitySlug: resolvedSlug,
-              browsingCitySlug: get().browsingCitySlug || resolvedSlug,
-              deliveryCitySlug: get().deliveryCitySlug || resolvedSlug,
+              browsingCitySlug: resolvedSlug,
+              deliveryCitySlug: resolvedSlug,
               isLocationInitialized: true 
             })
 
@@ -103,9 +103,8 @@ export const useLocationStore = create(
         } catch (e) {
           console.error('Failed to fetch active cities:', e)
         }
-        const fallbackSlug = get().selectedCitySlug || 'aurangabad-bihar'
         set({ 
-          selectedCitySlug: fallbackSlug,
+          selectedCitySlug: null,
           isLocationInitialized: true 
         })
         return []
@@ -730,38 +729,7 @@ export const useLocationStore = create(
       },
 
       getFallbackLocation: async (userLat = null, userLng = null) => {
-        let activeCities = get().activeCities || []
-        if (activeCities.length === 0) {
-          activeCities = await get().fetchActiveCities()
-        }
-
-        let fallbackCity = null
-        if (userLat !== null && userLng !== null && activeCities.length > 0) {
-          let minDistance = Infinity
-          for (const city of activeCities) {
-            if (city.latitude && city.longitude) {
-              const dist = getDistanceKm(userLat, userLng, parseFloat(city.latitude), parseFloat(city.longitude))
-              if (dist < minDistance) {
-                minDistance = dist
-                fallbackCity = city
-              }
-            }
-          }
-        }
-
-        // Default to the first active city if no coordinates or no match
-        if (!fallbackCity && activeCities.length > 0) {
-          fallbackCity = activeCities[0]
-        }
-
-        const lat = fallbackCity ? parseFloat(fallbackCity.latitude) : (GEOFENCE_DEFAULTS.warehouse_lat || 24.753239);
-        const lng = fallbackCity ? parseFloat(fallbackCity.longitude) : (GEOFENCE_DEFAULTS.warehouse_lng || 84.374124);
-        const cityName = fallbackCity ? fallbackCity.name : 'Aurangabad, Bihar';
-        const rawCity = fallbackCity ? fallbackCity.name.split(',')[0].trim() : 'Aurangabad';
-        const stateName = fallbackCity ? fallbackCity.state : 'Bihar';
-        const pincode = (fallbackCity && fallbackCity.allowed_pincodes && fallbackCity.allowed_pincodes[0]) || '824101';
-
-        return { lat, lng, cityName, rawCity, stateName, pincode }
+        return { lat: null, lng: null, cityName: '', rawCity: '', stateName: '', pincode: '' }
       },
 
       detectLocation: async (isManual = false, silent = false) => {
@@ -925,62 +893,35 @@ export const useLocationStore = create(
 // Call sites that have useCartStore available should pass:
 //   checkDeliveryZoneStatus(lat, lng, useCartStore.getState())
 export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
-  if (!userLat || !userLng) return true;
+  if (!userLat || !userLng) return false;
   const lat = parseFloat(userLat);
   const lng = parseFloat(userLng);
-  if (isNaN(lat) || isNaN(lng)) return true;
+  if (isNaN(lat) || isNaN(lng)) return false;
 
   try {
     const locationState = useLocationStore.getState();
     const activeCities = locationState.activeCities || [];
     
-    // 1. Check if address or details explicitly mention Aurangabad
-    const addressStr = (locationState.address || '').toLowerCase();
-    const cityDetailsStr = (locationState.addressDetails?.city || locationState.addressDetails?.town || locationState.addressDetails?.state || '').toLowerCase();
-    if (addressStr.includes('aurangabad') || cityDetailsStr.includes('aurangabad')) {
-      return true;
+    if (activeCities.length === 0) {
+      return false;
     }
 
-    // 2. Dual Aurangabad coordinates check (Bihar: 24.7522, 84.3742 & MH: 19.8762, 75.3433)
-    const AURANGABAD_BIHAR = { lat: 24.7522, lng: 84.3742 };
-    const AURANGABAD_MH = { lat: 19.8762, lng: 75.3433 };
-    const distBihar = getDistanceKm(lat, lng, AURANGABAD_BIHAR.lat, AURANGABAD_BIHAR.lng);
-    const distMH = getDistanceKm(lat, lng, AURANGABAD_MH.lat, AURANGABAD_MH.lng);
-
-    if (distBihar <= 50.0 || distMH <= 50.0) {
-      return true;
-    }
-
-    // 3. Check distance against all active cities in DB (min 50km radius)
-    if (activeCities.length > 0) {
-      for (const city of activeCities) {
-        if (!city.latitude || !city.longitude) continue;
-        const cLat = parseFloat(city.latitude);
-        const cLng = parseFloat(city.longitude);
-        const maxRadius = Math.max(parseFloat(city.service_radius_km) || 50.0, 50.0);
-        const dist = getDistanceKm(lat, lng, cLat, cLng);
-        if (dist <= maxRadius) {
-          return true;
-        }
+    // Check distance against all active operating cities strictly within their service radius
+    for (const city of activeCities) {
+      if (!city.latitude || !city.longitude) continue;
+      const cLat = parseFloat(city.latitude);
+      const cLng = parseFloat(city.longitude);
+      const maxRadius = parseFloat(city.service_radius_km) || 25.0; // strict geofence radius
+      const dist = getDistanceKm(lat, lng, cLat, cLng);
+      if (dist <= maxRadius) {
+        return true;
       }
     }
 
-    // 4. Check selectedCitySlug / nearestCity
-    const selectedSlug = (locationState.selectedCitySlug || locationState.nearestCity?.slug || '').toLowerCase();
-    if (selectedSlug.includes('aurangabad') || !selectedSlug) {
-      return true;
-    }
-
-    // 5. Fallback check with safe default 50km radius
-    let centerLat = GEOFENCE_DEFAULTS.warehouse_lat;
-    let centerLng = GEOFENCE_DEFAULTS.warehouse_lng;
-    let maxRadius = Math.max(parseFloat(GEOFENCE_DEFAULTS.max_radius_km) || 50.0, 50.0);
-
-    const dist = getDistanceKm(lat, lng, centerLat, centerLng);
-    return dist <= maxRadius;
+    return false;
   } catch (e) {
     console.error("Error checking dynamic delivery zone:", e);
-    return true;
+    return false;
   }
 };
 
