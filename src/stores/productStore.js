@@ -969,18 +969,7 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
-      // Robust fallback: if regional query returns empty products & categories, try fallback to default city
-      if ((!data || (!data.categories?.length && !data.featured_products?.length)) && citySlug !== 'aurangabad-bihar') {
-        console.warn(`[productStore] Empty data returned for city "${citySlug}". Triggering fallback query for "aurangabad-bihar"...`)
-        const fallbackRes = await supabase
-          .rpc('get_home_page_data', { p_city_slug: 'aurangabad-bihar' })
-          .abortSignal(signal)
-        
-        if (fallbackRes.data && (fallbackRes.data.categories?.length || fallbackRes.data.featured_products?.length)) {
-          data = fallbackRes.data
-          console.log('[productStore] Fallback query succeeded with default city data.')
-        }
-      }
+
 
       console.log(`[productStore] fetchHomePageData succeeded: ${data?.categories?.length || 0} categories, ${data?.featured_products?.length || 0} featured products, ${data?.bestseller_products?.length || 0} bestsellers`)
 

@@ -1,4 +1,4 @@
-import { Outlet, useLocation } from 'react-router-dom'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
@@ -13,15 +13,27 @@ const MainLayout = () => {
   const { user } = useAuthStore()
   const { fetchWishlist } = useWishlistStore()
   const { fetchCategories, fetchOffers } = useProductStore()
-  const { coordinates, detectLocation, fetchActiveCities } = useLocationStore()
+  const { selectedCitySlug, isLocationInitialized, coordinates, detectLocation, fetchActiveCities } = useLocationStore()
   const location = useLocation()
+  const navigate = useNavigate()
 
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+
+  const isSelectLocation = location.pathname === '/select-location'
+  const isAuthPage = location.pathname.startsWith('/auth')
+  const isAdminPage = location.pathname.startsWith('/admin')
 
   useEffect(() => {
     // Fetch active cities on layout load
     fetchActiveCities().catch(console.error)
   }, [fetchActiveCities])
+
+  // Geo-Guard: Redirect to select location if no valid city has been resolved
+  useEffect(() => {
+    if (isLocationInitialized && !selectedCitySlug && !isSelectLocation && !isAuthPage && !isAdminPage) {
+      navigate('/select-location', { replace: true })
+    }
+  }, [isLocationInitialized, selectedCitySlug, isSelectLocation, isAuthPage, isAdminPage, navigate])
 
   useEffect(() => {
     let checkInterval
@@ -60,8 +72,6 @@ const MainLayout = () => {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const isSelectLocation = location.pathname === '/select-location'
-  const isAuthPage = location.pathname === '/auth'
   const isCategoryPage = location.pathname.startsWith('/category/')
   const isProductsPage = location.pathname === '/products'
   const isSearchPage = location.pathname === '/search'
