@@ -1678,21 +1678,11 @@ const Home = () => {
 
         <div className="container-custom py-4 md:py-8 relative z-10">
           <Swiper
-            spaceBetween={16}
+            spaceBetween={20}
             slidesPerView={1}
             grabCursor={true}
             speed={600}
             watchSlidesProgress={true}
-            breakpoints={{
-              768: {
-                slidesPerView: 2,
-                spaceBetween: 20
-              },
-              1024: {
-                slidesPerView: 3,
-                spaceBetween: 24
-              }
-            }}
             autoplay={{
               delay: 5000,
               disableOnInteraction: false,
@@ -1729,7 +1719,7 @@ const Home = () => {
                     <OptimizedImage
                       src={offer.image_url}
                       alt={titleText}
-                      width={800}
+                      width={1200}
                       quality={85}
                       loading={index < 3 ? "eager" : "lazy"}
                       fetchPriority={index < 3 ? "high" : "low"}

@@ -2,10 +2,61 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import * as Sentry from "@sentry/react"
 import { AlertCircle, RefreshCcw } from 'lucide-react'
-import toast, { Toaster, ToastBar } from 'react-hot-toast'
+import toast, { Toaster, ToastBar, useToasterStore } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
 import './lib/firebase'
+
+// Safely extract text content from toast message to deduplicate identical toasts
+const getToastMessageText = (message) => {
+  if (!message) return '';
+  if (typeof message === 'string') return message;
+  if (typeof message === 'number') return String(message);
+  if (typeof message === 'object') {
+    if (message.props && message.props.children) {
+      const children = message.props.children;
+      if (Array.isArray(children)) {
+        return children.map(getToastMessageText).join('');
+      }
+      return getToastMessageText(children);
+    }
+  }
+  return '';
+};
+
+// Limit the number of visible toasts to avoid stacking and prevent duplicate notifications
+const ToastLimitController = () => {
+  const { toasts } = useToasterStore();
+  const limit = 1;
+
+  React.useEffect(() => {
+    // 1. Deduplicate same messages among visible toasts
+    const visibleToasts = toasts.filter((t) => t.visible);
+    const seenMessages = new Set();
+    
+    // Scan from newest to oldest
+    for (let i = visibleToasts.length - 1; i >= 0; i--) {
+      const t = visibleToasts[i];
+      const text = getToastMessageText(t.message);
+      
+      // If we've seen this message recently, dismiss the older one
+      if (text && seenMessages.has(text)) {
+        toast.dismiss(t.id);
+      } else if (text) {
+        seenMessages.add(text);
+      }
+    }
+
+    // 2. Enforce the global visible toasts limit
+    const currentVisible = toasts.filter((t) => t.visible);
+    if (currentVisible.length > limit) {
+      const excess = currentVisible.slice(0, currentVisible.length - limit);
+      excess.forEach((t) => toast.dismiss(t.id));
+    }
+  }, [toasts, limit]);
+
+  return null;
+};
 
 Sentry.init({
   dsn: "https://c54b8cf774cb2826aa57147a8d5e847c@o4511610232438784.ingest.us.sentry.io/4511610238402560",
@@ -160,6 +211,7 @@ class ErrorBoundary extends React.Component {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <ErrorBoundary>
+      <ToastLimitController />
       <App />
       <Toaster
         position="top-center"
