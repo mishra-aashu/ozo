@@ -1495,16 +1495,56 @@ const Home = () => {
     if (offer?.category_slug) return `/category/${offer.category_slug}`;
     const title = offer?.title?.toLowerCase() || '';
     if (title.includes('mithila') || title.includes('मिथिला') || title.includes('மிதிலா') || title.includes('మిథిలా') || title.includes('ಮಿಥಿಲಾ')) return '/category/mithila-specials';
-    if (title.includes('vegetable') || title.includes('सब्जी') || title.includes('காய்கறி') || title.includes('కూరగాయ') || title.includes('ತರಕಾರಿ')) return '/category/vegetables';
+    if (title.includes('vegetable') || title.includes('सब्जी') || title.includes('காய்கறி') || title.includes('కూరగాय') || title.includes('ತರಕಾರಿ')) return '/category/vegetables';
     if (title.includes('fruit') || title.includes('फल') || title.includes('பழம்') || title.includes('పండు') || title.includes('ಹಣ್ಣು')) return '/category/fruits';
     return '/products';
   };
 
-  const displayOffers = [
-    ...festivalBanners,
-    ...(offers || []).filter(o => o?.offer_type === 'banner'),
-    ...demoBanners.filter(d => !((offers || []).filter(o => o?.offer_type === 'banner')).some(o => o?.title?.toLowerCase() === d?.title?.toLowerCase()))
-  ];
+  const displayOffers = useMemo(() => {
+    return [
+      ...festivalBanners,
+      ...(offers || []).filter(o => o?.offer_type === 'banner'),
+      ...demoBanners.filter(d => !((offers || []).filter(o => o?.offer_type === 'banner')).some(o => o?.title?.toLowerCase() === d?.title?.toLowerCase()))
+    ];
+  }, [festivalBanners, offers]);
+
+  const [bannerMeta, setBannerMeta] = useState({});
+
+  useEffect(() => {
+    displayOffers.forEach((offer) => {
+      if (!offer.image_url) return;
+      if (bannerMeta[offer.id]) return;
+
+      const img = new Image();
+      img.src = offer.image_url;
+      img.onload = () => {
+        const isWide = img.width / img.height >= 1.35;
+        setBannerMeta((prev) => ({
+          ...prev,
+          [offer.id]: { isWide, loaded: true }
+        }));
+      };
+      img.onerror = () => {
+        setBannerMeta((prev) => ({
+          ...prev,
+          [offer.id]: { isWide: false, loaded: true }
+        }));
+      };
+    });
+  }, [displayOffers, bannerMeta]);
+
+  const isOfferWide = useCallback((offer) => {
+    if (offer.id?.startsWith('festival_')) return true;
+    return bannerMeta[offer.id]?.isWide || false;
+  }, [bannerMeta]);
+
+  const getSlideWidth = useCallback((offer) => {
+    const isWide = isOfferWide(offer);
+    if (isWide) return '100%';
+    if (windowWidth < 768) return '100%';
+    if (windowWidth < 1024) return 'calc(50% - 10px)';
+    return 'calc(33.333% - 16px)';
+  }, [isOfferWide, windowWidth]);
 
   const displayBestsellers = useMemo(() => {
     if (!bestsellerProducts || bestsellerProducts.length === 0) return [];
@@ -1679,7 +1719,7 @@ const Home = () => {
         <div className="container-custom py-4 md:py-8 relative z-10">
           <Swiper
             spaceBetween={20}
-            slidesPerView={1}
+            slidesPerView="auto"
             grabCursor={true}
             speed={600}
             watchSlidesProgress={true}
@@ -1709,8 +1749,14 @@ const Home = () => {
                   )
                 : (offer.subtitle || offer.description);
 
+              const isWide = isOfferWide(offer);
+
               return (
-                <SwiperSlide key={offer.id} className="transform-gpu">
+                <SwiperSlide 
+                  key={offer.id} 
+                  className="transform-gpu !h-full"
+                  style={{ width: getSlideWidth(offer) }}
+                >
                   <Link 
                     to={getBannerLink(offer)} 
                     className="relative block w-full h-full group cursor-pointer overflow-hidden rounded-[2rem] md:rounded-[2.5rem] transform-gpu"
@@ -1719,7 +1765,7 @@ const Home = () => {
                     <OptimizedImage
                       src={offer.image_url}
                       alt={titleText}
-                      width={1200}
+                      width={isWide ? 1200 : 600}
                       quality={85}
                       loading={index < 3 ? "eager" : "lazy"}
                       fetchPriority={index < 3 ? "high" : "low"}
@@ -1727,27 +1773,29 @@ const Home = () => {
                       style={{ willChange: 'transform' }}
                       containerClassName="w-full h-full"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-8">
-                      <div className="w-full">
-                        <span className="inline-block px-3 py-1 rounded-full bg-ozo-red text-white text-[8px] sm:text-[9px] font-black uppercase tracking-[0.15em] mb-1.5 sm:mb-3 shadow-md">
-                          {offer.tagline || 'Special Offer'}
-                        </span>
-                        <h2 className="text-base sm:text-2xl md:text-3xl lg:text-2xl font-black text-white mb-1 sm:mb-2 leading-[1.15] tracking-tight">
-                          {renderTitleWithHighlights(titleText)}
-                        </h2>
-                        <p className="text-white/90 text-[10px] sm:text-xs md:text-sm font-semibold mb-2.5 sm:mb-4 line-clamp-1 sm:line-clamp-2 leading-relaxed">
-                          {subtitleText}
-                        </p>
-                        <div 
-                          className="group relative w-fit flex items-center gap-2 bg-white text-gray-900 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold hover:bg-ozo-red hover:text-white transition-all transform-gpu hover:scale-[1.02] active:scale-[0.98] overflow-hidden shadow-lg"
-                          style={{ willChange: 'transform' }}
-                        >
-                          <span className="relative z-10 text-[10px] sm:text-xs">Order Now</span>
-                          <ArrowRight size={12} className="relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
-                          <div className="absolute inset-0 bg-gradient-to-r from-ozo-red to-ozo-red-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                    {!isWide && (
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent flex flex-col justify-end p-4 sm:p-6 md:p-8">
+                        <div className="w-full">
+                          <span className="inline-block px-3 py-1 rounded-full bg-ozo-red text-white text-[8px] sm:text-[9px] font-black uppercase tracking-[0.15em] mb-1.5 sm:mb-3 shadow-md">
+                            {offer.tagline || 'Special Offer'}
+                          </span>
+                          <h2 className="text-base sm:text-2xl md:text-3xl lg:text-2xl font-black text-white mb-1 sm:mb-2 leading-[1.15] tracking-tight">
+                            {renderTitleWithHighlights(titleText)}
+                          </h2>
+                          <p className="text-white/90 text-[10px] sm:text-xs md:text-sm font-semibold mb-2.5 sm:mb-4 line-clamp-1 sm:line-clamp-2 leading-relaxed">
+                            {subtitleText}
+                          </p>
+                          <div 
+                            className="group relative w-fit flex items-center gap-2 bg-white text-gray-900 px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg sm:rounded-xl font-bold hover:bg-ozo-red hover:text-white transition-all transform-gpu hover:scale-[1.02] active:scale-[0.98] overflow-hidden shadow-lg"
+                            style={{ willChange: 'transform' }}
+                          >
+                            <span className="relative z-10 text-[10px] sm:text-xs">Order Now</span>
+                            <ArrowRight size={12} className="relative z-10 group-hover:translate-x-1 transition-transform duration-300" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-ozo-red to-ozo-red-dark opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    )}
                   </Link>
                 </SwiperSlide>
               );
