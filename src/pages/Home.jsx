@@ -59,8 +59,20 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 
-// Stable random shuffle seed generated once per page load
-const PAGE_LOAD_SHUFFLE_SEED = Math.random();
+// Shuffle seed: fresh on every new app open (tab/session), stable within the session
+// Stored in sessionStorage so it persists across React re-renders but resets on tab close
+const _getOrCreateSessionSeed = () => {
+  try {
+    const stored = sessionStorage.getItem('ozo_shuffle_seed')
+    if (stored) return parseFloat(stored)
+    const fresh = Math.random()
+    sessionStorage.setItem('ozo_shuffle_seed', String(fresh))
+    return fresh
+  } catch {
+    return Math.random()
+  }
+}
+const PAGE_LOAD_SHUFFLE_SEED = _getOrCreateSessionSeed();
 
 // Helper to generate a stable pseudo-random value for a given ID/name and seed
 const getSeededRandom = (key, seed) => {
@@ -325,7 +337,7 @@ const applyCityOverrides = (products, citySlug) => {
 };
 
 const Home = () => {
-  const [shuffleSeed] = useState(() => Math.random())
+  const [shuffleSeed] = useState(() => PAGE_LOAD_SHUFFLE_SEED)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const [activeFestivals, setActiveFestivals] = useState([])
 
