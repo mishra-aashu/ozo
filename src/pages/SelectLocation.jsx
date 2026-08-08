@@ -47,7 +47,8 @@ const SelectLocation = () => {
     localities,
     landmarks,
     galis,
-    fetchHierarchicalData
+    fetchHierarchicalData,
+    nearestCity
   } = useLocationStore(useShallow(state => ({
     address: state.address,
     setAddress: state.setAddress,
@@ -63,7 +64,8 @@ const SelectLocation = () => {
     localities: state.localities || [],
     landmarks: state.landmarks || [],
     galis: state.galis || [],
-    fetchHierarchicalData: state.fetchHierarchicalData
+    fetchHierarchicalData: state.fetchHierarchicalData,
+    nearestCity: state.nearestCity
   })))
   const { isAuthenticated, profile } = useAuthStore(useShallow(state => ({
     isAuthenticated: state.isAuthenticated,
