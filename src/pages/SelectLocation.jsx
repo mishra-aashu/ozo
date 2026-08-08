@@ -611,7 +611,8 @@ const SelectLocation = () => {
                             <div className="min-w-0 flex-1">
                               <span className="font-bold text-gray-800 dark:text-white capitalize text-xs">{addr.label || addr.title}</span>
                               <p className="text-[9.5px] text-gray-555 dark:text-gray-450 font-semibold truncate mt-0.5">
-                                {addr.address_line1}, {addr.city}
+                                {(addr.address_line1 && (addr.address_line1.startsWith('Location Link: ') || addr.address_line1.startsWith('http'))) ? '🗺️ Pinned Location' : addr.address_line1}
+                                {addr.city && `, ${addr.city}`}
                               </p>
                             </div>
                           </div>
@@ -965,14 +966,16 @@ const SelectLocation = () => {
                     {filteredAddresses.map((addr) => {
                       const Icon = getIcon(addr.label || addr.title || '')
                       const parsed = parseLandmark(addr.landmark)
+                      const isUrl = addr.address_line1 && (addr.address_line1.startsWith('Location Link: ') || addr.address_line1.startsWith('http'))
+                      const urlHref = isUrl ? (addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')) : ''
                       return (
                         <div
                           key={addr.id}
                           onClick={() => handleSelect(addr)}
-                          className="w-full flex items-center justify-between p-4 bg-white dark:bg-white/5 rounded-[2rem] hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-left group border border-gray-100 dark:border-white/5 hover:shadow-lg cursor-pointer gap-4 relative"
+                          className="w-full flex items-start justify-between p-5 bg-white dark:bg-white/5 rounded-[2rem] hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-left group border border-gray-100 dark:border-white/5 hover:shadow-lg cursor-pointer gap-4 relative"
                         >
-                          <div className="flex items-center gap-3.5 min-w-0 flex-1">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-md transition-all">
+                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
+                            <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-md transition-all mt-0.5">
                               <Icon size={20} className="text-ozo-gray dark:text-gray-400 group-hover:text-ozo-red transition-colors" />
                             </div>
                             <div className="min-w-0 flex-1">
@@ -986,7 +989,7 @@ const SelectLocation = () => {
                               </div>
                               
                               {(parsed.receiverName || parsed.receiverPhone) && (
-                                <div className="inline-flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-ozo-red dark:text-red-400 mt-1.5 bg-red-50/50 dark:bg-ozo-red/5 px-2 py-1 rounded-lg w-fit max-w-full">
+                                <div className="inline-flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-ozo-red dark:text-red-400 mt-1.5 bg-red-50/50 dark:bg-ozo-red/5 border border-ozo-red/10 px-2 py-0.5 rounded-lg w-fit max-w-full">
                                   <User size={10} className="shrink-0" />
                                   <span className="break-words">{parsed.receiverName}</span>
                                   {parsed.receiverPhone && (
@@ -995,11 +998,28 @@ const SelectLocation = () => {
                                 </div>
                               )}
 
-                              <p className="text-sm text-ozo-gray dark:text-gray-500 font-medium mt-1 break-words">{addr.address_line1}, {addr.city}</p>
+                              {isUrl ? (
+                                <div className="flex flex-wrap items-center gap-2 mt-2">
+                                  <a
+                                    href={urlHref}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-[10px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-xl shrink-0"
+                                  >
+                                    🗺️ View Pin on Map
+                                  </a>
+                                  {addr.city && <span className="text-xs text-ozo-gray dark:text-gray-400 font-bold">• {addr.city}</span>}
+                                </div>
+                              ) : (
+                                <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold mt-1.5 leading-relaxed break-words">
+                                  {addr.address_line1}{addr.city && `, ${addr.city}`}
+                                </p>
+                              )}
                             </div>
                           </div>
 
-                          <div className="relative flex items-center gap-1.5 flex-shrink-0">
+                          <div className="relative flex items-center gap-1.5 flex-shrink-0 mt-0.5">
                             <button 
                               onClick={(e) => {
                                 e.stopPropagation()
