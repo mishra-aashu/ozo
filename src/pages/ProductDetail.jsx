@@ -67,8 +67,45 @@ const getProductHighlights = (product) => {
   
   const highlights = []
   
-  // 1. Veg / Non-Veg status
-  if (product.is_vegetarian !== null && product.is_vegetarian !== undefined) {
+  const categoryName = (product.category?.name || '').toLowerCase()
+  const categorySlug = (product.category?.slug || '').toLowerCase()
+  const productName = (product.name || '').toLowerCase()
+  
+  // List of keywords indicating non-food categories or cosmetic items
+  const nonFoodKeywords = [
+    'beauty', 'hygiene', 'shampoo', 'conditioner', 'soap', 'cleaner', 'detergent', 
+    'personal care', 'skin', 'face', 'hair', 'body wash', 'lotion', 'cream', 
+    'perfume', 'deodorant', 'household', 'utensil', 'brush', 'toothpaste', 
+    'diaper', 'wipes', 'scrubber', 'liquid wash', 'sanitizer', 'makeup', 'cosmetic',
+    'comb', 'oil for hair', 'hair oil', 'perfumes', 'perfumed', 'fragrance',
+    'shaving', 'razor', 'blade', 'grooming'
+  ]
+  
+  // Whitelist keywords indicating food items
+  const foodKeywords = [
+    'veg', 'fruit', 'greens', 'organic', 'snack', 'food', 'drink', 'beverage', 
+    'dairy', 'bakery', 'grocery', 'oil', 'masala', 'meat', 'fish', 'egg', 'chocolate', 
+    'sweet', 'cookie', 'cereal', 'staple', 'spices', 'rice', 'noodle', 'pasta', 
+    'sauce', 'spread', 'mandi', 'snack', 'biscuit', 'namkeen', 'tea', 'coffee'
+  ]
+
+  const hasNonFoodKeyword = nonFoodKeywords.some(kw => 
+    categoryName.includes(kw) || 
+    categorySlug.includes(kw) || 
+    productName.includes(kw)
+  )
+
+  const hasFoodKeyword = foodKeywords.some(kw => 
+    categoryName.includes(kw) || 
+    categorySlug.includes(kw) || 
+    productName.includes(kw)
+  )
+
+  // A product is a food item if it explicitly matches food signals or has no non-food signal
+  const isFood = hasFoodKeyword || !hasNonFoodKeyword
+  
+  // 1. Veg / Non-Veg status (Only for Food Items)
+  if (isFood && product.is_vegetarian !== null && product.is_vegetarian !== undefined) {
     highlights.push({
       text: product.is_vegetarian ? '100% Vegetarian' : 'Non-Vegetarian',
       type: 'veg_status',
@@ -76,11 +113,88 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 2. Check if product has tags for quality/origin
-  if (Array.isArray(product.tags) && product.tags.length > 0) {
-    const usefulTags = product.tags.filter(t => {
-      const lower = t.toLowerCase()
-      return !lower.includes('off') && !lower.includes('eta') && !lower.includes('earliest')
+  // 2. Brand Authenticity
+  if (product.brand && typeof product.brand === 'string' && product.brand.trim()) {
+    highlights.push({
+      text: `Original ${product.brand.trim()}`,
+      type: 'brand',
+      color: 'bg-ozo-green'
+    })
+  }
+
+  // 3. Shelf Life / Storage Advice
+  if (product.shelf_life_hours) {
+    highlights.push({
+      text: `Shelf Life: ${getShelfLifeString(product)}`,
+      type: 'shelf_life',
+      color: 'bg-ozo-green'
+    })
+  } else if (product.is_perishable) {
+    highlights.push({
+      text: 'Keep Refrigerated',
+      type: 'perishable',
+      color: 'bg-ozo-red'
+    })
+  }
+
+  // 4. Bestseller / Featured badges
+  if (product.is_bestseller) {
+    highlights.push({
+      text: 'OZO Bestseller',
+      type: 'bestseller',
+      color: 'bg-ozo-green'
+    })
+  }
+
+  // 5. Max Order limit
+  if (product.max_order_qty && product.max_order_qty > 0 && product.max_order_qty < 50) {
+    highlights.push({
+      text: `Max Order Limit: ${product.max_order_qty} units`,
+      type: 'max_order',
+      color: 'bg-ozo-red'
+    })
+  }
+
+  // 6. Barcode / SKU
+  if (product.barcode && typeof product.barcode === 'string' && product.barcode.trim()) {
+    highlights.push({
+      text: `SKU: ${product.barcode.trim()}`,
+      type: 'sku',
+      color: 'bg-ozo-red'
+    })
+  }
+
+  // 7. Check if product has tags for quality/origin (filtered and cleaned)
+  let tagList = []
+  if (Array.isArray(product.tags)) {
+    tagList = product.tags
+  } else if (typeof product.tags === 'string' && product.tags.trim()) {
+    const trimmed = product.tags.trim()
+    if (trimmed.startsWith('[')) {
+      try {
+        tagList = JSON.parse(trimmed)
+      } catch (_) {}
+    } else {
+      tagList = trimmed.split(',').map(t => t.trim())
+    }
+  }
+
+  if (tagList.length > 0) {
+    const brandLower = (product.brand || '').toLowerCase().trim()
+    const catLower = (product.category?.name || '').toLowerCase().trim()
+    
+    const usefulTags = tagList.filter(t => {
+      if (typeof t !== 'string') return false
+      const lower = t.toLowerCase().trim()
+      return lower &&
+             !lower.includes('off') && 
+             !lower.includes('eta') && 
+             !lower.includes('earliest') &&
+             lower !== brandLower &&
+             lower !== catLower &&
+             lower !== 'in stock' &&
+             lower !== 'out of stock' &&
+             lower !== 'available'
     })
     
     usefulTags.slice(0, 2).forEach(tag => {
@@ -93,39 +207,12 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 3. Category based highlights
-  const categoryName = product.category?.name?.toLowerCase() || ''
-  const categorySlug = product.category?.slug?.toLowerCase() || ''
-  const isProduce = categoryName.includes('vegetable') || 
-                    categoryName.includes('fruit') || 
-                    categoryName.includes('greens') || 
-                    categoryName.includes('organic') ||
-                    categorySlug.includes('vegetable') || 
-                    categorySlug.includes('fruit') || 
-                    categorySlug.includes('greens')
-
-  if (isProduce || product.is_perishable) {
-    if (!highlights.some(h => h.text.toLowerCase().includes('organic'))) {
-      highlights.push({ text: '100% Fresh Produce', type: 'produce', color: 'bg-ozo-green' })
-    }
-    highlights.push({ text: 'Sourced Daily', type: 'produce', color: 'bg-ozo-green' })
-    highlights.push({ text: 'Direct from Farm/Mart', type: 'produce', color: 'bg-ozo-red' })
-  } else {
-    highlights.push({ text: 'Quality Guaranteed', type: 'general', color: 'bg-ozo-green' })
-    if (product.brand) {
-      highlights.push({ text: `Original ${product.brand} Product`, type: 'brand', color: 'bg-ozo-red' })
-    } else {
-      highlights.push({ text: 'Hygienically Packed', type: 'general', color: 'bg-ozo-red' })
-    }
-    highlights.push({ text: 'Premium Selection', type: 'general', color: 'bg-ozo-red' })
-  }
-
-  // 4. Fallback items to guarantee 4 points
+  // 8. Fallback items to guarantee at least 4 items if database fields are sparse
   const defaultItems = [
     { text: 'Superfast Delivery', color: 'bg-ozo-red' },
-    { text: 'Easy Returns & Refunds', color: 'bg-ozo-green' },
-    { text: 'Sustainable Packaging', color: 'bg-ozo-red' },
-    { text: 'Best Price Guaranteed', color: 'bg-ozo-green' }
+    { text: 'Hygienically Packed', color: 'bg-ozo-green' },
+    { text: 'Quality Guaranteed', color: 'bg-ozo-green' },
+    { text: 'Easy Returns & Refunds', color: 'bg-ozo-red' }
   ]
 
   let defaultIdx = 0
@@ -137,7 +224,14 @@ const getProductHighlights = (product) => {
     defaultIdx++
   }
 
-  return highlights.slice(0, 4)
+  // Visual layout coloring polish: veg/non-veg status keeps its color, others alternate nicely
+  return highlights.slice(0, 4).map((h, idx) => {
+    if (h.type === 'veg_status') return h
+    return {
+      ...h,
+      color: idx % 2 === 0 ? 'bg-ozo-green' : 'bg-ozo-red'
+    }
+  })
 }
 
 const ProductDetail = () => {
@@ -1336,11 +1430,13 @@ const ProductDetail = () => {
               {activeTab === 'description' && (
                 <div className="space-y-4">
                   <p>{currentProduct?.description || 'Experience the finest quality items delivered straight to your door. Freshness you can taste, convenience you can trust.'}</p>
-                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                  <ul className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3.5 text-xs">
                     {getProductHighlights(currentProduct).map((highlight, idx) => (
-                      <li key={idx} className="flex items-center gap-2">
-                        <div className={`w-1.5 h-1.5 rounded-full ${highlight.color || 'bg-ozo-red'}`} />
-                        {highlight.text}
+                      <li key={idx} className="flex items-center gap-3 py-1 text-gray-800 dark:text-gray-200 font-bold transition-all hover:translate-x-1 duration-200">
+                        <span className={`w-2.5 h-2.5 rounded-full ${highlight.color || 'bg-ozo-red'} shadow-sm ring-4 ${
+                          highlight.color === 'bg-ozo-green' ? 'ring-emerald-500/10' : 'ring-red-500/10'
+                        } flex-shrink-0`} />
+                        <span>{highlight.text}</span>
                       </li>
                     ))}
                   </ul>
