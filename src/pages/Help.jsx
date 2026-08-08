@@ -200,7 +200,8 @@ const Help = () => {
     try {
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select('id, order_number, status, created_at, total, delivery_city, recipient_name')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(5)
 
@@ -221,7 +222,8 @@ const Help = () => {
     try {
       const { data, error } = await supabase
         .from('support_tickets')
-        .select('*')
+        .select('id, subject, status, priority, created_at, updated_at, order_id')
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
 
       if (error) throw error

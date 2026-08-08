@@ -772,7 +772,7 @@ const Home = () => {
     const fetchMarts = async () => {
       try {
         if (isMounted) setIsMartsLoading(true)
-        let query = supabase.from('marts').select('*').eq('is_active', true)
+        let query = supabase.from('marts').select('id, name, slug, city_slug, logo_url, is_active, address').eq('is_active', true)
         if (selectedCitySlug) {
           query = query.eq('city_slug', selectedCitySlug)
         }
@@ -872,7 +872,7 @@ const Home = () => {
 
       const { data: dbProducts, error } = await supabase
         .from('products')
-        .select('*')
+        .select('id, name, slug, image_url, price, mrp, unit, is_available, quantity_available, max_order_qty, discount_percentage')
         .in('id', productIds)
 
       if (error || !dbProducts || dbProducts.length === 0) {
