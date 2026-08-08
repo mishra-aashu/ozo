@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Bell, AlertTriangle, RefreshCw } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
-import { promptOneSignalPush } from '../utils/onesignal'
+import { promptOneSignalPush, checkPushSubscriptionStatus } from '../utils/onesignal'
 
 export default function NotificationPromptModal() {
   const { user, profile } = useAuthStore()
@@ -11,18 +11,72 @@ export default function NotificationPromptModal() {
 
   const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner
 
-  const checkPermission = () => {
+  const checkPermission = useCallback(async () => {
     if (!('Notification' in window)) return
 
-    const currentPermission = Notification.permission
-    
+    let currentPermission = Notification.permission
+    let isSubscribed = currentPermission === 'granted'
+
+    // If browser natively says granted, we are good to go synchronously
+    if (isSubscribed) {
+      setPermissionState('granted')
+      setIsOpen(false)
+      return
+    }
+
+    // Otherwise, perform robust async checks to see if user has actually subscribed
+    try {
+      // 1. Check navigator.permissions query if available
+      if (navigator.permissions && navigator.permissions.query) {
+        const status = await navigator.permissions.query({ name: 'notifications' })
+        if (status.state === 'granted') {
+          isSubscribed = true
+          currentPermission = 'granted'
+        }
+      }
+    } catch (err) {
+      console.log('Permissions API query not supported:', err)
+    }
+
+    // 2. Check low-level Service Worker Push subscriptions (covers both OneSignal, FCM, etc.)
+    if (!isSubscribed && 'serviceWorker' in navigator) {
+      try {
+        const registrations = await navigator.serviceWorker.getRegistrations()
+        for (const registration of registrations) {
+          if (registration.pushManager) {
+            const sub = await registration.pushManager.getSubscription()
+            if (sub) {
+              isSubscribed = true
+              currentPermission = 'granted'
+              break
+            }
+          }
+        }
+      } catch (err) {
+        console.log('ServiceWorker subscription check failed:', err)
+      }
+    }
+
+    // 3. Check OneSignal SDK subscription status
+    if (!isSubscribed) {
+      try {
+        const isOneSignalSubscribed = await checkPushSubscriptionStatus()
+        if (isOneSignalSubscribed) {
+          isSubscribed = true
+          currentPermission = 'granted'
+        }
+      } catch (err) {
+        console.log('OneSignal subscription check failed:', err)
+      }
+    }
+
     // Respect user dismissal for non-operators to avoid locking them out
     const isDismissed = sessionStorage.getItem('ozo_notification_prompt_dismissed') === 'true'
-    const targetOpen = !!(user && currentPermission !== 'granted' && (!isDismissed || isMartOperator))
+    const targetOpen = !!(user && !isSubscribed && (!isDismissed || isMartOperator))
 
     setPermissionState(prev => prev !== currentPermission ? currentPermission : prev)
     setIsOpen(prev => prev !== targetOpen ? targetOpen : prev)
-  }
+  }, [user, isMartOperator])
 
   const handleDismiss = () => {
     sessionStorage.setItem('ozo_notification_prompt_dismissed', 'true')
@@ -33,27 +87,55 @@ export default function NotificationPromptModal() {
     checkPermission()
 
     // Recheck when window is refocused (typically when returning from browser settings)
-    window.addEventListener('focus', checkPermission)
-    return () => window.removeEventListener('focus', checkPermission)
-  }, [user])
+    const handleFocus = () => {
+      checkPermission()
+    }
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [checkPermission])
 
   // Listen to browser permission state changes if supported
   useEffect(() => {
+    let active = true
+    let permissionStatus = null
+
     if (navigator.permissions && navigator.permissions.query) {
-      navigator.permissions.query({ name: 'notifications' }).then((permissionStatus) => {
+      navigator.permissions.query({ name: 'notifications' }).then((status) => {
+        if (!active) return
+        permissionStatus = status
         permissionStatus.onchange = () => {
           checkPermission()
         }
       }).catch(err => console.log('Permissions API query not supported:', err))
     }
-  }, [])
+
+    return () => {
+      active = false
+      if (permissionStatus) {
+        permissionStatus.onchange = null
+      }
+    }
+  }, [checkPermission])
+
+  // Poll permission status periodically if the modal is open
+  useEffect(() => {
+    if (!isOpen) return
+
+    const interval = setInterval(() => {
+      checkPermission()
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [isOpen, checkPermission])
 
   const handleRequestPermission = async () => {
     try {
       // Trigger OneSignal push registration which invokes browser prompt
       await promptOneSignalPush()
-      // Immediately check again
-      setTimeout(checkPermission, 1000)
+      // Immediately check again at intervals to handle potential delay in browser registration
+      setTimeout(checkPermission, 500)
+      setTimeout(checkPermission, 1500)
+      setTimeout(checkPermission, 3000)
     } catch (err) {
       console.error('[OneSignal] Permission request failed:', err)
       checkPermission()
