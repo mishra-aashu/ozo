@@ -62,15 +62,24 @@ const getShelfLifeString = (product) => {
   return 'Refer to packaging'
 }
 
+const getProductBrand = (product) => {
+  if (!product) return '';
+  if (product.brand && typeof product.brand === 'string' && product.brand.trim()) {
+    return product.brand.trim();
+  }
+  return '';
+}
+
 const getProductHighlights = (product) => {
   if (!product) return []
   
   const highlights = []
 
   // 1. Brand Authenticity
-  if (product.brand && typeof product.brand === 'string' && product.brand.trim()) {
+  const resolvedBrand = getProductBrand(product);
+  if (resolvedBrand) {
     highlights.push({
-      text: `Original ${product.brand.trim()}`,
+      text: `Original ${resolvedBrand}`,
       type: 'brand',
       color: 'bg-ozo-green'
     })
@@ -779,7 +788,7 @@ const ProductDetail = () => {
       "category": currentProduct.category?.name || "Groceries",
       "brand": {
         "@type": "Brand",
-        "name": currentProduct.brand || "OZO Mart"
+        "name": getProductBrand(currentProduct) || "OZO Mart"
       },
       "offers": {
         "@type": "Offer",
@@ -901,7 +910,7 @@ const ProductDetail = () => {
           <SEO 
             title={`${currentProduct.name} (${currentProduct.unit}) | OZO Mart`}
             description={currentProduct.description || `Order ${currentProduct.name} (${currentProduct.unit}) online on OZO Mart. Swift 30-minute grocery delivery in Patna & Aurangabad.`}
-            keywords={`${currentProduct.name}, buy ${currentProduct.name} online, ${currentProduct.brand || 'Ozo Fresh'} products, Patna grocery, Aurangabad grocery`}
+            keywords={`${currentProduct.name}, buy ${currentProduct.name} online, ${getProductBrand(currentProduct) || 'Ozo Fresh'} products, Patna grocery, Aurangabad grocery`}
             canonical={`https://www.ozomart.store/product/${slug}`}
             schema={breadcrumbSchema}
           />
@@ -1056,9 +1065,9 @@ const ProductDetail = () => {
                 <span className="px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red text-[10px] font-black uppercase tracking-widest rounded-lg border border-ozo-red/10">
                   {currentProduct?.category?.name || 'Fresh Produce'}
                 </span>
-                {currentProduct?.brand && (
+                {getProductBrand(currentProduct) && (
                   <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/10">
-                    Brand: {currentProduct.brand}
+                    Brand: {getProductBrand(currentProduct)}
                   </span>
                 )}
                 {currentProduct?.is_available ? (
@@ -1091,9 +1100,9 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              {currentProduct?.brand && (
+              {getProductBrand(currentProduct) && (
                 <div className="text-xs font-black uppercase tracking-[0.2em] text-ozo-red mb-1.5">
-                  {currentProduct.brand}
+                  {getProductBrand(currentProduct)}
                 </div>
               )}
               <h1 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 dark:text-white mb-2 leading-tight break-words">
@@ -1405,7 +1414,7 @@ const ProductDetail = () => {
                   </div>
                   <div className="flex justify-between py-2 border-b border-gray-50 dark:border-white/5">
                     <span className="font-bold">Brand</span>
-                    <span>{currentProduct?.brand || 'Ozo Fresh'}</span>
+                    <span>{getProductBrand(currentProduct) || 'Ozo Fresh'}</span>
                   </div>
                 </div>
               )}
@@ -1740,7 +1749,7 @@ const ProductDetail = () => {
                   <h4 className="text-sm font-black text-gray-900 dark:text-white truncate">
                     {currentProduct?.name}
                   </h4>
-                  <p className="text-[10px] text-ozo-gray font-bold mb-1">{currentProduct?.unit} • {currentProduct?.brand || 'Ozo Fresh'}</p>
+                  <p className="text-[10px] text-ozo-gray font-bold mb-1">{currentProduct?.unit} • {getProductBrand(currentProduct) || 'Ozo Fresh'}</p>
                   <div className="flex items-baseline gap-2">
                     <span className="text-sm font-black text-ozo-red">
                       {currentProduct?.price ? `₹${currentProduct.price}` : 'Price on Request'}
