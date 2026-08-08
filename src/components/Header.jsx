@@ -177,40 +177,60 @@ const Header = () => {
     searchResults: state.searchResults,
     isSearchLoading: state.isSearchLoading,
   })))
-  const { address, coordinates, addressDetails, nearestCity, tracedThrough } = useLocationStore(useShallow(state => ({
+  const { address, coordinates, addressDetails, nearestCity, tracedThrough, selectedCitySlug: headerSelectedCitySlug, activeCities: headerActiveCities } = useLocationStore(useShallow(state => ({
     address: state.address,
     coordinates: state.coordinates,
     addressDetails: state.addressDetails,
     nearestCity: state.nearestCity,
     tracedThrough: state.tracedThrough,
+    selectedCitySlug: state.selectedCitySlug,
+    activeCities: state.activeCities,
   })))
 
   // Determine if location is serviceable
   const isLocationServiceable = (() => {
     if (!address) return true
-    
-    // 1. If coordinates are available, geofence check is Single Source of Truth
-    if (coordinates && coordinates.lat && coordinates.lng) {
-      return checkDeliveryZoneStatus(coordinates.lat, coordinates.lng, useCartStore.getState())
+
+    // 1. STRONGEST SIGNAL: if selectedCitySlug is set, location was already matched to an active city
+    if (headerSelectedCitySlug) {
+      const matchedCity = (headerActiveCities || []).find(c => c.slug === headerSelectedCitySlug)
+      if (matchedCity) return true
     }
 
-    // 2. Otherwise, check if postcode is allowed in city settings
+    // 2. If activeCities not loaded yet, don't falsely show not-serviceable
+    if (!headerActiveCities || headerActiveCities.length === 0) return true
+
+    // 3. If coordinates are available, do geofence check against stored activeCities
+    if (coordinates && coordinates.lat && coordinates.lng) {
+      const lat = parseFloat(coordinates.lat)
+      const lng = parseFloat(coordinates.lng)
+      for (const city of headerActiveCities) {
+        if (!city.latitude || !city.longitude) continue
+        const cLat = parseFloat(city.latitude)
+        const cLng = parseFloat(city.longitude)
+        const maxRadius = Math.max(parseFloat(city.service_radius_km) || 25.0, 25.0)
+        const R = 6371
+        const dLat = (cLat - lat) * Math.PI / 180
+        const dLon = (cLng - lng) * Math.PI / 180
+        const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat*Math.PI/180)*Math.cos(cLat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2)
+        const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+        if (dist <= maxRadius) return true
+      }
+      return false
+    }
+
+    // 4. Check if postcode is allowed in city settings
     let postcode = addressDetails?.postcode || addressDetails?.pincode || ''
     if (!postcode && typeof address === 'string') {
       const match = address.match(/\b\d{6}\b/)
-      if (match) {
-        postcode = match[0]
-      }
+      if (match) postcode = match[0]
     }
-
     if (postcode) {
       return checkPincodeServiceable(postcode, addressDetails?.city || nearestCity?.name)
     }
 
-    // Fallback: nearest city active status
-    if (nearestCity) {
-      return nearestCity.is_active
-    }
+    // 5. Fallback: nearest city active status
+    if (nearestCity) return nearestCity.is_active
 
     return true
   })()

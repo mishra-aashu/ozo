@@ -758,12 +758,6 @@ export const useLocationStore = create(
               // First update the nearest city slug so geocoding lookup has the correct city context
               await get().updateNearestCitySlug(latitude, longitude)
 
-              // Verify if the detected location is serviceable, warn the user if not, but preserve their coordinates
-              const isServiceable = checkDeliveryZoneStatus(latitude, longitude)
-              if (!isServiceable && !silent) {
-                toast.error("OZO is not yet serviceable at your location. Showing detected location.", { duration: 6000, id: 'out-of-zone-warning' })
-              }
-
               try {
                 // Reverse geocoding to fetch detailed address via utility
                 const { displayName, addressDetails } = await reverseGeocode(latitude, longitude, null, {
@@ -790,8 +784,13 @@ export const useLocationStore = create(
                   isDetecting: false,
                   tracedThrough: 'gps'
                 })
+                // Update nearest city AFTER saving coordinates — this sets selectedCitySlug
                 await get().updateNearestCitySlug(latitude, longitude)
-                if (isManual) {
+                // Now re-check serviceability with selectedCitySlug already set
+                const isServiceableAfter = checkDeliveryZoneStatus(latitude, longitude)
+                if (!isServiceableAfter && !silent) {
+                  toast.error("OZO is not yet serviceable at your location. Showing detected location.", { duration: 6000, id: 'out-of-zone-warning' })
+                } else if (isManual) {
                   toast.success('Location detected successfully!')
                 }
                 resolve(true)
@@ -900,28 +899,34 @@ export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
 
   try {
     const locationState = useLocationStore.getState();
-    const activeCities = locationState.activeCities || [];
-    
-    if (activeCities.length === 0) {
-      return false;
+
+    // If selectedCitySlug is set, location was already positively matched — trust it
+    if (locationState.selectedCitySlug) {
+      const activeCities = locationState.activeCities || [];
+      const matched = activeCities.find(c => c.slug === locationState.selectedCitySlug);
+      if (matched) return true;
     }
 
-    // Check distance against all active operating cities strictly within their service radius
+    const activeCities = locationState.activeCities || [];
+
+    // If cities haven't loaded yet, don't block the user — return true gracefully
+    if (activeCities.length === 0) return true;
+
+    // Check distance against all active operating cities using enforced minimum 25km radius
     for (const city of activeCities) {
       if (!city.latitude || !city.longitude) continue;
       const cLat = parseFloat(city.latitude);
       const cLng = parseFloat(city.longitude);
-      const maxRadius = parseFloat(city.service_radius_km) || 25.0; // strict geofence radius
+      // Apply same Math.max(radius, 25) guarantee as fetchActiveCities sanitization
+      const maxRadius = Math.max(parseFloat(city.service_radius_km) || 25.0, 25.0);
       const dist = getDistanceKm(lat, lng, cLat, cLng);
-      if (dist <= maxRadius) {
-        return true;
-      }
+      if (dist <= maxRadius) return true;
     }
 
     return false;
   } catch (e) {
     console.error("Error checking dynamic delivery zone:", e);
-    return false;
+    return true; // Fail open — don't falsely block users on errors
   }
 };
 
