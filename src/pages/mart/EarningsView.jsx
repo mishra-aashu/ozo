@@ -55,7 +55,7 @@ const EarningsView = () => {
       try {
         const { data, error } = await supabase
           .from('app_settings')
-          .select('*')
+          .select('key, value')
           .eq('key', 'platform_config')
           .single()
         
