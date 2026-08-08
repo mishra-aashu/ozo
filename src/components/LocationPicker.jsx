@@ -936,12 +936,72 @@ const LocationPicker = ({ isOpen, onClose }) => {
           <AnimatePresence>
             {isSearchActive && (
               <div 
-                className="fixed inset-0 z-[200] flex flex-col items-center justify-start pt-[12vh] px-2.5 cursor-default"
+                className="fixed inset-0 z-[200] flex flex-col items-center justify-start pt-[12vh] px-2.5 cursor-default bg-[#080808]"
                 onClick={() => {
                   setIsSearchActive(false)
                   setSearchQuery('')
                 }}
               >
+                {/* Earth Vector Map Background */}
+                <div className="absolute inset-0 overflow-hidden pointer-events-none bg-gray-50/95 dark:bg-[#080808]/98 transition-colors duration-300">
+                  {/* Grid Lines */}
+                  <div 
+                    className="absolute inset-0" 
+                    style={{
+                      backgroundImage: 'linear-gradient(to right, rgba(128,128,128,0.06) 1px, transparent 1px), linear-gradient(to bottom, rgba(128,128,128,0.06) 1px, transparent 1px)',
+                      backgroundSize: '32px 32px',
+                      WebkitMaskImage: 'radial-gradient(ellipse 60% 50% at 50% 12%, #000 70%, transparent 100%)',
+                      maskImage: 'radial-gradient(ellipse 60% 50% at 50% 12%, #000 70%, transparent 100%)'
+                    }}
+                  />
+                  
+                  {/* Glowing Orbs */}
+                  <div 
+                    className="absolute left-1/2 top-[12vh] -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] opacity-85 blur-[45px] dark:opacity-65"
+                    style={{
+                      backgroundImage: 'radial-gradient(circle at center, rgba(239,68,68,0.09) 0%, transparent 70%)'
+                    }}
+                  />
+                  
+                  {/* Abstract Earth Map Vector SVG */}
+                  <svg className="absolute inset-0 w-full h-full opacity-[0.08] dark:opacity-[0.05]" xmlns="http://www.w3.org/2000/svg">
+                    {/* Lat/Long curves */}
+                    <path d="M -100,100 Q 200,150 500,100 T 1100,100" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white" />
+                    <path d="M -100,220 Q 300,280 700,200 T 1500,220" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white" />
+                    <path d="M -100,380 Q 400,320 900,420 T 1900,380" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white" />
+                    
+                    {/* Meridian curves */}
+                    <path d="M 100,-100 Q 150,300 100,1000" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white" />
+                    <path d="M 350,-100 Q 300,450 350,1000" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white" />
+                    <path d="M 600,-100 Q 650,400 600,1000" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white" />
+                    
+                    {/* Concentric radar waves centering around search area */}
+                    <circle cx="50%" cy="12%" r="80" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="4 4" className="text-ozo-red/80 animate-pulse" />
+                    <circle cx="50%" cy="12%" r="160" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="6 6" className="text-gray-455 dark:text-white/30" />
+                    <circle cx="50%" cy="12%" r="260" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-400 dark:text-white/20" />
+                    <circle cx="50%" cy="12%" r="380" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="8 4" className="text-ozo-red/30 dark:text-ozo-red/20" />
+                    <circle cx="50%" cy="12%" r="520" fill="none" stroke="currentColor" strokeWidth="1" className="text-gray-300 dark:text-white/10" />
+
+                    {/* Map Network Nodes / Connected Cities */}
+                    <g className="text-ozo-red/40 dark:text-white/20">
+                      <circle cx="15%" cy="25%" r="3" fill="currentColor" />
+                      <circle cx="28%" cy="35%" r="4" fill="currentColor" className="text-ozo-red/60 animate-ping" />
+                      <circle cx="28%" cy="35%" r="3" fill="#ef4444" />
+                      <circle cx="42%" cy="22%" r="2" fill="currentColor" />
+                      <circle cx="65%" cy="30%" r="4" fill="currentColor" />
+                      <circle cx="78%" cy="18%" r="3" fill="currentColor" />
+                      <circle cx="85%" cy="35%" r="4" fill="currentColor" />
+                      
+                      {/* Connecting paths */}
+                      <path d="M 120,225 Q 200,280 280,315 T 420,198 T 650,270 T 785,162" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
+                      <path d="M 280,315 Q 450,380 650,270" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 3" />
+                    </g>
+                  </svg>
+
+                  {/* Smooth bottom gradient fade */}
+                  <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-gray-50 to-transparent dark:from-[#080808] to-transparent pointer-events-none" />
+                </div>
+
                 {/* Backdrop (subtle overlay) */}
                 <motion.div 
                   initial={{ opacity: 0 }}
