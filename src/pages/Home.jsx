@@ -1705,6 +1705,72 @@ const Home = () => {
     )
   }
 
+  // If the user's location is initialized and set, but not mapped to a serviceable city, show Not Serviceable state on Home directly
+  if (isLocationInitialized && address && !selectedCitySlug) {
+    return (
+      <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 relative overflow-hidden bg-white dark:bg-[#0a0a0a]">
+        <SEO 
+          title="OZO Mart | Out of Service Zone"
+          description="OZO Mart is currently not active in your area. We are expanding rapidly!"
+        />
+        {/* Blurry background blobs */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute -top-[10%] -left-[5%] w-[50%] h-[50%] bg-ozo-red/10 dark:bg-ozo-red/20 blur-[120px] rounded-full animate-float opacity-70" />
+          <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-rose-500/10 dark:bg-rose-500/15 blur-[100px] rounded-full animate-pulse-slow opacity-60" />
+        </div>
+
+        <div className="relative z-10 w-full max-w-lg bg-gray-50/50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-850 rounded-[2.5rem] p-8 shadow-premium backdrop-blur-md text-center">
+          {/* Animated map pin icon */}
+          <div className="relative mx-auto mb-6 w-20 h-20 flex items-center justify-center">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-ozo-red/20 animate-ping opacity-75" />
+            <div className="relative flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-ozo-red to-rose-500 text-white rounded-full shadow-lg">
+              <MapPin size={32} className="animate-bounce" />
+            </div>
+          </div>
+
+          <h1 className="text-2xl xs:text-3xl font-extrabold text-zinc-900 dark:text-white mb-2 leading-tight">
+            We're Not in Your Area Yet
+          </h1>
+          <p className="text-sm font-semibold text-ozo-red mb-6">
+            Currently serving Aurangabad, Bihar and nearby zones.
+          </p>
+
+          <div className="bg-white/60 dark:bg-zinc-800/40 rounded-2xl p-5 mb-8 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed text-left border border-gray-150 dark:border-zinc-700/40">
+            <p className="mb-3 font-semibold text-zinc-800 dark:text-zinc-200">
+              Detected Location:
+            </p>
+            <p className="font-bold text-zinc-950 dark:text-white break-words bg-gray-100 dark:bg-zinc-800/60 p-3.5 rounded-xl border border-gray-200 dark:border-zinc-700">
+              {address}
+            </p>
+            <p className="mt-4 text-zinc-550 dark:text-zinc-400">
+              If OZO fetched the wrong coordinates, please verify your serviceable 6-digit pincode or change your location manually.
+            </p>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <button
+              onClick={() => {
+                const { showServiceabilityModal } = useLocationStore.getState()
+                showServiceabilityModal('Aurangabad, Bihar', '')
+              }}
+              className="flex-1 py-3.5 px-6 bg-gradient-to-r from-ozo-red to-rose-600 hover:from-rose-600 hover:to-ozo-red text-white font-bold text-sm rounded-xl transition-all shadow-md active:scale-95"
+            >
+              Verify Pincode
+            </button>
+            <button
+              onClick={() => {
+                navigate('/select-location')
+              }}
+              className="flex-1 py-3.5 px-6 bg-gray-100 hover:bg-gray-250 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-white font-bold text-sm rounded-xl transition-all active:scale-95"
+            >
+              Change Location
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen pb-16">
       <SEO 
