@@ -977,14 +977,81 @@ const Orders = () => {
   if (orderIdParam) {
     if (isLoading && orders.length === 0) {
       return (
-        <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-          <div className="relative flex items-center justify-center">
-            <div className="w-16 h-16 border-4 border-ozo-red/20 border-t-ozo-red rounded-full animate-spin" />
-            <div className="absolute w-8 h-8 border-4 border-ozo-green/20 border-b-ozo-green rounded-full animate-spin [animation-direction:reverse] [animation-duration:1s]" />
+        <div className="min-h-[65vh] w-full flex flex-col items-center justify-center bg-transparent relative overflow-hidden px-4">
+          {/* Keyframe Styles for Loader */}
+          <style>{`
+            @keyframes progressLoad {
+              0% { left: -40%; }
+              100% { left: 110%; }
+            }
+            @keyframes orbitRed {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(360deg); }
+            }
+            @keyframes orbitGreen {
+              0% { transform: rotate(0deg); }
+              100% { transform: rotate(-360deg); }
+            }
+            .animate-progress-bar {
+              animation: progressLoad 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+            }
+            .animate-orbit-red {
+              animation: orbitRed 3s linear infinite;
+            }
+            .animate-orbit-green {
+              animation: orbitGreen 2.2s linear infinite;
+            }
+          `}</style>
+
+          {/* Background Ambient Glows */}
+          <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-ozo-red/5 rounded-full blur-[80px] pointer-events-none animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 translate-x-1/2 translate-y-1/2 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-[80px] pointer-events-none animate-pulse [animation-delay:2s]" />
+
+          {/* Loading Card */}
+          <div className="relative z-10 w-full max-w-sm bg-white/70 dark:bg-[#121214]/60 backdrop-blur-xl border border-gray-200/50 dark:border-white/5 rounded-[2.5rem] p-8 shadow-2xl flex flex-col items-center text-center">
+            
+            {/* Animated Loader Container */}
+            <div className="relative mb-8 flex items-center justify-center">
+              {/* Pulsing Outer Glow ring */}
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-ozo-red to-emerald-500 opacity-20 blur-xl animate-pulse scale-110" />
+              
+              {/* Spinning Outer Ring */}
+              <div className="w-24 h-24 rounded-3xl border-2 border-dashed border-ozo-red/35 dark:border-ozo-red/20 animate-[spin_8s_linear_infinite]" />
+              
+              {/* Spinning Inner Reverse Ring */}
+              <div className="absolute w-20 h-20 rounded-[1.25rem] border border-dashed border-emerald-500/40 dark:border-emerald-500/25 animate-[spin_6s_linear_infinite_reverse]" />
+              
+              {/* Pulsing Core Brand Icon Card */}
+              <div className="absolute w-14 h-14 bg-gradient-to-tr from-ozo-red to-rose-600 rounded-2xl shadow-lg flex items-center justify-center text-white transform hover:rotate-12 transition-transform duration-300">
+                <ShoppingBag className="w-7 h-7 animate-bounce" style={{ animationDuration: '2s' }} />
+              </div>
+
+              {/* Glowing dots orbiting */}
+              <div className="absolute w-3 h-3 rounded-full bg-ozo-red blur-[1px] animate-orbit-red" style={{ transformOrigin: 'center 48px' }} />
+              <div className="absolute w-2 h-2 rounded-full bg-emerald-500 blur-[1px] animate-orbit-green" style={{ transformOrigin: 'center 40px' }} />
+            </div>
+
+            {/* Loading Brand & Status */}
+            <div className="space-y-3 w-full">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-ozo-red/10 border border-ozo-red/20 text-ozo-red text-[10px] font-black uppercase tracking-widest animate-pulse">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                <span>Orders Console</span>
+              </div>
+              
+              <h2 className="text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider leading-none">
+                Loading Order Details
+              </h2>
+              
+              <p className="text-[11px] font-semibold text-gray-550 dark:text-gray-400 max-w-[240px] mx-auto leading-relaxed">
+                Fetching real-time tracking, rider dispatch info, and transaction receipts...
+              </p>
+            </div>
+
+            {/* Glowing Progress Track */}
+            <div className="w-full bg-gray-100 dark:bg-white/5 h-1.5 rounded-full overflow-hidden mt-7 relative border border-gray-200/20 dark:border-white/5">
+              <div className="absolute top-0 bottom-0 w-[40%] bg-gradient-to-r from-ozo-red via-rose-500 to-emerald-500 rounded-full animate-progress-bar" />
+            </div>
           </div>
-          <p className="mt-6 text-gray-850 dark:text-gray-200 text-xs font-black uppercase tracking-widest animate-pulse notranslate" translate="no">
-            Loading Order details...
-          </p>
         </div>
       )
     }
