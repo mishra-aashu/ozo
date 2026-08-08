@@ -1042,27 +1042,33 @@ const Checkout = () => {
                       const activeAddr = userAddresses.find(a => a.id === selectedAddress) || userAddresses[0]
                       if (!activeAddr) return null
                       const parsed = parseLandmark(activeAddr.landmark)
+                      const Icon = getIcon(activeAddr.label)
                       return (
                         <div 
                           onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
-                          className="relative p-5 md:p-8 rounded-[2rem] border-2 border-ozo-red/45 bg-gradient-to-br from-red-50/40 to-transparent dark:from-ozo-red/10 dark:to-transparent cursor-pointer transition-all duration-300 hover:shadow-lg hover:shadow-ozo-red/5 group"
+                          className="address-card address-card-selected cursor-pointer group"
                         >
-                          <div className="flex flex-col gap-4 md:gap-6 w-full">
-                            
-                            {/* ROW 1: Home Badge & Actions Group */}
-                            <div className="flex justify-between items-center w-full">
-                              {/* Left: Badge & Serviceability */}
-                              <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 bg-gray-900 dark:bg-white/10 text-white rounded-lg shadow-sm">
-                                  {activeAddr.label}
-                                </span>
-                                
+                          {/* Left Side Icon */}
+                          <div className="card-icon">
+                            <Icon size={20} />
+                          </div>
+
+                          {/* Right Side Content */}
+                          <div className="card-content">
+                            <div className="card-header">
+                              <div className="title-wrapper">
+                                <h3>{activeAddr.label}</h3>
+                                {activeAddr.latitude && activeAddr.longitude && (
+                                  <span className="badge-pinned">
+                                    <MapPin size={10} /> PINNED
+                                  </span>
+                                )}
                                 {(() => {
                                   const isServiceable = activeAddr.latitude && activeAddr.longitude
                                     ? checkDeliveryZoneStatus(activeAddr.latitude, activeAddr.longitude, useCartStore.getState())
                                     : checkPincodeServiceable(activeAddr.pincode, activeAddr.city);
                                   return !isServiceable && (
-                                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider font-black text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2.5 py-1 rounded-lg border border-red-200 dark:border-red-900/30 animate-pulse">
+                                    <span className="badge-non-serviceable">
                                       ⚠️ Non-Serviceable
                                     </span>
                                   );
@@ -1093,53 +1099,43 @@ const Checkout = () => {
                               </div>
                             </div>
 
-                            {/* ROW 2 & 3: Unified Content Block with Perfect Left Baseline */}
-                            <div className="flex flex-col gap-2 pl-0.5">
-                              {/* User Detail Line */}
-                              {(parsed.receiverName || parsed.receiverPhone) && (
-                                <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-white font-black">
-                                  <User size={14} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
-                                  <span>{parsed.receiverName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
-                                  {parsed.receiverPhone && (
-                                    <>
-                                      <span className="text-gray-300 dark:text-gray-700 font-normal">|</span>
-                                      <Phone size={12} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
-                                      <span className="text-xs text-ozo-gray dark:text-gray-450 font-bold">
-                                        {parsed.receiverPhone}
-                                      </span>
-                                    </>
-                                  )}
-                                </div>
-                              )}
-
-                              {/* Address Details Group */}
-                              <div className="flex items-start gap-2 pt-0.5">
-                                <MapPin size={14} className="text-ozo-red dark:text-red-400 flex-shrink-0 mt-0.5" />
-                                <div className="flex flex-col gap-0.5">
-                                  <h4 className="text-sm font-black text-gray-955 dark:text-white leading-snug">
-                                    {activeAddr.address_line1 && activeAddr.address_line1.startsWith('Location Link: ') ? (
-                                      <a
-                                        href={activeAddr.google_maps_url || activeAddr.address_line1.replace('Location Link: ', '')}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        onClick={(e) => e.stopPropagation()}
-                                        className="text-[10px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-xl mt-0.5"
-                                      >
-                                        🗺️ View Pin on Map
-                                      </a>
-                                    ) : (
-                                      activeAddr.address_line1
-                                    )}
-                                  </h4>
-                                  <p className="text-xs text-ozo-gray dark:text-gray-450 font-bold leading-relaxed max-w-[90%]">
-                                    {activeAddr.address_line2 && activeAddr.address_line2 + ', '}
-                                    {parsed.landmark && `Near ${parsed.landmark}, `}
-                                    {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
-                                  </p>
-                                </div>
+                            {/* User details */}
+                            {(parsed.receiverName || parsed.receiverPhone) && (
+                              <div className="user-details">
+                                <span className="user-name">{parsed.receiverName}</span>
+                                {parsed.receiverPhone && (
+                                  <span className="user-phone">• {parsed.receiverPhone}</span>
+                                )}
                               </div>
-                            </div>
+                            )}
 
+                            {/* Address Details Group */}
+                            <div className="address-text">
+                              {activeAddr.address_line1 && activeAddr.address_line1.startsWith('Location Link: ') ? (
+                                <a
+                                  href={activeAddr.google_maps_url || activeAddr.address_line1.replace('Location Link: ', '')}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="address-card-link"
+                                >
+                                  🗺️ View Pin on Map
+                                </a>
+                              ) : (
+                                <p className="font-bold text-gray-800 dark:text-white text-[13px] leading-normal m-0">
+                                  {activeAddr.address_line1}
+                                </p>
+                              )}
+                              {activeAddr.address_line2 && (
+                                <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
+                                  {activeAddr.address_line2}
+                                </p>
+                              )}
+                              <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
+                                {parsed.landmark && `Near ${parsed.landmark}, `}
+                                {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       )
@@ -1191,30 +1187,29 @@ const Checkout = () => {
                                           setSelectedAddress(addr.id)
                                           setIsAddressDropdownOpen(false)
                                         }}
-                                        className="w-full relative p-5 rounded-[1.8rem] bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 hover:border-ozo-red/35 dark:hover:border-ozo-red/35 hover:shadow-md cursor-pointer transition-all duration-300 group"
+                                        className="address-card cursor-pointer group"
                                       >
-                                        <div className="flex flex-col gap-3 w-full">
-                                          
-                                          {/* Row 1: Header (Label, Badges & Actions) */}
-                                          <div className="flex justify-between items-center w-full">
-                                            <div className="flex items-center gap-2">
-                                              {/* Label Icon */}
-                                              <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-ozo-red flex items-center justify-center transition-colors">
-                                                <Icon size={16} />
-                                              </div>
-                                              
-                                              {/* Label Text */}
-                                              <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
-                                                {addr.label}
-                                              </span>
+                                        {/* Left Side Icon */}
+                                        <div className="card-icon">
+                                          <Icon size={20} />
+                                        </div>
 
-                                              {/* Serviceability Badge */}
+                                        {/* Right Side Content */}
+                                        <div className="card-content">
+                                          <div className="card-header">
+                                            <div className="title-wrapper">
+                                              <h3>{addr.label}</h3>
+                                              {addr.latitude && addr.longitude && (
+                                                <span className="badge-pinned">
+                                                  <MapPin size={10} /> PINNED
+                                                </span>
+                                              )}
                                               {(() => {
                                                 const isServiceable = addr.latitude && addr.longitude
                                                   ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
                                                   : checkPincodeServiceable(addr.pincode, addr.city);
                                                 return !isServiceable && (
-                                                  <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider font-black text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900/30 animate-pulse">
+                                                  <span className="badge-non-serviceable">
                                                     ⚠️ Non-Serviceable
                                                   </span>
                                                 );
@@ -1229,7 +1224,7 @@ const Checkout = () => {
                                                   e.stopPropagation()
                                                   handleEditAddressInit(addr)
                                                 }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 hover:text-ozo-red transition-all"
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 hover:text-ozo-red transition-all flex items-center justify-center"
                                                 title="Edit Address"
                                               >
                                                 <Pencil size={14} />
@@ -1240,7 +1235,7 @@ const Checkout = () => {
                                                   e.stopPropagation()
                                                   setAddressToDelete(addr.id)
                                                 }}
-                                                className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl text-gray-400 hover:text-red-500 transition-all"
+                                                className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl text-gray-400 hover:text-red-500 transition-all flex items-center justify-center"
                                                 title="Delete Address"
                                               >
                                                 <Trash2 size={14} />
@@ -1248,57 +1243,42 @@ const Checkout = () => {
                                             </div>
                                           </div>
 
-                                          {/* Row 2: Unified Content Block */}
-                                          <div className="flex flex-col gap-2 pl-0.5">
-                                            {/* Recipient Detail Line */}
-                                            {(parsed.receiverName || parsed.receiverPhone) && (
-                                              <div className="flex items-center gap-2 text-xs text-gray-900 dark:text-white font-black">
-                                                <User size={13} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
-                                                <span>{parsed.receiverName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
-                                                {parsed.receiverPhone && (
-                                                  <>
-                                                    <span className="text-gray-300 dark:text-gray-700 font-normal">|</span>
-                                                    <Phone size={11} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
-                                                    <span className="text-[11px] text-gray-500 dark:text-gray-455 font-bold">
-                                                      {parsed.receiverPhone}
-                                                    </span>
-                                                  </>
-                                                )}
-                                              </div>
-                                            )}
-
-                                            {/* Address Details */}
-                                            <div className="flex items-start gap-2 pt-0.5">
-                                              <MapPin size={13} className="text-gray-400 group-hover:text-ozo-red flex-shrink-0 mt-0.5 transition-colors" />
-                                              <div className="flex flex-col gap-0.5">
-                                                <h4 className="text-xs font-black text-gray-900 dark:text-white leading-snug">
-                                                  {isUrl ? (
-                                                    <a
-                                                      href={urlHref}
-                                                      target="_blank"
-                                                      rel="noopener noreferrer"
-                                                      onClick={(e) => e.stopPropagation()}
-                                                      className="text-[9px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-lg"
-                                                    >
-                                                      🗺️ View Pin on Map
-                                                    </a>
-                                                  ) : (
-                                                    addr.address_line1
-                                                  )}
-                                                </h4>
-                                                
-                                                {addr.address_line2 && (
-                                                  <p className="text-[11px] text-gray-550 dark:text-gray-450 font-bold leading-normal">
-                                                    {addr.address_line2}
-                                                  </p>
-                                                )}
-                                                
-                                                <p className="text-[11px] text-gray-500 dark:text-gray-455 font-bold leading-relaxed">
-                                                  {parsed.landmark && `Near ${parsed.landmark}, `}
-                                                  {addr.city}, {addr.state} - {addr.pincode}
-                                                </p>
-                                              </div>
+                                          {/* User details */}
+                                          {(parsed.receiverName || parsed.receiverPhone) && (
+                                            <div className="user-details">
+                                              <span className="user-name">{parsed.receiverName}</span>
+                                              {parsed.receiverPhone && (
+                                                <span className="user-phone">• {parsed.receiverPhone}</span>
+                                              )}
                                             </div>
+                                          )}
+
+                                          {/* Address details */}
+                                          <div className="address-text">
+                                            {isUrl ? (
+                                              <a
+                                                href={urlHref}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="address-card-link"
+                                              >
+                                                🗺️ View Pin on Map
+                                              </a>
+                                            ) : (
+                                              <p className="font-bold text-gray-800 dark:text-white text-[13px] leading-normal m-0">
+                                                {addr.address_line1}
+                                              </p>
+                                            )}
+                                            {addr.address_line2 && (
+                                              <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
+                                                {addr.address_line2}
+                                              </p>
+                                            )}
+                                            <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
+                                              {parsed.landmark && `Near ${parsed.landmark}, `}
+                                              {addr.city}, {addr.state} - {addr.pincode}
+                                            </p>
                                           </div>
                                         </div>
                                       </div>

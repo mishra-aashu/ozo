@@ -819,3 +819,207 @@ html, body, html[style], body[style] {
   animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   opacity: 0;
 }
+
+/* =============================================
+   STANDARDIZED ADDRESS CARD UI
+   ============================================= */
+
+/* Card Container Layout */
+.address-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.3s ease;
+  background-color: #ffffff;
+  border: 1px solid #e4e4e7;
+}
+
+.dark .address-card {
+  background-color: #141416;
+  border: 1px solid #27272a;
+}
+
+.address-card-selected {
+  border-color: #0D9E4F !important;
+  box-shadow: 0 10px 15px -3px rgba(13, 158, 79, 0.1), 0 4px 6px -2px rgba(13, 158, 79, 0.05);
+}
+
+.dark .address-card-selected {
+  border-color: #0D9E4F !important;
+}
+
+/* Left Icon Styling */
+.card-icon {
+  width: 42px;
+  height: 42px;
+  background-color: #f4f4f5;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Ensures icon doesn't shrink */
+  color: #71717a;
+  transition: all 0.2s ease;
+}
+
+.dark .card-icon {
+  background-color: #202024;
+  color: #a1a1aa;
+}
+
+/* Right Content Area */
+.card-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Header (Title + Badge + Menu Icon) */
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.title-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.title-wrapper h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #18181b;
+}
+
+.dark .title-wrapper h3 {
+  color: #ffffff;
+}
+
+/* Clean Badge Styling (Soft Accent) */
+.badge-pinned {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-default {
+  background-color: rgba(13, 158, 79, 0.15);
+  color: #0D9E4F;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.badge-non-serviceable {
+  background-color: rgba(245, 158, 11, 0.15);
+  color: #d97706;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.icon-btn-more {
+  background: transparent;
+  border: none;
+  color: #71717a;
+  cursor: pointer;
+  font-size: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s ease;
+}
+
+.dark .icon-btn-more {
+  color: #a1a1aa;
+}
+
+/* User Info Section (Background box remove kiya gaya hai) */
+.user-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: #71717a;
+  margin-top: 2px;
+}
+
+.dark .user-details {
+  color: #a1a1aa;
+}
+
+.user-name {
+  font-weight: 600;
+  color: #27272a;
+  text-transform: capitalize;
+}
+
+.dark .user-name {
+  color: #e4e4e7;
+}
+
+/* Address Paragraph Styling */
+.address-text {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #52525b;
+  line-height: 1.4;
+}
+
+.dark .address-text {
+  color: #a1a1aa;
+}
+
+.address-card-link {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #E23744;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: rgba(226, 55, 68, 0.08);
+  border: 1px solid rgba(226, 55, 68, 0.15);
+  padding: 4px 10px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  width: fit-content;
+  margin-top: 4px;
+}
+
+.address-card-link:hover {
+  text-decoration: underline;
+  background-color: rgba(226, 55, 68, 0.15);
+}
