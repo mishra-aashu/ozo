@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import {
@@ -155,6 +155,8 @@ const getSuggestions = (rating) => {
 const Orders = () => {
   const { 
     orders, 
+    totalCount,
+    orderStats,
     isLoading, 
     adminFetchOrders, 
     adminUpdateOrderStatus, 
@@ -190,9 +192,29 @@ const Orders = () => {
     }
   }, [orderIdParam, orders])
   const [searchQuery, setSearchQuery] = useState('')
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState('')
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery)
+      setCurrentPage(1)
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [searchQuery])
+
   const [statusFilter, setStatusFilter] = useState('all')
   const [currentPage, setCurrentPage] = useState(1)
   const pageSize = 10
+
+  const refreshOrders = useCallback(async () => {
+    await adminFetchOrders({
+      page: currentPage,
+      pageSize,
+      searchQuery: debouncedSearchQuery,
+      statusFilter
+    })
+  }, [adminFetchOrders, currentPage, pageSize, debouncedSearchQuery, statusFilter])
+
   const [selectedOrder, setSelectedOrder] = useState(null)
   const selectedOrderIdRef = useRef(null)
   useEffect(() => {
@@ -359,7 +381,7 @@ const Orders = () => {
         return prev
       })
 
-      await adminFetchOrders()
+      await refreshOrders()
     } catch (err) {
       console.error('Approve self-delivery error:', err)
       toast.error('Failed to approve request: ' + err.message, { id: toastId })
@@ -480,7 +502,7 @@ const Orders = () => {
       toast.success('Captain assigned successfully!')
 
       // 6. Refresh admin orders in store
-      await adminFetchOrders()
+      await refreshOrders()
 
       // 7. Update selectedOrder in local state by finding the latest version from updated list
       const latestOrder = useOrderStore.getState().orders.find(o => o.id === selectedOrder.id)
@@ -561,7 +583,7 @@ const Orders = () => {
       setReturnAdminComment('')
       // Refresh
       fetchReturnRequestForOrder(selectedOrder.id)
-      adminFetchOrders()
+      refreshOrders()
     } catch (err) {
       console.error(err)
       toast.error('Failed to approve return: ' + err.message, { id: toastId })
@@ -592,7 +614,7 @@ const Orders = () => {
       setReturnAdminComment('')
       // Refresh
       fetchReturnRequestForOrder(selectedOrder.id)
-      adminFetchOrders()
+      refreshOrders()
     } catch (err) {
       console.error(err)
       toast.error('Failed to reject return: ' + err.message, { id: toastId })
@@ -606,7 +628,7 @@ const Orders = () => {
 
     const safeFetchOrders = async () => {
       if (isMounted) {
-        await adminFetchOrders()
+        await refreshOrders()
       }
     }
 
@@ -642,7 +664,7 @@ const Orders = () => {
       isMounted = false
       supabase.removeChannel(channel)
     }
-  }, [adminFetchOrders])
+  }, [refreshOrders])
 
   // Sync selectedOrder with updated orders from store
   useEffect(() => {
@@ -862,7 +884,7 @@ const Orders = () => {
 
       toast.success('Order items and prices updated successfully!', { id: toastId })
       setIsEditingItems(false)
-      await adminFetchOrders()
+      await refreshOrders()
 
       setSelectedOrder(prev => {
         if (prev && prev.id === selectedOrder.id) {
@@ -946,32 +968,16 @@ const Orders = () => {
     setIsCancelling(false)
   }
 
-  // Filter Logic
-  const filteredOrders = orders.filter(order => {
-    // Search filter
-    const orderNum = order.order_number || order.id.slice(0, 8)
-    const matchesSearch = 
-      orderNum.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.customer?.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.customer?.email || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (order.customer?.phone || '').includes(searchQuery)
+  // Server-side filtered and paginated orders
+  const filteredOrders = orders
 
-    // Status filter - cancelled filter matches both store-cancelled and user-cancelled
-    const matchesStatus = statusFilter === 'all' || 
-      (statusFilter === 'cancelled'
-        ? ['cancelled', 'CANCELLED_BY_USER'].includes(order.status)
-        : order.status === statusFilter)
-
-    return matchesSearch && matchesStatus
-  })
-
-  // Metric Stats Calculations
+  // Metric Stats Calculations (Now fetched from server via RPC)
   const stats = {
-    total: orders.length,
-    pending: orders.filter(o => ['pending', 'PLACED_COOLING', 'CONFIRMED_SYSTEM'].includes(o.status)).length,
-    inTransit: orders.filter(o => ['confirmed', 'preparing', 'packed', 'assigned', 'preparing_order', 'picked_up', 'dispatched'].includes(o.status)).length,
-    delivered: orders.filter(o => ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(o.status)).length,
-    revenue: orders.filter(o => ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(o.status)).reduce((sum, o) => sum + (o.total || 0), 0)
+    total: orderStats.total || 0,
+    pending: orderStats.pending || 0,
+    inTransit: orderStats.inTransit || 0,
+    delivered: orderStats.delivered || 0,
+    revenue: orderStats.revenue || 0
   }
 
   if (orderIdParam) {
@@ -1086,7 +1092,7 @@ const Orders = () => {
           <p className="text-sm text-ozo-gray mt-1">Customer orders ko dispatch, track, aur cancel krein.</p>
         </div>
         <button
-          onClick={() => adminFetchOrders()}
+          onClick={() => refreshOrders()}
           className="flex items-center justify-center gap-2 bg-gray-100 dark:bg-white/5 text-gray-800 dark:text-white px-5 py-3 rounded-2xl font-bold border border-gray-200/50 dark:border-white/10 hover:scale-[1.02] active:scale-95 transition-all w-full sm:w-auto"
         >
           <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
@@ -1226,7 +1232,7 @@ const Orders = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-sm">
-                  {filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => {
+                  {filteredOrders.map((order) => {
                     const orderNum = order.order_number || order.id.slice(0, 8)
                     const dateString = new Date(order.created_at).toLocaleDateString('en-IN', {
                       day: '2-digit',
@@ -1389,7 +1395,7 @@ const Orders = () => {
 
             {/* Mobile Cards View */}
             <div className="lg:hidden space-y-4 py-2">
-              {filteredOrders.slice((currentPage - 1) * pageSize, currentPage * pageSize).map((order) => {
+              {filteredOrders.map((order) => {
                 const orderNum = order.order_number || order.id.slice(0, 8)
                 const dateString = new Date(order.created_at).toLocaleDateString('en-IN', {
                   day: '2-digit',
@@ -1561,12 +1567,12 @@ const Orders = () => {
         )}
 
         {/* Pagination Controls */}
-        {!isLoading && filteredOrders.length > pageSize && (
+        {!isLoading && totalCount > pageSize && (
           <div className="flex flex-col sm:flex-row items-center justify-between p-4 gap-3 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
             <span className="text-xs text-gray-500 dark:text-gray-400">
-              Showing <span className="font-bold text-gray-800 dark:text-gray-200">{Math.min(filteredOrders.length, (currentPage - 1) * pageSize + 1)}</span> to{' '}
-              <span className="font-bold text-gray-800 dark:text-gray-200">{Math.min(filteredOrders.length, currentPage * pageSize)}</span> of{' '}
-              <span className="font-bold text-gray-800 dark:text-gray-200">{filteredOrders.length}</span> orders
+              Showing <span className="font-bold text-gray-800 dark:text-gray-200">{Math.min(totalCount, (currentPage - 1) * pageSize + 1)}</span> to{' '}
+              <span className="font-bold text-gray-800 dark:text-gray-200">{Math.min(totalCount, currentPage * pageSize)}</span> of{' '}
+              <span className="font-bold text-gray-800 dark:text-gray-200">{totalCount}</span> orders
             </span>
             <div className="flex items-center gap-2">
               <button
@@ -1577,11 +1583,11 @@ const Orders = () => {
                 Previous
               </button>
               <span className="text-xs font-bold text-gray-700 dark:text-gray-300">
-                Page {currentPage} of {Math.ceil(filteredOrders.length / pageSize)}
+                Page {currentPage} of {Math.ceil(totalCount / pageSize)}
               </span>
               <button
-                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(filteredOrders.length / pageSize), prev + 1))}
-                disabled={currentPage === Math.ceil(filteredOrders.length / pageSize)}
+                onClick={() => setCurrentPage(prev => Math.min(Math.ceil(totalCount / pageSize), prev + 1))}
+                disabled={currentPage === Math.ceil(totalCount / pageSize)}
                 className="px-3 py-1.5 text-xs font-bold rounded-lg border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-50 transition-colors"
               >
                 Next

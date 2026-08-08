@@ -13,6 +13,8 @@ export const useOrderStore = create((set, get) => ({
   isPlacingOrder: false,
   serverTimeOffset: 0,
   unserviceableOrderError: null,
+  totalCount: 0,
+  orderStats: { total: 0, pending: 0, inTransit: 0, delivered: 0, revenue: 0 },
 
   clearUnserviceableOrderError: () => set({ unserviceableOrderError: null }),
 
@@ -533,10 +535,11 @@ export const useOrderStore = create((set, get) => ({
     }
   },
 
-  // Admin: Fetch all orders in system
-  adminFetchOrders: async () => {
+  // Admin: Fetch all orders in system (with server-side pagination, search, and filtering)
+  adminFetchOrders: async (options = {}) => {
     try {
       set({ isLoading: true })
+      const { page = 1, pageSize = 10, searchQuery = '', statusFilter = 'all' } = options
 
       const { profile, getScopedCities, getScopedMarts } = useAuthStore.getState()
       const isSuperAdmin = profile?.isSuperAdmin
@@ -632,8 +635,7 @@ export const useOrderStore = create((set, get) => ({
             product_id,
             created_at
           )
-        `)
-        .order('created_at', { ascending: false })
+        `, { count: 'exact' })
 
       if (needsFiltering) {
         if (allowedMartIds.length > 0) {
@@ -644,13 +646,47 @@ export const useOrderStore = create((set, get) => ({
         }
       }
 
-      // Fetch both orders and server time in parallel
-      const [queryResult, timeResult] = await Promise.all([
-        query,
-        supabaseAdmin.rpc('get_server_time')
+      // Apply statusFilter on backend
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'cancelled') {
+          query = query.in('status', ['cancelled', 'CANCELLED_BY_USER'])
+        } else {
+          query = query.eq('status', statusFilter)
+        }
+      }
+
+      // Apply searchQuery on backend (by order_number, recipient_name, recipient_phone, transaction_id, or customer users)
+      if (searchQuery.trim() !== '') {
+        const queryTerm = searchQuery.trim()
+        const { data: matchedUsers } = await supabaseAdmin
+          .from('users')
+          .select('id')
+          .or(`full_name.ilike.%${queryTerm}%,email.ilike.%${queryTerm}%,phone.ilike.%${queryTerm}%`)
+        
+        const matchedUserIds = matchedUsers ? matchedUsers.map(u => u.id) : []
+        
+        let orConditions = `order_number.ilike.%${queryTerm}%,recipient_name.ilike.%${queryTerm}%,recipient_phone.ilike.%${queryTerm}%,transaction_id.ilike.%${queryTerm}%`
+        if (matchedUserIds.length > 0) {
+          const userIdsStr = matchedUserIds.map(id => `"${id}"`).join(',')
+          orConditions += `,user_id.in.(${userIdsStr})`
+        }
+        query = query.or(orConditions)
+      }
+
+      // Pagination
+      const from = (page - 1) * pageSize
+      const to = from + pageSize - 1
+
+      // Fetch server time, stats, and orders in parallel
+      let statsParam = needsFiltering ? allowedMartIds : null
+
+      const [queryResult, timeResult, statsResult] = await Promise.all([
+        query.order('created_at', { ascending: false }).range(from, to),
+        supabaseAdmin.rpc('get_server_time'),
+        supabaseAdmin.rpc('get_admin_order_stats', { p_mart_ids: statsParam })
       ])
 
-      const { data, error } = queryResult
+      const { data, count, error } = queryResult
       if (error) throw error
 
       let offset = 0
@@ -674,8 +710,14 @@ export const useOrderStore = create((set, get) => ({
         })) : []
       }))
 
-      set({ orders: parsedOrders, serverTimeOffset: offset, isLoading: false })
-      return { success: true, data: parsedOrders }
+      set({ 
+        orders: parsedOrders, 
+        totalCount: count || 0,
+        orderStats: statsResult.data || { total: 0, pending: 0, inTransit: 0, delivered: 0, revenue: 0 },
+        serverTimeOffset: offset, 
+        isLoading: false 
+      })
+      return { success: true, data: parsedOrders, count }
     } catch (error) {
       console.error('Admin fetch orders error:', error)
       set({ isLoading: false })

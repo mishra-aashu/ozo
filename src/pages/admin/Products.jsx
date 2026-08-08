@@ -564,38 +564,23 @@ WHERE id = '${editingProduct.id}';`
       setProducts(data || [])
       setTotalCount(count || 0)
 
-      // 2. Fetch overall stats — use limit(0) instead of head:true
-      // (HEAD requests fail through Cloudflare proxy; limit(0) is a GET that returns count in Content-Range header)
-      let statsQuery1 = supabaseAdmin.from('products').select('*', { count: 'exact' })
-      let statsQuery2 = supabaseAdmin.from('products').select('*', { count: 'exact' }).eq('is_available', false)
-      let statsQuery3 = supabaseAdmin.from('products').select('*', { count: 'exact' }).eq('verification_status', 'pending')
-
+      // 2. Fetch overall stats using database RPC (efficient, single HTTP call, low memory overhead)
+      let statsParam = null
       if (needsFiltering) {
-        if (allowedMartIds.length > 0) {
-          statsQuery1 = statsQuery1.in('mart_id', allowedMartIds)
-          statsQuery2 = statsQuery2.in('mart_id', allowedMartIds)
-          statsQuery3 = statsQuery3.in('mart_id', allowedMartIds)
-        } else {
-          statsQuery1 = statsQuery1.eq('id', '00000000-0000-0000-0000-000000000000')
-          statsQuery2 = statsQuery2.eq('id', '00000000-0000-0000-0000-000000000000')
-          statsQuery3 = statsQuery3.eq('id', '00000000-0000-0000-0000-000000000000')
-        }
+        statsParam = allowedMartIds
+      }
+      
+      const { data: statsData, error: statsError } = await supabaseAdmin
+        .rpc('get_admin_product_stats', { p_mart_ids: statsParam })
+      
+      if (statsError) {
+        console.warn('Failed to load product stats via RPC:', statsError)
       }
 
-      const [totalAllResult, oosResult, pendingAllResult] = await Promise.all([
-        statsQuery1.limit(0),
-        statsQuery2.limit(0),
-        statsQuery3.limit(0)
-      ])
-
-      const totalAll = totalAllResult.count
-      const oos = oosResult.count
-      const pendingAll = pendingAllResult.count
-
       setStats({
-        total: totalAll ?? count ?? 0,
-        oos: oos ?? 0,
-        pending: pendingAll ?? 0
+        total: statsData?.total ?? count ?? 0,
+        oos: statsData?.oos ?? 0,
+        pending: statsData?.pending ?? 0
       })
     } catch (err) {
       console.error('Failed to load products list:', err)
