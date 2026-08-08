@@ -351,7 +351,7 @@ const ComboDetail = () => {
                   {baseProducts.map(product => (
                     <div 
                       key={product.id}
-                      className="p-4 rounded-2xl bg-gray-50/70 dark:bg-zinc-900/60 border border-gray-100 dark:border-zinc-855/40 flex items-center justify-between hover:border-gray-200 dark:hover:border-zinc-800 transition-colors"
+                      className="p-4 rounded-2xl bg-gray-50/70 dark:bg-zinc-900/60 border border-gray-100 dark:border-zinc-850/40 flex items-center justify-between hover:border-gray-200 dark:hover:border-zinc-800 transition-colors"
                     >
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-xl bg-white dark:bg-zinc-800/50 border border-gray-100 dark:border-zinc-800/40 p-1 flex items-center justify-center shadow-sm dark:shadow-none">
