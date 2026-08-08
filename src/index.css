@@ -2,6 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --color-ozo-red: #E23744;
+  --color-ozo-red-rgb: 226, 55, 68;
+  --color-ozo-red-light: #FF6B6B;
+  --color-ozo-red-light-rgb: 255, 107, 107;
+  --color-ozo-red-dark: #C41E3A;
+  --color-ozo-red-dark-rgb: 196, 30, 58;
+  
+  --color-ozo-green: #0D9E4F;
+  --color-ozo-green-rgb: 13, 158, 79;
+  --color-ozo-green-light: #2ECC71;
+  --color-ozo-green-light-rgb: 46, 204, 113;
+  --color-ozo-green-dark: #0A7B3E;
+  --color-ozo-green-dark-rgb: 10, 123, 62;
+  
+  --color-ozo-yellow: #FFB800;
+  --color-ozo-yellow-rgb: 255, 184, 0;
+  --color-ozo-orange: #FF6B35;
+  --color-ozo-orange-rgb: 255, 107, 53;
+}
+
 @layer base {
   *,
   *:focus,

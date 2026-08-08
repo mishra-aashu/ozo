@@ -1,3 +1,12 @@
+const withOpacity = (variableName, fallbackRgb) => {
+  return ({ opacityValue }) => {
+    if (opacityValue !== undefined) {
+      return `rgba(var(${variableName}, ${fallbackRgb}), ${opacityValue})`
+    }
+    return `rgb(var(${variableName}, ${fallbackRgb}))`
+  }
+}
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class',
@@ -37,14 +46,14 @@ export default {
         },
         // Custom OZO Colors
         ozo: {
-          red: 'var(--color-ozo-red, #E23744)',
-          'red-light': 'var(--color-ozo-red-light, #FF6B6B)',
-          'red-dark': 'var(--color-ozo-red-dark, #C41E3A)',
-          green: 'var(--color-ozo-green, #0D9E4F)',
-          'green-light': 'var(--color-ozo-green-light, #2ECC71)',
-          'green-dark': 'var(--color-ozo-green-dark, #0A7B3E)',
-          yellow: 'var(--color-ozo-yellow, #FFB800)',
-          orange: 'var(--color-ozo-orange, #FF6B35)',
+          red: withOpacity('--color-ozo-red-rgb', '226, 55, 68'),
+          'red-light': withOpacity('--color-ozo-red-light-rgb', '255, 107, 107'),
+          'red-dark': withOpacity('--color-ozo-red-dark-rgb', '196, 30, 58'),
+          green: withOpacity('--color-ozo-green-rgb', '13, 158, 79'),
+          'green-light': withOpacity('--color-ozo-green-light-rgb', '46, 204, 113'),
+          'green-dark': withOpacity('--color-ozo-green-dark-rgb', '10, 123, 62'),
+          yellow: withOpacity('--color-ozo-yellow-rgb', '255, 184, 0'),
+          orange: withOpacity('--color-ozo-orange-rgb', '255, 107, 53'),
           gray: '#686B78',
           'gray-light': '#93959F',
           'gray-lighter': '#D4D5D9',

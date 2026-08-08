@@ -967,7 +967,7 @@ const Checkout = () => {
           <div className="md:col-span-7 lg:col-span-8 space-y-6 md:space-y-10 lg:space-y-12">
             
             {/* Step 1: Delivery Address */}
-            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
+            <section className="bg-white dark:bg-[#121214] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
               <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-4">
                    <div className="w-12 h-12 bg-green-50 dark:bg-ozo-green/10 text-ozo-green rounded-2xl flex items-center justify-center">
@@ -1071,7 +1071,7 @@ const Checkout = () => {
                                     e.stopPropagation()
                                     handleEditAddressInit(activeAddr)
                                   }}
-                                  className="flex items-center gap-1.5 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3 rounded-full text-xs font-black text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red transition-all hover:scale-105 active:scale-95"
+                                  className="flex items-center gap-1.5 bg-white dark:bg-white/5 shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3 rounded-full text-xs font-black text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red transition-all hover:scale-105 active:scale-95"
                                   title="Edit Address"
                                 >
                                   <Pencil size={12} />
@@ -1079,7 +1079,7 @@ const Checkout = () => {
                                 </button>
                                 
                                 {/* Change Button */}
-                                <div className="flex items-center gap-1.5 bg-white dark:bg-[#1a1a1a] shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3.5 rounded-full text-xs font-black text-ozo-red transition-all hover:scale-105 active:scale-95">
+                                <div className="flex items-center gap-1.5 bg-white dark:bg-white/5 shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3.5 rounded-full text-xs font-black text-ozo-red transition-all hover:scale-105 active:scale-95">
                                   <span>Change</span>
                                   {isAddressDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                                 </div>
@@ -1184,7 +1184,7 @@ const Checkout = () => {
                                           setSelectedAddress(addr.id)
                                           setIsAddressDropdownOpen(false)
                                         }}
-                                        className="relative p-4 md:p-5 rounded-[1.5rem] border-2 border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#1a1a1a] cursor-pointer transition-all"
+                                        className="relative p-4 md:p-5 rounded-[1.5rem] border-2 border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#18181b] cursor-pointer transition-all"
                                       >
                                         <div className="flex items-start justify-between mb-3">
                                            <div className="flex items-center gap-2">
@@ -1317,7 +1317,7 @@ const Checkout = () => {
                                 notes: ''
                               });
                             }}
-                            className="p-6 rounded-[2.2rem] border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1a1a1a] hover:border-ozo-red dark:hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-ozo-red/5 transition-all text-left flex items-center gap-4 group active:scale-95 shadow-sm"
+                            className="p-6 rounded-[2.2rem] border border-gray-200 dark:border-white/5 bg-white dark:bg-[#18181b] hover:border-ozo-red dark:hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-ozo-red/5 transition-all text-left flex items-center gap-4 group active:scale-95 shadow-sm"
                           >
                             <div className="w-14 h-14 bg-red-50 dark:bg-ozo-red/10 text-ozo-red rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
                               <User size={26} />
@@ -1341,7 +1341,7 @@ const Checkout = () => {
                                 notes: ''
                               });
                             }}
-                            className="p-6 rounded-[2.2rem] border border-gray-200 dark:border-white/5 bg-white dark:bg-[#1a1a1a] hover:border-ozo-red dark:hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-ozo-red/5 transition-all text-left flex items-center gap-4 group active:scale-95 shadow-sm"
+                            className="p-6 rounded-[2.2rem] border border-gray-200 dark:border-white/5 bg-white dark:bg-[#18181b] hover:border-ozo-red dark:hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-ozo-red/5 transition-all text-left flex items-center gap-4 group active:scale-95 shadow-sm"
                           >
                             <div className="w-14 h-14 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
                               <Users size={26} />
@@ -1400,7 +1400,7 @@ const Checkout = () => {
             </section>
 
             {/* Step 2: Payment Method */}
-            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
+            <section className="bg-white dark:bg-[#121214] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
               <div className="flex items-center gap-4 mb-6 md:mb-8">
                  <div className="w-12 h-12 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center">
                     <CreditCard size={24} />
@@ -1421,7 +1421,7 @@ const Checkout = () => {
                     className={`relative p-4 md:p-6 rounded-[1.5rem] border-2 cursor-pointer transition-all ${
                       paymentMethod === method.id 
                       ? 'border-ozo-red bg-red-50/20 dark:bg-ozo-red/5 ring-4 ring-ozo-red/10 shadow-sm' 
-                      : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#1a1a1a]'
+                      : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#18181b]'
                     }`}
                   >
                     <div className="flex items-start gap-4">
@@ -1476,7 +1476,7 @@ const Checkout = () => {
 
           {/* Order Summary Sidebar */}
           <div className="md:col-span-5 lg:col-span-4 md:sticky md:top-36 z-30">
-            <section className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 md:p-8 shadow-xl border border-gray-100 dark:border-white/5">
+            <section className="bg-white dark:bg-[#121214] rounded-[2rem] p-6 md:p-8 shadow-xl border border-gray-100 dark:border-white/5">
                <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-black">Order Summary</h3>
                   <button 
@@ -1735,7 +1735,7 @@ const Checkout = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-2xl border border-gray-100 dark:border-white/5 w-full max-w-md relative z-10 text-center text-gray-800 dark:text-white"
+              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-2xl border border-gray-100 dark:border-white/5 w-full max-w-md relative z-10 text-center text-gray-800 dark:text-white"
             >
               <div className="w-16 h-16 bg-red-50 dark:bg-ozo-red/10 text-ozo-red rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <Trash2 size={28} />
@@ -1795,7 +1795,7 @@ const Checkout = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-2xl border border-gray-100 dark:border-white/5 w-full max-w-md relative z-10 text-center text-gray-800 dark:text-white"
+              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-2xl border border-gray-100 dark:border-white/5 w-full max-w-md relative z-10 text-center text-gray-800 dark:text-white"
             >
               <div className="w-16 h-16 bg-amber-50 dark:bg-amber-950/20 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner animate-pulse">
                 <AlertTriangle size={28} />
@@ -1866,7 +1866,7 @@ const Checkout = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-6 md:p-8 shadow-2xl border border-gray-100 dark:border-white/10 w-full max-w-md relative z-10 text-gray-800 dark:text-white max-h-[90vh] flex flex-col"
+              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-6 md:p-8 shadow-2xl border border-gray-100 dark:border-white/10 w-full max-w-md relative z-10 text-gray-800 dark:text-white max-h-[90vh] flex flex-col"
             >
               {/* Top Header */}
               <div className="flex items-start justify-between mb-4">
