@@ -66,54 +66,8 @@ const getProductHighlights = (product) => {
   if (!product) return []
   
   const highlights = []
-  
-  const categoryName = (product.category?.name || '').toLowerCase()
-  const categorySlug = (product.category?.slug || '').toLowerCase()
-  const productName = (product.name || '').toLowerCase()
-  
-  // List of keywords indicating non-food categories or cosmetic items
-  const nonFoodKeywords = [
-    'beauty', 'hygiene', 'shampoo', 'conditioner', 'soap', 'cleaner', 'detergent', 
-    'personal care', 'skin', 'face', 'hair', 'body wash', 'lotion', 'cream', 
-    'perfume', 'deodorant', 'household', 'utensil', 'brush', 'toothpaste', 
-    'diaper', 'wipes', 'scrubber', 'liquid wash', 'sanitizer', 'makeup', 'cosmetic',
-    'comb', 'oil for hair', 'hair oil', 'perfumes', 'perfumed', 'fragrance',
-    'shaving', 'razor', 'blade', 'grooming'
-  ]
-  
-  // Whitelist keywords indicating food items
-  const foodKeywords = [
-    'veg', 'fruit', 'greens', 'organic', 'snack', 'food', 'drink', 'beverage', 
-    'dairy', 'bakery', 'grocery', 'oil', 'masala', 'meat', 'fish', 'egg', 'chocolate', 
-    'sweet', 'cookie', 'cereal', 'staple', 'spices', 'rice', 'noodle', 'pasta', 
-    'sauce', 'spread', 'mandi', 'snack', 'biscuit', 'namkeen', 'tea', 'coffee'
-  ]
 
-  const hasNonFoodKeyword = nonFoodKeywords.some(kw => 
-    categoryName.includes(kw) || 
-    categorySlug.includes(kw) || 
-    productName.includes(kw)
-  )
-
-  const hasFoodKeyword = foodKeywords.some(kw => 
-    categoryName.includes(kw) || 
-    categorySlug.includes(kw) || 
-    productName.includes(kw)
-  )
-
-  // A product is a food item if it explicitly matches food signals or has no non-food signal
-  const isFood = hasFoodKeyword || !hasNonFoodKeyword
-  
-  // 1. Veg / Non-Veg status (Only for Food Items)
-  if (isFood && product.is_vegetarian !== null && product.is_vegetarian !== undefined) {
-    highlights.push({
-      text: product.is_vegetarian ? '100% Vegetarian' : 'Non-Vegetarian',
-      type: 'veg_status',
-      color: product.is_vegetarian ? 'bg-ozo-green' : 'bg-ozo-red'
-    })
-  }
-
-  // 2. Brand Authenticity
+  // 1. Brand Authenticity
   if (product.brand && typeof product.brand === 'string' && product.brand.trim()) {
     highlights.push({
       text: `Original ${product.brand.trim()}`,
@@ -122,7 +76,7 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 3. Shelf Life / Storage Advice
+  // 2. Shelf Life / Storage Advice
   if (product.shelf_life_hours) {
     highlights.push({
       text: `Shelf Life: ${getShelfLifeString(product)}`,
@@ -137,7 +91,7 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 4. Bestseller / Featured badges
+  // 3. Bestseller / Featured badges
   if (product.is_bestseller) {
     highlights.push({
       text: 'OZO Bestseller',
@@ -146,7 +100,7 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 5. Max Order limit
+  // 4. Max Order limit
   if (product.max_order_qty && product.max_order_qty > 0 && product.max_order_qty < 50) {
     highlights.push({
       text: `Max Order Limit: ${product.max_order_qty} units`,
@@ -155,7 +109,7 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 6. Barcode / SKU
+  // 5. Barcode / SKU
   if (product.barcode && typeof product.barcode === 'string' && product.barcode.trim()) {
     highlights.push({
       text: `SKU: ${product.barcode.trim()}`,
@@ -164,7 +118,7 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 7. Check if product has tags for quality/origin (filtered and cleaned)
+  // 6. Check if product has tags for quality/origin (filtered and cleaned)
   let tagList = []
   if (Array.isArray(product.tags)) {
     tagList = product.tags
@@ -207,7 +161,7 @@ const getProductHighlights = (product) => {
     })
   }
 
-  // 8. Fallback items to guarantee at least 4 items if database fields are sparse
+  // 7. Fallback items to guarantee at least 4 items if database fields are sparse
   const defaultItems = [
     { text: 'Superfast Delivery', color: 'bg-ozo-red' },
     { text: 'Hygienically Packed', color: 'bg-ozo-green' },
@@ -224,14 +178,11 @@ const getProductHighlights = (product) => {
     defaultIdx++
   }
 
-  // Visual layout coloring polish: veg/non-veg status keeps its color, others alternate nicely
-  return highlights.slice(0, 4).map((h, idx) => {
-    if (h.type === 'veg_status') return h
-    return {
-      ...h,
-      color: idx % 2 === 0 ? 'bg-ozo-green' : 'bg-ozo-red'
-    }
-  })
+  // Visual layout coloring polish: alternate colors nicely
+  return highlights.slice(0, 4).map((h, idx) => ({
+    ...h,
+    color: idx % 2 === 0 ? 'bg-ozo-green' : 'bg-ozo-red'
+  }))
 }
 
 const ProductDetail = () => {
