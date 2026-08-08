@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users as UsersIcon,
@@ -962,8 +963,8 @@ WHERE id = '${selectedUser.id}';`
 
       {/* Details Sliding Drawer (Overlay Layout) */}
       <AnimatePresence>
-        {isDrawerOpen && selectedUser && (
-          <div className="fixed inset-0 z-50 flex justify-end">
+        {isDrawerOpen && selectedUser && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-[9999] flex justify-end">
             {/* Backdrop Blur Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -982,28 +983,30 @@ WHERE id = '${selectedUser.id}';`
               className="relative w-full max-w-xl bg-white dark:bg-[#0c0c0c] border-l border-gray-150 dark:border-white/5 shadow-2xl h-full flex flex-col z-10"
             >
               {/* Header profile area */}
-              <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.01] flex items-center justify-between">
-                <div className="flex items-center gap-3">
+              <div className="p-6 border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.01] flex items-center justify-between gap-4 min-w-0">
+                <div className="flex items-center gap-3 min-w-0 flex-1">
                   <UserAvatar
                     profile={selectedUser}
                     className="w-12 h-12 rounded-full overflow-hidden bg-white shadow-sm border border-gray-200 dark:border-white/5 flex-shrink-0"
                     imgClassName="w-full h-full object-cover"
                   />
-                  <div>
-                    <h3 className="text-lg font-extrabold text-gray-900 dark:text-white truncate max-w-[280px]">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-base sm:text-lg font-extrabold text-gray-900 dark:text-white truncate">
                       {selectedUser.full_name || 'No Name'}
                     </h3>
-                    <p className="text-xs text-gray-400 font-mono mt-0.5 truncate max-w-[280px]">
+                    <p className="text-xs text-gray-400 font-mono mt-0.5 truncate">
                       {selectedUser.id}
                     </p>
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={() => setIsDrawerOpen(false)}
-                  className="p-2 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all"
+                  className="p-2.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-550 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white transition-all shrink-0 flex items-center justify-center border border-gray-200/10"
+                  aria-label="Close details"
                 >
-                  <X className="w-4 h-4" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -1836,7 +1839,8 @@ WHERE id = '${selectedUser.id}';`
                 )}
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>
