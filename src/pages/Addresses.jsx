@@ -16,7 +16,8 @@ import {
   ChevronDown,
   ChevronUp,
   User,
-  Users
+  Users,
+  Phone
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findCityByPincode } from '../stores/locationStore'
@@ -467,43 +468,50 @@ const Addresses = () => {
                       </div>
 
                       {/* Address Lines */}
-                      <div className="space-y-1.5 mb-6 pr-6">
+                      <div className="space-y-2 mb-6 pr-6">
                         {(parsed.receiverName || parsed.receiverPhone) && (
-                          <div className="flex items-center gap-1.5 text-xs font-bold text-ozo-red dark:text-red-400 mb-2 bg-red-50/50 dark:bg-ozo-red/5 px-2.5 py-1.5 rounded-xl w-fit">
-                            <User size={12} className="shrink-0" />
-                            <span>{parsed.receiverName || 'Contact'}</span>
-                            {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
+                          <div className="flex items-center gap-2 text-xs text-gray-900 dark:text-white font-black mb-3">
+                            <User size={13} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                            <span>{parsed.receiverName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
+                            {parsed.receiverPhone && (
+                              <>
+                                <span className="text-gray-300 dark:text-gray-700 font-normal">|</span>
+                                <Phone size={11} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                <span className="text-xs text-ozo-gray dark:text-gray-450 font-bold">
+                                  {parsed.receiverPhone}
+                                </span>
+                              </>
+                            )}
                           </div>
                         )}
                         {addr.address_line1 && addr.address_line1.startsWith('Location Link: ') ? (
-                          <p className="font-bold text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
-                            Location Link:{' '}
+                          <div className="mb-2">
                             <a
                               href={addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
                               target="_blank"
                               rel="noopener noreferrer"
                               onClick={(e) => e.stopPropagation()}
-                              className="text-ozo-red hover:underline break-all"
+                              className="text-[10px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-xl"
                             >
-                              {addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
+                              🗺️ View Pin on Map
                             </a>
-                          </p>
+                          </div>
                         ) : (
-                          <p className="font-bold text-gray-700 dark:text-gray-300 text-sm leading-relaxed">
+                          <p className="font-bold text-gray-800 dark:text-white text-sm leading-relaxed">
                             {addr.address_line1}
                           </p>
                         )}
                         {addr.address_line2 && (
-                          <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold">
+                          <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold leading-normal">
                             {addr.address_line2}
                           </p>
                         )}
                         {parsed.landmark && (
-                          <p className="text-gray-500 dark:text-gray-400 text-xs font-semibold">
+                          <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5">
                             Landmark: {parsed.landmark}
                           </p>
                         )}
-                        <p className="font-bold text-gray-800 dark:text-gray-200 text-xs mt-1">
+                        <p className="font-black text-gray-900 dark:text-white text-xs mt-1.5 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5 px-2.5 py-1 rounded-lg w-fit">
                           {addr.city}, {addr.state} - {addr.pincode}
                         </p>
                       </div>

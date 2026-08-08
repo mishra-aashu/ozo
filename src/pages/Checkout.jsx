@@ -46,6 +46,13 @@ import useOzoQuery from '../hooks/useOzoQuery'
 import OptimizedImage from '../components/OptimizedImage'
 import { supabase } from '../lib/supabase'
 
+const getIcon = (title) => {
+  const t = (title || '').toLowerCase()
+  if (t.includes('home')) return Home
+  if (t.includes('work') || t.includes('office')) return Briefcase
+  return MapPin
+}
+
 const Checkout = () => {
   const { t } = useTranslation()
   const navigate = useNavigate()
@@ -1174,6 +1181,9 @@ const Checkout = () => {
                                 <>
                                   {otherAddresses.map((addr) => {
                                     const parsed = parseLandmark(addr.landmark)
+                                    const Icon = getIcon(addr.label || '')
+                                    const isUrl = addr.address_line1 && (addr.address_line1.startsWith('Location Link: ') || addr.address_line1.startsWith('http'))
+                                    const urlHref = isUrl ? (addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')) : ''
                                     return (
                                       <div 
                                         key={addr.id}
@@ -1181,78 +1191,116 @@ const Checkout = () => {
                                           setSelectedAddress(addr.id)
                                           setIsAddressDropdownOpen(false)
                                         }}
-                                        className="relative p-4 md:p-5 rounded-[1.5rem] border-2 border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#18181b] cursor-pointer transition-all"
+                                        className="w-full relative p-5 rounded-[1.8rem] bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 hover:border-ozo-red/35 dark:hover:border-ozo-red/35 hover:shadow-md cursor-pointer transition-all duration-300 group"
                                       >
-                                        <div className="flex items-start justify-between mb-3">
-                                           <div className="flex items-center gap-2">
-                                             <span className="text-[10px] font-black uppercase tracking-widest px-3 py-1 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 rounded-lg">
-                                               {addr.label}
-                                             </span>
-                                             {(() => {
-                                               const isServiceable = addr.latitude && addr.longitude
-                                                 ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
-                                                 : checkPincodeServiceable(addr.pincode, addr.city);
-                                               return !isServiceable && (
-                                                 <span className="flex items-center gap-1 text-[10px] uppercase tracking-widest font-black text-red-650 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded border border-red-200">
-                                                   ⚠️ Non-Serviceable
-                                                 </span>
-                                               );
-                                             })()}
-                                           </div>
-                                           <div className="flex items-center gap-1">
-                                             <button
-                                               type="button"
-                                               onClick={(e) => {
-                                                 e.stopPropagation()
-                                                 handleEditAddressInit(addr)
-                                               }}
-                                               className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
-                                               title="Edit Address"
-                                             >
-                                               <Pencil size={14} />
+                                        <div className="flex flex-col gap-3 w-full">
+                                          
+                                          {/* Row 1: Header (Label, Badges & Actions) */}
+                                          <div className="flex justify-between items-center w-full">
+                                            <div className="flex items-center gap-2">
+                                              {/* Label Icon */}
+                                              <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-ozo-red flex items-center justify-center transition-colors">
+                                                <Icon size={16} />
+                                              </div>
+                                              
+                                              {/* Label Text */}
+                                              <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                                                {addr.label}
+                                              </span>
+
+                                              {/* Serviceability Badge */}
+                                              {(() => {
+                                                const isServiceable = addr.latitude && addr.longitude
+                                                  ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
+                                                  : checkPincodeServiceable(addr.pincode, addr.city);
+                                                return !isServiceable && (
+                                                  <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider font-black text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900/30 animate-pulse">
+                                                    ⚠️ Non-Serviceable
+                                                  </span>
+                                                );
+                                              })()}
+                                            </div>
+
+                                            {/* Actions Group (Edit & Delete) */}
+                                            <div className="flex items-center gap-1 shrink-0">
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  handleEditAddressInit(addr)
+                                                }}
+                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 hover:text-ozo-red transition-all"
+                                                title="Edit Address"
+                                              >
+                                                <Pencil size={14} />
                                               </button>
-                                             <button
-                                               type="button"
-                                               onClick={(e) => {
-                                                 e.stopPropagation()
-                                                 setAddressToDelete(addr.id)
-                                               }}
-                                               className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-lg text-gray-400 hover:text-ozo-red transition-colors"
-                                               title="Delete Address"
-                                             >
-                                               <Trash2 size={14} />
-                                             </button>
-                                           </div>
-                                        </div>
-                                        
-                                        {(parsed.receiverName || parsed.receiverPhone) && (
-                                          <div className="flex items-center gap-1.5 text-[10px] font-black text-ozo-gray dark:text-gray-400 mb-1.5 bg-gray-50 dark:bg-white/5 px-2 py-0.5 rounded-md w-fit">
-                                            <User size={10} className="text-ozo-gray dark:text-gray-400 flex-shrink-0" />
-                                            <span>{parsed.receiverName}</span>
-                                            {parsed.receiverPhone && <span className="opacity-60">• {parsed.receiverPhone}</span>}
+                                              <button
+                                                type="button"
+                                                onClick={(e) => {
+                                                  e.stopPropagation()
+                                                  setAddressToDelete(addr.id)
+                                                }}
+                                                className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl text-gray-400 hover:text-red-500 transition-all"
+                                                title="Delete Address"
+                                              >
+                                                <Trash2 size={14} />
+                                              </button>
+                                            </div>
                                           </div>
-                                        )}
-                                        
-                                        {addr.address_line1 && addr.address_line1.startsWith('Location Link: ') ? (
-                                           <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">
-                                             <a
-                                               href={addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')}
-                                               target="_blank"
-                                               rel="noopener noreferrer"
-                                               onClick={(e) => e.stopPropagation()}
-                                               className="text-[10px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-xl mt-0.5"
-                                             >
-                                               🗺️ View Pin on Map
-                                             </a>
-                                           </p>
-                                         ) : (
-                                           <p className="text-sm font-bold text-gray-900 dark:text-white mb-1">{addr.address_line1}</p>
-                                         )}
-                                        <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium leading-relaxed">
-                                          {addr.address_line2 && addr.address_line2 + ', '}
-                                          {parsed.landmark && `Near ${parsed.landmark}, `}
-                                          {addr.city}, {addr.state} - {addr.pincode}
-                                        </p>
+
+                                          {/* Row 2: Unified Content Block */}
+                                          <div className="flex flex-col gap-2 pl-0.5">
+                                            {/* Recipient Detail Line */}
+                                            {(parsed.receiverName || parsed.receiverPhone) && (
+                                              <div className="flex items-center gap-2 text-xs text-gray-900 dark:text-white font-black">
+                                                <User size={13} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                                <span>{parsed.receiverName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
+                                                {parsed.receiverPhone && (
+                                                  <>
+                                                    <span className="text-gray-300 dark:text-gray-700 font-normal">|</span>
+                                                    <Phone size={11} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                                    <span className="text-[11px] text-gray-500 dark:text-gray-455 font-bold">
+                                                      {parsed.receiverPhone}
+                                                    </span>
+                                                  </>
+                                                )}
+                                              </div>
+                                            )}
+
+                                            {/* Address Details */}
+                                            <div className="flex items-start gap-2 pt-0.5">
+                                              <MapPin size={13} className="text-gray-400 group-hover:text-ozo-red flex-shrink-0 mt-0.5 transition-colors" />
+                                              <div className="flex flex-col gap-0.5">
+                                                <h4 className="text-xs font-black text-gray-900 dark:text-white leading-snug">
+                                                  {isUrl ? (
+                                                    <a
+                                                      href={urlHref}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      onClick={(e) => e.stopPropagation()}
+                                                      className="text-[9px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-lg"
+                                                    >
+                                                      🗺️ View Pin on Map
+                                                    </a>
+                                                  ) : (
+                                                    addr.address_line1
+                                                  )}
+                                                </h4>
+                                                
+                                                {addr.address_line2 && (
+                                                  <p className="text-[11px] text-gray-550 dark:text-gray-450 font-bold leading-normal">
+                                                    {addr.address_line2}
+                                                  </p>
+                                                )}
+                                                
+                                                <p className="text-[11px] text-gray-500 dark:text-gray-455 font-bold leading-relaxed">
+                                                  {parsed.landmark && `Near ${parsed.landmark}, `}
+                                                  {addr.city}, {addr.state} - {addr.pincode}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
                                       </div>
                                     )
                                   })}

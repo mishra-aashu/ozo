@@ -18,7 +18,8 @@ import {
   Trash2,
   User,
   Users,
-  MoreVertical
+  MoreVertical,
+  Phone
 } from 'lucide-react'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findMatchingActiveCity, findCityByPincode } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
@@ -972,108 +973,155 @@ const SelectLocation = () => {
                         <div
                           key={addr.id}
                           onClick={() => handleSelect(addr)}
-                          className="w-full flex items-start justify-between p-5 bg-white dark:bg-white/5 rounded-[2rem] hover:bg-gray-50 dark:hover:bg-white/10 transition-all text-left group border border-gray-100 dark:border-white/5 hover:shadow-lg cursor-pointer gap-4 relative"
+                          className="w-full relative p-5 md:p-6 rounded-[2rem] bg-white dark:bg-[#121214] border border-gray-100 dark:border-white/5 hover:border-ozo-red/35 dark:hover:border-ozo-red/35 hover:shadow-lg cursor-pointer transition-all duration-300 group"
                         >
-                          <div className="flex items-start gap-3.5 min-w-0 flex-1">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#1a1a1a] flex items-center justify-center flex-shrink-0 group-hover:bg-white dark:group-hover:bg-white/10 group-hover:shadow-md transition-all mt-0.5">
-                              <Icon size={20} className="text-ozo-gray dark:text-gray-400 group-hover:text-ozo-red transition-colors" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="font-black text-gray-900 dark:text-white capitalize">{addr.label || addr.title}</p>
+                          <div className="flex flex-col gap-3 w-full">
+                            
+                            {/* Row 1: Header (Label, Badges & Options) */}
+                            <div className="flex justify-between items-center w-full">
+                              <div className="flex items-center gap-2">
+                                {/* Label Icon */}
+                                <div className="w-8 h-8 rounded-xl bg-gray-50 dark:bg-white/5 text-gray-500 dark:text-gray-400 group-hover:text-ozo-red flex items-center justify-center transition-colors">
+                                  <Icon size={16} />
+                                </div>
+                                
+                                {/* Label Text */}
+                                <span className="text-xs font-black uppercase tracking-wider text-gray-905 dark:text-white">
+                                  {addr.label || addr.title}
+                                </span>
+
+                                {/* Pinned Badge */}
                                 {addr.latitude && addr.longitude && (
-                                  <span className="text-[8px] uppercase tracking-wider font-black text-ozo-red bg-red-50 dark:bg-ozo-red/10 px-2 py-0.5 rounded-full border border-ozo-red/15 flex items-center gap-1 shrink-0">
-                                    <MapPin size={8} /> Pinned
+                                  <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider font-black text-ozo-red dark:text-red-400 bg-red-50 dark:bg-ozo-red/10 px-2 py-0.5 rounded-lg border border-ozo-red/15">
+                                    <MapPin size={10} /> Pinned
                                   </span>
                                 )}
+
+                                {/* Serviceability Badge */}
+                                {(() => {
+                                  const isServiceable = addr.latitude && addr.longitude
+                                    ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
+                                    : checkPincodeServiceable(addr.pincode, addr.city);
+                                  return !isServiceable && (
+                                    <span className="flex items-center gap-1 text-[9px] uppercase tracking-wider font-black text-red-650 dark:text-red-400 bg-red-50 dark:bg-red-950/20 px-2 py-0.5 rounded-lg border border-red-200 dark:border-red-900/30 animate-pulse">
+                                      ⚠️ Non-Serviceable
+                                    </span>
+                                  );
+                                })()}
                               </div>
-                              
+
+                              {/* Options Button (kebab) */}
+                              <div className="relative flex items-center shrink-0">
+                                <button 
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setActiveMenuId(activeMenuId === addr.id ? null : addr.id)
+                                  }}
+                                  className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl transition-all text-gray-400 hover:text-ozo-red"
+                                  title="More Options"
+                                >
+                                  <MoreVertical size={16} />
+                                </button>
+
+                                <AnimatePresence>
+                                  {activeMenuId === addr.id && (
+                                    <>
+                                      <div 
+                                        className="fixed inset-0 z-45" 
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          setActiveMenuId(null)
+                                        }}
+                                      />
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                                        transition={{ duration: 0.15 }}
+                                        className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl border border-gray-100 dark:border-white/5 py-1.5 z-50 overflow-hidden"
+                                      >
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setActiveMenuId(null)
+                                            handleOpenEditForm(addr, e)
+                                          }}
+                                          className="w-full px-4 py-2.5 text-left text-xs font-bold text-gray-700 dark:text-gray-250 hover:bg-gray-55 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
+                                        >
+                                          <EditIcon size={14} className="text-gray-400" />
+                                          <span>Edit Address</span>
+                                        </button>
+                                        <button
+                                          onClick={(e) => {
+                                            e.stopPropagation()
+                                            setActiveMenuId(null)
+                                            setAddressToDelete(addr.id)
+                                          }}
+                                          className="w-full px-4 py-2.5 text-left text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 flex items-center gap-2 transition-colors border-t border-gray-100 dark:border-white/5"
+                                        >
+                                          <Trash2 size={14} className="text-red-400" />
+                                          <span>Delete</span>
+                                        </button>
+                                      </motion.div>
+                                    </>
+                                  )}
+                                </AnimatePresence>
+                              </div>
+                            </div>
+
+                            {/* Row 2: Unified Content Block */}
+                            <div className="flex flex-col gap-2 pl-0.5">
+                              {/* Recipient Detail Line */}
                               {(parsed.receiverName || parsed.receiverPhone) && (
-                                <div className="inline-flex flex-wrap items-center gap-1.5 text-[10px] font-bold text-ozo-red dark:text-red-400 mt-1.5 bg-red-50/50 dark:bg-ozo-red/5 border border-ozo-red/10 px-2 py-0.5 rounded-lg w-fit max-w-full">
-                                  <User size={10} className="shrink-0" />
-                                  <span className="break-words">{parsed.receiverName}</span>
+                                <div className="flex items-center gap-2 text-xs text-gray-900 dark:text-white font-black">
+                                  <User size={13} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                  <span>{parsed.receiverName.toLowerCase().replace(/\b\w/g, l => l.toUpperCase())}</span>
                                   {parsed.receiverPhone && (
-                                    <span className="opacity-70 font-semibold break-all">({parsed.receiverPhone})</span>
+                                    <>
+                                      <span className="text-gray-300 dark:text-gray-700 font-normal">|</span>
+                                      <Phone size={11} className="text-ozo-red dark:text-red-400 flex-shrink-0" />
+                                      <span className="text-[11px] text-gray-500 dark:text-gray-450 font-bold">
+                                        {parsed.receiverPhone}
+                                      </span>
+                                    </>
                                   )}
                                 </div>
                               )}
 
-                              {isUrl ? (
-                                <div className="flex flex-wrap items-center gap-2 mt-2">
-                                  <a
-                                    href={urlHref}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="text-[10px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-xl shrink-0"
-                                  >
-                                    🗺️ View Pin on Map
-                                  </a>
-                                  {addr.city && <span className="text-xs text-ozo-gray dark:text-gray-400 font-bold">• {addr.city}</span>}
+                              {/* Address Details */}
+                              <div className="flex items-start gap-2 pt-0.5">
+                                <MapPin size={13} className="text-gray-400 group-hover:text-ozo-red flex-shrink-0 mt-0.5 transition-colors" />
+                                <div className="flex flex-col gap-0.5">
+                                  <h4 className="text-xs font-black text-gray-900 dark:text-white leading-snug">
+                                    {isUrl ? (
+                                      <a
+                                        href={urlHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="text-[9px] font-black tracking-wider uppercase text-ozo-red hover:underline inline-flex items-center gap-1.5 bg-red-50 dark:bg-ozo-red/10 border border-ozo-red/15 px-2.5 py-1 rounded-lg"
+                                      >
+                                        🗺️ View Pin on Map
+                                      </a>
+                                    ) : (
+                                      addr.address_line1
+                                    )}
+                                  </h4>
+                                  
+                                  {addr.address_line2 && (
+                                    <p className="text-[11px] text-gray-550 dark:text-gray-450 font-bold leading-normal">
+                                      {addr.address_line2}
+                                    </p>
+                                  )}
+                                  
+                                  <p className="text-[11px] text-gray-500 dark:text-gray-450 font-bold leading-relaxed">
+                                    {parsed.landmark && `Near ${parsed.landmark}, `}
+                                    {addr.city}, {addr.state} - {addr.pincode}
+                                  </p>
                                 </div>
-                              ) : (
-                                <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold mt-1.5 leading-relaxed break-words">
-                                  {addr.address_line1}{addr.city && `, ${addr.city}`}
-                                </p>
-                              )}
+                              </div>
                             </div>
-                          </div>
 
-                          <div className="relative flex items-center gap-1.5 flex-shrink-0 mt-0.5">
-                            <button 
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                setActiveMenuId(activeMenuId === addr.id ? null : addr.id)
-                              }}
-                              className="p-2 hover:bg-gray-150 dark:hover:bg-white/10 rounded-xl transition-all text-gray-455 hover:text-ozo-red"
-                              title="More Options"
-                            >
-                              <MoreVertical size={18} />
-                            </button>
-
-                            <AnimatePresence>
-                              {activeMenuId === addr.id && (
-                                <>
-                                  <div 
-                                    className="fixed inset-0 z-45" 
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      setActiveMenuId(null)
-                                    }}
-                                  />
-                                  <motion.div
-                                    initial={{ opacity: 0, scale: 0.95, y: -10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                                    transition={{ duration: 0.15 }}
-                                    className="absolute right-0 top-full mt-1 w-36 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-xl border border-gray-100 dark:border-white/5 py-1.5 z-50 overflow-hidden"
-                                  >
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setActiveMenuId(null)
-                                        handleOpenEditForm(addr, e)
-                                      }}
-                                      className="w-full px-4 py-2.5 text-left text-xs font-bold text-gray-700 dark:text-gray-250 hover:bg-gray-55 dark:hover:bg-white/5 flex items-center gap-2 transition-colors"
-                                    >
-                                      <EditIcon size={14} className="text-gray-400" />
-                                      <span>Edit Address</span>
-                                    </button>
-                                    <button
-                                      onClick={(e) => {
-                                        e.stopPropagation()
-                                        setActiveMenuId(null)
-                                        setAddressToDelete(addr.id)
-                                      }}
-                                      className="w-full px-4 py-2.5 text-left text-xs font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 flex items-center gap-2 transition-colors border-t border-gray-100 dark:border-white/5"
-                                    >
-                                      <Trash2 size={14} className="text-red-400" />
-                                      <span>Delete</span>
-                                    </button>
-                                  </motion.div>
-                                </>
-                              )}
-                            </AnimatePresence>
                           </div>
                         </div>
                       )
