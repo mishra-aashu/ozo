@@ -938,7 +938,7 @@ const ProductDetail = () => {
              <motion.div 
                initial={{ opacity: 0, scale: 0.95 }}
                animate={{ opacity: 1, scale: 1 }}
-               className="relative rounded-[2.5rem] overflow-hidden bg-white dark:bg-[#111111] border border-gray-150 dark:border-white/10 shadow-premium group"
+               className="relative rounded-[2.5rem] overflow-hidden bg-white dark:bg-white border border-gray-150 dark:border-gray-200/50 shadow-premium group"
              >
                 {/* Badges */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
@@ -973,14 +973,7 @@ const ProductDetail = () => {
                      </button>
                  </div>
 
-                 <div className={`w-full aspect-[4/3.8] max-h-[440px] flex items-center justify-center p-6 sm:p-8 md:p-10 relative transition-colors duration-300 ${
-                    (!imageBgColor || (isDark && imageBgColor !== '#ffffff')) ? 'bg-gray-50/80 dark:bg-[#181818]' : ''
-                  }`}
-                  style={{ 
-                    backgroundColor: imageBgColor === '#ffffff' 
-                      ? (isDark ? '#f3f4f6' : '#ffffff') 
-                      : (imageBgColor || undefined) 
-                  }}>
+                 <div className={`w-full aspect-[4/3.8] max-h-[440px] flex items-center justify-center p-6 sm:p-8 md:p-10 relative transition-colors duration-300 bg-white dark:bg-white`}>
                     <button 
                       onClick={() => setIsImageModalOpen(true)}
                       className="w-full h-full flex items-center justify-center cursor-zoom-in focus:outline-none"
@@ -997,8 +990,6 @@ const ProductDetail = () => {
                           isOutOfStock ? 'grayscale opacity-50 contrast-75' : ''
                         }`}
                         containerClassName="w-full h-full flex items-center justify-center"
-                         onLoad={handleImageLoad}
-                         style={{ mixBlendMode: (isDark && imageBgColor === '#ffffff') ? 'multiply' : undefined }}
                       />
                     </button>
                     
@@ -1039,7 +1030,7 @@ const ProductDetail = () => {
                           setActiveImage(imgUrl)
                           setImageBgColor(null)
                         }}
-                       className={`w-16 h-16 rounded-xl overflow-hidden border-2 bg-white dark:bg-[#111111] p-1.5 flex items-center justify-center transition-all ${
+                       className={`w-16 h-16 rounded-xl overflow-hidden border-2 bg-white dark:bg-white p-1.5 flex items-center justify-center transition-all ${
                          (activeImage || currentProduct?.image_url) === imgUrl
                            ? 'border-ozo-red shadow-md scale-105'
                            : 'border-transparent opacity-70 hover:opacity-100'
@@ -1061,54 +1052,60 @@ const ProductDetail = () => {
           {/* Right: Product Info */}
           <div className="md:col-span-7 lg:col-span-7 xl:col-span-7 flex flex-col">
             <div className="flex-1">
-              <div className="flex items-center gap-2 mb-4 flex-wrap">
-                <span className="px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red text-[10px] font-black uppercase tracking-widest rounded-lg border border-ozo-red/10">
-                  {currentProduct?.category?.name || 'Fresh Produce'}
-                </span>
-                {getProductBrand(currentProduct) && (
-                  <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/10">
-                    Brand: {getProductBrand(currentProduct)}
+              <div className="flex flex-col gap-2.5 mb-6">
+                {/* Category & Status Row */}
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-ozo-red bg-ozo-red/5 px-2.5 py-1 rounded-lg border border-ozo-red/10">
+                    {currentProduct?.category?.name || 'Fresh Produce'}
                   </span>
-                )}
-                {currentProduct?.is_available ? (
-                   <span className="flex items-center gap-1.5 text-ozo-green text-[10px] font-black uppercase tracking-widest">
-                     <div className="w-2 h-2 rounded-full bg-ozo-green animate-pulse" />
-                     In Stock
-                   </span>
-                ) : (
-                  <div className="flex flex-col gap-0.5">
-                    {isUpcoming ? (
-                      <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Listing Soon</span>
-                    ) : (
-                      <span className="text-ozo-red text-[10px] font-black uppercase tracking-widest">Out of Stock</span>
-                    )}
+                  {isAdmin && (
+                    <button
+                      onClick={toggleAvailability}
+                      disabled={isUpdatingAvailability}
+                      className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-800 dark:text-zinc-200 text-[10px] font-black uppercase tracking-widest rounded-lg transition-colors border border-black/10 dark:border-white/10 active:scale-95 disabled:opacity-50"
+                    >
+                      {isUpdatingAvailability ? (
+                        <Loader2 className="w-3 h-3 animate-spin text-ozo-red" />
+                      ) : (
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+                      )}
+                      Toggle Status (Admin)
+                    </button>
+                  )}
+                </div>
+
+                {/* Brand Name Subtitle */}
+                {getProductBrand(currentProduct) && (
+                  <div className="text-xs font-black uppercase tracking-[0.25em] text-emerald-600 dark:text-emerald-400 mt-1">
+                    {getProductBrand(currentProduct)}
                   </div>
                 )}
-                {isAdmin && (
-                  <button
-                    onClick={toggleAvailability}
-                    disabled={isUpdatingAvailability}
-                    className="ml-auto flex items-center gap-1.5 px-3 py-1 bg-zinc-100 hover:bg-zinc-200 dark:bg-white/10 dark:hover:bg-white/15 text-zinc-800 dark:text-zinc-200 text-[10px] font-black uppercase tracking-widest rounded-lg transition-colors border border-black/10 dark:border-white/10 active:scale-95 disabled:opacity-50"
-                  >
-                    {isUpdatingAvailability ? (
-                      <Loader2 className="w-3 h-3 animate-spin text-ozo-red" />
-                    ) : (
-                      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-                    )}
-                    Toggle Status (Admin)
-                  </button>
-                )}
-              </div>
 
-              {getProductBrand(currentProduct) && (
-                <div className="text-xs font-black uppercase tracking-[0.2em] text-ozo-red mb-1.5">
-                  {getProductBrand(currentProduct)}
+                {/* Product Title */}
+                <h1 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-gray-900 dark:text-white leading-tight break-words mt-1">
+                  {currentProduct?.name}
+                </h1>
+
+                {/* Product Meta Row (Unit & Availability) */}
+                <div className="flex items-center gap-2.5 text-xs text-ozo-gray dark:text-gray-400 font-bold mt-1">
+                  <span>{currentProduct?.unit}</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-700" />
+                  {currentProduct?.is_available ? (
+                    <span className="flex items-center gap-1 text-ozo-green text-[10px] font-black uppercase tracking-widest">
+                      <span className="w-1.5 h-1.5 rounded-full bg-ozo-green animate-pulse" />
+                      In Stock
+                    </span>
+                  ) : (
+                    <span>
+                      {isUpcoming ? (
+                        <span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Listing Soon</span>
+                      ) : (
+                        <span className="text-ozo-red text-[10px] font-black uppercase tracking-widest">Out of Stock</span>
+                      )}
+                    </span>
+                  )}
                 </div>
-              )}
-              <h1 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 dark:text-white mb-2 leading-tight break-words">
-                {currentProduct?.name}
-              </h1>
-              <p className="text-xl font-bold text-ozo-gray dark:text-gray-400 mb-6">{currentProduct?.unit}</p>
+              </div>
 
               {/* Variant Selector */}
               {variants && variants.length > 1 && (
@@ -1226,7 +1223,7 @@ const ProductDetail = () => {
                 <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-6 font-semibold">Inclusive of all taxes</p>
 
                 {/* Main Action Bar */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:max-w-[420px]">
                   {isOutOfStock ? (
                     <div className="w-full flex flex-col gap-2">
                       {isUpcoming ? (
@@ -1244,7 +1241,7 @@ const ProductDetail = () => {
                         (!isUpcoming && launchConfig?.show_out_of_stock_btn !== false)) && (
                         <button
                           onClick={handleNotifyMe}
-                          className={`w-full h-14 rounded-2xl font-black text-sm sm:text-base uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg border ${
+                          className={`w-full h-12 rounded-2xl font-black text-sm uppercase tracking-widest transition-all flex items-center justify-center gap-2 shadow-lg border ${
                             isNotified
                               ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400'
                               : 'border-ozo-red/30 text-ozo-red bg-ozo-red/5 hover:bg-gradient-ozo hover:text-white hover:border-transparent active:scale-95'
@@ -1267,7 +1264,7 @@ const ProductDetail = () => {
                   ) : (
                     <div className="flex items-center gap-2 sm:gap-3 w-full">
                       {/* Quantity Stepper */}
-                      <div className={`flex items-center justify-between rounded-2xl p-1 sm:p-1.5 border transition-all duration-300 shrink-0 ${
+                      <div className={`flex items-center justify-between rounded-2xl p-1 border transition-all duration-300 shrink-0 ${
                         cartQuantity > 0 
                           ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 shadow-sm' 
                           : 'bg-gray-50 dark:bg-[#1a1a20] border-gray-200 dark:border-white/10 text-gray-900 dark:text-white'
@@ -1275,31 +1272,31 @@ const ProductDetail = () => {
                         <button 
                           onClick={handleDecrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
+                          className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
                             cartQuantity > 0 
                               ? 'hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
                               : 'hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-200'
                           }`}
                           aria-label="Decrease quantity"
                         >
-                          <Minus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                          <Minus className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 stroke-[3px]" />
                         </button>
 
-                        <span className="w-7 sm:w-9 text-center font-black text-base sm:text-lg select-none">
+                        <span className="w-6 sm:w-8 text-center font-black text-sm sm:text-base select-none">
                           {cartQuantity > 0 ? cartQuantity : quantity}
                         </span>
 
                         <button 
                           onClick={handleIncrement}
                           disabled={!currentProduct?.price || !currentProduct?.is_available}
-                          className={`w-9 h-9 sm:w-11 sm:h-11 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
+                          className={`w-8 h-8 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl transition-all active:scale-90 disabled:opacity-30 disabled:cursor-not-allowed ${
                             cartQuantity > 0 
                               ? 'hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' 
                               : 'hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-200'
                           }`}
                           aria-label="Increase quantity"
                         >
-                          <Plus className="w-4 h-4 sm:w-5 sm:h-5 stroke-[3px]" />
+                          <Plus className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5 stroke-[3px]" />
                         </button>
                       </div>
 
@@ -1307,7 +1304,7 @@ const ProductDetail = () => {
                       <button 
                         onClick={cartQuantity > 0 ? () => navigate('/cart') : handleAddToCart}
                         disabled={!currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)}
-                        className={`flex-1 h-12 sm:h-14 rounded-2xl font-black text-xs sm:text-base lg:text-lg tracking-wide sm:tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-6 shadow-lg ${
+                        className={`flex-1 h-11 sm:h-12 rounded-2xl font-black text-xs sm:text-sm lg:text-base tracking-wide sm:tracking-wider transition-all duration-300 active:scale-[0.98] flex items-center justify-center gap-1.5 sm:gap-2.5 px-3 sm:px-6 shadow-lg ${
                           !currentProduct?.price || (!currentProduct?.is_available && cartQuantity === 0)
                             ? 'opacity-50 cursor-not-allowed bg-gray-200 dark:bg-white/10 text-gray-400'
                             : cartQuantity > 0
