@@ -382,7 +382,7 @@ export const useLocationStore = create(
               }
             }
 
-            const maxRadius = parseFloat(nearestCityObj.service_radius_km) || 30.0
+            const maxRadius = Math.max(parseFloat(nearestCityObj.service_radius_km) || 25.0, 25.0)
             const isServiceable = minDistance <= maxRadius
 
             set({ 
