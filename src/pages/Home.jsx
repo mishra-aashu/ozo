@@ -1708,7 +1708,7 @@ const Home = () => {
   // If the user's location is initialized and set, but not mapped to a serviceable city, show Not Serviceable state on Home directly
   if (isLocationInitialized && address && !selectedCitySlug) {
     return (
-      <div className="min-h-[85vh] flex items-center justify-center px-4 py-12 relative overflow-hidden bg-white dark:bg-[#0a0a0a]">
+      <div className="min-h-[85vh] flex items-center justify-center px-3 sm:px-6 py-8 sm:py-12 relative overflow-hidden bg-white dark:bg-[#0a0a0a]">
         <SEO 
           title="OZO Mart | Out of Service Zone"
           description="OZO Mart is currently not active in your area. We are expanding rapidly!"
@@ -1719,41 +1719,41 @@ const Home = () => {
           <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-rose-500/10 dark:bg-rose-500/15 blur-[100px] rounded-full animate-pulse-slow opacity-60" />
         </div>
 
-        <div className="relative z-10 w-full max-w-lg bg-gray-50/50 dark:bg-zinc-900/50 border border-gray-100 dark:border-zinc-850 rounded-[2.5rem] p-8 shadow-premium backdrop-blur-md text-center">
+        <div className="relative z-10 w-full max-w-[460px] sm:max-w-lg bg-gray-55/95 dark:bg-zinc-900/90 border border-gray-150 dark:border-zinc-800 rounded-[2.2rem] p-5 xs:p-6 sm:p-8 shadow-premium backdrop-blur-md text-center">
           {/* Animated map pin icon */}
-          <div className="relative mx-auto mb-6 w-20 h-20 flex items-center justify-center">
+          <div className="relative mx-auto mb-4 sm:mb-6 w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
             <span className="absolute inline-flex h-full w-full rounded-full bg-ozo-red/20 animate-ping opacity-75" />
-            <div className="relative flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-ozo-red to-rose-500 text-white rounded-full shadow-lg">
-              <MapPin size={32} className="animate-bounce" />
+            <div className="relative flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-ozo-red to-rose-500 text-white rounded-full shadow-lg">
+              <MapPin size={24} className="sm:size-[32px] animate-bounce" />
             </div>
           </div>
 
-          <h1 className="text-2xl xs:text-3xl font-extrabold text-zinc-900 dark:text-white mb-2 leading-tight">
+          <h1 className="text-xl xs:text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white mb-1.5 leading-tight">
             We're Not in Your Area Yet
           </h1>
-          <p className="text-sm font-semibold text-ozo-red mb-6">
+          <p className="text-xs sm:text-sm font-semibold text-ozo-red mb-5 sm:mb-6">
             Currently serving Aurangabad, Bihar and nearby zones.
           </p>
 
-          <div className="bg-white/60 dark:bg-zinc-800/40 rounded-2xl p-5 mb-8 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed text-left border border-gray-150 dark:border-zinc-700/40">
-            <p className="mb-3 font-semibold text-zinc-800 dark:text-zinc-200">
+          <div className="bg-white/60 dark:bg-zinc-800/40 rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed text-left border border-gray-150 dark:border-zinc-700/40">
+            <p className="mb-2 font-semibold text-zinc-800 dark:text-zinc-200">
               Detected Location:
             </p>
-            <p className="font-bold text-zinc-950 dark:text-white break-words bg-gray-100 dark:bg-zinc-800/60 p-3.5 rounded-xl border border-gray-200 dark:border-zinc-700">
+            <p className="font-bold text-zinc-950 dark:text-white break-words bg-gray-100 dark:bg-zinc-800/60 p-3 sm:p-3.5 rounded-xl border border-gray-200 dark:border-zinc-700">
               {address}
             </p>
-            <p className="mt-4 text-zinc-550 dark:text-zinc-400">
+            <p className="mt-3.5 text-zinc-550 dark:text-zinc-400">
               If OZO fetched the wrong coordinates, please verify your serviceable 6-digit pincode or change your location manually.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center">
             <button
               onClick={() => {
                 const { showServiceabilityModal } = useLocationStore.getState()
                 showServiceabilityModal('Aurangabad, Bihar', '')
               }}
-              className="flex-1 py-3.5 px-6 bg-gradient-to-r from-ozo-red to-rose-600 hover:from-rose-600 hover:to-ozo-red text-white font-bold text-sm rounded-xl transition-all shadow-md active:scale-95"
+              className="flex-1 py-3 sm:py-3.5 px-5 sm:px-6 bg-gradient-to-r from-ozo-red to-rose-600 hover:from-rose-600 hover:to-ozo-red text-white font-bold text-sm rounded-xl transition-all shadow-md active:scale-95"
             >
               Verify Pincode
             </button>
@@ -1761,7 +1761,7 @@ const Home = () => {
               onClick={() => {
                 navigate('/select-location')
               }}
-              className="flex-1 py-3.5 px-6 bg-gray-100 hover:bg-gray-250 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-white font-bold text-sm rounded-xl transition-all active:scale-95"
+              className="flex-1 py-3 sm:py-3.5 px-5 sm:px-6 bg-gray-150 hover:bg-gray-250 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-white font-bold text-sm rounded-xl transition-all active:scale-95"
             >
               Change Location
             </button>
