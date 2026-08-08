@@ -364,6 +364,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
 
     const matches = []
     const nearestCity = useLocationStore.getState().nearestCity
+    const nearestCityName = nearestCity?.name ? nearestCity.name.split(',')[0].trim() : ''
 
     // 1. Search localities
     localities.forEach(loc => {
@@ -381,7 +382,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
             type: 'Locality / Area',
             lat,
             lng,
-            city: nearestCity?.name || ''
+            city: nearestCityName
           })
         }
       }
@@ -406,7 +407,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
             lat,
             lng,
             description: `Near ${lm.name}${parentName}`,
-            city: nearestCity?.name || ''
+            city: nearestCityName
           })
         }
       }
@@ -431,7 +432,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
             lat,
             lng,
             description: `${g.name}${parentName}`,
-            city: nearestCity?.name || ''
+            city: nearestCityName
           })
         }
       }

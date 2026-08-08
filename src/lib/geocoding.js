@@ -177,7 +177,7 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
     let nearestState = 'Unknown';
     let nearestPostcode = '';
     if (nearestCity) {
-      nearestCityName = nearestCity.name || nearestCityName;
+      nearestCityName = nearestCity.name.split(',')[0].trim() || nearestCityName;
       nearestState = nearestCity.state || nearestState;
       nearestPostcode = nearestCity.slug?.includes('aurangabad') ? '824101' : '';
     }
@@ -203,7 +203,7 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
   if (nearestCity) {
     const distToNearest = getDistance(lat, lng, parseFloat(nearestCity.latitude), parseFloat(nearestCity.longitude));
     if (distToNearest <= 50.0) {
-      nearestCityNameFallback = nearestCity.name || nearestCityNameFallback;
+      nearestCityNameFallback = nearestCity.name.split(',')[0].trim() || nearestCityNameFallback;
       nearestStateFallback = nearestCity.state || nearestStateFallback;
     }
   }

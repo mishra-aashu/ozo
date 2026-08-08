@@ -388,6 +388,8 @@ const SelectLocation = () => {
     if (!query) return []
 
     const matches = []
+    const nearestCity = useLocationStore.getState().nearestCity
+    const nearestCityName = nearestCity?.name ? nearestCity.name.split(',')[0].trim() : 'Aurangabad'
 
     // 1. Search localities
     localities.forEach(loc => {
@@ -405,7 +407,7 @@ const SelectLocation = () => {
             type: 'Locality / Area',
             lat,
             lng,
-            city: 'Aurangabad'
+            city: nearestCityName
           })
         }
       }
@@ -430,7 +432,7 @@ const SelectLocation = () => {
             lat,
             lng,
             description: `Near ${lm.name}${parentName}`,
-            city: 'Aurangabad'
+            city: nearestCityName
           })
         }
       }
@@ -455,7 +457,7 @@ const SelectLocation = () => {
             lat,
             lng,
             description: `${g.name}${parentName}`,
-            city: 'Aurangabad'
+            city: nearestCityName
           })
         }
       }

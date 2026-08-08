@@ -241,16 +241,17 @@ export default function LocationPromptModal() {
     }
 
     if (matchedCity) {
+      const baseCityName = matchedCity.name.split(',')[0].trim();
       // Save details locally in store
       useLocationStore.setState({
-        address: `Pincode: ${pincodeInput}, ${matchedCity.name}, ${matchedCity.state || 'Bihar'}`,
+        address: `Pincode: ${pincodeInput}, ${baseCityName}, ${matchedCity.state || 'Bihar'}`,
         coordinates: { lat: parseFloat(matchedCity.latitude), lng: parseFloat(matchedCity.longitude) },
         nearestCity: matchedCity,
         selectedCitySlug: matchedCity.slug,
         addressDetails: {
           road: '',
           suburb: '',
-          city: matchedCity.name,
+          city: baseCityName,
           state: matchedCity.state || 'Bihar',
           postcode: pincodeInput
         }
