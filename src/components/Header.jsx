@@ -495,11 +495,15 @@ const Header = () => {
                     <p className="text-[6px] xs:text-[8px] lg:text-[10px] uppercase tracking-widest text-ozo-gray dark:text-gray-400 font-black leading-none mb-0.5">
                       Deliver to
                     </p>
-                    {!isLocationServiceable && (
+                    {isLocationServiceable && address ? (
+                      <span className="text-[6px] xs:text-[8px] lg:text-[9px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/40 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
+                        Serviceable
+                      </span>
+                    ) : !isLocationServiceable ? (
                       <span className="text-[6px] xs:text-[8px] lg:text-[9px] font-black text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
                         Not Serviceable
                       </span>
-                    )}
+                    ) : null}
                   </div>
                   <p className={`text-[9px] xs:text-xs lg:text-sm font-black flex items-center gap-0.5 xs:gap-1 truncate ${
                     isLocationServiceable ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'
@@ -905,11 +909,15 @@ const Header = () => {
               <div className="text-left min-w-0 flex-1">
                 <div className="flex items-center gap-1.5">
                   <p className="text-[8px] uppercase tracking-widest text-ozo-gray dark:text-gray-400 font-black leading-none mb-0.5">Deliver to</p>
-                  {!isLocationServiceable && (
+                  {isLocationServiceable && address ? (
+                    <span className="text-[7px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/40 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
+                      Serviceable
+                    </span>
+                  ) : !isLocationServiceable ? (
                     <span className="text-[7px] font-black text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
                       Not Serviceable
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <p className={`text-xs font-black flex items-center gap-1 truncate ${
                   isLocationServiceable ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'
