@@ -92,9 +92,40 @@ export const applyDynamicTheme = (themeConfig) => {
   if (primaryRgb) {
     root.style.setProperty('--color-ozo-red-rgb', primaryRgb);
   }
+  const primaryLightRgb = hexToRgb(primaryLight);
+  if (primaryLightRgb) {
+    root.style.setProperty('--color-ozo-red-light-rgb', primaryLightRgb);
+  }
+  const primaryDarkRgb = hexToRgb(primaryDark);
+  if (primaryDarkRgb) {
+    root.style.setProperty('--color-ozo-red-dark-rgb', primaryDarkRgb);
+  }
+
   const secondaryRgb = hexToRgb(secondary);
   if (secondaryRgb) {
     root.style.setProperty('--color-ozo-green-rgb', secondaryRgb);
+  }
+  const secondaryLightRgb = hexToRgb(secondaryLight);
+  if (secondaryLightRgb) {
+    root.style.setProperty('--color-ozo-green-light-rgb', secondaryLightRgb);
+  }
+  const secondaryDarkRgb = hexToRgb(secondaryDark);
+  if (secondaryDarkRgb) {
+    root.style.setProperty('--color-ozo-green-dark-rgb', secondaryDarkRgb);
+  }
+
+  const yellow = themeConfig.yellow_color || '#FFB800';
+  root.style.setProperty('--color-ozo-yellow', yellow);
+  const yellowRgb = hexToRgb(yellow);
+  if (yellowRgb) {
+    root.style.setProperty('--color-ozo-yellow-rgb', yellowRgb);
+  }
+
+  const orange = themeConfig.orange_color || '#FF6B35';
+  root.style.setProperty('--color-ozo-orange', orange);
+  const orangeRgb = hexToRgb(orange);
+  if (orangeRgb) {
+    root.style.setProperty('--color-ozo-orange-rgb', orangeRgb);
   }
 };
 
