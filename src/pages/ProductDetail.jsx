@@ -935,8 +935,8 @@ const ProductDetail = () => {
                         src={activeImage || currentProduct?.image_url} 
                         slug={(!activeImage || activeImage === currentProduct?.image_url) ? currentProduct?.slug : undefined}
                         alt={currentProduct?.name}
-                        width={500}
-                        quality={85}
+                        width={800}
+                        quality={95}
                         loading="eager"
                         fetchPriority="high"
                         className={`max-h-[300px] sm:max-h-[360px] w-auto h-auto max-w-full object-contain transition-transform duration-500 group-hover:scale-105 drop-shadow-sm ${
@@ -1011,6 +1011,11 @@ const ProductDetail = () => {
                 <span className="px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red text-[10px] font-black uppercase tracking-widest rounded-lg border border-ozo-red/10">
                   {currentProduct?.category?.name || 'Fresh Produce'}
                 </span>
+                {currentProduct?.brand && (
+                  <span className="px-3 py-1 bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest rounded-lg border border-emerald-500/10">
+                    Brand: {currentProduct.brand}
+                  </span>
+                )}
                 {currentProduct?.is_available ? (
                    <span className="flex items-center gap-1.5 text-ozo-green text-[10px] font-black uppercase tracking-widest">
                      <div className="w-2 h-2 rounded-full bg-ozo-green animate-pulse" />
@@ -1041,6 +1046,11 @@ const ProductDetail = () => {
                 )}
               </div>
 
+              {currentProduct?.brand && (
+                <div className="text-xs font-black uppercase tracking-[0.2em] text-ozo-red mb-1.5">
+                  {currentProduct.brand}
+                </div>
+              )}
               <h1 className="text-3xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-gray-900 dark:text-white mb-2 leading-tight break-words">
                 {currentProduct?.name}
               </h1>
