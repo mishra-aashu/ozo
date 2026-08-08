@@ -28,12 +28,13 @@ const MainLayout = () => {
     fetchActiveCities().catch(console.error)
   }, [fetchActiveCities])
 
-  // Geo-Guard: Redirect to select location if no valid city has been resolved
+  // Geo-Guard: Redirect to select location if no address has been set at all
   useEffect(() => {
-    if (isLocationInitialized && !selectedCitySlug && !isSelectLocation && !isAuthPage && !isAdminPage) {
+    const address = useLocationStore.getState().address
+    if (isLocationInitialized && !address && !isSelectLocation && !isAuthPage && !isAdminPage) {
       navigate('/select-location', { replace: true })
     }
-  }, [isLocationInitialized, selectedCitySlug, isSelectLocation, isAuthPage, isAdminPage, navigate])
+  }, [isLocationInitialized, isSelectLocation, isAuthPage, isAdminPage, navigate])
 
   useEffect(() => {
     let checkInterval
