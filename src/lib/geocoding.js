@@ -245,7 +245,7 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
       if (!c.latitude || !c.longitude) continue;
       const cLat = parseFloat(c.latitude);
       const cLng = parseFloat(c.longitude);
-      const maxRadius = parseFloat(c.service_radius_km) || 15.0;
+      const maxRadius = Math.max(parseFloat(c.service_radius_km) || 25.0, 25.0);
 
       const dLat = (lat - cLat) * Math.PI / 180;
       const dLon = (lng - cLng) * Math.PI / 180;

@@ -86,7 +86,7 @@ export const findMatchingActiveCityForDetails = (addr, coords, details, activeCi
     }
 
     if (nearestCityObj) {
-      const maxRadius = parseFloat(nearestCityObj.service_radius_km) || 30
+      const maxRadius = Math.max(parseFloat(nearestCityObj.service_radius_km) || 25.0, 25.0)
       if (minDistance <= maxRadius) {
         return nearestCityObj
       }
