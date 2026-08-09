@@ -129,18 +129,18 @@ const BottomNav = () => {
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
             exit={{ opacity: 0, y: 40, scale: 0.95, x: '-50%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 360 }}
-            className="fixed bottom-[88px] md:bottom-6 left-1/2 w-max max-w-[calc(100%-2rem)] bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full py-2.5 pl-4 pr-2.5 flex items-center shadow-[0_8px_20px_rgba(249,115,22,0.25)] z-50 border border-white/10"
+            className="fixed bottom-[calc(96px+env(safe-area-inset-bottom,0px))] md:bottom-6 left-1/2 w-max max-w-[calc(100%-2rem)] bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full py-1.5 pl-3 pr-2 flex items-center shadow-[0_8px_20px_rgba(249,115,22,0.25)] z-50 border border-white/10"
           >
             <Link
               to={`/order/${activeOrder.id}`}
-              className="flex items-center gap-3 w-full"
+              className="flex items-center gap-2 w-full"
             >
               {activeOrder.order_items && activeOrder.order_items.length > 0 ? (
-                <div className="flex items-center -space-x-5 flex-shrink-0 mr-0.5">
+                <div className="flex items-center -space-x-3.5 flex-shrink-0 mr-0.5">
                   {activeOrder.order_items.slice(0, 2).map((item, idx) => (
                     <div
                       key={item.id || idx}
-                      className="w-10 h-10 rounded-full overflow-hidden border-2 border-white bg-white shadow-md shrink-0 flex items-center justify-center"
+                      className="w-8 h-8 rounded-full overflow-hidden border border-white bg-white shadow-md shrink-0 flex items-center justify-center"
                       style={{ zIndex: idx }}
                     >
                       {item.product_image ? (
@@ -150,30 +150,30 @@ const BottomNav = () => {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <ShoppingCart className="w-4 h-4 text-zinc-400" />
+                        <ShoppingCart className="w-3.5 h-3.5 text-zinc-400" />
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center shadow-inner shrink-0">
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center shadow-inner shrink-0">
                   {['preparing', 'preparation', 'PREPARING'].some(s => activeOrder.status?.toUpperCase()?.includes(s)) ? (
-                    <Clock className="w-5 h-5 text-white animate-pulse" />
+                    <Clock className="w-4 h-4 text-white animate-pulse" />
                   ) : (
-                    <Bike className="w-5 h-5 text-white animate-bounce-slow" />
+                    <Bike className="w-4 h-4 text-white animate-bounce-slow" />
                   )}
                 </div>
               )}
               
-              <div className="text-left pr-2">
-                <p className="text-sm font-black text-white leading-tight">Track Order</p>
-                <p className="text-[11px] font-bold text-orange-100 leading-none mt-0.5">
+              <div className="text-left pr-1.5">
+                <p className="text-[12.5px] font-black text-white leading-tight">Track Order</p>
+                <p className="text-[10px] font-bold text-orange-100 leading-none mt-0.5">
                   {getStatusText(activeOrder.status)}
                 </p>
               </div>
 
-              <div className="w-10 h-10 rounded-full bg-black/15 flex items-center justify-center shrink-0">
-                <ChevronRight className="w-5 h-5 text-white" />
+              <div className="w-7 h-7 rounded-full bg-black/15 flex items-center justify-center shrink-0">
+                <ChevronRight className="w-4 h-4 text-white" />
               </div>
             </Link>
           </motion.div>
@@ -186,7 +186,7 @@ const BottomNav = () => {
             animate={{ opacity: 1, y: 0, scale: 1, x: '-50%' }}
             exit={{ opacity: 0, y: 40, scale: 0.95, x: '-50%' }}
             transition={{ type: 'spring', damping: 26, stiffness: 360 }}
-            className={`fixed ${shouldShowActiveOrder ? 'bottom-[140px] md:bottom-20' : 'bottom-[84px] md:bottom-6'} left-1/2 w-max max-w-[calc(100%-2rem)] bg-[#0c831f] text-white rounded-full py-1.5 pl-3 pr-2 flex items-center shadow-[0_8px_20px_rgba(12,131,31,0.25)] z-50 border border-white/10`}
+            className={`fixed ${shouldShowActiveOrder ? 'bottom-[calc(152px+env(safe-area-inset-bottom,0px))] md:bottom-20' : 'bottom-[calc(96px+env(safe-area-inset-bottom,0px))] md:bottom-6'} left-1/2 w-max max-w-[calc(100%-2rem)] bg-[#0c831f] text-white rounded-full py-1.5 pl-3 pr-2 flex items-center shadow-[0_8px_20px_rgba(12,131,31,0.25)] z-50 border border-white/10`}
           >
             <Link
               to="/cart"
