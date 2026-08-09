@@ -217,7 +217,7 @@ const TermsOfService = () => {
                         <dt className="text-gray-500 dark:text-gray-400 font-medium">Emails & Support</dt>
                         <dd className="font-bold text-gray-900 dark:text-white space-y-1">
                           <span className="block">Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></span>
-                          <span className="block">Care: <a href="tel:1800-OZO-DEL" className="text-ozo-green hover:underline">1800-OZO-DEL (10 AM - 10 PM, All Days)</a></span>
+                          <span className="block">Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094 (10 AM - 10 PM, All Days)</a></span>
                         </dd>
                       </div>
                     </dl>
@@ -245,7 +245,7 @@ const TermsOfService = () => {
                         </div>
                         <div>
                           <span className="block text-gray-400 mb-0.5">Contact</span>
-                          <span className="text-sm font-bold text-gray-900 dark:text-white">+91 1800-696-335</span>
+                          <span className="text-sm font-bold text-gray-900 dark:text-white">+91 6206359094</span>
                         </div>
                         <div>
                           <span className="block text-gray-400 mb-0.5">Working Hours & SLA</span>
@@ -607,7 +607,7 @@ const TermsOfService = () => {
                     <ul className="list-disc pl-6 space-y-2 text-sm">
                       <li><span className="font-bold text-gray-900 dark:text-white">In-App Chat / Support Section:</span> Open app &rarr; Go to "My Orders" &rarr; Select the order &rarr; Click "Help" or "Report Issue"</li>
                       <li><span className="font-bold text-gray-900 dark:text-white">Email:</span> <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a> with Order ID and Live Photo proof</li>
-                      <li><span className="font-bold text-gray-900 dark:text-white">Call:</span> <a href="tel:1800-OZO-DEL" className="text-ozo-green hover:underline">1800-OZO-DEL</a></li>
+                      <li><span className="font-bold text-gray-900 dark:text-white">Call:</span> <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
                     </ul>
                     <div className="mt-3 p-4 bg-red-50/50 dark:bg-red-950/15 border border-red-100 dark:border-red-900/30 rounded-xl text-xs font-bold text-red-650 dark:text-red-400 space-y-2">
                       <p>
@@ -936,7 +936,7 @@ const TermsOfService = () => {
                   <div>
                     <h3 className="text-xl font-bold text-gray-950 dark:text-white mb-2">14.1 Grievance Redressal</h3>
                     <ol className="list-decimal pl-6 space-y-2 text-sm">
-                      <li>Contact Customer Care: <a href="tel:1800-OZO-DEL" className="text-ozo-green hover:underline">1800-OZO-DEL</a> or <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></li>
+                      <li>Contact Customer Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a> or <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></li>
                       <li>If unresolved, escalate to Grievance Officer: <a href="mailto:grievance@ozomart.store" className="text-ozo-red hover:underline">grievance@ozomart.store</a></li>
                       <li>Grievance Officer will respond within <span className="font-bold text-gray-950 dark:text-white">48 hours</span> and resolve within <span className="font-bold text-gray-950 dark:text-white">30 days</span>.</li>
                     </ol>
@@ -1050,7 +1050,7 @@ const TermsOfService = () => {
                     <h4 className="font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider text-xs">For Support</h4>
                     <ul className="space-y-2 text-sm font-semibold text-gray-800 dark:text-gray-300">
                       <li>📧 Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></li>
-                      <li>📞 Phone: <a href="tel:1800-OZO-DEL" className="text-ozo-green hover:underline">1800-OZO-DEL</a></li>
+                      <li>📞 Phone: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
                       <li>🕒 Hours: 10 AM - 10 PM, All Days</li>
                     </ul>
                   </div>
@@ -1060,7 +1060,7 @@ const TermsOfService = () => {
                     <ul className="space-y-2 text-sm font-semibold text-gray-800 dark:text-gray-300">
                       <li>📧 Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-red hover:underline">aashutoshk625@gmail.com</a></li>
                       <li>👤 Grievance Officer: <span className="font-bold text-gray-900 dark:text-white">Aashutosh Kumar Mishra</span></li>
-                      <li>📞 Phone: <a href="tel:+911800696335" className="text-ozo-green hover:underline">+91 1800-696-335</a></li>
+                      <li>📞 Phone: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
                     </ul>
                   </div>
                 </div>

@@ -87,7 +87,7 @@ const PrivacyPolicy = () => {
                    <div className="text-sm font-semibold text-gray-800 dark:text-gray-300 space-y-1">
                      <p>👤 <span className="text-gray-500">Officer:</span> Aashutosh Kumar Mishra</p>
                      <p>📧 <span className="text-gray-500">Email:</span> <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-red hover:underline">aashutoshk625@gmail.com</a></p>
-                     <p>📞 <span className="text-gray-500">Contact:</span> +91 1800-696-335</p>
+                     <p>📞 <span className="text-gray-500">Contact:</span> +91 6206359094</p>
                    </div>
                  </div>
                  <div>
