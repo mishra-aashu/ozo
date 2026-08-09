@@ -48,6 +48,7 @@ import { OzoCategoryGrid, isCategoryListingSoon } from '../components/CategoryCh
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
+import { logError } from '../utils/logger'
 import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import useOzoQuery from '../hooks/useOzoQuery'
 import ImageUpload from '../components/ImageUpload'
@@ -405,11 +406,17 @@ const Home = () => {
     const timer = setTimeout(() => {
       if (!useLocationStore.getState().isLocationInitialized) {
         console.warn('[Home] Location init timeout — forcing isLocationInitialized to true')
+        logError({
+          message: 'Location initialization timed out after 4 seconds',
+          componentName: 'Home Page Init',
+          severity: 'warning',
+          additionalInfo: { selectedCitySlug }
+        })
         useLocationStore.setState({ isLocationInitialized: true })
       }
     }, 4000)
     return () => clearTimeout(timer)
-  }, [isLocationInitialized])
+  }, [isLocationInitialized, selectedCitySlug])
   const address = useLocationStore(state => state.address)
   const coordinates = useLocationStore(state => state.coordinates)
   const addressDetails = useLocationStore(state => state.addressDetails)

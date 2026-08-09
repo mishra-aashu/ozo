@@ -32,7 +32,8 @@ import {
   Newspaper,
   Coins,
   Store,
-  Smartphone
+  Smartphone,
+  AlertOctagon
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -145,6 +146,13 @@ const AdminLayout = () => {
       path: '/admin/sql',
       color: 'text-rose-600 dark:text-rose-400',
       bgColor: 'bg-rose-100 dark:bg-rose-950/30',
+    },
+    {
+      icon: AlertOctagon,
+      label: 'Diagnostics Logs',
+      path: '/admin/errors',
+      color: 'text-red-550 dark:text-red-450',
+      bgColor: 'bg-red-100 dark:bg-red-950/20',
     },
     {
       icon: Database,
