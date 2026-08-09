@@ -24,8 +24,12 @@ const MainLayout = () => {
   const isAdminPage = location.pathname.startsWith('/admin')
 
   useEffect(() => {
-    // Fetch active cities on layout load
-    fetchActiveCities().catch(console.error)
+    // Fetch active cities on layout load — retry once after 3s on failure
+    fetchActiveCities().catch(() => {
+      setTimeout(() => {
+        fetchActiveCities().catch(console.error)
+      }, 3000)
+    })
   }, [fetchActiveCities])
 
   // Geo-Guard: Redirect to select location if no address has been set at all

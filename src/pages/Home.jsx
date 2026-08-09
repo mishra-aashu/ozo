@@ -397,6 +397,19 @@ const Home = () => {
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
   const isLocationInitialized = useLocationStore(state => state.isLocationInitialized)
   const setSelectedCitySlug = useLocationStore(state => state.setSelectedCitySlug)
+
+  // Safety timeout: if fetchActiveCities hangs (slow/offline network), force isLocationInitialized
+  // to true after 4s so the home page never stays blank forever. Mirrors ProtectedRoute's pattern.
+  useEffect(() => {
+    if (isLocationInitialized) return
+    const timer = setTimeout(() => {
+      if (!useLocationStore.getState().isLocationInitialized) {
+        console.warn('[Home] Location init timeout — forcing isLocationInitialized to true')
+        useLocationStore.setState({ isLocationInitialized: true })
+      }
+    }, 4000)
+    return () => clearTimeout(timer)
+  }, [isLocationInitialized])
   const address = useLocationStore(state => state.address)
   const coordinates = useLocationStore(state => state.coordinates)
   const addressDetails = useLocationStore(state => state.addressDetails)
