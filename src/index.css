@@ -889,13 +889,13 @@ html, body, html[style], body[style] {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
 .title-wrapper {
   display: flex;
   align-items: center;
   gap: 8px;
-  min-width: 0;
   flex-wrap: wrap;
 }
 
