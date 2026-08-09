@@ -128,6 +128,7 @@ const AdminBackup = lazyWithRetry(() => import('./pages/admin/Backup'))
 const AdminBlog = lazyWithRetry(() => import('./pages/admin/Blog'))
 const AdminPhoneCaptureSandbox = lazyWithRetry(() => import('./pages/admin/PhoneCaptureSandbox'))
 const AdminFestivals = lazyWithRetry(() => import('./pages/admin/Festivals'))
+const AdminErrorLogs = lazyWithRetry(() => import('./pages/admin/ErrorLogs'))
 
 
 // Lazy loaded Mart & Captain Dashboards
@@ -715,6 +716,7 @@ function App() {
             <Route path="blog" element={<AdminBlog />} />
             <Route path="phone-capture-sandbox" element={<AdminPhoneCaptureSandbox />} />
             <Route path="festivals" element={<AdminFestivals />} />
+            <Route path="errors" element={<AdminErrorLogs />} />
           </Route>
 
           {/* Mart & Captain Standalone Portals */}

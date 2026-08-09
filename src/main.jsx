@@ -6,6 +6,31 @@ import toast, { Toaster, ToastBar, useToasterStore } from 'react-hot-toast'
 import App from './App.jsx'
 import './index.css'
 import './lib/firebase'
+import { logError } from './utils/logger'
+
+// Global Uncaught Exception Handler
+if (typeof window !== 'undefined') {
+  window.addEventListener('error', (event) => {
+    if (event.error) {
+      logError({
+        error: event.error,
+        message: event.message,
+        componentName: 'Global Window Error',
+        severity: 'error'
+      })
+    }
+  })
+
+  window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason
+    logError({
+      error: reason instanceof Error ? reason : null,
+      message: reason?.message || String(reason || 'Unhandled Promise Rejection'),
+      componentName: 'Unhandled Promise Rejection',
+      severity: 'error'
+    })
+  })
+}
 
 // Safely extract text content from toast message to deduplicate identical toasts
 const getToastMessageText = (message) => {
@@ -94,6 +119,13 @@ class ErrorBoundary extends React.Component {
 
   componentDidCatch(error, errorInfo) {
     console.error('Error caught by boundary:', error, errorInfo)
+    logError({
+      error,
+      message: error?.message || 'Component crash',
+      componentName: 'ErrorBoundary',
+      severity: 'fatal',
+      additionalInfo: { errorInfo }
+    })
   }
 
   render() {
