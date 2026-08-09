@@ -1448,9 +1448,9 @@ const Checkout = () => {
                       : 'border-gray-100 dark:border-white/5 hover:border-gray-200 dark:hover:border-white/10 bg-white dark:bg-[#18181b]'
                     }`}
                   >
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-center gap-4">
                       {/* Premium Radio Selector on Left */}
-                      <div className={`mt-1.5 w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
+                      <div className={`w-5 h-5 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${
                         paymentMethod === method.id ? 'border-ozo-red bg-ozo-red' : 'border-gray-300 dark:border-white/20'
                       }`}>
                          {paymentMethod === method.id && <div className="w-1.5 h-1.5 bg-white rounded-full" />}
@@ -1458,7 +1458,7 @@ const Checkout = () => {
 
                       {/* Content Area */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex items-center justify-between gap-3">
                           <div className="min-w-0">
                             <p className="font-black text-base text-gray-900 dark:text-white leading-tight">
                               {method.label}
@@ -1469,19 +1469,19 @@ const Checkout = () => {
                           </div>
 
                           {/* Brand Logos */}
-                          <div className="flex items-center gap-3 bg-gray-50/80 dark:bg-white/[0.02] px-3 py-1 rounded-xl border border-gray-100/50 dark:border-white/5 w-fit flex-shrink-0 h-9">
+                          <div className="flex items-center gap-2.5 flex-shrink-0">
                             {method.id === 'cod' && (
-                              <img src="https://img.icons8.com/color/48/cash-in-hand.png" alt="Cash" className="h-[24px] w-auto object-contain" />
+                              <img src="https://img.icons8.com/color/48/cash-in-hand.png" alt="Cash" className="h-[28px] w-auto object-contain" />
                             )}
                             {method.id === 'upi' && (
-                              <div className="flex items-center gap-3">
-                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-[13px] w-auto object-contain" />
+                              <div className="flex items-center gap-2">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/7/71/PhonePe_Logo.svg" alt="PhonePe" className="h-[12px] w-auto object-contain" />
                                 <img src="https://img.icons8.com/color/48/google-pay.png" alt="Google Pay" className="h-[28px] w-auto object-contain" />
                                 <img src="https://img.icons8.com/color/48/paytm.png" alt="Paytm" className="h-[22px] w-auto object-contain" />
                               </div>
                             )}
                             {method.id === 'card' && (
-                              <div className="flex items-center gap-2.5">
+                              <div className="flex items-center gap-2">
                                 <img src="https://img.icons8.com/color/48/visa.png" alt="Visa" className="h-[22px] w-auto object-contain" />
                                 <img src="https://img.icons8.com/color/48/mastercard.png" alt="Mastercard" className="h-[24px] w-auto object-contain" />
                                 <img src="https://upload.wikimedia.org/wikipedia/commons/d/d1/RuPay.svg" alt="RuPay" className="h-[12px] w-auto object-contain dark:brightness-200" />
