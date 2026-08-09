@@ -2544,7 +2544,6 @@ const AdminSettings = () => {
                           onChange={e => setCurrentPassword(e.target.value)}
                           className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-850 dark:text-white"
                           placeholder="Current Password"
-                          required
                         />
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -2556,7 +2555,6 @@ const AdminSettings = () => {
                             onChange={e => setNewPassword(e.target.value)}
                             className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-850 dark:text-white"
                             placeholder="New Password (min 8 chars)"
-                            required
                           />
                         </div>
                         <div>
@@ -2567,7 +2565,6 @@ const AdminSettings = () => {
                             onChange={e => setConfirmPassword(e.target.value)}
                             className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-850 dark:text-white"
                             placeholder="Confirm New Password"
-                            required
                           />
                         </div>
                       </div>
