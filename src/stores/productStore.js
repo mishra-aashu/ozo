@@ -162,6 +162,7 @@ export const useProductStore = create((set, get) => ({
   isCategoriesLoading: false,
   isOffersLoading: false,
   isSearchLoading: false,
+  isSearchError: false,
   isProductDetailLoading: false,
   isHomeLoading: false,
   currentProduct: null,
@@ -654,13 +655,19 @@ export const useProductStore = create((set, get) => ({
     searchProductsController = controller
     const signal = options.signal || controller.signal
 
+    let isTimeout = false
+    const timeoutId = setTimeout(() => {
+      isTimeout = true
+      controller.abort()
+    }, 12000) // 12 seconds timeout
+
     try {
       if (!searchTerm || searchTerm.trim() === '') {
-        set({ searchResults: [], spellingSuggestion: null })
+        set({ searchResults: [], spellingSuggestion: null, isSearchError: false })
         return { success: true, data: [] }
       }
 
-      set({ isSearchLoading: true, isLoading: true })
+      set({ isSearchLoading: true, isSearchError: false, isLoading: true })
 
       // Fetch search results and spelling suggestion in parallel
       const searchPromise = supabase
@@ -706,6 +713,7 @@ export const useProductStore = create((set, get) => ({
           .select('product_id, city_price, city_mrp, city_ozo_price, is_featured, is_available, is_upcoming')
           .eq('city_slug', citySlug)
           .in('product_id', productIds)
+          .abortSignal(signal)
 
         const availMap = new Map(cityAvail?.map(item => [item.product_id, item]) || [])
         
@@ -809,19 +817,26 @@ export const useProductStore = create((set, get) => ({
         searchResults: products, 
         spellingSuggestion: suggestionRes.data || null,
         isSearchLoading: false, 
+        isSearchError: false,
         isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isCategoriesLoading || get().isOffersLoading || get().isProductDetailLoading 
       })
       return { success: true, data: products }
     } catch (error) {
       if (signal.aborted || error.name === 'AbortError') {
+        if (isTimeout) {
+          set({ isSearchError: true, isSearchLoading: false, isLoading: false })
+        }
         return { success: false, error }
       }
       console.error('Search products error:', error)
       set({ 
         isSearchLoading: false, 
+        isSearchError: true,
         isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isCategoriesLoading || get().isOffersLoading || get().isProductDetailLoading 
       })
       return { success: false, error }
+    } finally {
+      clearTimeout(timeoutId)
     }
   },
 
@@ -936,7 +951,7 @@ export const useProductStore = create((set, get) => ({
 
   // Clear search results
   clearSearchResults: () => {
-    set({ searchResults: [], spellingSuggestion: null })
+    set({ searchResults: [], spellingSuggestion: null, isSearchError: false })
   },
 
   // Fetch all home page data in a single batched RPC query

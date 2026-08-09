@@ -172,10 +172,11 @@ const Header = () => {
 
   const freeAbove = deliveryConfig?.free_above ?? 99
   const wishlistItems = useWishlistStore(state => state.items)
-  const { searchProducts, searchResults, isSearchLoading } = useProductStore(useShallow(state => ({
+  const { searchProducts, searchResults, isSearchLoading, isSearchError } = useProductStore(useShallow(state => ({
     searchProducts: state.searchProducts,
     searchResults: state.searchResults,
     isSearchLoading: state.isSearchLoading,
+    isSearchError: state.isSearchError,
   })))
   const { address, coordinates, addressDetails, nearestCity, tracedThrough, selectedCitySlug: headerSelectedCitySlug, activeCities: headerActiveCities } = useLocationStore(useShallow(state => ({
     address: state.address,
@@ -559,6 +560,19 @@ const Header = () => {
                                 <div className="w-12 h-4 bg-gray-100 dark:bg-white/5 rounded" />
                               </div>
                             ))}
+                          </div>
+                        ) : isSearchError ? (
+                          <div className="p-8 text-center flex flex-col items-center">
+                            <p className="text-3xl mb-2">⚠️</p>
+                            <p className="font-bold text-gray-850 dark:text-white">Connection issue</p>
+                            <p className="text-xs text-ozo-gray dark:text-gray-400 mt-1 max-w-[200px] mx-auto mb-4">Unable to search. Please check your connection.</p>
+                            <button
+                              type="button"
+                              onClick={() => searchProducts(searchQuery)}
+                              className="px-4 py-2 bg-gradient-ozo text-white text-xs font-black rounded-xl hover:scale-105 active:scale-95 transition-all shadow-sm"
+                            >
+                              Retry
+                            </button>
                           </div>
                         ) : searchQuery.trim() === '' ? (
                           <div className="p-5 space-y-6">

@@ -345,6 +345,31 @@ export default function SearchedPage() {
     setSearchParams({ q: term })
   }
 
+  const handleRetry = useCallback(() => {
+    if (urlQuery.trim()) {
+      let options = {
+        search: urlQuery,
+        featured: filterFeatured,
+        bestseller: filterBestseller
+      }
+
+      if (sortBy === 'price_asc') {
+        options.sortBy = 'price'
+        options.ascending = true
+      } else if (sortBy === 'price_desc') {
+        options.sortBy = 'price'
+        options.ascending = false
+      } else if (sortBy === 'name') {
+        options.sortBy = 'name'
+        options.ascending = true
+      } else {
+        options.sortBy = 'relevance'
+      }
+
+      fetchProductsPage(options)
+    }
+  }, [urlQuery, sortBy, filterBestseller, filterFeatured, fetchProductsPage])
+
   const loadMore = () => {
     let options = {
       search: urlQuery,
@@ -714,6 +739,21 @@ export default function SearchedPage() {
                     {[...Array(10)].map((_, i) => (
                       <div key={i} className="aspect-[3/4] bg-white dark:bg-[#111] rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-white/5" />
                     ))}
+                  </div>
+                ) : isError ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center bg-white dark:bg-[#111] rounded-[3rem] border border-red-100 dark:border-red-950/20 shadow-sm px-6 max-w-xl mx-auto">
+                    <div className="w-20 h-20 bg-red-50 dark:bg-red-950/20 rounded-full flex items-center justify-center text-ozo-red mb-6 shadow-inner animate-bounce">
+                      <AlertCircle size={40} className="stroke-[2.5]" />
+                    </div>
+                    <h3 className="text-2xl font-black mb-2 text-gray-900 dark:text-white">Connection Issue</h3>
+                    <p className="text-ozo-gray dark:text-gray-400 max-w-sm mb-8 font-semibold">We couldn't connect to the database. This usually happens under slow or unstable network conditions.</p>
+                    
+                    <button
+                      onClick={handleRetry}
+                      className="px-8 py-4 bg-gradient-ozo text-white font-black rounded-2xl shadow-lg shadow-ozo-red/25 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                    >
+                      <span>Retry Search</span>
+                    </button>
                   </div>
                 ) : sortedProducts.length > 0 ? (
                   <div className="space-y-8">
