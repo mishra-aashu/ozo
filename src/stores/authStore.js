@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import { supabase, authHelpers, supabaseAdmin } from '../lib/supabase'
+import { supabase, authHelpers, supabaseAdmin, isJwtExpired } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { useLocationStore } from './locationStore'
 import { oneSignalLogin, oneSignalLogout } from '../utils/onesignal'
@@ -154,7 +154,27 @@ export const useAuthStore = create(
       user: null,
       profile: null,
       isLoading: false,
-      isInitialized: false,
+      isInitialized: (() => {
+        if (typeof window === 'undefined') return false
+        try {
+          const rawStore = localStorage.getItem('ozo-auth-storage')
+          if (rawStore) {
+            const parsedStore = JSON.parse(rawStore)
+            const state = parsedStore?.state
+            if (state?.user && state?.isAuthenticated) {
+              const rawAuth = localStorage.getItem('ozo-auth-token')
+              if (rawAuth) {
+                const parsedAuth = JSON.parse(rawAuth)
+                const token = parsedAuth?.access_token || parsedAuth?.currentSession?.access_token || parsedAuth?.session?.access_token
+                if (token && !isJwtExpired(token)) {
+                  return true
+                }
+              }
+            }
+          }
+        } catch (_) {}
+        return false
+      })(),
       isAuthenticated: false,
       isAdmin: false,
 
@@ -232,43 +252,46 @@ export const useAuthStore = create(
             // Sync user to OneSignal push notification service
             oneSignalLogin(session.user.id)
 
-            // ── Fetch real DB profile (foreground, not background) ─────────
-            // By awaiting here, isAdmin is GUARANTEED to be accurate when
-            // isInitialized flips to true — no more stale-role race conditions.
-            let dbProfile = null
-            try {
-              dbProfile = await ensureProfileExists(session.user, session.access_token)
-            } catch (profileErr) {
-              console.warn('[OZO Auth] Profile fetch on init failed, using cache:', profileErr)
-            }
-
-            // Build final profile: prefer fresh DB data, fall back to cache
+            // Build initial profile from cache/local metadata to initialize instantly
             const localProfile = get().profile
-            const baseProfile = dbProfile
-              ? { ...dbProfile, isFallback: false }
-              : (localProfile && localProfile.id === session.user.id)
-                ? { ...localProfile, isFallback: false }
-                : {
-                    id: session.user.id,
-                    email: session.user.email,
-                    full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
-                    phone: session.user.user_metadata?.phone || session.user.phone || '',
-                    role: 'customer',
-                    user_roles: [],
-                    isFallback: false,
-                  }
+            const baseProfile = (localProfile && localProfile.id === session.user.id)
+              ? { ...localProfile, isFallback: false }
+              : {
+                  id: session.user.id,
+                  email: session.user.email,
+                  full_name: session.user.user_metadata?.full_name || session.user.user_metadata?.name || session.user.email?.split('@')[0] || 'Ozo User',
+                  phone: session.user.user_metadata?.phone || session.user.phone || '',
+                  role: 'customer',
+                  user_roles: [],
+                  isFallback: false,
+                }
 
-            const finalProfile = enrichProfileRoles(baseProfile)
+            const initialProfile = enrichProfileRoles(baseProfile)
 
-            // Now set everything atomically — isAdmin is 100% correct here
+            // Instantly mark as initialized using cached credentials/profile
             set({
               user: session.user,
-              profile: finalProfile,
+              profile: initialProfile,
               isAuthenticated: true,
-              isAdmin: checkAdmin(finalProfile),
+              isAdmin: checkAdmin(initialProfile),
               isLoading: false,
               isInitialized: true,
             })
+
+            // Fetch fresh profile in the background (SWR pattern) and update state silently
+            ensureProfileExists(session.user, session.access_token)
+              .then((dbProfile) => {
+                if (dbProfile) {
+                  const updatedProfile = enrichProfileRoles(dbProfile)
+                  set({
+                    profile: updatedProfile,
+                    isAdmin: checkAdmin(updatedProfile),
+                  })
+                }
+              })
+              .catch((err) => {
+                console.warn('[OZO Auth] Background profile sync failed:', err)
+              })
           } else {
             set({
               user: null,

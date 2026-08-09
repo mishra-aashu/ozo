@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { useEffect, useState, lazy, Suspense } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -195,7 +195,7 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
     }
   }
 
-  return children
+  return children ? children : <Outlet />
 }
 
 // Public Only Route (redirect if logged in)
@@ -206,7 +206,7 @@ const PublicOnlyRoute = ({ children }) => {
     return <Navigate to="/" replace />
   }
 
-  return children
+  return children ? children : <Outlet />
 }
 
 // Complete Profile Route — directly queries public.users to verify phone.
@@ -580,103 +580,21 @@ function App() {
               }
             />
 
-            {/* Protected Routes */}
-            <Route
-              path="cart"
-              element={
-                <ProtectedRoute>
-                  <Cart />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="checkout"
-              element={
-                <ProtectedRoute>
-                  <Checkout />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="orders"
-              element={
-                <ProtectedRoute>
-                  <Orders />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="order/:id"
-              element={
-                <ProtectedRoute>
-                  <OrderDetail />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="profile"
-              element={
-                <ProtectedRoute>
-                  <Profile />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="profile/addresses"
-              element={
-                <ProtectedRoute>
-                  <Addresses />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="profile/payments"
-              element={
-                <ProtectedRoute>
-                  <Payments />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="settings/security"
-              element={
-                <ProtectedRoute>
-                  <Security />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="wishlist"
-              element={
-                <ProtectedRoute>
-                  <Wishlist />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="notifications"
-              element={
-                <ProtectedRoute>
-                  <Notifications />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="settings"
-              element={
-                <ProtectedRoute>
-                  <Settings />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="referral"
-              element={
-                <ProtectedRoute>
-                  <Referral />
-                </ProtectedRoute>
-              }
-            />
+            {/* Protected Routes Group (Layout-level Route Guard) */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="cart" element={<Cart />} />
+              <Route path="checkout" element={<Checkout />} />
+              <Route path="orders" element={<Orders />} />
+              <Route path="order/:id" element={<OrderDetail />} />
+              <Route path="profile" element={<Profile />} />
+              <Route path="profile/addresses" element={<Addresses />} />
+              <Route path="profile/payments" element={<Payments />} />
+              <Route path="settings/security" element={<Security />} />
+              <Route path="wishlist" element={<Wishlist />} />
+              <Route path="notifications" element={<Notifications />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="referral" element={<Referral />} />
+            </Route>
 
             {/* Dynamic parameters routes placed last to prevent greeting static routes like auth/v1/callback */}
             <Route path=":city" element={<Home />} />
@@ -720,30 +638,11 @@ function App() {
           </Route>
 
           {/* Mart & Captain Standalone Portals */}
-          <Route
-            path="/mart"
-            element={
-              <ProtectedRoute>
-                <MartDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/captain"
-            element={
-              <ProtectedRoute>
-                <CaptainDashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/rider-dashboard"
-            element={
-              <ProtectedRoute>
-                <CaptainDashboard />
-              </ProtectedRoute>
-            }
-          />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/mart" element={<MartDashboard />} />
+            <Route path="/captain" element={<CaptainDashboard />} />
+            <Route path="/rider-dashboard" element={<CaptainDashboard />} />
+          </Route>
 
           <Route path="/capture/:sessionId" element={<PhoneCapture />} />
 

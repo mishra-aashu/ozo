@@ -121,7 +121,7 @@ async function decryptText(hex, secret) {
 }
 
 // Helper to check if JWT access token is expired or close to expiring (<30s left)
-const isJwtExpired = (token, skewSeconds = 30) => {
+export const isJwtExpired = (token, skewSeconds = 30) => {
   if (!token) return true
   try {
     const parts = token.split('.')
