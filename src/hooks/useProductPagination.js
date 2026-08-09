@@ -13,6 +13,7 @@ export function useProductPagination() {
   const [isError, setIsError] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const offsetRef = useRef(0);
+  const abortControllerRef = useRef(null);
 
   // Keep track of current filter query to prevent race conditions
   const queryKeyRef = useRef('');
@@ -29,10 +30,16 @@ export function useProductPagination() {
       categorySlug: options.categorySlug || null,
       featured: !!options.featured,
       bestseller: !!options.bestseller,
-      search: options.search || null
+      search: options.search || null,
+      sortBy: options.sortBy || 'relevance',
+      ascending: options.ascending !== undefined ? options.ascending : true
     });
 
     if (!isLoadMore) {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      abortControllerRef.current = new AbortController();
       setIsLoading(true);
       setIsError(false);
       setProducts([]);
@@ -43,6 +50,15 @@ export function useProductPagination() {
     } else {
       setIsLoadingMore(true);
     }
+
+    const signal = abortControllerRef.current?.signal;
+    let isTimeout = false;
+    const timeoutId = setTimeout(() => {
+      isTimeout = true;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    }, 15000); // 15 seconds timeout
 
     try {
       const runQuery = async (applyFeatured, applyBestseller) => {
@@ -62,19 +78,21 @@ export function useProductPagination() {
               parent_id,
               is_active
             )
-          `);
+          `).abortSignal(signal);
 
           // Fetch spelling suggestion in parallel for page 1
           if (!isLoadMore) {
             try {
               const { data: suggestionData } = await supabase.rpc('get_spelling_suggestion', { 
                 search_term: options.search 
-              });
+              }).abortSignal(signal);
               if (queryKeyRef.current === filterKey) {
                 setSpellingSuggestion(suggestionData || null);
               }
             } catch (sErr) {
-              console.error('[useProductPagination] Spelling suggestion error:', sErr);
+              if (sErr.name !== 'AbortError') {
+                console.error('[useProductPagination] Spelling suggestion error:', sErr);
+              }
             }
           }
         } else {
@@ -87,7 +105,7 @@ export function useProductPagination() {
               parent_id,
               is_active
             )
-          `);
+          `).abortSignal(signal);
         }
 
         // 1. Filter by category slug (resolving subcategories) if provided
@@ -98,6 +116,7 @@ export function useProductPagination() {
             .select('id')
             .eq('slug', options.categorySlug)
             .eq('is_active', true)
+            .abortSignal(signal)
             .single();
 
           if (category) {
@@ -106,7 +125,8 @@ export function useProductPagination() {
               .from('categories')
               .select('id')
               .eq('parent_id', category.id)
-              .eq('is_active', true);
+              .eq('is_active', true)
+              .abortSignal(signal);
 
             let categoryIds = [category.id];
             if (subcategories && subcategories.length > 0) {
@@ -120,7 +140,8 @@ export function useProductPagination() {
             .from('categories')
             .select('id')
             .eq('parent_id', options.categoryId)
-            .eq('is_active', true);
+            .eq('is_active', true)
+            .abortSignal(signal);
 
           let categoryIds = [options.categoryId];
           if (subcategories && subcategories.length > 0) {
@@ -206,7 +227,8 @@ export function useProductPagination() {
             .from('product_city_availability')
             .select('product_id, city_price, city_mrp, is_available, is_featured, is_upcoming')
             .eq('city_slug', citySlug)
-            .in('product_id', productIds);
+            .in('product_id', productIds)
+            .abortSignal(signal);
 
           if (cityData && cityData.length > 0) {
             const cityMap = new Map(cityData.map(row => [row.product_id, row]));
@@ -251,8 +273,9 @@ export function useProductPagination() {
           }
         }
       } catch (cityErr) {
-        // Non-fatal: if city override fails, continue with global values
-        console.warn('[useProductPagination] City override fetch failed:', cityErr);
+        if (cityErr.name !== 'AbortError') {
+          console.warn('[useProductPagination] City override fetch failed:', cityErr);
+        }
       }
 
       // Sort: in-stock first, out-of-stock / upcoming last
@@ -276,13 +299,21 @@ export function useProductPagination() {
         offsetRef.current = currentOffset + PAGINATION_LIMIT;
       }
     } catch (err) {
+      if (signal?.aborted || err.name === 'AbortError') {
+        if (isTimeout && queryKeyRef.current === filterKey) {
+          console.error('[useProductPagination] Query timed out');
+          setIsError(true);
+        }
+        return;
+      }
       console.error('[useProductPagination] Error:', err);
       if (queryKeyRef.current === filterKey) {
         setIsError(true);
       }
     } finally {
-      isLoadingRef.current = false;
+      clearTimeout(timeoutId);
       if (queryKeyRef.current === filterKey) {
+        isLoadingRef.current = false;
         setIsLoading(false);
         setIsLoadingMore(false);
       }
@@ -290,6 +321,9 @@ export function useProductPagination() {
   }, []);
 
   const reset = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
     setProducts([]);
     setSpellingSuggestion(null);
     offsetRef.current = 0;
