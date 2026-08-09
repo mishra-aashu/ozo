@@ -250,7 +250,7 @@ const Search = () => {
               </div>
 
               {isSearchLoading ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
                   {[...Array(10)].map((_, i) => (
                     <div key={i} className="aspect-[3/4] bg-white dark:bg-white/5 rounded-[2.5rem] animate-pulse" />
                   ))}
@@ -258,7 +258,7 @@ const Search = () => {
               ) : searchResults.length > 0 ? (
                 <div 
                   key={searchTerm}
-                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
+                  className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
                 >
                   {searchResults.map((product, idx) => (
                     <ProductCard key={product.id} product={product} index={idx} />

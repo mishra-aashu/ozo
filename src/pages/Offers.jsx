@@ -172,7 +172,7 @@ const Offers = () => {
             isEmpty={!isBestsellersLoading && bestsellerProducts.length === 0}
             onRetry={refetchBestsellers}
             skeleton={
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 w-full">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className="aspect-[3/4] bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-white/5 shadow-sm space-y-4 p-4">
                     <div className="w-full h-1/2 bg-gray-200 dark:bg-white/5 rounded-2xl" />
@@ -183,7 +183,7 @@ const Offers = () => {
               </div>
             }
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
               {bestsellerProducts?.map(product => (
                 <ProductCard key={product?.id} product={product} />
               ))}
@@ -214,7 +214,7 @@ const Offers = () => {
             isEmpty={!isFeaturedLoading && featuredProducts.length === 0}
             onRetry={refetchFeatured}
             skeleton={
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 w-full">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6 w-full">
                 {[...Array(5)].map((_, i) => (
                   <div key={i} className="aspect-[3/4] bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] animate-pulse border border-gray-100 dark:border-white/5 shadow-sm space-y-4 p-4">
                     <div className="w-full h-1/2 bg-gray-200 dark:bg-white/5 rounded-2xl" />
@@ -225,7 +225,7 @@ const Offers = () => {
               </div>
             }
           >
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
               {featuredProducts?.map(product => (
                 <ProductCard key={product?.id} product={product} />
               ))}

@@ -2560,7 +2560,7 @@ const Home = () => {
                     </Link>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
                     {isHomeDataLoading && displayBudgetProducts.length === 0 ? (
                       [...Array(4)].map((_, i) => (
                         <div key={i} className="h-72 bg-gray-100 dark:bg-white/5 rounded-3xl animate-pulse" />
@@ -2597,7 +2597,7 @@ const Home = () => {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6">
             {(isBestsellersLoading || isHomeDataLoading) && displayBestsellers.length === 0 ? (
               [...Array(5)].map((_, i) => (
                 <div key={i} className="h-80 bg-white dark:bg-white/5 rounded-3xl animate-pulse" />
@@ -2667,7 +2667,7 @@ const Home = () => {
 
           <div
             key={selectedFeaturedCategory}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
+            className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6"
           >
             {(isFeaturedLoading || isHomeDataLoading || isCategoryProductsLoading) ? (
               [...Array(5)].map((_, i) => (
