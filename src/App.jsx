@@ -21,9 +21,13 @@ const lazyWithRetry = (importFn) => {
         return module;
       })
       .catch((error) => {
+        const errorMsg = error.message || '';
         const isChunkLoadFailed = error.name === 'ChunkLoadError' || 
-                                  error.message?.includes('Failed to fetch dynamically imported module') ||
-                                  error.message?.includes('Error importing');
+                                  errorMsg.includes('Failed to fetch dynamically imported module') ||
+                                  errorMsg.includes('Error importing') ||
+                                  errorMsg.includes('Unable to preload CSS') ||
+                                  errorMsg.includes('preload CSS') ||
+                                  errorMsg.includes('Load failed');
                                   
         if (isChunkLoadFailed) {
           const hasReloaded = sessionStorage.getItem('ozo-chunk-reload-attempted');
