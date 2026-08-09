@@ -2,6 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useLocationStore } from '../stores/locationStore';
 import { useCartStore } from '../stores/cartStore';
+import { useProductStore } from '../stores/productStore';
 
 export const PAGINATION_LIMIT = 24;
 
@@ -58,7 +59,7 @@ export function useProductPagination() {
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
-    }, 15000); // 15 seconds timeout
+    }, 12000); // 12 seconds timeout
 
     try {
       const runQuery = async (applyFeatured, applyBestseller) => {
@@ -110,44 +111,67 @@ export function useProductPagination() {
 
         // 1. Filter by category slug (resolving subcategories) if provided
         if (options.categorySlug) {
-          // Find category id
-          const { data: category } = await supabase
-            .from('categories')
-            .select('id')
-            .eq('slug', options.categorySlug)
-            .eq('is_active', true)
-            .abortSignal(signal)
-            .single();
+          const cachedCategories = useProductStore.getState().categories || [];
+          const category = cachedCategories.find(c => c.slug === options.categorySlug && c.is_active);
 
           if (category) {
-            // Find subcategories
-            const { data: subcategories } = await supabase
+            // Resolve subcategories using cache
+            const subcategoryIds = cachedCategories
+              .filter(s => s.parent_id === category.id && s.is_active)
+              .map(s => s.id);
+            const categoryIds = [category.id, ...subcategoryIds];
+            query = query.in('category_id', categoryIds);
+          } else {
+            // Fallback: Find category id in database if cache is empty or category not found
+            const { data: dbCategory } = await supabase
               .from('categories')
               .select('id')
-              .eq('parent_id', category.id)
+              .eq('slug', options.categorySlug)
+              .eq('is_active', true)
+              .abortSignal(signal)
+              .single();
+
+            if (dbCategory) {
+              // Find subcategories in database
+              const { data: dbSubcategories } = await supabase
+                .from('categories')
+                .select('id')
+                .eq('parent_id', dbCategory.id)
+                .eq('is_active', true)
+                .abortSignal(signal);
+
+              let categoryIds = [dbCategory.id];
+              if (dbSubcategories && dbSubcategories.length > 0) {
+                categoryIds = [...categoryIds, ...dbSubcategories.map(s => s.id)];
+              }
+              query = query.in('category_id', categoryIds);
+            }
+          }
+        } else if (options.categoryId) {
+          const cachedCategories = useProductStore.getState().categories || [];
+          const hasCachedSubcategories = cachedCategories.some(c => c.parent_id === options.categoryId);
+
+          if (cachedCategories.length > 0 && hasCachedSubcategories) {
+            const subcategoryIds = cachedCategories
+              .filter(s => s.parent_id === options.categoryId && s.is_active)
+              .map(s => s.id);
+            const categoryIds = [options.categoryId, ...subcategoryIds];
+            query = query.in('category_id', categoryIds);
+          } else {
+            // Fallback: Find subcategories for this parent category ID in database
+            const { data: dbSubcategories } = await supabase
+              .from('categories')
+              .select('id')
+              .eq('parent_id', options.categoryId)
               .eq('is_active', true)
               .abortSignal(signal);
 
-            let categoryIds = [category.id];
-            if (subcategories && subcategories.length > 0) {
-              categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
+            let categoryIds = [options.categoryId];
+            if (dbSubcategories && dbSubcategories.length > 0) {
+              categoryIds = [...categoryIds, ...dbSubcategories.map(s => s.id)];
             }
             query = query.in('category_id', categoryIds);
           }
-        } else if (options.categoryId) {
-          // Find subcategories for this parent category ID
-          const { data: subcategories } = await supabase
-            .from('categories')
-            .select('id')
-            .eq('parent_id', options.categoryId)
-            .eq('is_active', true)
-            .abortSignal(signal);
-
-          let categoryIds = [options.categoryId];
-          if (subcategories && subcategories.length > 0) {
-            categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
-          }
-          query = query.in('category_id', categoryIds);
         }
 
         if (applyFeatured) {

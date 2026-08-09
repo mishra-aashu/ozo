@@ -434,7 +434,10 @@ export default function SearchedPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24 transition-colors duration-300">
       {/* Sticky Header Bar (Mobile Only) */}
-      <div className="page-header-sticky md:hidden !py-2.5 bg-white dark:bg-[#0a0a0a] border-b border-gray-150/10 dark:border-white/5 shadow-sm">
+      <div 
+        className="page-header-sticky md:hidden !top-0 !py-2.5 bg-white dark:bg-[#0a0a0a] border-b border-gray-150/10 dark:border-white/5 shadow-sm"
+        style={{ transition: 'background-color 0.3s, border-color 0.3s, padding 0.3s, box-shadow 0.3s' }}
+      >
         <div className="px-3.5 space-y-2.5">
           {/* Location Selector (Mobile Only - Second Row) */}
           <div className="max-w-4xl mx-auto">
