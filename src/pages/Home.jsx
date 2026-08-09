@@ -2119,8 +2119,8 @@ const Home = () => {
               {/* SECTION: Explore Local Marts */}
               {(marts.length > 0 || isAdmin) && (
                 <div className="bg-white dark:bg-[#111] border border-gray-100 dark:border-white/5 rounded-3xl p-5 md:p-6 shadow-premium transition-colors duration-300 overflow-hidden">
-                  <div className="flex items-center justify-between gap-2 md:gap-4 mb-6 flex-wrap">
-                    <div className="min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                    <div className="min-w-0">
                       <h3 className="text-base sm:text-lg md:text-xl font-black text-gray-900 dark:text-white uppercase tracking-tight flex items-center gap-2 leading-tight">
                         <Store className="w-5 h-5 md:w-6 md:h-6 text-ozo-red shrink-0" />
                         <span>Explore Nearby <span className="text-gradient">Stores.</span></span>
@@ -2131,7 +2131,7 @@ const Home = () => {
                     {isAdmin && (
                       <Link
                         to="/admin/cities"
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ozo-red/10 border border-ozo-red/30 text-ozo-red hover:bg-ozo-red hover:text-white text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ozo-red/10 border border-ozo-red/30 text-ozo-red hover:bg-ozo-red hover:text-white text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 self-start sm:self-auto whitespace-nowrap"
                       >
                         <Plus size={14} className="stroke-[3px]" />
                         <span>Manage / Add Marts</span>
