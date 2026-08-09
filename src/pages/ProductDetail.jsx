@@ -595,27 +595,30 @@ const ProductDetail = () => {
       console.error('Failed to track recently viewed:', e)
     }
 
-    // Fetch all products from same category to find variants (including out of stock ones)
-    const related = await fetchProducts({
+    // Set initializing to false immediately so the product details display instantly!
+    setIsInitializing(false)
+
+    // Fetch all products from same category to find variants in the background (Non-Blocking)
+    fetchProducts({
       categoryId: result.data.category_id,
       includeUnavailable: true
+    }).then((related) => {
+      // Check if stale before updating state from related products call
+      if (currentLoadId !== loadIdRef.current) return
+
+      if (related.success) {
+        const foundVariants = getProductVariants(result.data, related.data)
+        setVariants(foundVariants)
+
+        const variantIds = new Set(foundVariants.map(v => v.id))
+        const filteredRelated = related.data.filter(
+          p => p.id !== result.data.id && !variantIds.has(p.id)
+        )
+        setRelatedProducts(filteredRelated.slice(0, 5))
+      }
+    }).catch((err) => {
+      console.error('Background fetch of related products failed:', err)
     })
-    
-    // Check if stale before updating state from related products call
-    if (currentLoadId !== loadIdRef.current) return
-
-    if (related.success) {
-      const foundVariants = getProductVariants(result.data, related.data)
-      setVariants(foundVariants)
-
-      const variantIds = new Set(foundVariants.map(v => v.id))
-      const filteredRelated = related.data.filter(
-        p => p.id !== result.data.id && !variantIds.has(p.id)
-      )
-      setRelatedProducts(filteredRelated.slice(0, 5))
-    }
-
-    setIsInitializing(false)
   }, [fetchProductBySlug, fetchProducts])
 
   // Ref so visibility handler always sees the latest loadProduct + slug
