@@ -89,7 +89,7 @@ export default function SortDropdown({ sortBy, onChange, isCompact }) {
   }, [])
 
   return (
-    <div className={`relative inline-block ${isCompact ? 'w-auto' : 'w-full md:w-64'}`} ref={dropdownRef}>
+    <div className={`relative inline-block ${isCompact ? 'w-full lg:w-auto' : 'w-full md:w-64'}`} ref={dropdownRef}>
       {/* Trigger Button */}
       <button
         type="button"

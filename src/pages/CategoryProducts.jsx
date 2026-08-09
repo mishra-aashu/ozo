@@ -619,27 +619,27 @@ const CategoryProducts = () => {
             paddingBottom: '0.625rem'
           }}
         >
-          <div className="flex flex-row items-center justify-between gap-3 w-full">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-2.5 lg:gap-3 w-full">
             {/* Left Back Arrow and Title info */}
-            <div className="flex items-center gap-2.5 min-w-0 flex-1">
+            <div className="flex items-center gap-2.5 min-w-0 w-full lg:w-auto">
               <button
                 onClick={() => navigate('/')}
-                className="btn-icon p-2.5 rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/45 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm flex-shrink-0"
+                className="btn-icon p-2 rounded-xl border border-gray-200/20 dark:border-white/10 bg-white/45 dark:bg-black/25 text-gray-700 dark:text-gray-200 hover:text-ozo-red dark:hover:text-white transition-all shadow-sm flex-shrink-0"
               >
-                <ChevronLeft size={18} />
+                <ChevronLeft size={16} />
               </button>
               <div className="min-w-0 flex-1">
-                <h1 className="font-black text-gray-900 dark:text-white uppercase tracking-tight truncate text-sm xs:text-base md:text-xl leading-tight font-display">
+                <h1 className="font-black text-gray-900 dark:text-white uppercase tracking-tight text-sm xs:text-base md:text-xl leading-tight font-display">
                   {currentCategory ? renderTitle(currentCategory.name) : 'Loading Category...'}
                 </h1>
-                <p className="hidden md:block font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider text-[10px] md:text-xs mt-0.5">
+                <p className="font-bold text-ozo-gray dark:text-gray-400 uppercase tracking-wider text-[9px] xs:text-[10px] md:text-xs mt-0.5">
                   {isProductsLoading ? 'Fetching products...' : `Showing ${filteredAndSortedProducts.length} items`}
                 </p>
               </div>
             </div>
 
-            {/* Right Controls */}
-            <div className="flex items-center justify-end gap-2.5 flex-shrink-0">
+            {/* Controls */}
+            <div className="flex items-center gap-2 w-full lg:w-auto justify-between lg:justify-end border-t border-gray-100/50 dark:border-white/5 pt-2 lg:pt-0 lg:border-t-0 flex-shrink-0">
               {/* Desktop Filters Toggle Button when scrolled */}
               <button
                 onClick={() => setShowFiltersScrolled(!showFiltersScrolled)}
@@ -684,17 +684,30 @@ const CategoryProducts = () => {
                 </button>
               </div>
 
-              {/* Filters Toggle Button (triggers sheet on mobile) */}
-              <button
-                onClick={() => setShowMobileFilters(true)}
-                className="flex lg:hidden items-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 gap-1.5 px-3 py-2 rounded-xl text-xs font-bold"
-              >
-                <SlidersHorizontal size={14} />
-                <span>Filters</span>
-              </button>
+              {/* Mobile Filters Toggle Button */}
+              <div className="flex lg:hidden items-center gap-2.5 w-full justify-between">
+                <button
+                  onClick={() => setShowMobileFilters(true)}
+                  className="flex-1 flex items-center justify-center border bg-white dark:bg-[#1a1a1a] text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/50 transition-all duration-300 gap-1.5 py-1.5 px-3 rounded-lg text-xs font-bold"
+                >
+                  <SlidersHorizontal size={13} className="text-ozo-red" />
+                  <span>Filters</span>
+                  {((priceLimit < maxCategoryPrice ? 1 : 0) + (inStockOnly ? 1 : 0) + (bestsellerOnly ? 1 : 0) + (featuredOnly ? 1 : 0)) > 0 && (
+                    <span className="w-3.5 h-3.5 rounded-full flex items-center justify-center text-[9px] font-black bg-ozo-red text-white">
+                      {(priceLimit < maxCategoryPrice ? 1 : 0) + (inStockOnly ? 1 : 0) + (bestsellerOnly ? 1 : 0) + (featuredOnly ? 1 : 0)}
+                    </span>
+                  )}
+                </button>
 
-              {/* Sorting Select Option */}
-              <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={true} />
+                <div className="flex-1 min-w-0">
+                  <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={true} />
+                </div>
+              </div>
+
+              {/* Desktop Sorting Select Option */}
+              <div className="hidden lg:block">
+                <SortDropdown sortBy={sortBy} onChange={setSortBy} isCompact={true} />
+              </div>
             </div>
           </div>
         </div>
