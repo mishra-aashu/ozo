@@ -60,20 +60,10 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 
-// Shuffle seed: fresh on every new app open (tab/session), stable within the session
-// Stored in sessionStorage so it persists across React re-renders but resets on tab close
-const _getOrCreateSessionSeed = () => {
-  try {
-    const stored = sessionStorage.getItem('ozo_shuffle_seed')
-    if (stored) return parseFloat(stored)
-    const fresh = Math.random()
-    sessionStorage.setItem('ozo_shuffle_seed', String(fresh))
-    return fresh
-  } catch {
-    return Math.random()
-  }
-}
-const PAGE_LOAD_SHUFFLE_SEED = _getOrCreateSessionSeed();
+// Shuffle seed: fresh on every page load/refresh, stable during React re-renders.
+// Generates a new random seed on every script execution (page refresh/load)
+// instead of relying on sessionStorage, allowing users to see different products upon refreshing.
+const PAGE_LOAD_SHUFFLE_SEED = Math.random();
 
 // Helper to generate a stable pseudo-random value for a given ID/name and seed
 const getSeededRandom = (key, seed) => {
@@ -126,11 +116,7 @@ const getOnePerCategory = (arr, seed, limit = 4) => {
       if (aOOS !== bOOS) {
         return aOOS ? 1 : -1;
       }
-      const discountA = a.discount_percentage || 0;
-      const discountB = b.discount_percentage || 0;
-      if (discountA !== discountB) {
-        return discountB - discountA;
-      }
+      // Sort by seeded random score to guarantee true product randomization across refreshes/visits
       return getSeededRandom(a.id || a.name || '', seed) - getSeededRandom(b.id || b.name || '', seed);
     });
 
