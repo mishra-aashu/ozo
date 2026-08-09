@@ -217,7 +217,7 @@ const TermsOfService = () => {
                         <dt className="text-gray-500 dark:text-gray-400 font-medium">Emails & Support</dt>
                         <dd className="font-bold text-gray-900 dark:text-white space-y-1">
                           <span className="block">Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></span>
-                          <span className="block">Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094 (10 AM - 10 PM, All Days)</a></span>
+                          <span className="block">Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094 (24 Hours, All Days)</a></span>
                         </dd>
                       </div>
                     </dl>
@@ -1051,7 +1051,7 @@ const TermsOfService = () => {
                     <ul className="space-y-2 text-sm font-semibold text-gray-800 dark:text-gray-300">
                       <li>📧 Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></li>
                       <li>📞 Phone: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
-                      <li>🕒 Hours: 10 AM - 10 PM, All Days</li>
+                      <li>🕒 Hours: 24 Hours, All Days</li>
                     </ul>
                   </div>
 

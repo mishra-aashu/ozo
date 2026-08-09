@@ -648,7 +648,7 @@ const Help = () => {
                 </div>
                 <div>
                   <h4 className="font-bold text-gray-900 dark:text-white">Call Support</h4>
-                  <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">9 AM - 9 PM</p>
+                  <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">24 Hours</p>
                 </div>
                 <a 
                   href="tel:+916206359094"
