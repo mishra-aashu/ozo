@@ -567,7 +567,7 @@ const ErrorLogs = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Device Specs</p>
+                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Device & Network Specs</p>
                     <div className="space-y-2 bg-gray-50 dark:bg-white/3 p-4 rounded-2.5xl border border-gray-100 dark:border-white/5 text-xs font-medium text-gray-650 dark:text-gray-300">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 font-bold">Platform / OS:</span>
@@ -581,9 +581,48 @@ const ErrorLogs = () => {
                         <span className="text-gray-400 font-bold">Language:</span>
                         <span>{selectedLog.device_info?.language || 'en'}</span>
                       </div>
+                      {selectedLog.device_info?.connection && (
+                        <>
+                          <div className="flex justify-between items-center border-t border-gray-200/30 dark:border-white/5 pt-2 mt-1">
+                            <span className="text-gray-400 font-bold">Network Type:</span>
+                            <span className="uppercase font-bold text-amber-500">{selectedLog.device_info.connection.effectiveType || 'Unknown'}</span>
+                          </div>
+                          {selectedLog.device_info.connection.downlink && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 font-bold">Downlink Speed:</span>
+                              <span>{selectedLog.device_info.connection.downlink} Mbps</span>
+                            </div>
+                          )}
+                          {selectedLog.device_info.connection.rtt && (
+                            <div className="flex justify-between items-center">
+                              <span className="text-gray-400 font-bold">Latency (RTT):</span>
+                              <span>{selectedLog.device_info.connection.rtt} ms</span>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
+
+                {/* Custom Metadata / Additional Context */}
+                {selectedLog.device_info && Object.keys(selectedLog.device_info).some(key => !['userAgent', 'viewport', 'platform', 'language', 'connection'].includes(key)) && (
+                  <div className="space-y-1.5">
+                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Additional Context Metadata</p>
+                    <div className="bg-gray-50 dark:bg-white/3 p-4 rounded-2.5xl border border-gray-100 dark:border-white/5 text-xs font-medium text-gray-650 dark:text-gray-300 space-y-2">
+                      {Object.entries(selectedLog.device_info)
+                        .filter(([key]) => !['userAgent', 'viewport', 'platform', 'language', 'connection'].includes(key))
+                        .map(([key, val]) => (
+                          <div key={key} className="flex justify-between items-start gap-3">
+                            <span className="text-gray-400 font-bold capitalize">{key.replace(/([A-Z])/g, ' $1')}:</span>
+                            <span className="text-right max-w-[250px] break-all font-mono">
+                              {typeof val === 'object' ? JSON.stringify(val, null, 2) : String(val)}
+                            </span>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
 
                 {/* Device User Agent */}
                 {selectedLog.device_info?.userAgent && (

@@ -34,11 +34,26 @@ export const logError = async ({
       }
     } catch (_) {}
 
+    // Retrieve network details if supported by the browser to diagnose slow internet issues
+    let connectionInfo = null
+    if (typeof navigator !== 'undefined') {
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection
+      if (conn) {
+        connectionInfo = {
+          effectiveType: conn.effectiveType,
+          downlink: conn.downlink,
+          rtt: conn.rtt,
+          saveData: conn.saveData
+        }
+      }
+    }
+
     const deviceInfo = {
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'Server',
       viewport: typeof window !== 'undefined' ? `${window.innerWidth}x${window.innerHeight}` : null,
       platform: typeof navigator !== 'undefined' ? navigator.platform : null,
       language: typeof navigator !== 'undefined' ? navigator.language : null,
+      connection: connectionInfo,
       ...additionalInfo
     }
 
