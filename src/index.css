@@ -512,12 +512,14 @@ body {
     @apply bg-clip-text text-transparent bg-gradient-green box-decoration-clone;
   }
 
-  .scrollbar-hide {
+  .scrollbar-hide,
+  .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
 
-  .scrollbar-hide::-webkit-scrollbar {
+  .scrollbar-hide::-webkit-scrollbar,
+  .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
 
