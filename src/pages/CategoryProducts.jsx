@@ -812,7 +812,7 @@ const CategoryProducts = () => {
         </AnimatePresence>
       </motion.div>
 
-      <div className="container-custom flex-1 min-h-0 py-2 md:py-6 flex flex-col">
+      <div className="max-w-[1440px] mx-auto w-full px-2 xs:px-3 sm:px-6 lg:px-8 flex-1 min-h-0 py-2 md:py-6 flex flex-col">
         {/* Breadcrumb path */}
         <Breadcrumb items={breadcrumbItems} className="hidden md:flex mb-6" />
 
@@ -981,27 +981,24 @@ const CategoryProducts = () => {
         </div>
 
         {/* Main Grid containing filters and products */}
-        <div className="flex gap-2 md:gap-8 flex-1 min-h-0 h-full lg:h-auto">
+        <div className="flex gap-1.5 md:gap-8 flex-1 min-h-0 h-full lg:h-auto">
           {/* Sidebar - Mobile/Tablet Subcategories */}
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-[68px] xs:w-[80px] sm:w-[92px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full transform-gpu will-change-[transform,scroll-position]"
+              className="lg:hidden w-[60px] xs:w-[70px] sm:w-[86px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full transform-gpu will-change-[transform,scroll-position]"
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
                 <button
                   onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
-                  className={`w-full relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
+                  className={`w-full relative flex flex-col items-center gap-1 p-1 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
                     slug === currentParentInfo.slug
                       ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                       : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
                   }`}
                 >
-                  {slug === currentParentInfo.slug && (
-                    <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
-                  )}
-                  <div className={`w-12 h-12 xs:w-[52px] xs:h-[52px] rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                  <div className={`w-10 h-10 xs:w-[46px] xs:h-[46px] rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                     slug === currentParentInfo.slug
                       ? 'border-ozo-red shadow-md shadow-ozo-red/15'
                       : 'border-gray-150/50 dark:border-white/5'
@@ -1025,7 +1022,7 @@ const CategoryProducts = () => {
                           />
                         )
                       }
-                      return <Box size={18} className="text-gray-400 dark:text-gray-500" />
+                      return <Box size={16} className="text-gray-400 dark:text-gray-500" />
                     })()}
                   </div>
                   <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">
@@ -1044,16 +1041,13 @@ const CategoryProducts = () => {
                     <button
                       key={sub.id}
                       onClick={() => navigate(`/category/${sub.slug}`)}
-                      className={`w-full relative flex flex-col items-center gap-1.5 p-1.5 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
+                      className={`w-full relative flex flex-col items-center gap-1 p-1 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
                         isSelected
                           ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                           : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
                       }`}
                     >
-                      {isSelected && (
-                        <div className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-ozo-red rounded-l-full" />
-                      )}
-                      <div className={`w-12 h-12 xs:w-[52px] xs:h-[52px] rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
+                      <div className={`w-10 h-10 xs:w-[46px] xs:h-[46px] rounded-full overflow-hidden flex items-center justify-center bg-white dark:bg-[#1a1a1a] border transition-all duration-300 ${
                         isSelected
                           ? 'border-ozo-red shadow-md shadow-ozo-red/15'
                           : 'border-gray-150/50 dark:border-white/5'
@@ -1073,9 +1067,9 @@ const CategoryProducts = () => {
                             className="w-full h-full object-contain p-0.5 select-none scale-105"
                           />
                         ) : isEmoji ? (
-                          <span className="text-[17px] xs:text-xl select-none">{sub.icon}</span>
+                          <span className="text-[15px] xs:text-lg select-none">{sub.icon}</span>
                         ) : (
-                          <IconComponent size={18} className="text-gray-400 dark:text-gray-500" />
+                          <IconComponent size={16} className="text-gray-400 dark:text-gray-500" />
                         )}
                       </div>
                       <span className="text-[9px] xs:text-[10px] font-black tracking-tight leading-tight line-clamp-2 w-full overflow-hidden break-words select-none text-center">

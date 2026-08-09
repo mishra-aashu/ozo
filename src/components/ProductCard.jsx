@@ -497,7 +497,7 @@ function ProductCard({ product, variant = 'default', index }) {
       style={{
         animationDelay: typeof index === 'number' ? `${Math.min(index * 0.035, 0.4)}s` : '0s'
       }}
-      className="product-card product-card-animate relative group flex flex-col items-stretch gap-2 p-2.5 sm:p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg hover:-translate-y-2 transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
+      className="product-card product-card-animate relative group flex flex-col items-stretch gap-1.5 sm:gap-2.5 p-2 sm:p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg hover:-translate-y-2 transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
     >
       {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
       <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
@@ -550,7 +550,7 @@ function ProductCard({ product, variant = 'default', index }) {
       {/* Product Image (Top centered) */}
       <Link 
         to={productLink} 
-        className="relative w-full h-32 xs:h-36 sm:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
+        className="relative w-full h-24 xs:h-28 sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
       >
         <OptimizedImage
           src={selectedProduct.image_url}
@@ -558,7 +558,7 @@ function ProductCard({ product, variant = 'default', index }) {
           alt={selectedProduct.name}
           width={300}
           loading="lazy"
-          className={`w-full h-full object-contain p-1.5 sm:p-2.5 group-hover:scale-105 transition-transform duration-500 ${
+          className={`w-full h-full object-contain p-1 sm:p-2 group-hover:scale-105 transition-transform duration-500 ${
             !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
           }`}
           containerClassName="w-full h-full"
@@ -582,9 +582,9 @@ function ProductCard({ product, variant = 'default', index }) {
       </Link>
 
       {/* Product Details (Bottom) */}
-      <div className="product-card-body flex flex-col flex-1 min-w-0 p-1 sm:p-2 sm:pt-1">
+      <div className="product-card-body flex flex-col flex-1 min-w-0 p-0.5 sm:p-2 sm:pt-1">
         {/* Delivery Time & Rating Info */}
-        <div className="flex items-center gap-1.5 mb-1.5">
+        <div className="flex items-center gap-1 sm:gap-1.5 mb-1 sm:mb-1.5">
           <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full bg-amber-500/10 dark:bg-amber-500/20 text-[7px] sm:text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider">
             <Clock className="w-2 h-2 sm:w-2.5 sm:h-2.5 text-amber-500 fill-amber-500/20" />
             <span>30m</span>
@@ -598,14 +598,14 @@ function ProductCard({ product, variant = 'default', index }) {
         </div>
 
         {/* Product Name */}
-        <Link to={productLink} className="block mb-1 pr-1">
+        <Link to={productLink} className="block mb-0.5 sm:mb-1 pr-1">
           <h3 className="font-extrabold text-[11px] sm:text-[13px] md:text-[14px] line-clamp-2 leading-tight text-gray-800 dark:text-gray-100 group-hover:text-ozo-red transition-colors break-words">
             {product.name}
           </h3>
         </Link>
 
         {/* Unit */}
-        <p className="text-[8px] sm:text-[10px] font-semibold text-gray-400 dark:text-gray-400 mb-2">{selectedProduct.unit || 'per pc'}</p>
+        <p className="text-[8px] sm:text-[10px] font-semibold text-gray-400 dark:text-gray-400 mb-1 sm:mb-2">{selectedProduct.unit || 'per pc'}</p>
 
         {/* Variant Selector Pills */}
         {hasVariants && product.variants.length > 1 && (
@@ -634,7 +634,7 @@ function ProductCard({ product, variant = 'default', index }) {
         )}
 
         {/* Price & Add Section */}
-        <div className="mt-auto pt-2 flex items-center justify-between gap-2 border-t border-gray-100 dark:border-white/[0.04]">
+        <div className="mt-auto pt-1.5 sm:pt-2 flex items-center justify-between gap-2 border-t border-gray-100 dark:border-white/[0.04]">
           <div className="flex flex-col min-w-0">
             <span className="font-black text-gray-900 dark:text-white text-[12px] sm:text-[14px] md:text-[15px] leading-tight">
               {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
