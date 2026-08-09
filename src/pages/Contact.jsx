@@ -186,14 +186,14 @@ const Contact = () => {
                   <div>
                      <label className="label">Subject</label>
                      <select 
-                        className="input appearance-none bg-no-repeat bg-[right_1.5rem_center]"
+                        className="input"
                         value={formData.subject}
                         onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                      >
-                        <option>Order Issue</option>
-                        <option>Payment Query</option>
-                        <option>Feedback</option>
-                        <option>Other</option>
+                        <option className="bg-white dark:bg-[#1a1a1a] text-ozo-dark dark:text-white">Order Issue</option>
+                        <option className="bg-white dark:bg-[#1a1a1a] text-ozo-dark dark:text-white">Payment Query</option>
+                        <option className="bg-white dark:bg-[#1a1a1a] text-ozo-dark dark:text-white">Feedback</option>
+                        <option className="bg-white dark:bg-[#1a1a1a] text-ozo-dark dark:text-white">Other</option>
                      </select>
                   </div>
                   <div>
