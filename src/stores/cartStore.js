@@ -158,7 +158,7 @@ export const useCartStore = create(
       shgConfig: { enabled: true },
       riderConfig: { base_payout: 10, distance_bonus_per_km: 5, max_cash_limit: 2000 },
       geofenceConfig: GEOFENCE_DEFAULTS,
-      mapConfig: { hide_map: false },
+      mapConfig: { hide_map: false, hide_mart_pickup: false, hide_map_links: false },
       launchConfig: { launch_mode_enabled: true, show_out_of_stock_btn: true, show_listing_soon_btn: true, show_mandi_section: true, show_budget_section: true },
       paymentConfig: { cashfree_enabled: true, cod_enabled: true, razorpay_enabled: false },
       serviceHoursConfig: {
