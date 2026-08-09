@@ -651,7 +651,7 @@ const Help = () => {
                   <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">9 AM - 9 PM</p>
                 </div>
                 <a 
-                  href="tel:+911800696335"
+                  href="tel:+916206359094"
                   className="ml-auto px-5 py-2.5 bg-ozo-red hover:bg-ozo-red/90 text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-ozo-red/30 transition-all active:scale-95 text-center"
                 >
                   Call

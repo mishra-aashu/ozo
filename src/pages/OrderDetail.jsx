@@ -1727,11 +1727,11 @@ const OrderDetail = () => {
                     </div>
                     <div className="flex-1 min-w-0">
                       <h5 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-0.5">Ozo Customer Support</h5>
-                      <h4 className="text-sm font-black text-gray-900 dark:text-white">+91 1800-OZO-DEL</h4>
+                      <h4 className="text-sm font-black text-gray-900 dark:text-white">+91 6206359094</h4>
                       <p className="text-xs font-bold text-gray-500">Helpline Center</p>
                     </div>
                     <a 
-                      href="tel:+911800-OZO-DEL"
+                      href="tel:+916206359094"
                       className="w-10 h-10 bg-ozo-red hover:bg-ozo-red/90 text-white rounded-xl flex items-center justify-center shadow-md active:scale-95 transition-all flex-shrink-0"
                       title="Call Support"
                     >

@@ -84,12 +84,12 @@ const Contact = () => {
     },
     { 
       title: 'Call Us', 
-      value: '+91 1800-OZO-DEL', 
+      value: '+91 6206359094', 
       desc: 'Mon-Sun, 6 AM - 12 AM',
       icon: Phone, 
       color: 'text-ozo-green', 
       bgColor: 'bg-green-50 dark:bg-ozo-green/10',
-      action: () => window.location.href = 'tel:+911800696335'
+      action: () => window.location.href = 'tel:+916206359094'
     },
     { 
       title: 'Live Chat', 
