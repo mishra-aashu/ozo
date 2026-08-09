@@ -172,7 +172,8 @@ const AdminSettings = () => {
 
   const [mapConfig, setMapConfig] = useState({
     hide_map: false,
-    hide_mart_pickup: false
+    hide_mart_pickup: false,
+    hide_map_links: false
   })
 
   const [launchConfig, setLaunchConfig] = useState({
@@ -862,7 +863,8 @@ const AdminSettings = () => {
         }
         let mapConfigObj = {
           hide_map: false,
-          hide_mart_pickup: false
+          hide_mart_pickup: false,
+          hide_map_links: false
         }
         let launch = {
           launch_mode_enabled: true,
@@ -1387,7 +1389,8 @@ const AdminSettings = () => {
           key: 'map_config',
           value: {
             hide_map: !!mapConfig.hide_map,
-            hide_mart_pickup: !!mapConfig.hide_mart_pickup
+            hide_mart_pickup: !!mapConfig.hide_mart_pickup,
+            hide_map_links: !!mapConfig.hide_map_links
           },
           description: 'Toggle hiding the interactive map system across the frontend app'
         })
@@ -2672,6 +2675,41 @@ const AdminSettings = () => {
                       <Info className="w-4 h-4 flex-shrink-0 text-indigo-500 mt-0.5" />
                       <span>
                         Useful when the admin is also the rider and already knows the Mart's location.
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Hide Map Location Links setting */}
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-150 dark:border-white/5 space-y-4">
+                    <div className="flex items-center justify-between gap-4">
+                      <div className="flex-1">
+                        <p className="text-sm font-bold text-gray-800 dark:text-white font-display">Hide Map Location Links</p>
+                        <p className="text-[10px] text-gray-400">Toggle ON to hide the "Paste your location" accordion (Google Maps, Apple Maps, or WhatsApp location link paste input) on the user address form.</p>
+                      </div>
+                      <div className="flex items-center gap-3 flex-shrink-0">
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border transition-all ${
+                          mapConfig.hide_map_links 
+                            ? 'bg-red-500/10 border-red-500/20 text-red-600 dark:text-red-400' 
+                            : 'bg-gray-100 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-500 dark:text-gray-400'
+                        }`}>
+                          {mapConfig.hide_map_links ? 'HIDDEN (ON)' : 'SHOWN (OFF)'}
+                        </span>
+                        <label className="relative inline-flex items-center cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={!!mapConfig.hide_map_links}
+                            onChange={e => setMapConfig({ ...mapConfig, hide_map_links: e.target.checked })}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-white/10 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="p-3 bg-indigo-500/5 text-indigo-600 dark:text-indigo-400 text-[11px] font-semibold rounded-xl border border-indigo-500/10 flex gap-2">
+                      <Info className="w-4 h-4 flex-shrink-0 text-indigo-500 mt-0.5" />
+                      <span>
+                        When enabled, users will not see the link autofill/paste input option when adding or editing delivery addresses.
                       </span>
                     </div>
                   </div>

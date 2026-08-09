@@ -280,6 +280,8 @@ export default function AddressForm({
     }
   }, [formData.google_maps_url])
 
+  const activeLinkAutofill = showLinkAutofill && !mapConfig?.hide_map_links
+
   // Auto-fetch active cities and hierarchical database entries on mount
   React.useEffect(() => {
     const loadStoreData = async () => {
@@ -858,7 +860,7 @@ export default function AddressForm({
   return (
     <div className="space-y-6">
       {/* 1. Map Section at the top */}
-      {!showLinkAutofill && !mapConfig?.hide_map && OzoMapPicker && (
+      {!activeLinkAutofill && !mapConfig?.hide_map && OzoMapPicker && (
         <div className="space-y-2">
           <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 dark:text-zinc-550">
             Pin Delivery Location
@@ -879,7 +881,8 @@ export default function AddressForm({
       )}
 
       {/* Optional Link Autofill Accordion */}
-      <div className="border border-gray-100 dark:border-white/5 rounded-2xl bg-gray-50/35 dark:bg-zinc-950/20 overflow-hidden transition-all duration-300">
+      {!mapConfig?.hide_map_links && (
+        <div className="border border-gray-100 dark:border-white/5 rounded-2xl bg-gray-50/35 dark:bg-zinc-950/20 overflow-hidden transition-all duration-300">
         <button
           type="button"
           onClick={() => setShowLinkAutofill(!showLinkAutofill)}
@@ -991,6 +994,7 @@ export default function AddressForm({
           </div>
         )}
       </div>
+      )}
 
       {/* 2. Contact Details (Receiver Name/Phone) */}
       {showContactFields && (
@@ -1035,7 +1039,7 @@ export default function AddressForm({
       )}
 
       {/* 3. Address Type Selector */}
-      {!showLinkAutofill && (
+      {!activeLinkAutofill && (
         <div>
           <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
             Save Address As
@@ -1065,7 +1069,7 @@ export default function AddressForm({
       )}
 
       {/* 4. Address Information Fields */}
-      {!showLinkAutofill && (
+      {!activeLinkAutofill && (
         <div className="space-y-4 pt-2">
           <div className="flex items-center justify-between pb-1 border-b border-gray-150 dark:border-zinc-800">
           <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
@@ -1245,7 +1249,7 @@ export default function AddressForm({
       </div>
       )}
 
-      {(formData.address_line2 || showLinkAutofill) && (
+      {(formData.address_line2 || activeLinkAutofill) && (
         <div className="space-y-4 slide-up">
           {/* Notes */}
           <div>
