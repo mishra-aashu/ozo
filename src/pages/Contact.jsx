@@ -85,7 +85,7 @@ const Contact = () => {
     { 
       title: 'Call Us', 
       value: '+91 6206359094', 
-      desc: 'Mon-Sun, 6 AM - 12 AM',
+      desc: 'Mon-Sun, 24 Hours',
       icon: Phone, 
       color: 'text-ozo-green', 
       bgColor: 'bg-green-50 dark:bg-ozo-green/10',
