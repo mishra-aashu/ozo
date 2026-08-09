@@ -114,18 +114,70 @@ class ErrorBoundary extends React.Component {
   }
 
   static getDerivedStateFromError(error) {
+    const errorMsg = error?.message || '';
+    const isChunkLoadFailed = error?.name === 'ChunkLoadError' || 
+                              errorMsg.includes('Failed to fetch dynamically imported module') ||
+                              errorMsg.includes('Error importing') ||
+                              errorMsg.includes('Unable to preload CSS') ||
+                              errorMsg.includes('preload CSS') ||
+                              errorMsg.includes('Load failed') ||
+                              error?.isChunkReload;
+    if (isChunkLoadFailed) {
+      try {
+        error.isChunkReload = true;
+      } catch (e) {
+        return { 
+          hasError: true, 
+          error: {
+            ...error,
+            message: error?.message || '',
+            name: error?.name || '',
+            stack: error?.stack || null,
+            isChunkReload: true
+          }
+        }
+      }
+    }
     return { hasError: true, error }
   }
 
   componentDidCatch(error, errorInfo) {
     console.error('Error caught by boundary:', error, errorInfo)
-    logError({
-      error,
-      message: error?.message || 'Component crash',
-      componentName: 'ErrorBoundary',
-      severity: 'fatal',
-      additionalInfo: { errorInfo }
-    })
+    
+    const errorMsg = error?.message || '';
+    const isChunkReload = error?.isChunkReload || 
+                          error?.name === 'ChunkLoadError' || 
+                          errorMsg.includes('Failed to fetch dynamically imported module') ||
+                          errorMsg.includes('Error importing') ||
+                          errorMsg.includes('Unable to preload CSS') ||
+                          errorMsg.includes('preload CSS') ||
+                          errorMsg.includes('Load failed');
+
+    if (isChunkReload) {
+      const hasReloaded = sessionStorage.getItem('ozo-chunk-reload-attempted');
+      if (!hasReloaded) {
+        sessionStorage.setItem('ozo-chunk-reload-attempted', 'true');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1200);
+      }
+      
+      logError({
+        error,
+        message: error?.message || 'Chunk load/preload failure - reloading...',
+        componentName: 'ErrorBoundary',
+        severity: 'info',
+        additionalInfo: { errorInfo }
+      }).catch(err => console.error('Failed to log error:', err));
+    } else {
+      logError({
+        error,
+        message: error?.message || 'Component crash',
+        componentName: 'ErrorBoundary',
+        severity: 'fatal',
+        additionalInfo: { errorInfo }
+      }).catch(err => console.error('Failed to log error:', err));
+    }
   }
 
   render() {
