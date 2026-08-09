@@ -41,6 +41,7 @@ const AdminLockScreen = ({ onUnlock }) => {
       if (error) throw error
 
       if (token) {
+        sessionStorage.setItem('ozo-admin-token', token)
         localStorage.setItem('ozo-admin-token', token)
         toast.success(isCityManager ? 'City Manager console unlocked successfully' : 'Admin panel unlocked successfully')
         onUnlock()

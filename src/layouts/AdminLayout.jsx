@@ -41,6 +41,7 @@ import { useAdminIndicatorStore } from '../stores/adminIndicatorStore'
 import toast from 'react-hot-toast'
 import UserAvatar from '../components/UserAvatar'
 import AdminLockScreen from '../components/AdminLockScreen'
+import { supabase } from '../lib/supabase'
  
 const AdminLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -217,7 +218,10 @@ const AdminLayout = () => {
   })
 
   const [isUnlocked, setIsUnlocked] = useState(() => {
-    return !!localStorage.getItem('ozo-admin-token')
+    if (typeof window !== 'undefined') {
+      return !!(sessionStorage.getItem('ozo-admin-token') || localStorage.getItem('ozo-admin-token'))
+    }
+    return false
   })
 
   useEffect(() => {
@@ -227,6 +231,45 @@ const AdminLayout = () => {
     window.addEventListener('ozo-admin-session-expired', handleExpired)
     return () => window.removeEventListener('ozo-admin-session-expired', handleExpired)
   }, [])
+
+  useEffect(() => {
+    const verifyAdminSession = async () => {
+      if (typeof window === 'undefined') return
+      const token = sessionStorage.getItem('ozo-admin-token') || localStorage.getItem('ozo-admin-token')
+      if (!token) {
+        setIsUnlocked(false)
+        return
+      }
+
+      try {
+        const { data: isValid, error } = await supabase.rpc('is_admin')
+        if (error || !isValid) {
+          console.warn('[Admin Session] Invalid or expired admin token in database.')
+          localStorage.removeItem('ozo-admin-token')
+          sessionStorage.removeItem('ozo-admin-token')
+          setIsUnlocked(false)
+        } else {
+          // Sync token between storages
+          if (!sessionStorage.getItem('ozo-admin-token')) {
+            sessionStorage.setItem('ozo-admin-token', token)
+          }
+          if (!localStorage.getItem('ozo-admin-token')) {
+            localStorage.setItem('ozo-admin-token', token)
+          }
+        }
+      } catch (err) {
+        console.error('[Admin Session] Verification failed:', err)
+      }
+    }
+
+    if (isUnlocked) {
+      verifyAdminSession()
+      
+      // Set up periodic check every 5 minutes
+      const interval = setInterval(verifyAdminSession, 5 * 60 * 1000)
+      return () => clearInterval(interval)
+    }
+  }, [isUnlocked])
 
   useEffect(() => {
     const path = location.pathname
@@ -278,6 +321,7 @@ const AdminLayout = () => {
 
   const handleLogout = async () => {
     localStorage.removeItem('ozo-admin-token')
+    sessionStorage.removeItem('ozo-admin-token')
     const result = await signOut()
     if (result.success) {
       navigate('/')
