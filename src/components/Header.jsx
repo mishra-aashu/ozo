@@ -178,7 +178,7 @@ const Header = () => {
     isSearchLoading: state.isSearchLoading,
     isSearchError: state.isSearchError,
   })))
-  const { address, coordinates, addressDetails, nearestCity, tracedThrough, selectedCitySlug: headerSelectedCitySlug, activeCities: headerActiveCities } = useLocationStore(useShallow(state => ({
+  const { address, coordinates, addressDetails, nearestCity, tracedThrough, selectedCitySlug: headerSelectedCitySlug, activeCities: headerActiveCities, browsingCitySlug } = useLocationStore(useShallow(state => ({
     address: state.address,
     coordinates: state.coordinates,
     addressDetails: state.addressDetails,
@@ -186,25 +186,26 @@ const Header = () => {
     tracedThrough: state.tracedThrough,
     selectedCitySlug: state.selectedCitySlug,
     activeCities: state.activeCities,
+    browsingCitySlug: state.browsingCitySlug,
   })))
 
   // Determine if location is serviceable
   const isLocationServiceable = (() => {
     if (!address) return true
 
-    // 1. STRONGEST SIGNAL: if selectedCitySlug is set, location was already matched to an active city
-    if (headerSelectedCitySlug) {
-      const matchedCity = (headerActiveCities || []).find(c => c.slug === headerSelectedCitySlug)
-      if (matchedCity) return true
-    }
-
-    // 2. If activeCities not loaded yet, don't falsely show not-serviceable
-    if (!headerActiveCities || headerActiveCities.length === 0) return true
-
-    // 3. If coordinates are available, do geofence check against stored activeCities
+    // 1. Prioritize coordinates-based check if available
     if (coordinates && coordinates.lat && coordinates.lng) {
       const lat = parseFloat(coordinates.lat)
       const lng = parseFloat(coordinates.lng)
+      
+      // Ignore dummy/uninitialized coordinates
+      if (Math.abs(lat) < 0.01 && Math.abs(lng) < 0.01) {
+        return false
+      }
+
+      // If activeCities not loaded yet, don't falsely show not-serviceable
+      if (!headerActiveCities || headerActiveCities.length === 0) return true
+
       for (const city of headerActiveCities) {
         if (!city.latitude || !city.longitude) continue
         const cLat = parseFloat(city.latitude)
@@ -219,6 +220,15 @@ const Header = () => {
       }
       return false
     }
+
+    // 2. Fallback to selectedCitySlug check if coordinates are not available
+    if (headerSelectedCitySlug) {
+      const matchedCity = (headerActiveCities || []).find(c => c.slug === headerSelectedCitySlug)
+      if (matchedCity) return true
+    }
+
+    // 3. If activeCities not loaded yet, don't falsely show not-serviceable
+    if (!headerActiveCities || headerActiveCities.length === 0) return true
 
     // 4. Check if postcode is allowed in city settings
     let postcode = addressDetails?.postcode || addressDetails?.pincode || ''
