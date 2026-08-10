@@ -279,7 +279,7 @@ export const useLocationStore = create(
       }),
       setBrowsingCitySlug: (slug) => {
         if (!slug) {
-          set({ browsingCitySlug: null, selectedCitySlug: get().deliveryCitySlug || null });
+          set({ browsingCitySlug: null });
           return;
         }
 
@@ -291,7 +291,6 @@ export const useLocationStore = create(
         if (matched) {
           set({
             browsingCitySlug: matched.slug,
-            selectedCitySlug: matched.slug,
             invalidCitySlugNotice: null
           });
           if (typeof localStorage !== 'undefined') {
@@ -302,7 +301,6 @@ export const useLocationStore = create(
           console.warn(`[LocationStore] City slug "${slug}" not found. Soft falling back to "${defaultCity}".`);
           set({
             browsingCitySlug: defaultCity,
-            selectedCitySlug: defaultCity,
             invalidCitySlugNotice: `City "${slug}" was not found. Showing default catalog for ${activeCities[0].name || defaultCity}.`
           });
           if (typeof localStorage !== 'undefined') {
@@ -311,7 +309,6 @@ export const useLocationStore = create(
         } else {
           set({
             browsingCitySlug: cleanSlug,
-            selectedCitySlug: cleanSlug,
             invalidCitySlugNotice: null
           });
         }
@@ -865,7 +862,7 @@ export const useLocationStore = create(
         addressDetails: state.addressDetails,
         browsingCitySlug: state.browsingCitySlug,
         deliveryCitySlug: state.deliveryCitySlug,
-        selectedCitySlug: state.selectedCitySlug || state.browsingCitySlug || state.deliveryCitySlug,
+        selectedCitySlug: state.selectedCitySlug,
         nearestCity: state.nearestCity,
         activeCities: state.activeCities,
         localities: state.localities,
@@ -891,25 +888,24 @@ export const useLocationStore = create(
 //
 // Call sites that have useCartStore available should pass:
 //   checkDeliveryZoneStatus(lat, lng, useCartStore.getState())
+//
+// Protects against dummy uninitialized coordinates (0, 0)
 export const checkDeliveryZoneStatus = (userLat, userLng, config = null) => {
   if (!userLat || !userLng) return false;
   const lat = parseFloat(userLat);
   const lng = parseFloat(userLng);
   if (isNaN(lat) || isNaN(lng)) return false;
 
+  // Ignore dummy/uninitialized coordinates
+  if (Math.abs(lat) < 0.01 && Math.abs(lng) < 0.01) {
+    return false;
+  }
+
   try {
     const locationState = useLocationStore.getState();
-
-    // If selectedCitySlug is set, location was already positively matched — trust it
-    if (locationState.selectedCitySlug) {
-      const activeCities = locationState.activeCities || [];
-      const matched = activeCities.find(c => c.slug === locationState.selectedCitySlug);
-      if (matched) return true;
-    }
-
     const activeCities = locationState.activeCities || [];
 
-    // If cities haven't loaded yet, don't block the user — return true gracefully
+    // If cities haven't loaded yet, don't falsely block the user — return true gracefully
     if (activeCities.length === 0) return true;
 
     // Check distance against all active operating cities using enforced minimum 25km radius
@@ -977,10 +973,22 @@ export const checkPincodeServiceable = (pincode, cityName = null) => {
         return city.allowed_pincodes.includes(cleanPin);
       }
       return true;
+    } else {
+      // City is specified but does not match any active operating cities.
+      return false;
     }
   }
   
-  return activeCities.some(c => !c.allowed_pincodes || c.allowed_pincodes.length === 0 || (Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.includes(cleanPin)));
+  // If no city name is provided, check if pincode matches allowed pincodes or starts with Aurangabad prefix 824
+  return activeCities.some(c => {
+    if (c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.length > 0) {
+      return c.allowed_pincodes.includes(cleanPin);
+    }
+    if (c.slug === 'aurangabad') {
+      return cleanPin.startsWith('824');
+    }
+    return false;
+  });
 };
 
 export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => {

@@ -45,15 +45,34 @@ import { useLocationStore } from '../stores/locationStore'
 export const resolveSnappedAddress = (loc) => {
   const addr = loc.addressDetails || {}
   const nearest = loc.nearestStreet || null
+  const lat = loc.lat
+  const lng = loc.lng
+  
+  const nearestCity = useLocationStore.getState().nearestCity
+  
+  // Calculate distance between user coordinates and the nearest active city center
+  let isWithinCityZone = false
+  if (nearestCity && nearestCity.latitude && nearestCity.longitude && lat && lng) {
+    const R = 6371 // Earth's radius in km
+    const cLat = parseFloat(nearestCity.latitude)
+    const cLng = parseFloat(nearestCity.longitude)
+    const dLat = (cLat - lat) * Math.PI / 180
+    const dLon = (cLng - lng) * Math.PI / 180
+    const a = Math.sin(dLat/2)*Math.sin(dLat/2) + Math.cos(lat*Math.PI/180)*Math.cos(cLat*Math.PI/180)*Math.sin(dLon/2)*Math.sin(dLon/2)
+    const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))
+    const maxRadius = Math.max(parseFloat(nearestCity.service_radius_km) || 25.0, 25.0)
+    isWithinCityZone = dist <= maxRadius
+  }
+
+  const useSnappedCityDetails = nearest && isWithinCityZone
   
   const street = nearest 
     ? (nearest.name_hi ? `${nearest.name} (${nearest.name_hi})` : nearest.name)
     : [addr.road, addr.pedestrian || addr.suburb].filter(Boolean).join(', ')
   
-  const nearestCity = useLocationStore.getState().nearestCity
-  const cityVal = nearest ? (nearestCity?.name || '') : (addr.city || addr.town || addr.village || addr.county || '')
-  const stateVal = nearest ? (nearestCity?.state || '') : (addr.state || '')
-  const pincodeVal = nearest ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
+  const cityVal = useSnappedCityDetails ? (nearestCity?.name || '') : (addr.city || addr.town || addr.village || addr.county || '')
+  const stateVal = useSnappedCityDetails ? (nearestCity?.state || '') : (addr.state || '')
+  const pincodeVal = useSnappedCityDetails ? (nearestCity?.allowed_pincodes?.[0] || '') : (addr.postcode || '')
   const landmarkVal = addr.amenity || addr.landmark || addr.commercial || addr.shop || ''
 
   return {

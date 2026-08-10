@@ -86,6 +86,14 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
     }
   }
 
+  if (nearestCity && nearestCity.latitude && nearestCity.longitude) {
+    const distToCity = getDistance(lat, lng, parseFloat(nearestCity.latitude), parseFloat(nearestCity.longitude));
+    const maxRadius = Math.max(parseFloat(nearestCity.service_radius_km) || 25.0, 25.0);
+    if (distToCity > maxRadius) {
+      nearestCity = null;
+    }
+  }
+
   let displayName = '';
   let addressDetails = {};
   let success = false;
@@ -195,21 +203,30 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
   }
 
   // Clean up and construct displayName
-  const road = addressDetails.road || '';
-  const suburb = addressDetails.suburb || addressDetails.neighbourhood || addressDetails.village || '';
+  const road = addressDetails.road || addressDetails.street || addressDetails.pedestrian || '';
+  const suburb = addressDetails.suburb || addressDetails.neighbourhood || addressDetails.village || addressDetails.subdistrict || '';
   
   let nearestCityNameFallback = 'Unknown';
   let nearestStateFallback = 'Unknown';
   if (nearestCity) {
     const distToNearest = getDistance(lat, lng, parseFloat(nearestCity.latitude), parseFloat(nearestCity.longitude));
-    if (distToNearest <= 50.0) {
+    const maxRadius = Math.max(parseFloat(nearestCity.service_radius_km) || 25.0, 25.0);
+    if (distToNearest <= maxRadius) {
       nearestCityNameFallback = nearestCity.name.split(',')[0].trim() || nearestCityNameFallback;
       nearestStateFallback = nearestCity.state || nearestStateFallback;
     }
   }
   
-  const city = addressDetails.city || addressDetails.town || nearestCityNameFallback;
+  const city = addressDetails.city || addressDetails.town || addressDetails.county || addressDetails.state_district || nearestCityNameFallback;
   const state = addressDetails.state || nearestStateFallback;
+  const postcode = addressDetails.postcode || addressDetails.pincode || '';
+
+  // Update addressDetails properties for downstream usage (like resolveSnappedAddress)
+  addressDetails.road = road;
+  addressDetails.suburb = suburb;
+  addressDetails.city = city;
+  addressDetails.state = state;
+  addressDetails.postcode = postcode;
   
   const parts = [road, suburb, city, state];
   
