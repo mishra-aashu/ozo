@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   AlertTriangle,
@@ -23,6 +24,15 @@ import {
 } from 'lucide-react'
 import { supabaseAdmin } from '../../lib/supabase'
 import toast from 'react-hot-toast'
+
+const getUrlPathname = (urlStr) => {
+  if (!urlStr) return ''
+  try {
+    return new URL(urlStr).pathname
+  } catch (e) {
+    return urlStr
+  }
+}
 
 const ErrorLogs = () => {
   const [logs, setLogs] = useState([])
@@ -343,7 +353,7 @@ const ErrorLogs = () => {
                           </div>
                           {log.url && (
                             <div className="text-[10px] text-gray-400 mt-0.5 truncate font-mono">
-                              {new URL(log.url).pathname}
+                              {getUrlPathname(log.url)}
                             </div>
                           )}
                         </td>
@@ -478,8 +488,9 @@ const ErrorLogs = () => {
       </div>
 
       {/* Log Details Modal (Premium Glassmorphic Slide Over / Center Dialog) */}
+      {/* Log Details Modal (Premium Glassmorphic Slide Over / Center Dialog) */}
       <AnimatePresence>
-        {selectedLog && (
+        {selectedLog && typeof document !== 'undefined' && createPortal(
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
@@ -495,7 +506,7 @@ const ErrorLogs = () => {
               initial={{ scale: 0.95, y: 15, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 15, opacity: 0 }}
-              className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] border border-gray-100 dark:border-white/5 shadow-2xl overflow-hidden max-w-3xl w-full relative z-10 flex flex-col max-h-[85vh]"
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] border border-gray-150 dark:border-white/5 shadow-2xl overflow-hidden max-w-3xl w-full relative z-10 flex flex-col max-h-[85vh]"
             >
               {/* Header */}
               <div className="p-6 border-b border-gray-150 dark:border-white/5 flex items-center justify-between bg-gray-50/50 dark:bg-[#151515]">
@@ -526,7 +537,7 @@ const ErrorLogs = () => {
                   </div>
 
                   <div className="space-y-1">
-                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Component</p>
+                    <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider">Component</p>
                     <div className="flex items-center gap-2 text-xs font-black text-gray-800 dark:text-gray-200 bg-gray-50 dark:bg-white/3 p-3 rounded-2xl border border-gray-100 dark:border-white/5">
                       <Terminal className="w-4 h-4 text-emerald-500" />
                       {selectedLog.component_name || 'Generic Error'}
@@ -536,7 +547,7 @@ const ErrorLogs = () => {
 
                 {/* Error Message */}
                 <div className="space-y-1.5">
-                  <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Error Message</p>
+                  <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider">Error Message</p>
                   <div className="text-sm font-bold text-red-500 bg-red-500/5 p-4 rounded-2.5xl border border-red-500/10 leading-relaxed break-words">
                     {selectedLog.error_message}
                   </div>
@@ -545,13 +556,13 @@ const ErrorLogs = () => {
                 {/* Environment & Location */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Context Details</p>
+                    <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider">Context Details</p>
                     <div className="space-y-2 bg-gray-50 dark:bg-white/3 p-4 rounded-2.5xl border border-gray-100 dark:border-white/5 text-xs font-medium text-gray-650 dark:text-gray-300">
                       {selectedLog.url && (
                         <div className="flex justify-between items-center gap-3">
                           <span className="text-gray-400 font-bold">Request URL:</span>
                           <span className="text-right truncate max-w-[200px] font-mono" title={selectedLog.url}>
-                            {new URL(selectedLog.url).pathname}
+                            {getUrlPathname(selectedLog.url)}
                           </span>
                         </div>
                       )}
@@ -567,7 +578,7 @@ const ErrorLogs = () => {
                   </div>
 
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Device & Network Specs</p>
+                    <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider">Device & Network Specs</p>
                     <div className="space-y-2 bg-gray-50 dark:bg-white/3 p-4 rounded-2.5xl border border-gray-100 dark:border-white/5 text-xs font-medium text-gray-650 dark:text-gray-300">
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 font-bold">Platform / OS:</span>
@@ -608,7 +619,7 @@ const ErrorLogs = () => {
                 {/* Custom Metadata / Additional Context */}
                 {selectedLog.device_info && Object.keys(selectedLog.device_info).some(key => !['userAgent', 'viewport', 'platform', 'language', 'connection'].includes(key)) && (
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider">Additional Context Metadata</p>
+                    <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider">Additional Context Metadata</p>
                     <div className="bg-gray-50 dark:bg-white/3 p-4 rounded-2.5xl border border-gray-100 dark:border-white/5 text-xs font-medium text-gray-650 dark:text-gray-300 space-y-2">
                       {Object.entries(selectedLog.device_info)
                         .filter(([key]) => !['userAgent', 'viewport', 'platform', 'language', 'connection'].includes(key))
@@ -627,7 +638,7 @@ const ErrorLogs = () => {
                 {/* Device User Agent */}
                 {selectedLog.device_info?.userAgent && (
                   <div className="space-y-1.5">
-                    <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider flex items-center gap-1">
+                    <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider flex items-center gap-1">
                       <Monitor className="w-3.5 h-3.5" /> Device User Agent
                     </p>
                     <div className="p-3 bg-gray-50 dark:bg-[#121212] border border-gray-100 dark:border-white/5 text-[10px] font-mono text-gray-500 rounded-xl leading-relaxed">
@@ -638,7 +649,7 @@ const ErrorLogs = () => {
 
                 {/* Stack Trace */}
                 <div className="space-y-1.5">
-                  <p className="text-[9px] font-black text-gray-450 uppercase tracking-wider flex items-center gap-1">
+                  <p className="text-[9px] font-black text-gray-455 uppercase tracking-wider flex items-center gap-1">
                     <Terminal className="w-3.5 h-3.5 text-red-500" /> Stack Trace
                   </p>
                   {selectedLog.error_stack ? (
@@ -663,7 +674,8 @@ const ErrorLogs = () => {
                 </button>
               </div>
             </motion.div>
-          </div>
+          </div>,
+          document.body
         )}
       </AnimatePresence>
     </div>
