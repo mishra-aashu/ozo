@@ -358,17 +358,36 @@ const ErrorLogs = () => {
                           )}
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex items-center gap-3">
-                            {log.city_slug && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                                <MapPin className="w-3 h-3 text-red-500" />
-                                {log.city_slug}
+                          <div className="flex flex-col gap-1.5 items-start">
+                            {log.user ? (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-gray-800 dark:text-gray-200 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                                  <User className="w-3.5 h-3.5 text-blue-500" />
+                                  {log.user.full_name}
+                                </span>
+                                <span className="text-[9px] font-mono text-gray-400 block max-w-[150px] truncate" title={log.user_id}>
+                                  ID: {log.user_id}
+                                </span>
+                              </div>
+                            ) : log.user_id ? (
+                              <div className="flex flex-col gap-0.5">
+                                <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                                  <User className="w-3.5 h-3.5 text-gray-400" />
+                                  Unknown User
+                                </span>
+                                <span className="text-[9px] font-mono text-gray-400 block max-w-[150px] truncate" title={log.user_id}>
+                                  ID: {log.user_id}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-[10px] font-bold text-gray-400 bg-gray-50 dark:bg-white/2 px-2 py-0.5 rounded-md italic">
+                                Guest Session
                               </span>
                             )}
-                            {log.user && (
-                              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                                <User className="w-3 h-3 text-blue-500" />
-                                {log.user.full_name}
+                            {log.city_slug && (
+                              <span className="flex items-center gap-1 text-[10px] font-bold text-gray-550 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                                <MapPin className="w-3 h-3 text-red-500" />
+                                {log.city_slug}
                               </span>
                             )}
                           </div>
@@ -456,17 +475,33 @@ const ErrorLogs = () => {
                     </p>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 items-center">
-                    {log.city_slug && (
-                      <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                        <MapPin className="w-3 h-3 text-red-500" />
-                        {log.city_slug}
-                      </span>
-                    )}
-                    {log.user && (
-                      <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
-                        <User className="w-3 h-3 text-blue-500" />
-                        {log.user.full_name}
+                  <div className="flex flex-col gap-1.5">
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {log.city_slug && (
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                          <MapPin className="w-3 h-3 text-red-500" />
+                          {log.city_slug}
+                        </span>
+                      )}
+                      {log.user ? (
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                          <User className="w-3 h-3 text-blue-500" />
+                          {log.user.full_name}
+                        </span>
+                      ) : log.user_id ? (
+                        <span className="flex items-center gap-1 text-[9px] font-bold text-gray-500 bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded-md">
+                          <User className="w-3 h-3 text-gray-400" />
+                          Unknown User
+                        </span>
+                      ) : (
+                        <span className="text-[9px] font-bold text-gray-400 bg-gray-50 dark:bg-white/2 px-2 py-0.5 rounded-md italic">
+                          Guest Session
+                        </span>
+                      )}
+                    </div>
+                    {log.user_id && (
+                      <span className="text-[9px] font-mono text-gray-400" title={log.user_id}>
+                        User ID: {log.user_id}
                       </span>
                     )}
                   </div>
@@ -572,8 +607,14 @@ const ErrorLogs = () => {
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-gray-400 font-bold">User:</span>
-                        <span>{selectedLog.user ? `${selectedLog.user.full_name} (${selectedLog.user.email})` : 'Anonymous / Guest'}</span>
+                        <span>{selectedLog.user ? `${selectedLog.user.full_name} (${selectedLog.user.email})` : selectedLog.user_id ? 'Unknown Registered User' : 'Anonymous / Guest'}</span>
                       </div>
+                      {selectedLog.user_id && (
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-gray-400 font-bold">User ID:</span>
+                          <span className="font-mono text-[10px] bg-gray-100 dark:bg-white/5 px-2 py-0.5 rounded border border-gray-200/50 dark:border-white/5 select-all">{selectedLog.user_id}</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
