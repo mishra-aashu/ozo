@@ -488,10 +488,10 @@ const ErrorLogs = () => {
       </div>
 
       {/* Log Details Modal (Premium Glassmorphic Slide Over / Center Dialog) */}
-      {/* Log Details Modal (Premium Glassmorphic Slide Over / Center Dialog) */}
-      <AnimatePresence>
-        {selectedLog && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {selectedLog && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -674,10 +674,11 @@ const ErrorLogs = () => {
                 </button>
               </div>
             </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }

@@ -962,9 +962,10 @@ WHERE id = '${selectedUser.id}';`
       </div>
 
       {/* Details Sliding Drawer (Overlay Layout) */}
-      <AnimatePresence>
-        {isDrawerOpen && selectedUser && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-[9999] flex justify-end">
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {isDrawerOpen && selectedUser && (
+            <div className="fixed inset-0 z-[9999] flex justify-end">
             {/* Backdrop Blur Overlay */}
             <motion.div
               initial={{ opacity: 0 }}
@@ -1839,10 +1840,11 @@ WHERE id = '${selectedUser.id}';`
                 )}
               </div>
             </motion.div>
-          </div>,
-          document.body
-        )}
-      </AnimatePresence>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   )
 }
