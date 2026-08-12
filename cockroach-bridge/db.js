@@ -20,7 +20,7 @@ const pool = new Pool({
 // Helper to execute query with exponential backoff retries for CockroachDB retryable transactions (40001)
 async function queryWithRetry(text, params, maxRetries = 3, initialDelayMs = 100) {
   let attempt = 0;
-  while (true) {
+  while (attempt <= maxRetries) {
     try {
       return await pool.query(text, params);
     } catch (err) {
