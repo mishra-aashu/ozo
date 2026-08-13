@@ -1632,22 +1632,22 @@ WHERE id = '${editingProduct.id}';`
                 <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
                   {activeViewTab === 'verification' ? (
                     <>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[320px]">Product Info</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[220px]">Proposed Changes</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[260px] whitespace-nowrap">Captured Images (1:Front, 2:Back, 3:Barcode)</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[180px] whitespace-nowrap">Enriched By</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right min-w-[140px] whitespace-nowrap">Review Action</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[200px]">Product Info</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[160px]">Proposed Changes</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[180px] whitespace-nowrap">Captured Images</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[120px] whitespace-nowrap">Enriched By</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right min-w-[100px] whitespace-nowrap">Review Action</th>
                     </>
                   ) : (
                     <>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[320px]">Product Info</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[140px] whitespace-nowrap">Category</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[160px] whitespace-nowrap">Mart / Dukan</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[100px] whitespace-nowrap">MRP</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[120px] whitespace-nowrap">Selling Price</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[200px] min-w-[200px] whitespace-nowrap">OZO Price</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center min-w-[150px] whitespace-nowrap">Stock Status</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right min-w-[130px] whitespace-nowrap">Action</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[200px]">Product Info</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[100px] whitespace-nowrap">Category</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[110px] whitespace-nowrap">Mart / Dukan</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[70px] whitespace-nowrap">MRP</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider min-w-[80px] whitespace-nowrap">Selling Price</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider w-[150px] min-w-[150px] whitespace-nowrap">OZO Price</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-center min-w-[100px] whitespace-nowrap">Stock Status</th>
+                      <th className="px-2 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-wider text-right min-w-[90px] whitespace-nowrap">Action</th>
                     </>
                   )}
                 </tr>
@@ -1662,9 +1662,9 @@ WHERE id = '${editingProduct.id}';`
                     return (
                       <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
                         {/* Product Info (Current) */}
-                        <td className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200/50 dark:border-white/10 shrink-0">
+                        <td className="px-2 py-1.5 min-w-[200px]">
+                          <div className="flex items-center gap-2">
+                            <div className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200/50 dark:border-white/10 shrink-0">
                               {product.image_url ? (
                                 <img
                                   src={product.image_url}
@@ -1672,28 +1672,28 @@ WHERE id = '${editingProduct.id}';`
                                   className="w-full h-full object-cover"
                                 />
                               ) : (
-                                <ImageIcon className="w-5 h-5 text-gray-400" />
+                                <ImageIcon className="w-4 h-4 text-gray-400" />
                               )}
                             </div>
-                            <div>
-                              <div className="font-bold text-gray-905 dark:text-white text-sm">{product.name || 'Untitled Product'}</div>
-                              <div className="text-xs text-gray-400 mt-0.5">{product.brand || 'No Brand'} • {product.barcode}</div>
+                            <div className="min-w-0 flex-1">
+                              <div className="font-bold text-gray-905 dark:text-white text-xs truncate" title={product.name}>{product.name || 'Untitled Product'}</div>
+                              <div className="text-[10px] text-gray-400 mt-0.5 truncate">{product.brand || 'No Brand'} • {product.barcode}</div>
                             </div>
                           </div>
                         </td>
 
                         {/* Proposed changes comparison */}
-                        <td className="p-4">
-                          <div className="space-y-1">
+                        <td className="px-2 py-1.5 min-w-[160px]">
+                          <div className="space-y-0.5">
                             <div>
-                              <span className="text-[10px] uppercase font-bold text-gray-400">Name:</span>
-                              <div className={`text-sm font-bold ${hasNameChanged ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg w-fit' : 'text-gray-600 dark:text-gray-450'}`}>
+                              <span className="text-[9px] uppercase font-bold text-gray-400">Name:</span>
+                              <div className={`text-xs font-bold ${hasNameChanged ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded-md w-fit' : 'text-gray-650 dark:text-gray-450 truncate max-w-[150px]'}`} title={product.pending_name}>
                                 {product.pending_name || 'No Name'}
                               </div>
                             </div>
                             <div>
-                              <span className="text-[10px] uppercase font-bold text-gray-400">Brand:</span>
-                              <div className={`text-xs ${hasBrandChanged ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-lg w-fit' : 'text-gray-600 dark:text-gray-450'}`}>
+                              <span className="text-[9px] uppercase font-bold text-gray-400">Brand:</span>
+                              <div className={`text-[10px] ${hasBrandChanged ? 'text-amber-600 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.2 rounded-md w-fit' : 'text-gray-650 dark:text-gray-450 truncate max-w-[150px]'}`} title={product.pending_brand}>
                                 {product.pending_brand || 'No Brand'}
                               </div>
                             </div>
@@ -1701,8 +1701,8 @@ WHERE id = '${editingProduct.id}';`
                         </td>
 
                         {/* Images preview (Front, Back, Barcode) */}
-                        <td className="p-4">
-                          <div className="flex items-center gap-2">
+                        <td className="px-2 py-1.5 min-w-[180px] whitespace-nowrap">
+                          <div className="flex items-center gap-1.5">
                             {imagesList.map((url, idx) => {
                               const labels = ['Front', 'Back', 'Barcode']
                               return (
@@ -1710,48 +1710,48 @@ WHERE id = '${editingProduct.id}';`
                                   <img
                                     src={url}
                                     alt={`Pending ${labels[idx]}`}
-                                    className="w-14 h-14 object-cover rounded-lg border border-gray-200 dark:border-white/10 transition-transform group-hover:scale-105"
+                                    className="w-9 h-9 object-cover rounded-lg border border-gray-200 dark:border-white/10 transition-transform group-hover:scale-105"
                                     onClick={() => window.open(url, '_blank')}
                                   />
-                                  <span className="absolute bottom-0 left-0 right-0 text-[8px] font-black text-center text-white bg-black/60 py-0.5 rounded-b-lg">
+                                  <span className="absolute bottom-0 left-0 right-0 text-[7px] font-black text-center text-white bg-black/60 py-0.2 rounded-b-lg">
                                     {labels[idx] || `Photo ${idx + 1}`}
                                   </span>
                                 </div>
                               )
                             })}
                             {imagesList.length === 0 && (
-                              <span className="text-xs text-gray-400 italic">No images uploaded</span>
+                              <span className="text-[10px] text-gray-400 italic">No images uploaded</span>
                             )}
                           </div>
                         </td>
 
                         {/* Originating Mart info */}
-                        <td className="p-4">
-                          <div className="flex items-center gap-1.5 text-gray-700 dark:text-gray-300">
-                            <Store className="w-4 h-4 text-gray-400" />
+                        <td className="px-2 py-1.5 min-w-[120px] whitespace-nowrap">
+                          <div className="flex items-center gap-1 text-gray-700 dark:text-gray-300">
+                            <Store className="w-3.5 h-3.5 text-gray-400" />
                             <div>
-                              <div className="text-sm font-bold text-gray-900 dark:text-white">{product.enriched_mart?.name || product.mart?.name || 'Unknown Mart'}</div>
-                              <div className="text-[10px] text-gray-400 uppercase">Mart Enriched</div>
+                              <div className="text-xs font-bold text-gray-900 dark:text-white truncate max-w-[100px]">{product.enriched_mart?.name || product.mart?.name || 'Unknown Mart'}</div>
+                              <div className="text-[9px] text-gray-400 uppercase">Mart Enriched</div>
                             </div>
                           </div>
                         </td>
 
                         {/* Review Actions */}
-                        <td className="p-4 text-right">
-                          <div className="flex items-center justify-end gap-2">
+                        <td className="px-2 py-1.5 text-right min-w-[100px] whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleRejectProduct(product)}
-                              className="p-2 text-red-650 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl transition-colors border border-red-200 dark:border-red-900/40"
+                              className="p-1.5 text-red-655 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors border border-red-200 dark:border-red-900/40"
                               title="Reject Changes"
                             >
-                              <XCircle className="w-5 h-5" />
+                              <XCircle className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleApproveProduct(product)}
-                              className="flex items-center gap-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold transition-all shadow-md active:scale-95 animate-pulse"
+                              className="flex items-center gap-0.5 px-2 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-[10px] font-bold transition-all shadow-md active:scale-95 animate-pulse"
                               title="Approve Changes"
                             >
-                              <CheckCircle2 className="w-4 h-4" />
+                              <CheckCircle2 className="w-3.5 h-3.5" />
                               Approve
                             </button>
                           </div>
@@ -1775,10 +1775,10 @@ WHERE id = '${editingProduct.id}';`
                   return (
                     <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
                       {/* Details */}
-                      <td className="p-4 min-w-[320px]">
-                        <div className="flex items-center gap-3">
+                      <td className="px-2 py-1.5 min-w-[200px] max-w-[250px]">
+                        <div className="flex items-center gap-2">
                           <div
-                            className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200/50 dark:border-white/10 text-xl shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95 cursor-zoom-in relative"
+                            className="w-9 h-9 rounded-lg bg-gray-100 dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200/50 dark:border-white/10 text-lg shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95 cursor-zoom-in relative"
                             onMouseEnter={(e) => {
                               if (product.image_url) {
                                 const rect = e.currentTarget.getBoundingClientRect()
@@ -1798,62 +1798,62 @@ WHERE id = '${editingProduct.id}';`
                                 }}
                               />
                             ) : (
-                              <ImageIcon className="w-5 h-5 text-gray-400" />
+                              <ImageIcon className="w-4 h-4 text-gray-400" />
                             )}
                           </div>
-                          <div>
-                            <h4 className="font-bold text-gray-800 dark:text-white leading-tight">{product.name}</h4>
-                            <div className="flex items-center gap-2 mt-1">
+                          <div className="min-w-0 flex-1">
+                            <h4 className="font-bold text-xs text-gray-800 dark:text-white leading-tight line-clamp-2" title={product.name}>{product.name}</h4>
+                            <div className="flex items-center gap-1.5 mt-0.5">
                               {product.brand && (
                                 <button
                                   onClick={() => {
                                     navigator.clipboard.writeText(product.brand)
                                     toast.success(`Brand "${product.brand}" copied!`)
                                   }}
-                                  className="text-[10px] px-1.5 py-0.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-95 rounded text-gray-500 hover:text-ozo-red dark:text-gray-400 dark:hover:text-ozo-red font-bold uppercase transition-all flex items-center gap-1 cursor-pointer"
+                                  className="text-[9px] px-1 py-0.2 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-95 rounded text-gray-500 hover:text-ozo-red dark:text-gray-400 dark:hover:text-ozo-red font-medium uppercase transition-all flex items-center gap-0.5 cursor-pointer truncate max-w-[80px]"
                                   title="Copy brand name to clipboard"
                                 >
                                   {product.brand}
-                                  <Copy className="w-2.5 h-2.5 opacity-60" />
+                                  <Copy className="w-2 h-2 opacity-60" />
                                 </button>
                               )}
-                              <span className="text-xs text-gray-400">{product.unit}</span>
+                              <span className="text-[10px] text-gray-400 whitespace-nowrap">{product.unit}</span>
                             </div>
                           </div>
                         </div>
                       </td>
 
                       {/* Category */}
-                      <td className="p-4 text-sm text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap min-w-[140px]">
+                      <td className="px-2 py-1.5 text-xs text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap min-w-[100px]">
                         {product.category?.name || 'Unassigned'}
                       </td>
 
                       {/* Mart */}
-                      <td className="p-4 whitespace-nowrap min-w-[160px]">
+                      <td className="px-2 py-1.5 whitespace-nowrap min-w-[110px]">
                         {product.mart ? (
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                             🏪 {product.mart.name}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400 italic">No Mart</span>
+                          <span className="text-[10px] text-gray-400 italic">No Mart</span>
                         )}
                       </td>
 
                       {/* MRP */}
-                      <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap min-w-[100px]">
+                      <td className="px-2 py-1.5 text-xs text-gray-500 font-medium whitespace-nowrap min-w-[70px]">
                         ₹{parseFloat(product.mrp || 0).toFixed(2)}
                       </td>
 
                       {/* Selling Price */}
-                      <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap min-w-[120px]">
+                      <td className="px-2 py-1.5 text-xs text-gray-500 font-medium whitespace-nowrap min-w-[80px]">
                         ₹{parseFloat(product.price || 0).toFixed(2)}
                       </td>
 
                       {/* OZO Price (Inline Edit) */}
-                      <td className="p-4 w-[200px] min-w-[200px] relative">
-                        <div className="flex items-center gap-1.5">
+                      <td className="px-2 py-1.5 w-[150px] min-w-[150px] relative">
+                        <div className="flex items-center gap-1">
                           <div className="relative">
-                            <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">₹</span>
+                            <span className="absolute left-1.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-gray-400">₹</span>
                             <input
                               type="number"
                               step="0.01"
@@ -1874,7 +1874,7 @@ WHERE id = '${editingProduct.id}';`
                                   }
                               }}
                               disabled={isUpdating}
-                              className={`w-24 pl-6 pr-1.5 py-1.5 text-sm font-bold border rounded-lg bg-transparent focus:outline-none focus:ring-1 focus:ring-ozo-red ${
+                              className={`w-18 pl-4 pr-0.5 py-1 text-xs font-bold border rounded-lg bg-transparent focus:outline-none focus:ring-1 focus:ring-ozo-red ${
                                 hasPriceChanged
                                   ? 'border-yellow-500 text-yellow-600 bg-yellow-50/10'
                                   : 'border-gray-200 dark:border-white/10 text-gray-800 dark:text-white'
@@ -1882,21 +1882,21 @@ WHERE id = '${editingProduct.id}';`
                             />
                           </div>
 
-                          <div className={`flex items-center gap-1 flex-shrink-0 transition-all duration-200 ${
+                          <div className={`flex items-center gap-0.5 flex-shrink-0 transition-all duration-200 ${
                             hasPriceChanged
                               ? 'opacity-100 pointer-events-auto translate-x-0'
-                              : 'opacity-0 pointer-events-none translate-x-2'
+                              : 'opacity-0 pointer-events-none translate-x-1'
                           }`}>
                             <button
                               onClick={() => handleSavePrice(product)}
                               disabled={isUpdating || !hasPriceChanged}
-                              className="w-8 h-8 flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex-shrink-0"
+                              className="w-6 h-6 flex items-center justify-center bg-emerald-500 hover:bg-emerald-600 text-white rounded-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex-shrink-0"
                               title="Price update save krein"
                             >
                               {isUpdating ? (
-                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                <Loader2 className="w-3 animate-spin" />
                               ) : (
-                                <Check className="w-3.5 h-3.5" />
+                                <Check className="w-3 h-3" />
                               )}
                             </button>
                             <button
@@ -1908,25 +1908,25 @@ WHERE id = '${editingProduct.id}';`
                                 })
                               }}
                               disabled={isUpdating || !hasPriceChanged}
-                              className="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 rounded-lg transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex-shrink-0"
+                              className="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-600 dark:text-gray-300 rounded-md transition-all hover:scale-105 active:scale-95 disabled:opacity-50 flex-shrink-0"
                               title="Cancel"
                             >
-                              <X className="w-3.5 h-3.5" />
+                              <X className="w-3 h-3" />
                             </button>
                           </div>
                         </div>
                         {suggestedOzoPrice > priceVal && (
-                          <div className="flex items-center gap-1.5 mt-1">
+                          <div className="flex items-center gap-1 mt-0.5">
                             {/* Option 1: Apply (Fill Input) */}
                             <button
                               type="button"
                               onClick={() => {
                                 handlePriceChangeLocal(product.id, suggestedOzoPrice.toFixed(2))
                               }}
-                              className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold flex items-center gap-1 hover:text-amber-600 dark:hover:text-amber-300 transition-colors cursor-pointer bg-transparent border-none p-0 flex-shrink-0"
+                              className="text-[9px] text-gray-550 dark:text-gray-400 font-semibold flex items-center gap-0.5 hover:text-amber-600 dark:hover:text-amber-300 transition-colors cursor-pointer bg-transparent border-none p-0 flex-shrink-0"
                               title="Click to apply suggested price"
                             >
-                              <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-500 text-[8px] font-black">💡</span>
+                              <span className="inline-flex items-center justify-center w-2.5 h-2.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-500 text-[7px] font-black">💡</span>
                               <span>Sug: <strong className="text-amber-500 hover:underline">₹{suggestedOzoPrice.toFixed(2)}</strong></span>
                             </button>
 
@@ -1943,14 +1943,14 @@ WHERE id = '${editingProduct.id}';`
                               }`}
                               title="View formula breakdown"
                             >
-                              <HelpCircle className="w-3.5 h-3.5" />
+                              <HelpCircle className="w-3 h-3" />
                             </button>
 
                             {/* Local Breakdown Tooltip Card */}
                             {activeTooltipId === product.id && (
-                              <div className="absolute bottom-full right-4 mb-2 w-64 bg-white dark:bg-[#12121a] border border-gray-250 dark:border-white/15 rounded-2xl shadow-xl p-3.5 z-50 text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
-                                <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/10 pb-2 mb-2">
-                                  <span className="font-bold text-xs text-gray-800 dark:text-gray-200 flex items-center gap-1">
+                              <div className="absolute bottom-full right-2 mb-2 w-56 bg-white dark:bg-[#12121a] border border-gray-250 dark:border-white/15 rounded-xl shadow-xl p-2.5 z-50 text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
+                                <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/10 pb-1.5 mb-1.5">
+                                  <span className="font-bold text-[10px] text-gray-800 dark:text-gray-200 flex items-center gap-0.5">
                                     📊 Price Breakdown
                                   </span>
                                   <button 
@@ -1958,12 +1958,12 @@ WHERE id = '${editingProduct.id}';`
                                       e.stopPropagation()
                                       setActiveTooltipId(null)
                                     }} 
-                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5"
+                                    className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-white/5"
                                   >
                                     ✕
                                   </button>
                                 </div>
-                                <div className="space-y-1.5 text-xs text-gray-650 dark:text-gray-450">
+                                <div className="space-y-1 text-[10px] text-gray-650 dark:text-gray-450">
                                   <div className="flex justify-between">
                                     <span>MRP:</span>
                                     <span className="font-semibold text-gray-900 dark:text-white">₹{mrpVal.toFixed(2)}</span>
@@ -1980,7 +1980,7 @@ WHERE id = '${editingProduct.id}';`
                                     <span>OZO Margin (40%):</span>
                                     <span className="font-semibold text-emerald-600 dark:text-emerald-500">+₹{((Math.round(discountVal * 0.4 * 2) / 2)).toFixed(2)}</span>
                                   </div>
-                                  <div className="flex justify-between border-t border-gray-100 dark:border-white/10 pt-2 mt-2 font-bold text-gray-900 dark:text-white">
+                                  <div className="flex justify-between border-t border-gray-100 dark:border-white/10 pt-1.5 mt-1.5 font-bold text-gray-900 dark:text-white">
                                     <span>Suggested Price:</span>
                                     <span className="text-ozo-red">₹{suggestedOzoPrice.toFixed(2)}</span>
                                   </div>
@@ -1990,68 +1990,67 @@ WHERE id = '${editingProduct.id}';`
                           </div>
                         )}
                       </td>
-
                         {/* Stock Status Toggle */}
-                        <td className="p-4 text-center whitespace-nowrap min-w-[150px]">
+                        <td className="px-2 py-1.5 text-center whitespace-nowrap min-w-[100px]">
                           <button
                             onClick={() => handleToggleAvailability(product.id, product.is_available)}
                             disabled={isUpdating}
                             className="mx-auto flex items-center justify-center focus:outline-none"
                             title="Stock availability change krein"
                           >
-                            <div className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                            <div className={`w-9 h-5 flex items-center rounded-full p-0.5 cursor-pointer transition-colors duration-300 ${
                               product.is_available 
                                 ? 'bg-gradient-green shadow-sm' 
                                 : 'bg-gray-300 dark:bg-white/10'
                             }`}>
                               <div 
-                                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
-                                  product.is_available ? 'translate-x-6' : 'translate-x-0'
+                                className={`bg-white w-3.5 h-3.5 rounded-full shadow-md transform transition-transform duration-300 ${
+                                  product.is_available ? 'translate-x-4.5' : 'translate-x-0'
                                 }`}
                               />
                             </div>
-                            <span className={`text-[10px] font-bold uppercase ml-2 w-14 text-left ${
+                            <span className={`text-[9px] font-bold uppercase ml-1.5 w-12 text-left ${
                               product.is_available 
                                 ? 'text-green-500' 
                                 : 'text-red-500'
                             }`}>
-                              {product.is_available ? 'In Stock' : 'Out of Stock'}
+                              {product.is_available ? 'In' : 'Out'}
                             </span>
                             {product.is_upcoming && (
-                              <span className="text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded ml-1.5 uppercase whitespace-nowrap">
-                                Upcoming
+                              <span className="text-[8px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1 py-0.2 rounded ml-1 uppercase whitespace-nowrap">
+                                Upc
                               </span>
                             )}
                           </button>
                         </td>
 
                         {/* Actions */}
-                        <td className="p-4 text-right whitespace-nowrap min-w-[130px]">
-                          <div className="flex justify-end items-center gap-2">
+                        <td className="px-2 py-1.5 text-right whitespace-nowrap min-w-[90px]">
+                          <div className="flex justify-end items-center gap-1">
                             <a
                               href={`/product/${product.slug}`}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-650 hover:text-gray-955 dark:text-gray-300 dark:hover:text-white rounded-xl transition-all flex items-center justify-center flex-shrink-0"
+                              className="w-7 h-7 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-650 hover:text-gray-955 dark:text-gray-300 dark:hover:text-white rounded-lg transition-all flex items-center justify-center flex-shrink-0"
                               title="View product page"
                             >
-                              <Eye className="w-4.5 h-4.5" />
+                              <Eye className="w-3.5 h-3.5" />
                             </a>
                             <button
                               onClick={() => handleEditProductClick(product)}
                               disabled={isUpdating}
-                              className="w-9 h-9 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-305 rounded-xl transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                              className="w-7 h-7 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-305 rounded-lg transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
                               title="Edit details"
                             >
-                              <Pencil className="w-4 h-4" />
+                              <Pencil className="w-3.5 h-3.5" />
                             </button>
                             <button
                               onClick={() => handleDeleteProduct(product.id)}
                               disabled={isUpdating}
-                              className="w-9 h-9 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-650 hover:text-red-808 dark:text-red-400 dark:hover:text-red-305 rounded-xl transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                              className="w-7 h-7 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-650 hover:text-red-808 dark:text-red-400 dark:hover:text-red-305 rounded-lg transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
                               title="Delete"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           </div>
                         </td>
