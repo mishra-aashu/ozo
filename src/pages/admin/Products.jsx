@@ -1632,22 +1632,22 @@ WHERE id = '${editingProduct.id}';`
                 <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
                   {activeViewTab === 'verification' ? (
                     <>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Product Info</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Proposed Changes</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Captured Images (1:Front, 2:Back, 3:Barcode)</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Enriched By</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Review Action</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[320px]">Product Info</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[220px]">Proposed Changes</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[260px] whitespace-nowrap">Captured Images (1:Front, 2:Back, 3:Barcode)</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[180px] whitespace-nowrap">Enriched By</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right min-w-[140px] whitespace-nowrap">Review Action</th>
                     </>
                   ) : (
                     <>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Product Info</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Category</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Mart / Dukan</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">MRP</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">Selling Price</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[180px] min-w-[180px]">OZO Price</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Stock Status</th>
-                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right">Action</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[320px]">Product Info</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[140px] whitespace-nowrap">Category</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[160px] whitespace-nowrap">Mart / Dukan</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[100px] whitespace-nowrap">MRP</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider min-w-[120px] whitespace-nowrap">Selling Price</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider w-[200px] min-w-[200px] whitespace-nowrap">OZO Price</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-center min-w-[150px] whitespace-nowrap">Stock Status</th>
+                      <th className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider text-right min-w-[130px] whitespace-nowrap">Action</th>
                     </>
                   )}
                 </tr>
@@ -1775,7 +1775,7 @@ WHERE id = '${editingProduct.id}';`
                   return (
                     <tr key={product.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
                       {/* Details */}
-                      <td className="p-4">
+                      <td className="p-4 min-w-[320px]">
                         <div className="flex items-center gap-3">
                           <div
                             className="w-12 h-12 rounded-xl bg-gray-100 dark:bg-white/5 overflow-hidden flex items-center justify-center border border-gray-200/50 dark:border-white/10 text-xl shrink-0 transition-transform duration-200 hover:scale-105 active:scale-95 cursor-zoom-in relative"
@@ -1824,12 +1824,12 @@ WHERE id = '${editingProduct.id}';`
                       </td>
 
                       {/* Category */}
-                      <td className="p-4 text-sm text-gray-600 dark:text-gray-300 font-medium">
+                      <td className="p-4 text-sm text-gray-600 dark:text-gray-300 font-medium whitespace-nowrap min-w-[140px]">
                         {product.category?.name || 'Unassigned'}
                       </td>
 
                       {/* Mart */}
-                      <td className="p-4">
+                      <td className="p-4 whitespace-nowrap min-w-[160px]">
                         {product.mart ? (
                           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
                             🏪 {product.mart.name}
@@ -1840,17 +1840,17 @@ WHERE id = '${editingProduct.id}';`
                       </td>
 
                       {/* MRP */}
-                      <td className="p-4 text-sm text-gray-500 font-medium">
+                      <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap min-w-[100px]">
                         ₹{parseFloat(product.mrp || 0).toFixed(2)}
                       </td>
 
                       {/* Selling Price */}
-                      <td className="p-4 text-sm text-gray-500 font-medium">
+                      <td className="p-4 text-sm text-gray-500 font-medium whitespace-nowrap min-w-[120px]">
                         ₹{parseFloat(product.price || 0).toFixed(2)}
                       </td>
 
                       {/* OZO Price (Inline Edit) */}
-                      <td className="p-4 w-[180px] min-w-[180px] relative">
+                      <td className="p-4 w-[200px] min-w-[200px] relative">
                         <div className="flex items-center gap-1.5">
                           <div className="relative">
                             <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">₹</span>
@@ -1991,71 +1991,71 @@ WHERE id = '${editingProduct.id}';`
                         )}
                       </td>
 
-                      {/* Stock Status Toggle */}
-                      <td className="p-4 text-center">
-                        <button
-                          onClick={() => handleToggleAvailability(product.id, product.is_available)}
-                          disabled={isUpdating}
-                          className="mx-auto flex items-center justify-center focus:outline-none"
-                          title="Stock availability change krein"
-                        >
-                          <div className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
-                            product.is_available 
-                              ? 'bg-gradient-green shadow-sm' 
-                              : 'bg-gray-300 dark:bg-white/10'
-                          }`}>
-                            <div 
-                              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
-                                product.is_available ? 'translate-x-6' : 'translate-x-0'
-                              }`}
-                            />
-                          </div>
-                          <span className={`text-[10px] font-bold uppercase ml-2 w-14 text-left ${
-                            product.is_available 
-                              ? 'text-green-500' 
-                              : 'text-red-500'
-                          }`}>
-                            {product.is_available ? 'In Stock' : 'Out of Stock'}
-                          </span>
-                          {product.is_upcoming && (
-                            <span className="text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded ml-1.5 uppercase whitespace-nowrap">
-                              Upcoming
+                        {/* Stock Status Toggle */}
+                        <td className="p-4 text-center whitespace-nowrap min-w-[150px]">
+                          <button
+                            onClick={() => handleToggleAvailability(product.id, product.is_available)}
+                            disabled={isUpdating}
+                            className="mx-auto flex items-center justify-center focus:outline-none"
+                            title="Stock availability change krein"
+                          >
+                            <div className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer transition-colors duration-300 ${
+                              product.is_available 
+                                ? 'bg-gradient-green shadow-sm' 
+                                : 'bg-gray-300 dark:bg-white/10'
+                            }`}>
+                              <div 
+                                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ${
+                                  product.is_available ? 'translate-x-6' : 'translate-x-0'
+                                }`}
+                              />
+                            </div>
+                            <span className={`text-[10px] font-bold uppercase ml-2 w-14 text-left ${
+                              product.is_available 
+                                ? 'text-green-500' 
+                                : 'text-red-500'
+                            }`}>
+                              {product.is_available ? 'In Stock' : 'Out of Stock'}
                             </span>
-                          )}
-                        </button>
-                      </td>
+                            {product.is_upcoming && (
+                              <span className="text-[9px] font-bold bg-amber-500/10 text-amber-500 border border-amber-500/20 px-1.5 py-0.5 rounded ml-1.5 uppercase whitespace-nowrap">
+                                Upcoming
+                              </span>
+                            )}
+                          </button>
+                        </td>
 
-                      {/* Actions */}
-                      <td className="p-4 text-right">
-                        <div className="flex justify-end items-center gap-2">
-                          <a
-                            href={`/product/${product.slug}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-650 hover:text-gray-955 dark:text-gray-300 dark:hover:text-white rounded-xl transition-all flex items-center justify-center flex-shrink-0"
-                            title="View product page"
-                          >
-                            <Eye className="w-4.5 h-4.5" />
-                          </a>
-                          <button
-                            onClick={() => handleEditProductClick(product)}
-                            disabled={isUpdating}
-                            className="w-9 h-9 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 rounded-xl transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
-                            title="Edit details"
-                          >
-                            <Pencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => handleDeleteProduct(product.id)}
-                            disabled={isUpdating}
-                            className="w-9 h-9 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-650 hover:text-red-800 dark:text-red-400 dark:hover:text-red-305 rounded-xl transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
-                            title="Delete"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+                        {/* Actions */}
+                        <td className="p-4 text-right whitespace-nowrap min-w-[130px]">
+                          <div className="flex justify-end items-center gap-2">
+                            <a
+                              href={`/product/${product.slug}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-9 h-9 bg-gray-100 hover:bg-gray-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-gray-650 hover:text-gray-955 dark:text-gray-300 dark:hover:text-white rounded-xl transition-all flex items-center justify-center flex-shrink-0"
+                              title="View product page"
+                            >
+                              <Eye className="w-4.5 h-4.5" />
+                            </a>
+                            <button
+                              onClick={() => handleEditProductClick(product)}
+                              disabled={isUpdating}
+                              className="w-9 h-9 bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/30 dark:hover:bg-blue-900/40 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-305 rounded-xl transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                              title="Edit details"
+                            >
+                              <Pencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDeleteProduct(product.id)}
+                              disabled={isUpdating}
+                              className="w-9 h-9 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-650 hover:text-red-808 dark:text-red-400 dark:hover:text-red-305 rounded-xl transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                              title="Delete"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
                   )
                 })}
               </tbody>
