@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldAlert, Lock, Unlock, Eye, EyeOff, Loader2 } from 'lucide-react'
-import { supabase } from '../lib/supabase'
+import { supabase, isJwtExpired } from '../lib/supabase'
 import { useAuthStore } from '../stores/authStore'
 import toast from 'react-hot-toast'
 
@@ -22,15 +22,29 @@ const AdminLockScreen = ({ onUnlock }) => {
 
     setIsLoading(true)
     try {
-      // Warm the in-memory token cache before the RPC call.
-      // customFetch will handle refresh automatically if the token is expired.
-      const { data: sessionData } = await supabase.auth.getSession()
-      if (sessionData?.session?.access_token && typeof window !== 'undefined') {
-        window.__ozo_access_token = sessionData.session.access_token
+      let { data: sessionData } = await supabase.auth.getSession()
+      let session = sessionData?.session
+
+      // Check if session token is expired or close to expiring
+      const isExpired = session?.access_token ? isJwtExpired(session.access_token) : true
+
+      if (!session || isExpired) {
+        console.log('[AdminLockScreen] Session is missing or expired. Attempting refresh...')
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+        if (refreshError) {
+          console.error('[AdminLockScreen] Refresh session failed:', refreshError)
+          throw new Error('Your session has expired. Please refresh the page and sign in again.')
+        }
+        session = refreshData?.session
       }
 
-      if (!sessionData?.session) {
+      if (!session) {
         throw new Error('Your session has expired. Please refresh the page and sign in again.')
+      }
+
+      // Warm the in-memory token cache before the RPC call.
+      if (session?.access_token && typeof window !== 'undefined') {
+        window.__ozo_access_token = session.access_token
       }
 
       // Call RPC — customFetch will inject the correct Bearer token automatically
