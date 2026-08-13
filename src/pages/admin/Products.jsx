@@ -1626,7 +1626,7 @@ WHERE id = '${editingProduct.id}';`
             <p className="text-sm text-gray-500 max-w-sm mt-1">Filters change karein ya fir naya product add karein.</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-hidden">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02]">
