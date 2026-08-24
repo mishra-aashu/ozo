@@ -1526,7 +1526,7 @@ const AdminSettings = () => {
       // Reload settings & trigger success
       await fetchSettings()
       try {
-        await useCartStore.getState().fetchSettings()
+        await useCartStore.getState().fetchSettings(true)
       } catch (storeErr) {
         console.error('Failed to sync cart store settings:', storeErr)
       }
