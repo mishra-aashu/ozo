@@ -1741,7 +1741,7 @@ WHERE id = '${editingProduct.id}';`
                           <div className="flex items-center justify-end gap-1.5">
                             <button
                               onClick={() => handleRejectProduct(product)}
-                              className="p-1.5 text-red-655 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors border border-red-200 dark:border-red-900/40"
+                              className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-lg transition-colors border border-red-200 dark:border-red-900/40"
                               title="Reject Changes"
                             >
                               <XCircle className="w-4 h-4" />
@@ -2047,7 +2047,7 @@ WHERE id = '${editingProduct.id}';`
                             <button
                               onClick={() => handleDeleteProduct(product.id)}
                               disabled={isUpdating}
-                              className="w-7 h-7 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-650 hover:text-red-808 dark:text-red-400 dark:hover:text-red-305 rounded-lg transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
+                              className="w-7 h-7 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 dark:hover:bg-red-900/40 text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 rounded-lg transition-all flex items-center justify-center flex-shrink-0 disabled:opacity-50"
                               title="Delete"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -2513,7 +2513,7 @@ WHERE id = '${editingProduct.id}';`
                   <div className={`p-4 rounded-xl text-xs font-mono border ${
                     sqlResult.success 
                       ? 'bg-emerald-50 dark:bg-emerald-950/20 border-emerald-250/20 text-emerald-600 dark:text-emerald-400' 
-                      : 'bg-red-50 dark:bg-red-950/20 border-red-250/20 text-red-600 dark:text-red-400'
+                      : 'bg-red-50 dark:bg-red-950/20 border-red-200 dark:border-red-905/20 text-red-600 dark:text-red-400'
                   }`}>
                     <p className="font-bold mb-1">{sqlResult.success ? 'Success!' : 'Postgres Error:'}</p>
                     <p className="whitespace-pre-wrap">{sqlResult.message || sqlResult.error}</p>

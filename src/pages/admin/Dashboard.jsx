@@ -433,7 +433,7 @@ const Dashboard = () => {
       icon: AlertTriangle,
       color: stats.outOfStockCount > 0 ? 'text-red-500' : 'text-green-500',
       bgColor: stats.outOfStockCount > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-green-500/10 border-green-500/20',
-      textColor: stats.outOfStockCount > 0 ? 'text-red-650 dark:text-red-400' : 'text-green-600 dark:text-green-400'
+      textColor: stats.outOfStockCount > 0 ? 'text-ozo-red dark:text-red-400' : 'text-green-600 dark:text-green-400'
     },
     {
       title: 'Satisfaction Rate',
@@ -941,7 +941,7 @@ const Dashboard = () => {
                             <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border inline-flex items-center gap-1 ${
                               isPaid
                                 ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/25'
-                                : 'bg-red-500/10 text-red-650 dark:text-red-400 border-red-500/25'
+                                : 'bg-ozo-red/10 text-ozo-red dark:text-red-400 border-ozo-red/25'
                             }`}>
                               {isPaid ? 'Paid' : 'Unpaid'}
                             </span>
@@ -1021,10 +1021,10 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <Link
             to="/admin/products"
-            className="flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-ozo-red dark:hover:border-ozo-red hover:bg-red-500/5 group transition-all"
+            className="flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-ozo-red dark:hover:border-ozo-red hover:bg-ozo-red/5 group transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-red-100 dark:bg-red-950/20 text-ozo-red rounded-xl">
+              <div className="p-3 bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red rounded-xl">
                 <Plus className="w-5 h-5" />
               </div>
               <div className="min-w-0">

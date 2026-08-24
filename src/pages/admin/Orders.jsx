@@ -1072,7 +1072,7 @@ const Orders = () => {
           <p className="text-gray-500 dark:text-gray-400 font-bold">Order not found or has been deleted.</p>
           <button
             onClick={() => setSearchParams({})}
-            className="px-5 py-2.5 bg-gradient-to-r from-ozo-red to-red-650 text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all"
+            className="px-5 py-2.5 bg-gradient-to-r from-ozo-red to-ozo-red-dark text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all"
           >
             Back to Orders List
           </button>
@@ -1336,7 +1336,7 @@ const Orders = () => {
                             <span className={`text-[8px] font-bold uppercase tracking-wider px-1 py-0.2 rounded w-fit border flex items-center gap-0.5 ${
                               order.payment_status === 'paid'
                                 ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/25'
-                                : 'bg-red-500/10 text-red-655 dark:text-red-400 border-red-500/25'
+                                : 'bg-ozo-red/10 text-ozo-red dark:text-red-400 border-ozo-red/25'
                             }`}>
                               <span className={`w-1 h-1 rounded-full ${order.payment_status === 'paid' ? 'bg-green-500' : 'bg-red-500 animate-pulse'}`} />
                               {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
@@ -1535,7 +1535,7 @@ const Orders = () => {
                             <span className={`text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded border ${
                               order.payment_status === 'paid'
                                 ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/25'
-                                : 'bg-red-500/10 text-red-650 dark:text-red-400 border-red-500/25'
+                                : 'bg-ozo-red/10 text-ozo-red dark:text-red-400 border-ozo-red/25'
                             }`}>
                               {order.payment_status === 'paid' ? 'Paid' : 'Unpaid'}
                             </span>
@@ -1774,11 +1774,11 @@ const Orders = () => {
                               />
                               <div className="flex-1 min-w-0">
                                 <div className="flex flex-wrap items-center gap-1.5">
-                                  <p className={`font-bold text-xs sm:text-sm truncate transition-all duration-200 ${item.is_cancelled ? 'line-through text-red-650 dark:text-red-400 font-medium' : 'text-gray-900 dark:text-white'}`}>
+                                  <p className={`font-bold text-xs sm:text-sm truncate transition-all duration-200 ${item.is_cancelled ? 'line-through text-ozo-red dark:text-red-400 font-medium' : 'text-gray-900 dark:text-white'}`}>
                                     {item.product_name}
                                   </p>
                                   {item.is_cancelled && (
-                                    <span className="px-1.5 py-0.5 text-[9px] font-black bg-red-100 dark:bg-red-950/40 text-red-750 dark:text-red-400 border border-red-200/50 dark:border-red-900/50 rounded-md uppercase tracking-wider scale-95 origin-left">
+                                    <span className="px-1.5 py-0.5 text-[9px] font-black bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red dark:text-red-400 border border-ozo-red/20 dark:border-ozo-red/40 rounded-md uppercase tracking-wider scale-95 origin-left">
                                       Cancelled
                                     </span>
                                   )}
@@ -2115,7 +2115,7 @@ const Orders = () => {
                         <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-black uppercase tracking-wider border ${
                           selectedOrder.payment_status === 'paid'
                             ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/25'
-                            : 'bg-red-500/10 text-red-650 dark:text-red-400 border-red-500/25'
+                            : 'bg-ozo-red/10 text-ozo-red dark:text-red-400 border-ozo-red/25'
                         }`}>
                           {selectedOrder.payment_status === 'paid' ? (
                             <>
@@ -2374,7 +2374,7 @@ const Orders = () => {
                               type="button"
                               onClick={() => handleRejectReturn(selectedOrderReturnRequest)}
                               disabled={isSubmittingReturn}
-                              className="flex-1 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-550 border border-red-500/25 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5"
+                              className="flex-1 py-2 bg-ozo-red/10 hover:bg-ozo-red/20 text-ozo-red border border-ozo-red/25 rounded-xl font-bold text-xs transition-all flex items-center justify-center gap-1.5"
                             >
                               Reject Request
                             </button>
