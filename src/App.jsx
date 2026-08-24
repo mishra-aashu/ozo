@@ -472,8 +472,8 @@ function App() {
               applyDynamicTheme(val)
             }
           }
-          // Fetch settings to update stores in sync
-          useCartStore.getState().fetchSettings().catch(() => {})
+          // Fetch settings to update stores in sync, bypassing cache
+          useCartStore.getState().fetchSettings(true).catch(() => {})
         }
       )
       .subscribe()

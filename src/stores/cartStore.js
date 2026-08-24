@@ -129,6 +129,21 @@ export const applyDynamicTheme = (themeConfig) => {
   }
 };
 
+// Pre-load and apply theme config immediately from localStorage
+if (typeof window !== 'undefined') {
+  try {
+    const raw = localStorage.getItem('ozo-cart-storage')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      if (parsed?.state?.themeConfig) {
+        applyDynamicTheme(parsed.state.themeConfig)
+      }
+    }
+  } catch (e) {
+    console.error('Failed to pre-load theme from localStorage:', e)
+  }
+}
+
 let roadDistanceTimeout = null
 
 export const useCartStore = create(
@@ -174,6 +189,7 @@ export const useCartStore = create(
         secondary_color: '#0D9E4F',
         theme_name: 'Default Red'
       },
+      _settingsFetched: false,
 
       // Refresh prices for guest cart items from the database.
       // Guest items use prices captured at add-time and stored in localStorage.
@@ -260,8 +276,11 @@ export const useCartStore = create(
         }
       },
 
-      // Fetch settings from public.app_settings
-      fetchSettings: async () => {
+       // Fetch settings from public.app_settings
+      fetchSettings: async (force = false) => {
+        if (!force && get()._settingsFetched) {
+          return
+        }
         try {
           const { data, error } = await supabase
               .from('app_settings')
@@ -270,7 +289,7 @@ export const useCartStore = create(
           if (error) throw error
 
           if (data) {
-            const updates = {}
+            const updates = { _settingsFetched: true }
             data.forEach(item => {
               if (item.key === 'delivery_config') updates.deliveryConfig = item.value
               if (item.key === 'order_config') updates.orderConfig = item.value
@@ -1137,6 +1156,18 @@ export const useCartStore = create(
         items: state.items,
         discount: state.discount,
         couponCode: state.couponCode,
+        deliveryConfig: state.deliveryConfig,
+        orderConfig: state.orderConfig,
+        platformConfig: state.platformConfig,
+        shgConfig: state.shgConfig,
+        riderConfig: state.riderConfig,
+        geofenceConfig: state.geofenceConfig,
+        mapConfig: state.mapConfig,
+        launchConfig: state.launchConfig,
+        paymentConfig: state.paymentConfig,
+        serviceHoursConfig: state.serviceHoursConfig,
+        themeConfig: state.themeConfig,
+        _settingsFetched: state._settingsFetched,
       }),
     }
   )

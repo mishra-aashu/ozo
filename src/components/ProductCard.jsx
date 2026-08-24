@@ -407,7 +407,7 @@ function ProductCard({ product, variant = 'default', index }) {
             <button
               onClick={handleToggleWishlist}
               aria-label={isFavorite ? "Remove from wishlist" : "Add to wishlist"}
-              className="p-3 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-red-50 dark:hover:bg-ozo-red/10 transition-colors group/heart"
+              className="p-3 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-ozo-red/10 dark:hover:bg-ozo-red/10 transition-colors group/heart"
             >
               <Heart
                 className={`w-6 h-6 transition-all ${
@@ -677,7 +677,7 @@ function ProductCard({ product, variant = 'default', index }) {
                 className={`w-full py-1.5 sm:py-2 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
                   !selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
-                    : 'bg-ozo-red hover:bg-red-600 text-white hover:shadow-lg hover:shadow-red-600/20 active:scale-95'
+                    : 'bg-ozo-red hover:bg-ozo-red-dark text-white hover:shadow-lg hover:shadow-ozo-red/20 active:scale-95'
                 }`}
               >
                 {isAdding ? (

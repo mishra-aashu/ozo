@@ -1456,14 +1456,14 @@ const Home = () => {
       title: '30 Minutes Delivery',
       description: 'Super fast delivery at your doorstep',
       color: 'text-ozo-red',
-      bgColor: 'bg-red-50 dark:bg-ozo-red/10',
+      bgColor: 'bg-ozo-red/10',
     },
     {
       icon: Truck,
       title: freeAbove > 5000 ? 'Fast Delivery' : 'Free Delivery',
       description: freeAbove > 5000 ? `Base fee ₹${deliveryConfig?.base_fee ?? 30}` : `On orders above ₹${freeAbove}`,
       color: 'text-ozo-green',
-      bgColor: 'bg-green-50 dark:bg-ozo-green/10',
+      bgColor: 'bg-ozo-green/10',
     },
     {
       icon: ShieldCheck,
@@ -2030,7 +2030,7 @@ const Home = () => {
                             <p className="text-[9px] xs:text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 xs:mt-1">{product.unit || '500g'}</p>
                           </div>
 
-                          <div className="mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 flex-shrink-0">
+                          <div className="w-full mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 flex-shrink-0">
                             <div className="flex flex-wrap items-baseline gap-1">
                               <span className="text-[11px] xs:text-xs sm:text-sm font-black text-gray-900 dark:text-white">₹{product.price}</span>
                               {discount > 0 && (
@@ -2305,7 +2305,7 @@ const Home = () => {
                           </Link>
                           <p className="text-[10px] font-bold text-zinc-400 mb-2">{product.unit || '1 unit'}</p>
                           
-                          <div className="mt-auto pt-2 border-t border-gray-100 dark:border-white/5 flex flex-col gap-2">
+                          <div className="w-full mt-auto pt-2 border-t border-gray-100 dark:border-white/5 flex flex-col gap-2">
                             <div className="flex flex-wrap items-baseline gap-1.5">
                               <span className="text-sm font-black text-gray-900 dark:text-white leading-none">₹{product.price}</span>
                               {product.mrp > product.price && (
@@ -2451,7 +2451,7 @@ const Home = () => {
                           <p className="text-[9px] xs:text-[10px] font-bold text-zinc-500 dark:text-zinc-400 mt-0.5 xs:mt-1">{product.unit || '500g'}</p>
                         </div>
 
-                        <div className="mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 flex-shrink-0">
+                        <div className="w-full mt-auto pt-1.5 xs:pt-2 border-t border-zinc-200 dark:border-zinc-800 flex flex-col gap-1.5 flex-shrink-0">
                           <div className="flex flex-wrap items-baseline gap-1">
                             <span className="text-[11px] xs:text-xs sm:text-sm font-black text-gray-900 dark:text-white">₹{product.price}</span>
                             <span className="text-[9px] xs:text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500 line-through font-bold">
