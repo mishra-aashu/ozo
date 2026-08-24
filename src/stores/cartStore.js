@@ -1167,7 +1167,6 @@ export const useCartStore = create(
         paymentConfig: state.paymentConfig,
         serviceHoursConfig: state.serviceHoursConfig,
         themeConfig: state.themeConfig,
-        _settingsFetched: state._settingsFetched,
       }),
     }
   )

@@ -6,6 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 // import OzoSplashScreen from './components/OzoSplashScreen'
 import { syncFcmTokenWithDatabase, onMessageListener } from './firebase'
 import { supabase, authHelpers } from './lib/supabase'
+import { initOneSignal } from './utils/onesignal'
 import { useRef } from 'react'
 
 // Layouts
