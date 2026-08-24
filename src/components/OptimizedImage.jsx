@@ -24,6 +24,8 @@ export default function OptimizedImage({
   onLoad: externalOnLoad,
   onError: externalOnError,
   loading,
+  fallbackIcon = null,
+  showTextFallback = true,
   ...props
 }) {
   const [currentSrc, setCurrentSrc] = useState('')
@@ -140,11 +142,17 @@ export default function OptimizedImage({
       
       {/* Empty State / Neutral SVG Placeholder */}
       {showSvgPlaceholder ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700/50 p-2 text-center select-none">
-          <Package className="w-8 h-8 text-gray-300 dark:text-zinc-600 mb-1" />
-          <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium px-2 truncate max-w-full">
-            {alt && alt !== 'Product image' ? alt : 'No Image'}
-          </span>
+        <div className={`absolute inset-0 flex flex-col items-center justify-center text-center select-none ${
+          showTextFallback 
+            ? 'bg-gray-50 dark:bg-zinc-800 border border-gray-100 dark:border-zinc-700/50 p-2' 
+            : 'bg-transparent'
+        }`}>
+          {fallbackIcon || <Package className="w-8 h-8 text-gray-300 dark:text-zinc-600 mb-1" />}
+          {showTextFallback && (
+            <span className="text-[10px] text-gray-400 dark:text-zinc-500 font-medium px-2 truncate max-w-full">
+              {alt && alt !== 'Product image' ? alt : 'No Image'}
+            </span>
+          )}
         </div>
       ) : (
         currentSrc && (
