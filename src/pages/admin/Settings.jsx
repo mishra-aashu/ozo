@@ -33,7 +33,7 @@ import {
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
-import { useCartStore, adjustColorBrightness } from '../../stores/cartStore'
+import { useCartStore, adjustColorBrightness, applyDynamicTheme } from '../../stores/cartStore'
 import { useLocationStore } from '../../stores/locationStore'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -230,6 +230,23 @@ const AdminSettings = () => {
   const localitiesMarkersRef = useRef([])
   const landmarksMarkersRef = useRef([])
   const galisMarkersRef = useRef([])
+
+  // Live preview: apply dynamic theme colors locally on root as user changes them in pickers/presets
+  useEffect(() => {
+    if (themeConfig) {
+      applyDynamicTheme(themeConfig)
+    }
+  }, [themeConfig])
+
+  // Revert preview on unmount if changes are not saved
+  useEffect(() => {
+    return () => {
+      const savedTheme = useCartStore.getState().themeConfig
+      if (savedTheme) {
+        applyDynamicTheme(savedTheme)
+      }
+    }
+  }, [])
 
   const isPlacingWarehouseRef = useRef(isPlacingWarehouse)
   const isPlacingStoreRef = useRef(isPlacingStore)
@@ -1588,7 +1605,7 @@ const AdminSettings = () => {
             >
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-rose-100 dark:bg-rose-950/20 text-rose-650 dark:text-rose-400 rounded-2xl animate-pulse">
+                  <div className="p-3 bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red rounded-2xl animate-pulse">
                     <Palette className="w-6 h-6" />
                   </div>
                   <div>
@@ -1813,7 +1830,7 @@ const AdminSettings = () => {
                       </label>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         deliveryConfig.surge_multiplier > 1.2 
-                          ? 'bg-red-100 dark:bg-red-950/20 text-red-650'
+                          ? 'bg-red-50 dark:bg-red-950/20 text-red-500'
                           : deliveryConfig.surge_multiplier > 1.0
                             ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-650'
                             : 'bg-green-100 dark:bg-green-950/20 text-green-650'
@@ -2500,8 +2517,8 @@ const AdminSettings = () => {
             >
               <div>
                 <div className="flex items-center gap-3 mb-6">
-                  <div className="p-3 bg-red-100 dark:bg-red-955/20 text-red-650 rounded-2xl">
-                    <Shield className="w-6 h-6 text-red-600" />
+                  <div className="p-3 bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red rounded-2xl">
+                    <Shield className="w-6 h-6" />
                   </div>
                   <div>
                     <h2 className="text-lg font-black text-gray-800 dark:text-white">Security & Active Sessions</h2>
@@ -3321,7 +3338,7 @@ const AdminSettings = () => {
                             ? 'bg-green-100 dark:bg-green-950/20 text-green-650 dark:text-green-400'
                             : mandiSyncConfig.last_run.status === 'partial'
                               ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-650 dark:text-amber-400'
-                              : 'bg-red-100 dark:bg-red-950/20 text-red-650 dark:text-red-400'
+                              : 'bg-red-50 dark:bg-red-950/20 text-red-500 dark:text-red-400'
                         }`}>
                           {mandiSyncConfig.last_run.status?.toUpperCase() || 'UNKNOWN'}
                         </span>

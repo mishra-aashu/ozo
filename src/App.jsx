@@ -454,6 +454,36 @@ function App() {
   }, [initializeAuth, initTheme])
 
   useEffect(() => {
+    // Subscribe to realtime updates on app_settings table to sync settings and theme
+    const channel = supabase
+      .channel('public:app_settings')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'app_settings' },
+        (payload) => {
+          console.log('[OZO Realtime] app_settings change detected:', payload)
+          if (payload.new) {
+            const key = payload.new.key
+            const val = payload.new.value
+            
+            // Immediately apply theme changes without waiting for fetchSettings network trip
+            if (key === 'theme_config') {
+              useCartStore.setState({ themeConfig: val })
+              applyDynamicTheme(val)
+            }
+          }
+          // Fetch settings to update stores in sync
+          useCartStore.getState().fetchSettings().catch(() => {})
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  useEffect(() => {
     // Fetch cart and notifications when user logs in
     if (user) {
       fetchCart()

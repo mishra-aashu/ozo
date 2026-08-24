@@ -56,10 +56,10 @@ const OrderSlaTimer = ({ createdAt }) => {
   let isFlashing = false
 
   if (mins >= 10) {
-    colorClass = 'text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-250 dark:border-red-900/45'
+    colorClass = 'text-ozo-red bg-ozo-red/10 dark:bg-ozo-red/20 border border-ozo-red/25'
     isFlashing = true
   } else if (mins >= 5) {
-    colorClass = 'text-amber-500 bg-amber-50 dark:bg-[amber-500/5 border border-amber-250 dark:border-[amber-500/20'
+    colorClass = 'text-amber-500 bg-amber-50 dark:bg-amber-500/10 border border-amber-250 dark:border-amber-500/20'
   }
 
   return (
@@ -425,18 +425,18 @@ const LiveOrdersView = () => {
           <button
             onClick={() => setActiveSubTab('incoming')}
             className={`py-3 rounded-lg text-xs font-bold uppercase tracking-wider flex flex-col items-center gap-1.5 transition-all relative ${
-              activeSubTab === 'incoming' ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-600/10' : 'text-gray-750 dark:text-slate-300 hover:text-gray-950 dark:hover:text-white'
+              activeSubTab === 'incoming' ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-600/10' : 'text-gray-750 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
             }`}
           >
             <span className="flex items-center gap-1">
               Incoming
               {incomingOrders.length > 0 && (
-                <span className="w-2 h-2 rounded-full bg-[red-550 animate-ping"></span>
+                <span className="w-2 h-2 rounded-full bg-ozo-red animate-ping"></span>
               )}
             </span>
             <span className={`text-sm px-3 py-0.5 rounded-full font-black border transition-all ${
               incomingOrders.length > 0
-                ? 'bg-red-650 text-white border-red-700 shadow-md shadow-red-600/20 animate-pulse'
+                ? 'bg-ozo-red text-white border-ozo-red-dark shadow-md shadow-ozo-red/20 animate-pulse'
                 : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50'
             }`}>
               {incomingOrders.length}
@@ -447,35 +447,35 @@ const LiveOrdersView = () => {
           <button
             onClick={() => setActiveSubTab('preparing')}
             className={`py-3 rounded-lg text-xs font-bold uppercase tracking-wider flex flex-col items-center gap-1.5 transition-all relative ${
-              activeSubTab === 'preparing' ? 'text-[blue-500 bg-[blue-500/5' : 'text-gray-750 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
+              activeSubTab === 'preparing' ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-600/10' : 'text-gray-750 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
             }`}
           >
             <span>Packing</span>
             <span className={`text-sm px-3 py-0.5 rounded-full font-black border transition-all ${
               preparingOrders.length > 0
-                ? 'bg-red-650 text-white border-red-700 shadow-md shadow-red-600/20 animate-pulse'
+                ? 'bg-ozo-red text-white border-ozo-red-dark shadow-md shadow-ozo-red/20 animate-pulse'
                 : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50'
             }`}>
               {preparingOrders.length}
             </span>
-            {activeSubTab === 'preparing' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[blue-500"></span>}
+            {activeSubTab === 'preparing' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600 dark:bg-blue-600"></span>}
           </button>
 
           <button
             onClick={() => setActiveSubTab('ready')}
             className={`py-3 rounded-lg text-xs font-bold uppercase tracking-wider flex flex-col items-center gap-1.5 transition-all relative ${
-              activeSubTab === 'ready' ? 'text-amber-600 dark:text-[amber-400 bg-amber-50 dark:bg-[amber-500/5' : 'text-gray-750 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
+              activeSubTab === 'ready' ? 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-500/10' : 'text-gray-750 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
             }`}
           >
             <span>Ready</span>
             <span className={`text-sm px-3 py-0.5 rounded-full font-black border transition-all ${
               readyOrders.length > 0
-                ? 'bg-red-650 text-white border-red-700 shadow-md shadow-red-600/20 animate-pulse'
+                ? 'bg-ozo-red text-white border-ozo-red-dark shadow-md shadow-ozo-red/20 animate-pulse'
                 : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-950/20 dark:text-red-400 dark:border-red-900/50'
             }`}>
               {readyOrders.length}
             </span>
-            {activeSubTab === 'ready' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500 dark:bg-[amber-400"></span>}
+            {activeSubTab === 'ready' && <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-amber-500 dark:bg-amber-400"></span>}
           </button>
         </div>
 
@@ -541,10 +541,10 @@ const LiveOrdersView = () => {
 
                 <div className={`absolute left-0 top-0 bottom-0 w-1 ${
                   ['pending', 'placed', 'CONFIRMED_SYSTEM', 'confirmed'].includes(order.status)
-                    ? 'bg-[red-550'
+                    ? 'bg-ozo-red'
                     : order.status === 'preparing'
-                    ? 'bg-[blue-500'
-                    : 'bg-amber-500 dark:bg-[amber-400'
+                    ? 'bg-blue-500'
+                    : 'bg-amber-500 dark:bg-amber-400'
                 }`}></div>
               </button>
             ))
@@ -571,10 +571,10 @@ const LiveOrdersView = () => {
                     <h2 className="text-base sm:text-lg md:text-xl font-bold font-mono text-gray-955 dark:text-white truncate">Order #{selectedOrder.order_number}</h2>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${
                       ['pending', 'placed', 'CONFIRMED_SYSTEM', 'confirmed'].includes(selectedOrder.status)
-                        ? 'bg-[red-550/10 border border-[red-550/20 text-[red-550'
+                        ? 'bg-ozo-red/10 border border-ozo-red/20 text-ozo-red'
                         : selectedOrder.status === 'preparing'
-                        ? 'bg-[blue-500/10 border border-[blue-500/20 text-[blue-500'
-                        : 'bg-amber-50 dark:bg-[amber-500/10 border border-amber-200 dark:border-[amber-500/20 text-amber-700 dark:text-[amber-400'
+                        ? 'bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400'
+                        : 'bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 text-amber-700 dark:text-amber-400'
                     }`}>
                       {['pending', 'placed', 'CONFIRMED_SYSTEM', 'confirmed'].includes(selectedOrder.status) ? 'Placed' : selectedOrder.status === 'preparing' ? 'Preparing' : 'Ready'}
                     </span>
@@ -677,14 +677,14 @@ const LiveOrdersView = () => {
                         key={item.id}
                         onClick={() => isCheckable && toggleCheckItem(selectedOrder.id, item.id)}
                         className={`p-4 flex items-center justify-between transition-all select-none ${
-                          item.is_cancelled ? 'opacity-60 bg-red-500/[0.01]' :
+                          item.is_cancelled ? 'opacity-60 bg-ozo-red/[0.01]' :
                           isCheckable ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-700' : ''
                         } ${item.checked && !item.is_cancelled ? 'bg-blue-600/5 dark:bg-blue-600/5' : ''}`}
                       >
                         <div className="flex items-center gap-3 sm:gap-5 min-w-0 flex-1">
                           {isPreparing ? (
                             item.is_cancelled ? (
-                              <div className="w-5 h-5 rounded bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-500 flex-shrink-0">
+                              <div className="w-5 h-5 rounded bg-ozo-red/10 border border-ozo-red/30 flex items-center justify-center text-ozo-red flex-shrink-0">
                                 <span className="text-[10px] font-bold">✕</span>
                               </div>
                             ) : item.checked ? (
@@ -695,7 +695,7 @@ const LiveOrdersView = () => {
                               <div className="w-5 h-5 rounded border-2 border-gray-300 dark:border-slate-600 group-hover:border-gray-900 dark:group-hover:border-white transition-all flex-shrink-0"></div>
                             )
                           ) : (
-                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.is_cancelled ? 'bg-red-500' : 'bg-gray-400 dark:bg-slate-500'}`}></div>
+                            <div className={`w-1.5 h-1.5 rounded-full flex-shrink-0 ${item.is_cancelled ? 'bg-ozo-red' : 'bg-gray-400 dark:bg-slate-500'}`}></div>
                           )}
 
                           <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
@@ -711,13 +711,13 @@ const LiveOrdersView = () => {
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-1.5">
                                 <p className={`font-bold text-xs sm:text-sm leading-snug break-words ${
-                                  item.is_cancelled ? 'line-through text-red-550 dark:text-red-400 font-medium' :
+                                  item.is_cancelled ? 'line-through text-ozo-red dark:text-red-400 font-medium' :
                                   item.checked ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-950 dark:text-slate-100'
                                 }`}>
                                   {item.product_name}
                                 </p>
                                 {item.is_cancelled && (
-                                  <span className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-black bg-red-100 dark:bg-red-950/40 text-red-750 dark:text-red-400 border border-red-200/50 dark:border-red-900/50 rounded-md uppercase tracking-wider scale-95 origin-left">
+                                  <span className="px-1.5 py-0.5 text-[8px] sm:text-[9px] font-black bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red dark:text-red-400 border border-ozo-red/20 dark:border-ozo-red/45 rounded-md uppercase tracking-wider scale-95 origin-left">
                                     Cancelled
                                   </span>
                                 )}
@@ -731,7 +731,7 @@ const LiveOrdersView = () => {
 
                         <div className="text-right flex flex-col items-end gap-1 shrink-0 ml-2">
                           <span className={`text-xs sm:text-sm font-bold px-2 py-0.5 sm:px-3 sm:py-1 rounded-lg border whitespace-nowrap shrink-0 ${
-                            item.is_cancelled ? 'text-red-500/80 dark:text-red-400/80 bg-red-500/[0.03] border-red-500/20' :
+                            item.is_cancelled ? 'text-ozo-red/80 dark:text-red-400/80 bg-ozo-red/[0.03] border-ozo-red/20' :
                             item.checked ? 'text-gray-450 dark:text-slate-500 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700' : 
                             'text-blue-600 dark:text-blue-400 bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700'
                           }`}>
@@ -748,7 +748,7 @@ const LiveOrdersView = () => {
                                 e.stopPropagation();
                                 setItemToMarkUnavailable(item);
                               }}
-                              className="mt-1.5 text-[9px] sm:text-[10px] font-black text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 bg-red-500/5 hover:bg-red-500/10 px-2 py-0.5 rounded border border-red-500/10 dark:border-red-500/20 transition-all cursor-pointer whitespace-nowrap"
+                              className="mt-1.5 text-[9px] sm:text-[10px] font-black text-ozo-red hover:text-ozo-red-dark dark:text-red-400 dark:hover:text-red-300 bg-ozo-red/5 hover:bg-ozo-red/10 px-2 py-0.5 rounded border border-ozo-red/10 dark:border-ozo-red/20 transition-all cursor-pointer whitespace-nowrap"
                             >
                               Mark Unavailable
                             </button>
@@ -783,7 +783,7 @@ const LiveOrdersView = () => {
                           setRejectReason('');
                           setShowRejectModal(true);
                         }}
-                        className="w-full py-3.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold text-sm border border-red-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full py-3.5 rounded-xl bg-ozo-red/10 hover:bg-ozo-red/20 text-ozo-red font-bold text-sm border border-ozo-red/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         ✕ Decline Order
                       </button>
@@ -815,7 +815,7 @@ const LiveOrdersView = () => {
                           setRejectReason('');
                           setShowRejectModal(true);
                         }}
-                        className="w-full py-3 rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold text-xs border border-red-500/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
+                        className="w-full py-3 rounded-xl bg-ozo-red/10 hover:bg-ozo-red/20 text-ozo-red font-bold text-xs border border-ozo-red/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
                       >
                         ✕ Cancel Entire Order
                       </button>
@@ -1040,7 +1040,7 @@ const LiveOrdersView = () => {
                   onClick={() => setRejectReason(reason)}
                   className={`w-full text-left p-3 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
                     rejectReason === reason
-                      ? 'bg-red-500/10 border-red-500 text-red-650 dark:text-red-400'
+                      ? 'bg-ozo-red/10 border border-ozo-red/35 text-ozo-red'
                       : 'bg-gray-50 dark:bg-slate-800 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-350 hover:bg-gray-100 dark:hover:bg-slate-700'
                   }`}
                 >
@@ -1052,7 +1052,7 @@ const LiveOrdersView = () => {
                 placeholder="Or enter custom reason..."
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-red-500 focus:ring-1 focus:ring-red-500/20 rounded-xl px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-450 outline-none transition-all"
+                className="w-full bg-gray-50 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-ozo-red focus:ring-1 focus:ring-ozo-red/20 rounded-xl px-4 py-3 text-xs font-semibold text-gray-900 dark:text-white placeholder-gray-450 outline-none transition-all"
               />
             </div>
 
@@ -1081,7 +1081,7 @@ const LiveOrdersView = () => {
                     setSelectedOrderId(null);
                   }
                 }}
-                className="flex-1 py-3 bg-red-550 hover:bg-red-600 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-500/15 hover:shadow-red-500/25 cursor-pointer"
+                className="flex-1 py-3 bg-ozo-red hover:bg-ozo-red-dark text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-ozo-red/15 hover:shadow-ozo-red/25 cursor-pointer"
               >
                 {selectedOrder.status === 'preparing' ? 'Confirm Cancel' : 'Confirm Decline'}
               </button>
@@ -1095,7 +1095,7 @@ const LiveOrdersView = () => {
           <div className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 max-w-md w-full rounded-2xl p-6 shadow-2xl animate-scale-up text-left">
             <h3 className="text-lg font-black text-gray-900 dark:text-white mb-2">Mark Item Unavailable?</h3>
             <p className="text-sm text-gray-650 dark:text-slate-400 mb-6 leading-relaxed">
-              Are you sure you want to mark <span className="font-extrabold text-red-500 dark:text-red-400">"{itemToMarkUnavailable.product_name}"</span> as unavailable? This will remove it from the order checklist and update the total amount.
+              Are you sure you want to mark <span className="font-extrabold text-ozo-red dark:text-red-400">"{itemToMarkUnavailable.product_name}"</span> as unavailable? This will remove it from the order checklist and update the total amount.
             </p>
 
             <div className="flex items-center gap-3">
@@ -1112,7 +1112,7 @@ const LiveOrdersView = () => {
                   await cancelOrderItem(selectedOrder.id, itemToMarkUnavailable.id);
                   setItemToMarkUnavailable(null);
                 }}
-                className="flex-1 py-3 bg-red-500 hover:bg-red-650 text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-red-500/15 hover:shadow-red-500/25 cursor-pointer"
+                className="flex-1 py-3 bg-ozo-red hover:bg-ozo-red-dark text-white text-sm font-bold rounded-xl transition-all shadow-lg shadow-ozo-red/15 hover:shadow-ozo-red/25 cursor-pointer"
               >
                 Confirm Unavailable
               </button>

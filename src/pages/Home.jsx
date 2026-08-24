@@ -2100,7 +2100,7 @@ const Home = () => {
                                       e.stopPropagation();
                                       handleCustomAddToCart(product);
                                     }}
-                                    className="px-3.5 py-1.5 rounded-full bg-ozo-red hover:bg-red-650 text-white font-black text-[10px] xs:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
+                                    className="px-3.5 py-1.5 rounded-full bg-ozo-red hover:bg-ozo-red-dark text-white font-black text-[10px] xs:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm hover:shadow-md active:scale-95 cursor-pointer"
                                   >
                                     <Plus size={10} className="stroke-[3px]" />
                                     <span>ADD</span>
@@ -2214,7 +2214,7 @@ const Home = () => {
                     {isAdmin && (
                       <Link
                         to="/admin/cities"
-                        className="group bg-red-50/50 dark:bg-ozo-red/5 hover:bg-ozo-red/10 border border-dashed border-ozo-red/40 rounded-2xl md:rounded-3xl p-3 sm:p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] min-h-[140px]"
+                        className="group bg-ozo-red/5 hover:bg-ozo-red/10 border border-dashed border-ozo-red/40 rounded-2xl md:rounded-3xl p-3 sm:p-4 flex flex-col items-center justify-center text-center transition-all duration-300 hover:scale-[1.02] min-h-[140px]"
                       >
                         <div className="w-12 h-12 rounded-2xl bg-ozo-red text-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform mb-2">
                           <Plus size={24} className="stroke-[3px]" />
@@ -2507,7 +2507,7 @@ const Home = () => {
                               ) : (
                                 <button
                                   onClick={() => handleCustomAddToCart(product)}
-                                  className="px-3.5 py-1.5 rounded-full bg-ozo-red hover:bg-red-650 text-white font-black text-[10px] xs:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm hover:shadow-md active:scale-95"
+                                  className="px-3.5 py-1.5 rounded-full bg-ozo-red hover:bg-ozo-red-dark text-white font-black text-[10px] xs:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1 shadow-sm hover:shadow-md active:scale-95"
                                 >
                                   <Plus size={10} className="stroke-[3px]" />
                                   <span>ADD</span>
@@ -2532,14 +2532,14 @@ const Home = () => {
                   <h3 className="text-lg sm:text-xl md:text-2xl font-black mb-1 uppercase leading-snug">
                     Can't find what you need?
                   </h3>
-                  <p className="text-xs sm:text-sm font-medium text-red-100/90">
+                  <p className="text-xs sm:text-sm font-medium text-white/95">
                     We will stock it for you on OZO within 24 hours!
                   </p>
                 </div>
 
                 <button
                   onClick={() => setIsRequestModalOpen(true)}
-                  className="relative z-10 bg-white text-ozo-red hover:bg-red-50 px-5 py-3 md:px-7 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest whitespace-nowrap transition-all shadow-md active:scale-95 hover:scale-105"
+                  className="relative z-10 bg-white text-ozo-red hover:bg-white/90 px-5 py-3 md:px-7 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs uppercase tracking-widest whitespace-nowrap transition-all shadow-md active:scale-95 hover:scale-105"
                 >
                   Request Product
                 </button>
@@ -2614,7 +2614,7 @@ const Home = () => {
       {/* Promo Banner Section */}
       <section className="py-12">
         <div className="container-custom">
-          <div className="relative rounded-3xl overflow-hidden bg-red-50/50 dark:bg-[#111111]/80 border border-red-100/50 dark:border-white/5 p-6 md:p-10 transition-colors duration-500">
+          <div className="relative rounded-3xl overflow-hidden bg-ozo-red/5 dark:bg-[#111111]/80 border border-ozo-red/10 dark:border-white/5 p-6 md:p-10 transition-colors duration-500">
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 dark:opacity-20 pointer-events-none">
                <div className="absolute top-[-20%] right-[-10%] w-[80%] h-[80%] bg-ozo-red blur-[120px] rounded-full" />
             </div>
@@ -2749,7 +2749,7 @@ const Home = () => {
                 <button
                   type="submit"
                   disabled={isSubmittingRequest || isUploadingImage}
-                  className="w-full py-3.5 bg-gradient-to-r from-ozo-red to-ozo-red-dark hover:from-ozo-red-dark hover:to-ozo-red text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-red-500/20 active:scale-95 hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full py-3.5 bg-gradient-to-r from-ozo-red to-ozo-red-dark hover:from-ozo-red-dark hover:to-ozo-red text-white font-black text-xs uppercase tracking-widest rounded-2xl shadow-lg shadow-ozo-red/20 active:scale-95 hover:scale-[1.01] transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                 >
                   {isSubmittingRequest ? (
                     <>
