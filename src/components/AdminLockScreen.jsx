@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { ShieldAlert, Lock, Unlock, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { supabase, isJwtExpired } from '../lib/supabase'
@@ -12,6 +12,29 @@ const AdminLockScreen = ({ onUnlock }) => {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    const checkMainSession = async () => {
+      try {
+        const { data: sessionData } = await supabase.auth.getSession()
+        const session = sessionData?.session
+        const isExpired = session?.access_token ? isJwtExpired(session.access_token) : true
+
+        if (!session || isExpired) {
+          console.log('[AdminLockScreen] Session is missing or expired on mount. Attempting refresh...')
+          const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
+          if (refreshError || !refreshData?.session) {
+            console.error('[AdminLockScreen] Session refresh failed on mount:', refreshError)
+            await useAuthStore.getState().signOut('session_expired')
+          }
+        }
+      } catch (err) {
+        console.error('[AdminLockScreen] Session check failed on mount:', err)
+      }
+    }
+
+    checkMainSession()
+  }, [])
 
   const handleUnlock = async (e) => {
     e.preventDefault()
@@ -33,13 +56,15 @@ const AdminLockScreen = ({ onUnlock }) => {
         const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession()
         if (refreshError) {
           console.error('[AdminLockScreen] Refresh session failed:', refreshError)
-          throw new Error('Your session has expired. Please refresh the page and sign in again.')
+          await useAuthStore.getState().signOut('session_expired')
+          throw new Error('Your session has expired. Redirecting to login...')
         }
         session = refreshData?.session
       }
 
       if (!session) {
-        throw new Error('Your session has expired. Please refresh the page and sign in again.')
+        await useAuthStore.getState().signOut('session_expired')
+        throw new Error('Your session has expired. Redirecting to login...')
       }
 
       // Warm the in-memory token cache before the RPC call.
