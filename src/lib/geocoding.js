@@ -185,7 +185,7 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
     let nearestState = 'Unknown';
     let nearestPostcode = '';
     if (nearestCity) {
-      nearestCityName = nearestCity.name.split(',')[0].trim() || nearestCityName;
+      nearestCityName = nearestCity?.name ? (nearestCity.name.split(',')[0].trim() || nearestCityName) : nearestCityName;
       nearestState = nearestCity.state || nearestState;
       nearestPostcode = nearestCity.slug?.includes('aurangabad') ? '824101' : '';
     }
@@ -212,7 +212,7 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
     const distToNearest = getDistance(lat, lng, parseFloat(nearestCity.latitude), parseFloat(nearestCity.longitude));
     const maxRadius = Math.max(parseFloat(nearestCity.service_radius_km) || 25.0, 25.0);
     if (distToNearest <= maxRadius) {
-      nearestCityNameFallback = nearestCity.name.split(',')[0].trim() || nearestCityNameFallback;
+      nearestCityNameFallback = nearestCity?.name ? (nearestCity.name.split(',')[0].trim() || nearestCityNameFallback) : nearestCityNameFallback;
       nearestStateFallback = nearestCity.state || nearestStateFallback;
     }
   }
@@ -280,7 +280,7 @@ export const reverseGeocode = async (lat, lng, providedStreets = null, locationS
 
     if (matchedCity) {
       // Force correct the city name and state to match our operating city configuration
-      const baseCityName = matchedCity.name.split(',')[0].trim();
+      const baseCityName = matchedCity?.name ? matchedCity.name.split(',')[0].trim() : '';
       addressDetails.city = baseCityName;
       
       const allowedPincodes = matchedCity.allowed_pincodes || [];

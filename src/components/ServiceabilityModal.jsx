@@ -33,7 +33,7 @@ export default function ServiceabilityModal() {
 
     const matchedCityObj = findCityByPincode(manualPin)
     if (matchedCityObj) {
-      const baseCityName = matchedCityObj.name.split(',')[0].trim();
+      const baseCityName = matchedCityObj?.name ? matchedCityObj.name.split(',')[0].trim() : '';
       // Update location store state with city center coordinates and manually typed pincode
       useLocationStore.setState({
         address: `${baseCityName}, ${matchedCityObj.state || 'Bihar'} - ${manualPin}`,
