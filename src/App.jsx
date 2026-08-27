@@ -1,9 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom'
 import { toast } from 'react-hot-toast'
 import { useEffect, useState, lazy, Suspense } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
-// Intro splash component (commented out for now)
-// import OzoSplashScreen from './components/OzoSplashScreen'
 import { syncFcmTokenWithDatabase, onMessageListener } from './firebase'
 import { supabase, authHelpers } from './lib/supabase'
 import { initOneSignal } from './utils/onesignal'
@@ -176,8 +173,8 @@ const ProtectedRoute = ({ children, adminOnly = false }) => {
   if (!isInitialized) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Initializing session...</p>
+        <div className="w-10 h-10 border-2 border-ozo-red border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Initializing session...</p>
       </div>
     )
   }
@@ -259,8 +256,8 @@ const CompleteProfileRoute = ({ children }) => {
   if (!isInitialized || (user && checking)) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center bg-transparent">
-        <div className="w-10 h-10 border-4 border-ozo-red border-t-transparent rounded-full animate-spin" />
-        <p className="mt-4 text-gray-500 dark:text-gray-400 text-sm font-medium animate-pulse">Checking profile status...</p>
+        <div className="w-10 h-10 border-2 border-ozo-red border-t-transparent rounded-full animate-spin" />
+        <p className="mt-4 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Checking profile status...</p>
       </div>
     )
   }
@@ -278,32 +275,11 @@ const CompleteProfileRoute = ({ children }) => {
   return children
 }
 
-// Normal OZO Shimmer Page Loader for React.Suspense
+// Normal OZO Page Loader for React.Suspense
 const OzoPageLoader = () => (
-  <div className="min-h-[80vh] container-custom py-6 sm:py-8 space-y-6 sm:space-y-8 animate-fade-in">
-    {/* Banner shimmer */}
-    <div className="w-full h-36 sm:h-64 rounded-3xl shimmer" />
-    
-    {/* Title shimmer */}
-    <div className="flex justify-between items-center">
-      <div className="w-40 sm:w-48 h-7 sm:h-8 rounded-xl shimmer" />
-      <div className="w-20 sm:w-24 h-5 sm:h-6 rounded-lg shimmer" />
-    </div>
-
-    {/* Grid shimmer */}
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-      {[...Array(6)].map((_, i) => (
-        <div key={i} className="bg-white dark:bg-[#161616] p-3 sm:p-4 rounded-3xl space-y-3 border border-gray-100 dark:border-white/5 shadow-sm">
-          <div className="w-full h-28 sm:h-32 rounded-2xl shimmer" />
-          <div className="w-3/4 h-3.5 sm:h-4 rounded-lg shimmer" />
-          <div className="w-1/2 h-3 rounded-lg shimmer" />
-          <div className="flex justify-between items-center pt-1 sm:pt-2">
-            <div className="w-12 sm:w-16 h-4 sm:h-5 rounded-lg shimmer" />
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-xl shimmer" />
-          </div>
-        </div>
-      ))}
-    </div>
+  <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 bg-transparent">
+    <div className="w-10 h-10 border-2 border-ozo-red border-t-transparent rounded-full animate-spin" />
+    <p className="mt-4 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Loading...</p>
   </div>
 )
 
@@ -311,31 +287,6 @@ function App() {
   const { initializeAuth, user, isInitialized } = useAuthStore()
   const { fetchCart } = useCartStore()
   const { fetchNotifications, subscribeToNotifications, unsubscribeFromNotifications } = useNotificationStore()
-  // Intro splash screen disabled for now
-  /*
-  const [showSplash, setShowSplash] = useState(() => {
-    try {
-      // Skip splash if shown in the current tab session (handles reloads/refreshes)
-      if (sessionStorage.getItem('ozo_splash_shown') === 'true') {
-        return false;
-      }
-      // Skip splash if shown in the last 30 minutes (handles rapid revisits/new tabs)
-      const lastShown = localStorage.getItem('ozo_splash_last_shown');
-      if (lastShown) {
-        const timeDiff = Date.now() - parseInt(lastShown, 10);
-        const cooldown = 30 * 60 * 1000; // 30 minutes cooldown
-        if (timeDiff < cooldown) {
-          sessionStorage.setItem('ozo_splash_shown', 'true');
-          return false;
-        }
-      }
-    } catch (e) {
-      console.warn('Splash state check error:', e);
-    }
-    return true;
-  })
-  */
-  const [showSplash, setShowSplash] = useState(false)
   const themeConfig = useCartStore(state => state.themeConfig)
 
   useEffect(() => {
@@ -539,24 +490,7 @@ function App() {
 
   return (
     <>
-      {/* Intro splash screen disabled/commented out for now
-      <AnimatePresence mode="wait">
-        {showSplash && (
-          <OzoSplashScreen
-            key="splash"
-            onAnimationComplete={() => {
-              try {
-                sessionStorage.setItem('ozo_splash_shown', 'true');
-                localStorage.setItem('ozo_splash_last_shown', Date.now().toString());
-              } catch (e) {
-                console.warn('Failed to save splash state:', e);
-              }
-              setShowSplash(false);
-            }}
-          />
-        )}
-      </AnimatePresence>
-      */}
+
 
       <Router basename="/" future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <ScrollToTop />
