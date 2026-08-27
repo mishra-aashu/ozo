@@ -16,7 +16,7 @@ export const isAddressIncomplete = (addr, activeCities = []) => {
   
   // Check if it matches any active city name exactly
   const matchesAnyCity = activeCities.some(city => {
-    const cityName = city.name.split(',')[0].toLowerCase().trim()
+    const cityName = city?.name ? city.name.split(',')[0].toLowerCase().trim() : ''
     return lower === cityName
   })
   if (matchesAnyCity) return true
@@ -48,7 +48,7 @@ export const findMatchingActiveCityForDetails = (addr, coords, details, activeCi
   if (addr) {
     const cleanAddr = addr.toString().toLowerCase()
     const match = activeCities.find(c => {
-      const name = c.name.split(',')[0].toLowerCase().trim() // e.g. "aurangabad" from "Aurangabad, Bihar"
+      const name = c?.name ? c.name.split(',')[0].toLowerCase().trim() : '' // e.g. "aurangabad" from "Aurangabad, Bihar"
       const slug = c.slug.toLowerCase().trim()
       return cleanAddr.includes(name) || cleanAddr.includes(slug)
     })
@@ -241,7 +241,7 @@ export default function LocationPromptModal() {
     }
 
     if (matchedCity) {
-      const baseCityName = matchedCity.name.split(',')[0].trim();
+      const baseCityName = matchedCity?.name ? matchedCity.name.split(',')[0].trim() : '';
       // Save details locally in store
       useLocationStore.setState({
         address: `Pincode: ${pincodeInput}, ${baseCityName}, ${matchedCity.state || 'Bihar'}`,

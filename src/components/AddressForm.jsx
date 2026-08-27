@@ -309,7 +309,7 @@ export default function AddressForm({
           if (!list.some(item => item.pincode === pin)) {
             list.push({
               pincode: pin,
-              cityName: city.name.split(',')[0].trim(),
+              cityName: city?.name ? city.name.split(',')[0].trim() : '',
               state: city.state || 'Bihar',
               latitude: city.latitude,
               longitude: city.longitude

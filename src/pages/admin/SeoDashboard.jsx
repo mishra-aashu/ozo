@@ -160,7 +160,7 @@ const SeoDashboard = () => {
     try {
       addLog(`Checking database for operating_cities. Total active found: ${stats.activeCities}`, 'info')
       if (stats.activeCities > 0) {
-        addLog(`Active cities detected: ${citiesList.map(c => c.name.split(',')[0]).join(', ')}`, 'success')
+        addLog(`Active cities detected: ${citiesList.map(c => c?.name ? c.name.split(',')[0] : '').filter(Boolean).join(', ')}`, 'success')
       } else {
         addLog('No active cities in operating_cities! Dynamic SEO pages will fail.', 'error')
       }
@@ -623,7 +623,7 @@ const SeoDashboard = () => {
                   className="px-3 py-1.5 bg-gray-50 hover:bg-gray-100 dark:bg-white/5 dark:hover:bg-white/10 border border-gray-150 dark:border-white/5 rounded-xl text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1.5 group transition-all"
                 >
                   <Globe className="w-3.5 h-3.5 text-purple-400" />
-                  {city.name.split(',')[0]}
+                  {city?.name ? city.name.split(',')[0] : ''}
                   <ExternalLink className="w-3 h-3 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </a>
               ))}
