@@ -107,6 +107,13 @@ const Referral = lazyWithRetry(() => import('./pages/Referral'))
 const MartProfile = lazyWithRetry(() => import('./pages/MartProfile'))
 const PhoneCapture = lazyWithRetry(() => import('./pages/PhoneCapture'))
 
+// OZO Services Pages
+const ServicesHome = lazyWithRetry(() => import('./pages/services/ServicesHome'))
+const ServiceCategories = lazyWithRetry(() => import('./pages/services/ServiceCategories'))
+const ServiceCategory = lazyWithRetry(() => import('./pages/services/ServiceCategory'))
+const ServiceBooking = lazyWithRetry(() => import('./pages/services/ServiceBooking'))
+const MyBookings = lazyWithRetry(() => import('./pages/services/MyBookings'))
+
 
 // Lazy loaded Admin Pages
 const AdminDashboard = lazyWithRetry(() => import('./pages/admin/Dashboard'))
@@ -523,6 +530,13 @@ function App() {
             <Route path="developer" element={<Developer />} />
             <Route path="founder" element={<Developer />} />
             <Route path="mart/:slug" element={<MartProfile />} />
+
+            {/* OZO Services Routes */}
+            <Route path="services" element={<ServicesHome />} />
+            <Route path="services/categories" element={<ServiceCategories />} />
+            <Route path="services/category/:slug" element={<ServiceCategory />} />
+            <Route path="services/booking/:serviceId" element={<ServiceBooking />} />
+            <Route path="services/my-bookings" element={<MyBookings />} />
 
             {/* Auth Route */}
             <Route

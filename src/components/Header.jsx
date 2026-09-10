@@ -25,7 +25,8 @@ import {
   LayoutGrid,
   History,
   Home as HomeIcon,
-  Gift
+  Gift,
+  Wrench
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
@@ -34,9 +35,11 @@ import { useProductStore } from '../stores/productStore'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable } from '../stores/locationStore'
 import { useThemeStore } from '../stores/themeStore'
 import { useNotificationStore } from '../stores/notificationStore'
+import { useServiceModeStore } from '../stores/serviceModeStore'
 import LocationPicker from './LocationPicker'
 import BrowsingBanner from './BrowsingBanner'
 import OzoLogo from './OzoLogo'
+import VerticalDropdownHeader from './VerticalDropdownHeader'
 import toast from 'react-hot-toast'
 import UserAvatar from './UserAvatar'
 import OptimizedImage from './OptimizedImage'
@@ -94,6 +97,7 @@ const trendingSearches = [
 ]
 
 const Header = () => {
+  const currentMode = useServiceModeStore(state => state.currentMode)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isProfileOpen, setIsProfileOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
@@ -469,14 +473,7 @@ const Header = () => {
             
              {/* Logo + Location Column/Row */}
             <div className="flex items-center gap-1.5 md:gap-2.5 min-w-0 md:flex-shrink-0">
-              <Link to="/" className="flex items-center gap-1.5 xs:gap-2 flex-shrink-0 group">
-                <OzoLogo
-                  size="sm"
-                  subText="Jo Chahiye, Jab Chahiye"
-                  subTextClassName="hidden sm:inline-block mt-1"
-                  imgClassName="group-hover:scale-105 group-hover:rotate-3 transition-all duration-500"
-                />
-              </Link>
+              <VerticalDropdownHeader />
 
               {/* Location Selector (Desktop Only) */}
               <button 
@@ -856,19 +853,29 @@ const Header = () => {
                 </Link>
               )}
 
-              {/* Cart */}
-              <Link
-                to="/cart"
-                aria-label="Cart"
-                className="relative p-1.5 md:p-2 lg:p-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-ozo-green/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-green dark:hover:text-ozo-green transition-all duration-300 group"
-              >
-                <ShoppingCart size={24} className="group-hover:scale-110 transition-transform" />
-                {totalItems > 0 && (
-                  <span className="absolute top-1 right-1 w-5 h-5 bg-ozo-green text-white text-[10px] rounded-full flex items-center justify-center font-black shadow-lg border-2 border-white">
-                    {totalItems}
-                  </span>
-                )}
-              </Link>
+              {/* Cart or My Bookings */}
+              {currentMode === 'services' ? (
+                <Link
+                  to="/services/my-bookings"
+                  aria-label="My Bookings"
+                  className="relative p-1.5 md:p-2 lg:p-2.5 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-500/10 text-sky-500 hover:text-sky-600 transition-all duration-300 group"
+                >
+                  <Wrench size={24} className="group-hover:scale-110 transition-transform text-sky-500" />
+                </Link>
+              ) : (
+                <Link
+                  to="/cart"
+                  aria-label="Cart"
+                  className="relative p-1.5 md:p-2 lg:p-2.5 rounded-xl hover:bg-green-50 dark:hover:bg-ozo-green/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-green dark:hover:text-ozo-green transition-all duration-300 group"
+                >
+                  <ShoppingCart size={24} className="group-hover:scale-110 transition-transform" />
+                  {totalItems > 0 && (
+                    <span className="absolute top-1 right-1 w-5 h-5 bg-ozo-green text-white text-[10px] rounded-full flex items-center justify-center font-black shadow-lg border-2 border-white">
+                      {totalItems}
+                    </span>
+                  )}
+                </Link>
+              )}
             </div>
 
             {/* Mobile Actions */}
@@ -888,18 +895,28 @@ const Header = () => {
                 </Link>
               )}
 
-              <Link
-                to="/cart"
-                aria-label="Cart"
-                className="relative p-1.5 rounded-xl hover:bg-green-50 dark:hover:bg-ozo-green/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-green dark:hover:text-ozo-green transition-all"
-              >
-                <ShoppingCart size={20} />
-                {totalItems > 0 && (
-                  <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-ozo-green text-white text-[9px] rounded-full flex items-center justify-center font-black border-2 border-white dark:border-[#0d0d0d]">
-                    {totalItems}
-                  </span>
-                )}
-              </Link>
+              {currentMode === 'services' ? (
+                <Link
+                  to="/services/my-bookings"
+                  aria-label="My Bookings"
+                  className="relative p-1.5 rounded-xl hover:bg-sky-50 dark:hover:bg-sky-500/10 text-sky-500 transition-all"
+                >
+                  <Wrench size={20} />
+                </Link>
+              ) : (
+                <Link
+                  to="/cart"
+                  aria-label="Cart"
+                  className="relative p-1.5 rounded-xl hover:bg-green-50 dark:hover:bg-ozo-green/10 text-ozo-gray dark:text-gray-400 hover:text-ozo-green dark:hover:text-ozo-green transition-all"
+                >
+                  <ShoppingCart size={20} />
+                  {totalItems > 0 && (
+                    <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-ozo-green text-white text-[9px] rounded-full flex items-center justify-center font-black border-2 border-white dark:border-[#0d0d0d]">
+                      {totalItems}
+                    </span>
+                  )}
+                </Link>
+              )}
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 aria-label={isMenuOpen ? "Close menu" : "Open menu"}

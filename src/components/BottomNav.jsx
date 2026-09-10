@@ -10,10 +10,13 @@ import {
   ChevronRight,
   Bike,
   Clock,
+  Wrench,
+  Calendar,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
+import { useServiceModeStore } from '../stores/serviceModeStore'
 
 const getStatusText = (status) => {
   const s = status?.toUpperCase() || ''
@@ -33,6 +36,9 @@ const BottomNav = () => {
   
   const activeOrder = useOrderStore(state => state.activeOrder)
   const fetchActiveOrder = useOrderStore(state => state.fetchActiveOrder)
+  const currentMode = useServiceModeStore(state => state.currentMode)
+
+  const isServices = currentMode === 'services'
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -44,50 +50,102 @@ const BottomNav = () => {
     }
   }, [isAuthenticated, fetchActiveOrder])
 
-  const shouldShowActiveOrder = activeOrder && !location.pathname.startsWith('/order/')
-  const shouldShowCartBanner = totalItems > 0 && !activeOrder && !['/cart', '/checkout'].includes(location.pathname)
+  const shouldShowActiveOrder = activeOrder && !location.pathname.startsWith('/order/') && !isServices
+  const shouldShowCartBanner = totalItems > 0 && !activeOrder && !['/cart', '/checkout'].includes(location.pathname) && !isServices
 
-  const navItems = [
-    {
-      icon: Home,
-      label: 'Home',
-      path: '/',
-      color: 'text-ozo-red',
-    },
-    {
-      icon: LayoutGrid,
-      label: 'Categories',
-      path: '/categories',
-      color: 'text-ozo-yellow',
-    },
-    {
-      icon: Search,
-      label: 'Search',
-      path: '/search',
-      color: 'text-ozo-green',
-    },
-    {
-      icon: ShoppingCart,
-      label: 'Cart',
-      path: '/cart',
-      color: 'text-ozo-green',
-      badge: totalItems,
-    },
-    {
-      icon: User,
-      label: isAuthenticated ? 'Profile' : 'Login',
-      path: isAuthenticated ? '/profile' : '/auth',
-      color: 'text-ozo-red',
-    },
-  ]
+  const navItems = isServices
+    ? [
+        {
+          icon: Home,
+          label: 'Home',
+          path: '/services',
+          color: 'text-sky-500',
+        },
+        {
+          icon: LayoutGrid,
+          label: 'Categories',
+          path: '/services/categories',
+          color: 'text-sky-400',
+        },
+        {
+          icon: Search,
+          label: 'Search',
+          path: '/search',
+          color: 'text-sky-400',
+        },
+        {
+          icon: Wrench,
+          label: 'Bookings',
+          path: '/services/my-bookings',
+          color: 'text-sky-400',
+        },
+        {
+          icon: User,
+          label: isAuthenticated ? 'Profile' : 'Login',
+          path: isAuthenticated ? '/profile' : '/auth',
+          color: 'text-sky-500',
+        },
+      ]
+    : [
+        {
+          icon: Home,
+          label: 'Home',
+          path: '/',
+          color: 'text-ozo-red',
+        },
+        {
+          icon: LayoutGrid,
+          label: 'Categories',
+          path: '/categories',
+          color: 'text-ozo-yellow',
+        },
+        {
+          icon: Search,
+          label: 'Search',
+          path: '/search',
+          color: 'text-ozo-green',
+        },
+        {
+          icon: ShoppingCart,
+          label: 'Cart',
+          path: '/cart',
+          color: 'text-ozo-green',
+          badge: totalItems,
+        },
+        {
+          icon: User,
+          label: isAuthenticated ? 'Profile' : 'Login',
+          path: isAuthenticated ? '/profile' : '/auth',
+          color: 'text-ozo-red',
+        },
+      ]
 
   const checkIsActive = (path) => {
     const current = location.pathname
+    if (isServices) {
+      if (path === '/services') {
+        return current === '/services'
+      }
+      if (path === '/services/categories') {
+        return current.startsWith('/services/categories') || current.startsWith('/services/category/')
+      }
+      if (path === '/services/my-bookings') {
+        return current.startsWith('/services/my-bookings') || current.startsWith('/services/booking/')
+      }
+      if (path === '/search') {
+        return current.startsWith('/search')
+      }
+      if (path === '/profile' || path === '/auth') {
+        return current.startsWith('/profile') || current.startsWith('/auth')
+      }
+      return current === path
+    }
+
     if (path === '/') {
       return (
         current === '/' ||
         (!current.startsWith('/admin') &&
-         !['/categories', '/category/', '/search', '/cart', '/checkout', '/profile', '/auth', '/help', '/offers', '/orders', '/order/', '/product/', '/combo/', '/wishlist', '/notifications', '/settings', '/referral'].some(p => current.startsWith(p)))
+         !['/categories', '/category/', '/search', '/cart', '/checkout', '/profile', '/auth', '/help', '/offers', '/orders', '/order/', '/product/', '/combo/', '/wishlist', '/notifications', '/settings', '/referral', '/services'].some(p => current.startsWith(p)))
       )
     }
     if (path === '/categories') {
@@ -298,7 +356,7 @@ const BottomNav = () => {
                   {active && (
                     <motion.div
                       layoutId="bottomNavIndicator"
-                      className="absolute -bottom-2 w-6 h-1 bg-gradient-to-r from-ozo-red to-ozo-red-light rounded-full shadow-[0_2px_8px_rgba(226,55,68,0.5)] dark:shadow-[0_2px_8px_rgba(226,55,68,0.8)]"
+                      className={`absolute -bottom-2 w-6 h-1 rounded-full ${isServices ? 'bg-gradient-to-r from-sky-500 to-blue-600 shadow-[0_2px_8px_rgba(14,165,233,0.5)]' : 'bg-gradient-to-r from-ozo-red to-ozo-red-light shadow-[0_2px_8px_rgba(226,55,68,0.5)]'}`}
                       transition={{ type: 'spring', stiffness: 600, damping: 25 }}
                     />
                   )}

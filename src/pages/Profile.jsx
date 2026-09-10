@@ -20,9 +20,11 @@ import {
   Check,
   Bike,
   Store,
-  Gift
+  Gift,
+  Wrench
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
+import { useServiceModeStore } from '../stores/serviceModeStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -43,6 +45,9 @@ const PRESET_AVATARS = [
 
 const Profile = () => {
   const { t } = useTranslation()
+  const { currentMode, setMode } = useServiceModeStore()
+  const isServices = currentMode === 'services'
+
   const { user, profile, signOut, updateProfile, isAdmin } = useAuthStore(useShallow(state => ({
     user: state.user,
     profile: state.profile,
@@ -112,7 +117,20 @@ const Profile = () => {
 
   const menuItems = [
     ...(isAdmin ? [{ label: profile?.isSuperAdmin ? 'Admin Panel' : 'City Manager Portal', icon: Shield, to: '/admin', color: 'text-ozo-red', bgColor: 'bg-red-50 dark:bg-ozo-red/10' }] : []),
-    { label: t('myOrders'), icon: Package, to: '/orders', color: 'text-blue-500', bgColor: 'bg-blue-50 dark:bg-blue-500/10' },
+    {
+      label: isServices ? 'My Service Bookings' : t('myOrders'),
+      icon: isServices ? Wrench : Package,
+      to: isServices ? '/services/my-bookings' : '/orders',
+      color: isServices ? 'text-sky-500' : 'text-blue-500',
+      bgColor: isServices ? 'bg-sky-50 dark:bg-sky-500/10' : 'bg-blue-50 dark:bg-blue-500/10',
+    },
+    {
+      label: isServices ? t('myOrders') : 'My Service Bookings',
+      icon: isServices ? Package : Wrench,
+      to: isServices ? '/orders' : '/services/my-bookings',
+      color: isServices ? 'text-blue-500' : 'text-sky-500',
+      bgColor: isServices ? 'bg-blue-50 dark:bg-blue-500/10' : 'bg-sky-50 dark:bg-sky-500/10',
+    },
     { label: 'Refer & Earn', icon: Gift, to: '/referral', color: 'text-yellow-500', bgColor: 'bg-yellow-50 dark:bg-yellow-500/10' },
     { label: t('wishlist'), icon: Heart, to: '/wishlist', color: 'text-pink-500', bgColor: 'bg-pink-50 dark:bg-pink-500/10' },
     { label: t('savedAddresses'), icon: MapPin, to: '/profile/addresses', color: 'text-ozo-green', bgColor: 'bg-green-50 dark:bg-ozo-green/10' },
@@ -136,7 +154,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24 transition-colors duration-300">
       {/* Header / Hero */}
-      <div className="bg-gradient-ozo pt-12 pb-24 relative overflow-hidden">
+      <div className={`${isServices ? 'bg-gradient-to-r from-sky-600 via-blue-600 to-indigo-700' : 'bg-gradient-ozo'} pt-12 pb-24 relative overflow-hidden transition-colors duration-300`}>
         <div className="container-custom relative z-10">
           <div className="flex flex-col md:flex-row items-center gap-8 text-white">
             <div className="relative group">
@@ -153,7 +171,7 @@ const Profile = () => {
               </div>
               <button 
                 onClick={() => setIsAvatarModalOpen(true)}
-                className="absolute bottom-0 right-0 w-10 h-10 bg-white text-ozo-red rounded-2xl flex items-center justify-center shadow-lg border-4 border-ozo-red transform hover:scale-110 transition-transform"
+                className={`absolute bottom-0 right-0 w-10 h-10 bg-white ${isServices ? 'text-sky-500 border-sky-500' : 'text-ozo-red border-ozo-red'} rounded-2xl flex items-center justify-center shadow-lg border-4 transform hover:scale-110 transition-transform`}
               >
                 <Camera size={20} />
               </button>
@@ -184,7 +202,7 @@ const Profile = () => {
             <div className="flex gap-4">
                <button 
                 onClick={() => setIsEditing(!isEditing)}
-                className="px-6 py-3 bg-white text-ozo-red rounded-2xl font-black shadow-lg hover:bg-red-50 transition-all active:scale-95"
+                className={`px-6 py-3 bg-white ${isServices ? 'text-sky-600 hover:bg-sky-50' : 'text-ozo-red hover:bg-red-50'} rounded-2xl font-black shadow-lg transition-all active:scale-95`}
                >
                  {isEditing ? t('cancel') : t('editProfile')}
                </button>
@@ -208,7 +226,7 @@ const Profile = () => {
                 className="bg-white dark:bg-[#1a1a1a] rounded-[2.5rem] p-8 shadow-xl border border-gray-100 dark:border-white/5"
               >
                 <h2 className="text-xl font-black mb-6 flex items-center gap-3">
-                  <span className="w-1.5 h-6 bg-ozo-red rounded-full" />
+                  <span className={`w-1.5 h-6 ${isServices ? 'bg-sky-500' : 'bg-ozo-red'} rounded-full`} />
                   {t('editPersonalInfo')}
                 </h2>
                 <form onSubmit={handleUpdateProfile} className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -245,18 +263,48 @@ const Profile = () => {
               </motion.div>
             )}
 
+            {/* Vertical Mode Quick Switcher Card */}
+            <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[2.5rem] p-6 border border-white/10 shadow-lg text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">Active Vertical Mode</span>
+                <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
+                  {isServices ? 'OZO Services (Doorstep Local Experts)' : 'OZO Mart (Grocery & Essentials)'}
+                </h3>
+                <p className="text-xs text-gray-400 mt-1">
+                  {isServices ? 'Browse Plumbers, Electricians & AC Repair Technicians' : 'Order Grocery, Fresh Vegetables & Daily Produce'}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  const nextMode = isServices ? 'mart' : 'services'
+                  setMode(nextMode)
+                  toast.success(`Switched to ${nextMode === 'mart' ? 'OZO Mart' : 'OZO Services'}`)
+                }}
+                className={`px-5 py-2.5 rounded-2xl text-xs font-black shadow-md transition-all hover:scale-105 active:scale-95 flex-shrink-0 ${
+                  isServices ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white'
+                }`}
+              >
+                Switch to {isServices ? 'OZO Mart' : 'OZO Services'} &rarr;
+              </button>
+            </div>
+
             {/* Account Dashboard Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                <div className="bg-white dark:bg-[#1a1a1a] p-8 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-white/5 group hover:shadow-xl transition-all cursor-pointer">
                   <div className="flex items-center justify-between mb-4">
-                    <div className="w-14 h-14 bg-red-50 dark:bg-ozo-red/10 rounded-2xl flex items-center justify-center text-ozo-red group-hover:scale-110 transition-transform">
-                      <Package size={28} />
+                    <div className={`w-14 h-14 ${isServices ? 'bg-sky-50 dark:bg-sky-500/10 text-sky-500' : 'bg-red-50 dark:bg-ozo-red/10 text-ozo-red'} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform`}>
+                      {isServices ? <Wrench size={28} /> : <Package size={28} />}
                     </div>
                     <span className="text-3xl font-black text-gray-200 dark:text-white/5">01</span>
                   </div>
-                  <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Ongoing Order</h3>
-                  <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-6">Track your current delivery</p>
-                  <Link to="/orders" className="flex items-center gap-2 text-ozo-red font-bold text-sm">
+                  <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">
+                    {isServices ? 'Doorstep Service Visits' : 'Ongoing Order'}
+                  </h3>
+                  <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-6">
+                    {isServices ? 'Track technician status & bookings' : 'Track your current delivery'}
+                  </p>
+                  <Link to={isServices ? '/services/my-bookings' : '/orders'} className={`flex items-center gap-2 ${isServices ? 'text-sky-500' : 'text-ozo-red'} font-bold text-sm`}>
                     View Details <ChevronRight size={16} />
                   </Link>
                </div>
@@ -279,7 +327,7 @@ const Profile = () => {
             {/* OZO Service Portals */}
             <div className="space-y-4 pt-2">
               <h2 className="text-xl font-black flex items-center gap-3 text-gray-900 dark:text-white">
-                <span className="w-1.5 h-6 bg-ozo-red rounded-full animate-pulse" />
+                <span className={`w-1.5 h-6 ${isServices ? 'bg-sky-500' : 'bg-ozo-red'} rounded-full animate-pulse`} />
                 {isCustomerOnly ? 'Earn with OZO' : 'Service Portals'}
               </h2>
               <div className="flex flex-col gap-4">
@@ -377,7 +425,7 @@ const Profile = () => {
                   </div>
                 )}
 
-                {isMartOperator && (
+                {isMartOperator && !isServices && (
                   <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
                     <button
                       onClick={() => setIsMartExpanded(!isMartExpanded)}
@@ -471,50 +519,97 @@ const Profile = () => {
                       </AnimatePresence>
                     </div>
 
-                    <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
-                      <button
-                        onClick={() => setIsMartExpanded(!isMartExpanded)}
-                        className="w-full p-6 flex items-center justify-between gap-4 text-left outline-none"
-                      >
-                        <div className="flex items-center gap-4 min-w-0">
-                          <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 flex-shrink-0">
-                            <Store size={24} />
-                          </div>
-                          <div className="min-w-0">
-                            <h3 className="text-base font-black text-gray-900 dark:text-white truncate">Apply for Mart</h3>
-                            <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full text-indigo-500">Partner</span>
-                          </div>
-                        </div>
-                        <motion.div
-                          animate={{ rotate: isMartExpanded ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="text-gray-400"
+                    {isServices ? (
+                      <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
+                        <button
+                          onClick={() => setIsMartExpanded(!isMartExpanded)}
+                          className="w-full p-6 flex items-center justify-between gap-4 text-left outline-none"
                         >
-                          <ChevronDown size={20} />
-                        </motion.div>
-                      </button>
-
-                      <AnimatePresence initial={false}>
-                        {isMartExpanded && (
-                          <motion.div
-                            initial={{ height: 0, opacity: 0 }}
-                            animate={{ height: 'auto', opacity: 1 }}
-                            exit={{ height: 0, opacity: 0 }}
-                            transition={{ duration: 0.25, ease: 'easeInOut' }}
-                            className="overflow-hidden"
-                          >
-                            <div className="px-6 pb-6 pt-2 border-t border-gray-50 dark:border-white/5">
-                              <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-4 leading-relaxed">
-                                Partner with OZO and bring your store online. Reach thousands of customers in your area.
-                              </p>
-                              <Link to="/mart" className="inline-flex items-center gap-2 text-indigo-500 font-bold text-sm bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
-                                Apply Now <ChevronRight size={16} />
-                              </Link>
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-12 h-12 bg-sky-50 dark:bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 flex-shrink-0">
+                              <Wrench size={24} />
                             </div>
+                            <div className="min-w-0">
+                              <h3 className="text-base font-black text-gray-900 dark:text-white truncate">Become a Service Partner</h3>
+                              <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider bg-sky-500/10 border border-sky-500/20 px-2.5 py-0.5 rounded-full text-sky-500">Technician</span>
+                            </div>
+                          </div>
+                          <motion.div
+                            animate={{ rotate: isMartExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-gray-400"
+                          >
+                            <ChevronDown size={20} />
                           </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
+                        </button>
+
+                        <AnimatePresence initial={false}>
+                          {isMartExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: 'easeInOut' }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-6 pb-6 pt-2 border-t border-gray-50 dark:border-white/5">
+                                <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-4 leading-relaxed">
+                                  Join OZO Services as a verified Plumber, Electrician, AC Repair Mechanic or Carpenter. Receive doorstep job leads near your area.
+                                </p>
+                                <Link to="/services" className="inline-flex items-center gap-2 text-sky-500 font-bold text-sm bg-sky-50 dark:bg-sky-500/10 px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
+                                  Apply as Technician <ChevronRight size={16} />
+                                </Link>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    ) : (
+                      <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
+                        <button
+                          onClick={() => setIsMartExpanded(!isMartExpanded)}
+                          className="w-full p-6 flex items-center justify-between gap-4 text-left outline-none"
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-500/10 rounded-2xl flex items-center justify-center text-indigo-500 flex-shrink-0">
+                              <Store size={24} />
+                            </div>
+                            <div className="min-w-0">
+                              <h3 className="text-base font-black text-gray-900 dark:text-white truncate">Apply for Mart</h3>
+                              <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider bg-indigo-500/10 border border-indigo-500/20 px-2.5 py-0.5 rounded-full text-indigo-500">Partner</span>
+                            </div>
+                          </div>
+                          <motion.div
+                            animate={{ rotate: isMartExpanded ? 180 : 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="text-gray-400"
+                          >
+                            <ChevronDown size={20} />
+                          </motion.div>
+                        </button>
+
+                        <AnimatePresence initial={false}>
+                          {isMartExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: 'easeInOut' }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-6 pb-6 pt-2 border-t border-gray-50 dark:border-white/5">
+                                <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-4 leading-relaxed">
+                                  Partner with OZO and bring your store online. Reach thousands of customers in your area.
+                                </p>
+                                <Link to="/mart" className="inline-flex items-center gap-2 text-indigo-500 font-bold text-sm bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
+                                  Apply Now <ChevronRight size={16} />
+                                </Link>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                    )}
                   </>
                 )}
               </div>
@@ -617,7 +712,7 @@ const Profile = () => {
               </button>
 
               <h3 className="text-2xl font-black mb-2 flex items-center gap-3">
-                <span className="w-1.5 h-6 bg-ozo-red rounded-full" />
+                <span className={`w-1.5 h-6 ${isServices ? 'bg-sky-500' : 'bg-ozo-red'} rounded-full`} />
                 Customize Avatar
               </h3>
               <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-6">

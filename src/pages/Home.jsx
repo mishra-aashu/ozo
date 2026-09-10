@@ -54,6 +54,8 @@ import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import useOzoQuery from '../hooks/useOzoQuery'
 import ImageUpload from '../components/ImageUpload'
 import SEO from '../components/SEO'
+import { useServiceModeStore } from '../stores/serviceModeStore'
+import ServicesHome from './services/ServicesHome'
 
 
 // Import Swiper styles
@@ -325,6 +327,12 @@ const applyCityOverrides = (products, citySlug) => {
 };
 
 const Home = () => {
+  const currentMode = useServiceModeStore(state => state.currentMode)
+
+  if (currentMode === 'services') {
+    return <ServicesHome />
+  }
+
   const [shuffleSeed] = useState(() => PAGE_LOAD_SHUFFLE_SEED)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const [activeFestivals, setActiveFestivals] = useState([])
