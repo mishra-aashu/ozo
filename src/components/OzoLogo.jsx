@@ -7,6 +7,7 @@ import React from 'react';
 export default function OzoLogo({
   mode = 'both', // 'both' | 'logo' | 'text'
   size = 'md',   // 'sm' | 'md' | 'lg' | 'xl' | 'splash'
+  verticalMode = 'mart', // 'mart' | 'services'
   admin = false, // renders 'Admin' suffix next to mart
   subText = '',  // optional subtitle text
   subTextClassName = '',
@@ -55,12 +56,21 @@ export default function OzoLogo({
     <div className={`flex flex-col ${centered ? 'items-center' : 'items-start'} leading-none`}>
       <span className={`${selectedTextSize} font-display font-black tracking-tighter notranslate flex items-baseline gap-0.5 ${textClassName}`} translate="no">
         <span className="text-gradient">OZO</span>
-        <span 
-          style={{ fontFamily: "'Dancing Script', cursive" }} 
-          className="text-amber-600 dark:text-yellow-400 font-bold text-[0.95em] tracking-wide normal-case translate-y-[-1px] select-none"
-        >
-          mart
-        </span>
+        {verticalMode === 'services' ? (
+          <span 
+            style={{ fontFamily: "'Dancing Script', cursive" }} 
+            className="text-sky-500 dark:text-sky-400 font-bold text-[0.95em] tracking-wide normal-case translate-y-[-1px] select-none"
+          >
+            services
+          </span>
+        ) : (
+          <span 
+            style={{ fontFamily: "'Dancing Script', cursive" }} 
+            className="text-amber-600 dark:text-yellow-400 font-bold text-[0.95em] tracking-wide normal-case translate-y-[-1px] select-none"
+          >
+            mart
+          </span>
+        )}
         {admin && (
           <span className="text-gray-500 dark:text-gray-400 font-semibold text-[0.75em] tracking-normal ml-1">
             Admin

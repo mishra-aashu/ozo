@@ -24,18 +24,32 @@ import { useLocationStore, checkPincodeServiceable, checkDeliveryZoneStatus } fr
 import { useCartStore } from '../stores/cartStore'
 import { useProductPagination } from '../hooks/useProductPagination'
 import ProductCard from '../components/ProductCard'
-import ProductSkeleton from '../components/ProductSkeleton'
-import { resolveCategoryIcon, getGradient } from '../components/CategoryChip'
 import { useOzoQuery } from '../hooks/useOzoQuery'
 import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import Breadcrumb from '../components/Breadcrumb'
+import { useServiceModeStore } from '../stores/serviceModeStore'
+import { Wrench, Zap, Snowflake, Hammer, Paintbrush, Bug, Sparkles as ServiceSparkles } from 'lucide-react'
+
+const SERVICE_CATEGORIES_FOR_SEARCH = [
+  { id: 'plumbing', name: 'Plumbing', slug: 'plumbing', icon: Wrench, color: 'from-blue-500/20 to-cyan-500/20 text-sky-500' },
+  { id: 'electrician', name: 'Electrician', slug: 'electrician', icon: Zap, color: 'from-amber-500/20 to-yellow-500/20 text-amber-500' },
+  { id: 'ac-appliance', name: 'AC & Appliance', slug: 'ac-appliance', icon: Snowflake, color: 'from-sky-500/20 to-blue-500/20 text-sky-400' },
+  { id: 'carpentry', name: 'Carpentry', slug: 'carpentry', icon: Hammer, color: 'from-amber-700/20 to-orange-700/20 text-orange-500' },
+  { id: 'home-cleaning', name: 'Deep Cleaning', slug: 'home-cleaning', icon: ServiceSparkles, color: 'from-emerald-500/20 to-teal-500/20 text-emerald-500' },
+  { id: 'painting', name: 'Painting', slug: 'painting', icon: Paintbrush, color: 'from-purple-500/20 to-pink-500/20 text-purple-400' },
+  { id: 'pest-control', name: 'Pest Control', slug: 'pest-control', icon: Bug, color: 'from-rose-500/20 to-red-500/20 text-rose-500' },
+]
 
 const getSearchHistory = () => {
   try {
-    const history = localStorage.getItem('ozo_search_history')
+    const isServices = useServiceModeStore.getState().currentMode === 'services'
+    const key = isServices ? 'ozo_service_search_history' : 'ozo_search_history'
+    const history = localStorage.getItem(key)
     if (history === null) {
-      const defaults = ['Milk', 'Chips', 'Snacks', 'Cosmetics', 'Dairy product']
-      localStorage.setItem('ozo_search_history', JSON.stringify(defaults))
+      const defaults = isServices
+        ? ['Plumber', 'Electrician', 'AC Repair', 'Carpentry', 'Home Cleaning']
+        : ['Milk', 'Chips', 'Snacks', 'Cosmetics', 'Dairy product']
+      localStorage.setItem(key, JSON.stringify(defaults))
       return defaults
     }
     return JSON.parse(history)
@@ -429,7 +443,12 @@ export default function SearchedPage() {
     });
   }, [products]);
 
-  const trendingSearches = ['Mango', 'Milk', 'Organic Vegetables', 'Cooking Oil', 'Bread', 'Snacks']
+  const currentMode = useServiceModeStore(state => state.currentMode)
+  const isServices = currentMode === 'services'
+
+  const trendingSearches = isServices
+    ? ['Plumbing Leak', 'Switchboard Repair', 'AC Foam Service', 'Door Lock Fix', 'Bathroom Deep Clean', 'Wall Touchup']
+    : ['Mango', 'Milk', 'Organic Vegetables', 'Cooking Oil', 'Bread', 'Snacks']
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#0a0a0a] pb-24 transition-colors duration-300">
@@ -491,7 +510,7 @@ export default function SearchedPage() {
                 type="text" 
                 value={searchTerm}
                 onChange={handleSearchChange}
-                placeholder="Search for mango, milk, bread, snacks..."
+                placeholder={isServices ? "Search for plumber, electrician, AC repair..." : "Search for mango, milk, bread, snacks..."}
                 className="w-full pl-11 pr-20 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 rounded-2xl focus:outline-none focus:ring-2 focus:ring-ozo-red/20 focus:border-ozo-red transition-all font-semibold text-sm placeholder:text-gray-400 text-gray-900 dark:text-white"
               />
               <div className="absolute right-3.5 top-1/2 -translate-y-1/2 flex items-center gap-2">
@@ -597,49 +616,70 @@ export default function SearchedPage() {
                 {/* Browse Categories */}
                 <div>
                   <h3 className="text-xs font-black uppercase tracking-widest text-ozo-gray dark:text-gray-500 mb-6 flex items-center gap-2">
-                    Browse Categories
+                    {isServices ? 'Browse Doorstep Services' : 'Browse Categories'}
                   </h3>
-                  <OzoLoadingGuard
-                    isLoading={isCategoriesLoading}
-                    isError={isCategoriesError}
-                    isEmpty={!isCategoriesLoading && (categoriesData || []).length === 0}
-                    onRetry={refetch}
-                    skeleton={
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {[...Array(6)].map((_, i) => (
-                          <div key={i} className="h-40 bg-white dark:bg-white/5 rounded-[2rem] border border-gray-100 dark:border-white/10 animate-pulse" />
-                        ))}
-                      </div>
-                    }
-                  >
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                      {(categoriesData || []).slice(0, 6).map((cat) => {
-                        const isEmoji = cat.icon && cat.icon.codePointAt(0) > 127
-                        const IconComponent = isEmoji ? null : (resolveCategoryIcon(cat) || ShoppingBag)
-                        const gradientClasses = getGradient(cat.slug, cat.name)
-                        const gradientSplit = gradientClasses.split(' ')
-                        const fromTo = gradientSplit.slice(0, 2).join(' ')
-                        const textColor = gradientSplit[2] || 'text-gray-600'
 
+                  {isServices ? (
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                      {SERVICE_CATEGORIES_FOR_SEARCH.map((cat) => {
+                        const IconComp = cat.icon
                         return (
                           <Link 
                             key={cat.id} 
-                            to={`/category/${cat.slug}`}
-                            className="p-6 bg-white dark:bg-[#111] rounded-[2rem] border border-gray-100 dark:border-white/5 hover:border-ozo-red hover:shadow-xl transition-all group flex flex-col items-center text-center gap-4"
+                            to={`/services/category/${cat.slug}`}
+                            className="p-6 bg-white dark:bg-[#111] rounded-[2rem] border border-gray-100 dark:border-white/5 hover:border-sky-500 hover:shadow-xl transition-all group flex flex-col items-center text-center gap-4"
                           >
-                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform bg-gradient-to-br ${fromTo}`}>
-                              {isEmoji ? (
-                                <span className="text-2xl">{cat.icon}</span>
-                              ) : (
-                                <IconComponent size={28} className={textColor} strokeWidth={2} />
-                              )}
+                            <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform bg-gradient-to-br ${cat.color}`}>
+                              <IconComp size={28} />
                             </div>
                             <span className="font-bold text-gray-900 dark:text-white">{cat.name}</span>
                           </Link>
                         )
                       })}
                     </div>
-                  </OzoLoadingGuard>
+                  ) : (
+                    <OzoLoadingGuard
+                      isLoading={isCategoriesLoading}
+                      isError={isCategoriesError}
+                      isEmpty={!isCategoriesLoading && (categoriesData || []).length === 0}
+                      onRetry={refetch}
+                      skeleton={
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                          {[...Array(6)].map((_, i) => (
+                            <div key={i} className="h-40 bg-white dark:bg-white/5 rounded-[2rem] border border-gray-100 dark:border-white/10 animate-pulse" />
+                          ))}
+                        </div>
+                      }
+                    >
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {(categoriesData || []).slice(0, 6).map((cat) => {
+                          const isEmoji = cat.icon && cat.icon.codePointAt(0) > 127
+                          const IconComponent = isEmoji ? null : (resolveCategoryIcon(cat) || ShoppingBag)
+                          const gradientClasses = getGradient(cat.slug, cat.name)
+                          const gradientSplit = gradientClasses.split(' ')
+                          const fromTo = gradientSplit.slice(0, 2).join(' ')
+                          const textColor = gradientSplit[2] || 'text-gray-600'
+
+                          return (
+                            <Link 
+                              key={cat.id} 
+                              to={`/category/${cat.slug}`}
+                              className="p-6 bg-white dark:bg-[#111] rounded-[2rem] border border-gray-100 dark:border-white/5 hover:border-ozo-red hover:shadow-xl transition-all group flex flex-col items-center text-center gap-4"
+                            >
+                              <div className={`w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform bg-gradient-to-br ${fromTo}`}>
+                                {isEmoji ? (
+                                  <span className="text-2xl">{cat.icon}</span>
+                                ) : (
+                                  <IconComponent size={28} className={textColor} strokeWidth={2} />
+                                )}
+                              </div>
+                              <span className="font-bold text-gray-900 dark:text-white">{cat.name}</span>
+                            </Link>
+                          )
+                        })}
+                      </div>
+                    </OzoLoadingGuard>
+                  )}
                 </div>
               </motion.div>
             ) : (
