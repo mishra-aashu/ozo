@@ -56,7 +56,7 @@ export default function ServiceCategory() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#121212] py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
+      <div className="container-custom mx-auto">
         <button
           onClick={() => navigate('/services')}
           className="flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white mb-6 transition-colors"

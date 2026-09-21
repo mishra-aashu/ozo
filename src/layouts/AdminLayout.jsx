@@ -33,7 +33,8 @@ import {
   Coins,
   Store,
   Smartphone,
-  AlertOctagon
+  AlertOctagon,
+  Wrench
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -84,6 +85,13 @@ const AdminLayout = () => {
       path: '/admin/categories',
       color: 'text-green-600 dark:text-green-400',
       bgColor: 'bg-green-100 dark:bg-green-950/30',
+    },
+    {
+      icon: Wrench,
+      label: 'Services Manager',
+      path: '/admin/services',
+      color: 'text-sky-500 dark:text-sky-400',
+      bgColor: 'bg-sky-100 dark:bg-sky-950/30',
     },
     {
       icon: MapPin,

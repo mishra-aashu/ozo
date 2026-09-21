@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Wrench, Zap, Snowflake, Hammer, Sparkles, Paintbrush, Bug, Search, ArrowRight, ShieldCheck } from 'lucide-react'
+import CategoryIcon from '../../utils/serviceIcons'
 
 const SERVICE_CATEGORIES_LIST = [
   {
@@ -92,19 +93,19 @@ export default function ServiceCategories() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#121212] py-8 px-4 sm:px-6 lg:px-8 pb-24">
-      <div className="max-w-5xl mx-auto">
+      <div className="container-custom mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-black rounded-3xl p-6 sm:p-8 text-white shadow-xl mb-8 relative overflow-hidden text-left">
+        <div className="bg-gradient-to-r from-gray-900 via-gray-800 to-black rounded-3xl p-6 sm:p-8 lg:p-10 text-white shadow-xl mb-8 relative overflow-hidden text-left">
           <span className="bg-sky-500/20 text-sky-300 border border-sky-500/30 text-xs font-black uppercase px-3 py-1 rounded-full tracking-wider">
             OZO Doorstep Catalog
           </span>
-          <h1 className="text-2xl sm:text-4xl font-black mt-3">All Service Categories</h1>
-          <p className="text-xs sm:text-sm text-gray-300 mt-1">
+          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-black mt-3">All Service Categories</h1>
+          <p className="text-xs sm:text-sm lg:text-base text-gray-300 mt-1">
             Choose a service category to view certified technicians and instant pricing
           </p>
 
           {/* Search bar */}
-          <div className="mt-6 relative max-w-lg">
+          <div className="mt-6 relative max-w-lg lg:max-w-xl">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
             <input
               type="text"
@@ -117,7 +118,7 @@ export default function ServiceCategories() {
         </div>
 
         {/* Categories Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
           {filteredCategories.map((cat) => {
             const IconComp = cat.icon
             return (
@@ -128,8 +129,8 @@ export default function ServiceCategories() {
               >
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${cat.color} text-white flex items-center justify-center shadow-md group-hover:scale-110 transition-transform`}>
-                      <IconComp size={24} />
+                    <div className="w-14 h-14 rounded-2xl overflow-hidden shadow-md group-hover:scale-110 transition-transform relative bg-gray-900 border border-gray-200 dark:border-white/10 flex items-center justify-center p-0.5 shrink-0">
+                      <CategoryIcon icon={cat.icon} slug={cat.slug} title={cat.title} className="w-full h-full object-cover rounded-2xl" />
                     </div>
 
                     {cat.badge && (

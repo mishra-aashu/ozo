@@ -19,7 +19,8 @@ import {
   User,
   Users,
   MoreVertical,
-  Phone
+  Phone,
+  Store
 } from 'lucide-react'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findMatchingActiveCity, findCityByPincode } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
@@ -105,6 +106,14 @@ const SelectLocation = () => {
     }
   })
 
+  const safeNavigateBack = () => {
+    if (window.history.length > 2 && window.history.state && window.history.state.idx > 0) {
+      navigate(-1)
+    } else {
+      navigate('/', { replace: true })
+    }
+  }
+
   useEffect(() => {
     const controller = new AbortController()
     fetchUserAddresses({ signal: controller.signal })
@@ -187,7 +196,7 @@ const SelectLocation = () => {
         postcode: addr.pincode
       }
     })
-    navigate(-1)
+    safeNavigateBack()
   }
 
   const handleOpenAddForm = () => {
@@ -355,7 +364,7 @@ const SelectLocation = () => {
       })
       setShowForm(false)
       setShowMapPicker(false)
-      navigate(-1)
+      safeNavigateBack()
     }
   }
 
@@ -828,7 +837,7 @@ const SelectLocation = () => {
               setShowForm(false)
               setShowMapPicker(false)
             } else {
-              navigate(-1)
+              safeNavigateBack()
             }
           }}
           className="p-3 rounded-2xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-700 dark:text-white transition-all active:scale-95 flex items-center justify-center"
@@ -998,51 +1007,113 @@ const SelectLocation = () => {
               {/* Current Location Button */}
               <button 
                 onClick={async () => {
-                  const success = await detectLocation(true, true)
-                  if (success) {
+                  try {
+                    const success = await detectLocation(true, true)
                     const currentAddress = useLocationStore.getState().address
                     const currentCoords = useLocationStore.getState().coordinates
                     if (currentCoords) {
                       setAddress(currentAddress)
                       setCoordinates({ lat: currentCoords.lat, lng: currentCoords.lng })
                       toast.success(`Location set to ${useLocationStore.getState().nearestCity?.name || 'your area'} successfully`)
+                      safeNavigateBack()
+                    } else if (success) {
+                      safeNavigateBack()
+                    } else {
+                      toast.error('Could not detect live location. Please select manually or allow location access.')
                     }
-                    navigate(-1)
+                  } catch (err) {
+                    console.error('Error detecting location:', err)
+                    toast.error('Error detecting location.')
                   }
                 }}
                 disabled={isDetecting}
-                className="w-full flex items-center gap-5 p-5 rounded-[2rem] bg-red-50 dark:bg-ozo-red/10 text-ozo-red hover:bg-red-100 dark:hover:bg-ozo-red/20 transition-all group border border-ozo-red/10 shadow-sm animate-fade-in"
+                className="w-full flex items-center gap-3.5 sm:gap-5 p-3.5 sm:p-5 rounded-[2rem] bg-red-50 dark:bg-ozo-red/10 text-ozo-red hover:bg-red-100 dark:hover:bg-ozo-red/20 transition-all group border border-ozo-red/10 shadow-sm animate-fade-in"
               >
-                <div className={`w-12 h-12 rounded-2xl bg-white dark:bg-[#1a1a1a] shadow-sm flex items-center justify-center ${isDetecting ? 'animate-pulse' : 'group-hover:scale-110 group-hover:rotate-12 transition-all'}`}>
-                  <Navigation size={22} className={isDetecting ? 'animate-spin' : ''} />
+                <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white dark:bg-[#1a1a1a] shadow-sm flex items-center justify-center shrink-0 ${isDetecting ? 'animate-pulse' : 'group-hover:scale-110 group-hover:rotate-12 transition-all'}`}>
+                  <Navigation size={20} className={isDetecting ? 'animate-spin' : ''} />
                 </div>
-                <div className="text-left flex-1">
-                  <p className="font-black text-sm">Use Current Location</p>
-                  <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">
+                <div className="text-left flex-1 min-w-0">
+                  <p className="font-extrabold text-xs sm:text-sm truncate">Use Current Location</p>
+                  <p className="text-[10px] uppercase tracking-wider font-bold opacity-60 truncate">
                     {isDetecting ? 'Detecting Location...' : 'Using GPS'}
                   </p>
                 </div>
-                <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform" />
+                <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" />
               </button>
 
               {/* Manual Selection */}
               <button 
                 onClick={handleOpenAddForm}
-                className="w-full flex items-center gap-5 p-6 rounded-[2.5rem] border-2 border-dashed border-gray-200 dark:border-white/10 text-ozo-gray dark:text-gray-400 hover:border-ozo-red/50 hover:text-ozo-red transition-all group bg-white dark:bg-white/5 shadow-sm"
+                className="w-full flex items-center gap-3.5 sm:gap-5 p-3.5 sm:p-6 rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-gray-200 dark:border-white/10 text-ozo-gray dark:text-gray-400 hover:border-ozo-red/50 hover:text-ozo-red transition-all group bg-white dark:bg-white/5 shadow-sm"
               >
-                <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] group-hover:bg-red-50 dark:group-hover:bg-ozo-red/10 flex items-center justify-center transition-all shadow-sm">
-                  <MapIcon size={24} />
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-gray-50 dark:bg-[#1a1a1a] group-hover:bg-red-50 dark:group-hover:bg-ozo-red/10 flex items-center justify-center transition-all shadow-sm shrink-0">
+                  <MapIcon size={22} />
                 </div>
-                <div className="text-left">
-                  <span className="font-black text-sm block text-gray-900 dark:text-white">
+                <div className="text-left min-w-0 flex-1">
+                  <span className="font-extrabold text-xs sm:text-sm block text-gray-900 dark:text-white truncate">
                     {mapConfig?.hide_map ? 'Add Address Details' : 'Add / Locate on Map'}
                   </span>
-                  <span className="text-[10px] text-gray-500 font-semibold block">
+                  <span className="text-[10px] text-gray-500 font-semibold block truncate">
                     {mapConfig?.hide_map ? 'Enter flat, street, city and pincode' : 'Enter details & pin your precise spot'}
                   </span>
                 </div>
-                <ChevronRight className="ml-auto opacity-40 group-hover:translate-x-1 transition-all" />
+                <ChevronRight className="ml-auto opacity-40 group-hover:translate-x-1 transition-all shrink-0" />
               </button>
+
+              {/* Explore Active Stores */}
+              {useLocationStore.getState().activeCities && useLocationStore.getState().activeCities.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2 px-1 sm:px-2">
+                    <h3 className="text-[11px] sm:text-xs font-black text-ozo-gray dark:text-gray-500 uppercase tracking-wide whitespace-nowrap">Explore Active Stores</h3>
+                    <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                      Live Catalog
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {useLocationStore.getState().activeCities.map((city) => (
+                      <button
+                        key={city.id || city.slug}
+                        onClick={() => {
+                          const baseCityName = city.name ? city.name.split(',')[0].trim() : city.slug
+                          useLocationStore.setState({
+                            address: `${baseCityName}, ${city.state || 'Bihar'}`,
+                            coordinates: {
+                              lat: parseFloat(city.latitude || 24.7527),
+                              lng: parseFloat(city.longitude || 84.3740)
+                            },
+                            addressDetails: {
+                              road: '',
+                              suburb: '',
+                              city: baseCityName,
+                              state: city.state || 'Bihar',
+                              postcode: (city.allowed_pincodes && city.allowed_pincodes[0]) || ''
+                            },
+                            selectedCitySlug: city.slug,
+                            browsingCitySlug: city.slug,
+                            nearestCity: city,
+                            tracedThrough: 'active_city_browse'
+                          })
+                          toast.success(`Browsing ${baseCityName} Store Catalog!`)
+                          navigate(`/${city.slug}`)
+                        }}
+                        className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl text-left hover:scale-[1.02] transition-all group cursor-pointer"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+                          <Store size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
+                            {city.name}
+                          </p>
+                          <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold leading-none mt-0.5">
+                            Browse Live Store
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Database Matches Section */}
               {searchQuery && dbMatches.length > 0 && (

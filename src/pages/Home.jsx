@@ -536,6 +536,17 @@ const Home = () => {
             setSelectedCitySlug(matchedCity.slug)
           }
         } else {
+          const currentTraced = useLocationStore.getState().tracedThrough
+          const currentBrowsing = useLocationStore.getState().browsingCitySlug || useLocationStore.getState().selectedCitySlug
+          if (currentTraced === 'active_city_browse' && currentBrowsing) {
+            if (selectedCitySlug !== currentBrowsing) {
+              setSelectedCitySlug(currentBrowsing)
+            }
+            if (city !== currentBrowsing) {
+              navigate(`/${currentBrowsing}`, { replace: true })
+            }
+            return
+          }
           if (city) {
             navigate('/', { replace: true })
           }
@@ -1722,8 +1733,12 @@ const Home = () => {
 
   // If the user's location is initialized and set, but not mapped to a serviceable city, show Not Serviceable state on Home directly
   if (isLocationInitialized && address && !selectedCitySlug) {
+    const activeCities = useLocationStore.getState().activeCities || []
+    const primaryCity = activeCities[0]
+    const storeName = primaryCity?.name ? primaryCity.name.split(',')[0].trim() : 'Aurangabad'
+
     return (
-      <div className="min-h-[85vh] flex items-center justify-center px-3 sm:px-6 py-8 sm:py-12 relative overflow-hidden bg-white dark:bg-[#0a0a0a]">
+      <div className="min-h-[60vh] flex flex-col items-center justify-start pt-2 xs:pt-3 sm:pt-4 px-3 sm:px-6 pb-8 relative overflow-hidden bg-white dark:bg-[#0a0a0a]">
         <SEO 
           title="OZO Mart | Out of Service Zone"
           description="OZO Mart is currently not active in your area. We are expanding rapidly!"
@@ -1734,41 +1749,67 @@ const Home = () => {
           <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-rose-500/10 dark:bg-rose-500/15 blur-[100px] rounded-full animate-pulse-slow opacity-60" />
         </div>
 
-        <div className="relative z-10 w-full max-w-[460px] sm:max-w-lg bg-gray-55/95 dark:bg-zinc-900/90 border border-gray-150 dark:border-zinc-800 rounded-[2.2rem] p-5 xs:p-6 sm:p-8 shadow-premium backdrop-blur-md text-center">
+        <div className="relative z-10 w-full max-w-[460px] sm:max-w-lg bg-gray-55/95 dark:bg-zinc-900/90 border border-gray-150 dark:border-zinc-800 rounded-[2rem] p-4 xs:p-5 sm:p-6 shadow-premium backdrop-blur-md text-center">
           {/* Animated map pin icon */}
-          <div className="relative mx-auto mb-4 sm:mb-6 w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center">
+          <div className="relative mx-auto mb-3 sm:mb-4 w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
             <span className="absolute inline-flex h-full w-full rounded-full bg-ozo-red/20 animate-ping opacity-75" />
-            <div className="relative flex items-center justify-center w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-tr from-ozo-red to-rose-500 text-white rounded-full shadow-lg">
-              <MapPin size={24} className="sm:size-[32px] animate-bounce" />
+            <div className="relative flex items-center justify-center w-10 h-10 sm:w-14 sm:h-14 bg-gradient-to-tr from-ozo-red to-rose-500 text-white rounded-full shadow-lg">
+              <MapPin size={22} className="sm:size-[28px] animate-bounce" />
             </div>
           </div>
 
-          <h1 className="text-xl xs:text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white mb-1.5 leading-tight">
+          <h1 className="text-lg xs:text-xl sm:text-2xl font-extrabold text-zinc-900 dark:text-white mb-1 leading-tight">
             We're Not in Your Area Yet
           </h1>
-          <p className="text-xs sm:text-sm font-semibold text-ozo-red mb-5 sm:mb-6">
-            Currently serving Aurangabad, Bihar and nearby zones.
+          <p className="text-xs font-semibold text-ozo-red mb-4">
+            Currently serving {storeName}, Bihar and nearby zones.
           </p>
 
-          <div className="bg-white/60 dark:bg-zinc-800/40 rounded-2xl p-4 sm:p-5 mb-6 sm:mb-8 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed text-left border border-gray-150 dark:border-zinc-700/40">
-            <p className="mb-2 font-semibold text-zinc-800 dark:text-zinc-200">
+          <div className="bg-white/60 dark:bg-zinc-800/40 rounded-2xl p-3.5 sm:p-4 mb-4 text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed text-center border border-gray-150 dark:border-zinc-700/40">
+            <p className="mb-1 font-semibold text-zinc-800 dark:text-zinc-200 text-center">
               Detected Location:
             </p>
-            <p className="font-bold text-zinc-950 dark:text-white break-words bg-gray-100 dark:bg-zinc-800/60 p-3 sm:p-3.5 rounded-xl border border-gray-200 dark:border-zinc-700">
+            <p className="font-bold text-zinc-950 dark:text-white break-words bg-gray-100 dark:bg-zinc-800/60 p-2.5 sm:p-3 rounded-xl border border-gray-200 dark:border-zinc-700 text-center">
               {address}
             </p>
-            <p className="mt-3.5 text-zinc-550 dark:text-zinc-400">
-              If OZO fetched the wrong coordinates, please verify your serviceable 6-digit pincode or change your location manually.
+            <p className="mt-2 text-zinc-550 dark:text-zinc-400 text-[11px] text-center">
+              If OZO fetched the wrong coordinates, please verify your pincode or browse our active store catalog below.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-2.5 sm:gap-3 justify-center">
+          {/* 1-Click Browse Store Button */}
+          <button
+            onClick={() => {
+              const slug = primaryCity?.slug || 'aurangabad'
+              const cityName = storeName || 'Aurangabad'
+              useLocationStore.setState({
+                address: `${cityName}, ${primaryCity?.state || 'Bihar'}`,
+                coordinates: {
+                  lat: parseFloat(primaryCity?.latitude || 24.7527),
+                  lng: parseFloat(primaryCity?.longitude || 84.3740)
+                },
+                selectedCitySlug: slug,
+                browsingCitySlug: slug,
+                deliveryCitySlug: slug,
+                nearestCity: primaryCity || null,
+                tracedThrough: 'active_city_browse'
+              })
+              navigate(`/${slug}`)
+              toast.success(`Browsing ${cityName} Store Catalog!`)
+            }}
+            className="w-full py-3 px-4 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-700 text-white font-black text-xs sm:text-sm rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2 mb-2.5 cursor-pointer whitespace-nowrap"
+          >
+            <Store size={18} className="shrink-0" />
+            <span>Browse {storeName} Store</span>
+          </button>
+
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             <button
               onClick={() => {
                 const { showServiceabilityModal } = useLocationStore.getState()
                 showServiceabilityModal('Aurangabad, Bihar', '')
               }}
-              className="flex-1 py-3 sm:py-3.5 px-5 sm:px-6 bg-gradient-to-r from-ozo-red to-rose-600 hover:from-rose-600 hover:to-ozo-red text-white font-bold text-sm rounded-xl transition-all shadow-md active:scale-95"
+              className="flex-1 py-2.5 px-4 bg-gradient-to-r from-ozo-red to-rose-600 hover:from-rose-600 hover:to-ozo-red text-white font-bold text-xs rounded-xl transition-all shadow-md active:scale-95"
             >
               Verify Pincode
             </button>
@@ -1776,7 +1817,7 @@ const Home = () => {
               onClick={() => {
                 navigate('/select-location')
               }}
-              className="flex-1 py-3 sm:py-3.5 px-5 sm:px-6 bg-gray-150 hover:bg-gray-250 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-white font-bold text-sm rounded-xl transition-all active:scale-95"
+              className="flex-1 py-2.5 px-4 bg-gray-150 hover:bg-gray-250 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-white font-bold text-xs rounded-xl transition-all active:scale-95"
             >
               Change Location
             </button>

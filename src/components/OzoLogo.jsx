@@ -18,7 +18,7 @@ export default function OzoLogo({
 }) {
   // Logo image dimensions mapping
   const imgSizes = {
-    sm: 'w-[44px] h-[44px] xs:w-[52px] xs:h-[52px] lg:w-[64px] lg:h-[64px]',
+    sm: 'w-[40px] h-[40px] xs:w-[46px] xs:h-[46px] lg:w-[50px] lg:h-[50px]',
     md: 'w-[56px] h-[56px]',
     lg: 'w-[72px] h-[72px]',
     xl: 'w-[110px] h-[110px]',
@@ -27,7 +27,7 @@ export default function OzoLogo({
 
   // Brand title font size mapping
   const textSizes = {
-    sm: 'text-lg xs:text-xl lg:text-3xl',
+    sm: 'text-lg xs:text-xl lg:text-2xl',
     md: 'text-xl md:text-2xl',
     lg: 'text-2xl',
     xl: 'text-3xl',

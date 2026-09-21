@@ -14,22 +14,28 @@ import {
   ChevronRight,
   User,
   Star,
-  RefreshCw
+  RefreshCw,
+  MessageSquare,
+  Camera
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
+import { useServicesStore } from '../../stores/servicesStore'
 import toast from 'react-hot-toast'
 import SEO from '../../components/SEO'
 
 export default function MyBookings() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { inquiries, fetchInquiries } = useServicesStore()
   const [bookings, setBookings] = useState([])
   const [loading, setLoading] = useState(true)
-  const [filter, setFilter] = useState('all') // 'all' | 'active' | 'completed' | 'cancelled'
+  const [filter, setFilter] = useState('all') // 'all' | 'inquiries' | 'active' | 'completed' | 'cancelled'
   const [cancellingId, setCancellingId] = useState(null)
 
   const fetchBookings = async () => {
+    if (fetchInquiries) fetchInquiries()
+
     if (!user) {
       setLoading(false)
       return
@@ -107,7 +113,7 @@ export default function MyBookings() {
     <div className="min-h-screen bg-gray-50 dark:bg-[#0f0f0f] py-8 px-4 sm:px-6 lg:px-8 pb-24 transition-colors">
       <SEO title="My Service Bookings - OZO Services" description="Track doorstep visit status, technician details and service booking history." />
 
-      <div className="max-w-3xl mx-auto text-left">
+      <div className="container-custom max-w-5xl mx-auto text-left">
         {/* Back Button */}
         <button
           onClick={() => navigate('/services')}
@@ -141,7 +147,8 @@ export default function MyBookings() {
         {/* Filter Tabs */}
         <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2 mb-6">
           {[
-            { id: 'all', label: 'All Bookings' },
+            { id: 'all', label: `All Bookings (${bookings.length})` },
+            { id: 'inquiries', label: `Custom Inquiries (${inquiries.length})` },
             { id: 'active', label: 'Active / Scheduled' },
             { id: 'completed', label: 'Completed' },
             { id: 'cancelled', label: 'Cancelled' },
@@ -201,11 +208,76 @@ export default function MyBookings() {
               Explore Services & Book Visit
             </button>
           </div>
+        ) : filter === 'inquiries' ? (
+          <div className="space-y-4">
+            {inquiries.map((inq) => (
+              <div
+                key={inq.id}
+                className="bg-white dark:bg-[#1a1a1a] rounded-3xl p-5 sm:p-6 border border-gray-200 dark:border-white/10 shadow-sm text-left"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 dark:border-white/5 pb-4 mb-4">
+                  <div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-sky-500 bg-sky-500/10 px-2.5 py-0.5 rounded-full">
+                      #{inq.inquiry_number || inq.id}
+                    </span>
+                    <h3 className="text-base font-black text-gray-900 dark:text-white mt-1.5">
+                      {inq.category_name || 'General Inquiry'}
+                    </h3>
+                  </div>
+
+                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-extrabold rounded-full border border-emerald-500/20">
+                    <Clock size={12} /> Status: {inq.status || 'Pending Visit'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-gray-600 dark:text-gray-300 font-medium mb-3">
+                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                    <MapPin size={16} className="text-red-500 flex-shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase">Doorstep Location ({inq.city})</p>
+                      <p className="font-bold text-gray-900 dark:text-white mt-0.5">{inq.address || inq.city}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
+                    <ShieldCheck size={16} className="text-sky-500 flex-shrink-0" />
+                    <div>
+                      <p className="text-[10px] font-bold text-gray-400 uppercase">Doorstep Inspection Fee</p>
+                      <p className="font-extrabold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                        ₹{inq.visiting_fee || 99} (Waived into final bill)
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/5 text-xs">
+                  <p className="text-gray-800 dark:text-gray-200 font-medium leading-relaxed">
+                    <strong className="text-sky-500 font-bold block mb-0.5">Submitted Issue Description:</strong>
+                    "{inq.issue_description}"
+                  </p>
+                </div>
+
+                {inq.image_url && (
+                  <div className="mt-3 flex items-center gap-3 pt-2 border-t border-gray-100 dark:border-white/5">
+                    <img src={inq.image_url} alt="Issue Attachment" className="w-14 h-14 rounded-xl object-cover border border-sky-500/30" />
+                    <span className="text-xs font-bold text-sky-500 flex items-center gap-1">
+                      <Camera size={14} /> Issue Photo Uploaded
+                    </span>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {inquiries.length === 0 && (
+              <div className="p-12 text-center text-gray-400 text-xs font-bold bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-200 dark:border-white/10">
+                No custom inquiries posted yet.
+              </div>
+            )}
+          </div>
         ) : (
           <div className="space-y-4">
             {filteredBookings.map((b) => {
-              const isCanCancel = ['pending', 'scheduled', 'assigned'].includes((b.status || '').toLowerCase())
-
+              const isCanCancel = ['pending', 'assigned'].includes(b.status)
               return (
                 <div
                   key={b.id}
