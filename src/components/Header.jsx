@@ -96,6 +96,15 @@ const trendingSearches = [
   { name: 'Chocolate Cookies', icon: '🍪' }
 ]
 
+const trendingServicesSearches = [
+  { name: 'AC Foam Jet Service', icon: '❄️' },
+  { name: 'Plumbing Leak Repair', icon: '🚰' },
+  { name: 'Electrician & Switchboard', icon: '⚡' },
+  { name: 'House Deep Cleaning', icon: '✨' },
+  { name: 'Carpenter & Door Locks', icon: '🔨' },
+  { name: 'Pest Control Service', icon: '🐛' }
+]
+
 const Header = () => {
   const currentMode = useServiceModeStore(state => state.currentMode)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -119,6 +128,7 @@ const Header = () => {
 
   const location = useLocation()
   const navigate = useNavigate()
+  const isServicesMode = currentMode === 'services' || location.pathname.startsWith('/services')
 
   // Sync search query in header with URL parameter 'q' when on the search page
   useEffect(() => {
@@ -391,25 +401,28 @@ const Header = () => {
   const handleTrendingClick = useCallback((term) => {
     setSearchQuery(term)
     saveSearchQuery(term)
-    useProductStore.getState().searchProducts(term)
-    setShowSearch(true)
-  }, [])
+    setShowSearch(false)
+    const modeParam = isServicesMode ? '&mode=services' : ''
+    navigate(`/search?q=${encodeURIComponent(term)}${modeParam}`)
+  }, [navigate, isServicesMode])
 
   const handleHistoryClick = useCallback((term) => {
     setSearchQuery(term)
     saveSearchQuery(term)
-    useProductStore.getState().searchProducts(term)
-    setShowSearch(true)
-  }, [])
+    setShowSearch(false)
+    const modeParam = isServicesMode ? '&mode=services' : ''
+    navigate(`/search?q=${encodeURIComponent(term)}${modeParam}`)
+  }, [navigate, isServicesMode])
 
   const handleSearchSubmit = useCallback((e) => {
     e.preventDefault()
     if (searchQuery.trim()) {
       saveSearchQuery(searchQuery.trim())
       setShowSearch(false)
-      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`)
+      const modeParam = isServicesMode ? '&mode=services' : ''
+      navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}${modeParam}`)
     }
-  }, [searchQuery, navigate])
+  }, [searchQuery, navigate, isServicesMode])
 
   return (
     <>
@@ -473,7 +486,14 @@ const Header = () => {
             
              {/* Logo + Location Column/Row */}
             <div className="flex items-center gap-1.5 md:gap-2.5 min-w-0 md:flex-shrink-0">
-              <VerticalDropdownHeader />
+              <div className="hidden lg:block">
+                <VerticalDropdownHeader />
+              </div>
+              <div className="lg:hidden">
+                <Link to="/" className="flex items-center gap-2">
+                  <OzoLogo size="sm" verticalMode={isServicesMode ? 'services' : 'mart'} />
+                </Link>
+              </div>
 
               {/* Location Selector (Desktop Only) */}
               <button 
@@ -508,18 +528,14 @@ const Header = () => {
                         Serviceable
                       </span>
                     ) : !isLocationServiceable ? (
-                      <span className="text-[6px] xs:text-[8px] lg:text-[9px] font-black text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
-                        Not Serviceable
+                      <span className="text-[6px] xs:text-[8px] lg:text-[9px] font-black text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
+                        Outside Zone
                       </span>
                     ) : null}
                   </div>
-                  <p className={`text-[9px] xs:text-xs lg:text-sm font-black flex items-center gap-0.5 xs:gap-1 truncate ${
-                    isLocationServiceable ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'
-                  }`}>
+                  <p className="text-[9px] xs:text-xs lg:text-sm font-black flex items-center gap-0.5 xs:gap-1 truncate text-gray-900 dark:text-white">
                     <span className="truncate">{address || 'Select Location'}</span>
-                    <ChevronDown className={`w-2.5 h-2.5 xs:w-3.5 xs:h-3.5 lg:w-3.5 lg:h-3.5 flex-shrink-0 ${
-                      isLocationServiceable ? 'text-ozo-red' : 'text-red-600'
-                    }`} />
+                    <ChevronDown className="w-2.5 h-2.5 xs:w-3.5 xs:h-3.5 lg:w-3.5 lg:h-3.5 flex-shrink-0 text-ozo-red" />
                   </p>
                 </div>
               </button>
@@ -538,7 +554,7 @@ const Header = () => {
                 </button>
                 <input
                   type="text"
-                  placeholder="Search for 'fresh mango' or 'thekua'..."
+                  placeholder={isServicesMode ? "Search plumber, electrician, AC repair, cleaning..." : "Search for 'fresh mango' or 'thekua'..."}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSearch(true)}
@@ -629,10 +645,10 @@ const Header = () => {
                             {/* Trending Searches */}
                             <div>
                               <h3 className="text-xs font-black text-ozo-gray dark:text-gray-400 uppercase tracking-wider mb-3">
-                                🔥 Trending Searches
+                                🔥 {isServicesMode ? 'Popular Services' : 'Trending Searches'}
                               </h3>
                               <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
-                                {trendingSearches.map((item) => (
+                                {(isServicesMode ? trendingServicesSearches : trendingSearches).map((item) => (
                                   <button
                                     key={item.name}
                                     type="button"
@@ -927,14 +943,20 @@ const Header = () => {
             </div>
           </div>
 
-          {/* Location Selector (Mobile / Tablet - Second Row) */}
-          <div className="mt-2.5 lg:hidden">
+          {/* Toggle Switch & Location Selector (Mobile / Tablet - Second & Third Rows) */}
+          <div className="mt-2.5 lg:hidden space-y-2">
+            {/* Row 2: Mart vs Services Segmented Toggle Switch */}
+            <div className="w-full">
+              <VerticalDropdownHeader fullWidth showLogo={false} />
+            </div>
+
+            {/* Row 3: Delivery Location Selector */}
             <button 
               onClick={() => {
                 navigate('/select-location')
               }}
               aria-label="Select Delivery Location"
-              className={`w-full md:max-w-[280px] flex items-center gap-2.5 px-3.5 py-2.5 rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group ${
+              className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group ${
                 isLocationServiceable
                   ? 'bg-gray-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border-gray-100 dark:border-white/5 hover:border-ozo-red/20 dark:hover:border-ozo-red/20'
                   : 'bg-red-50/50 dark:bg-red-950/20 hover:bg-red-50 dark:hover:bg-red-950/30 border-red-200 dark:border-red-900/40 hover:border-red-300 dark:hover:border-red-800'
@@ -955,18 +977,14 @@ const Header = () => {
                       Serviceable
                     </span>
                   ) : !isLocationServiceable ? (
-                    <span className="text-[7px] font-black text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-900/30 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
-                      Not Serviceable
+                    <span className="text-[7px] font-black text-amber-700 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/40 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
+                      Outside Zone
                     </span>
                   ) : null}
                 </div>
-                <p className={`text-xs font-black flex items-center gap-1 truncate ${
-                  isLocationServiceable ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'
-                }`}>
+                <p className="text-xs font-black flex items-center gap-1 truncate text-gray-900 dark:text-white">
                   <span className="truncate">{address || 'Select Location'}</span>
-                  <ChevronDown className={`w-3.5 h-3.5 flex-shrink-0 ${
-                    isLocationServiceable ? 'text-ozo-red' : 'text-red-600'
-                  }`} />
+                  <ChevronDown className="w-3.5 h-3.5 flex-shrink-0 text-ozo-red" />
                 </p>
               </div>
             </button>
@@ -1024,14 +1042,17 @@ const Header = () => {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-center space-y-4 py-2">
-                      <p className="text-sm text-ozo-gray dark:text-gray-400 font-bold">Experience the 30-minute magic!</p>
+                    <div className="text-center space-y-3.5 py-1">
+                      <p className="text-xs sm:text-sm text-ozo-gray dark:text-gray-400 font-extrabold whitespace-nowrap truncate">
+                        Experience the 30-minute magic!
+                      </p>
                       <Link 
                         to="/auth" 
-                        className="btn btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2"
+                        className="btn btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-extrabold whitespace-nowrap"
                         onClick={() => setIsMenuOpen(false)}
                       >
-                        <User size={18} /> Login / Register
+                        <User size={18} className="shrink-0" />
+                        <span>Login / Register</span>
                       </Link>
                     </div>
                   )}

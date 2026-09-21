@@ -112,6 +112,7 @@ const ServicesHome = lazyWithRetry(() => import('./pages/services/ServicesHome')
 const ServiceCategories = lazyWithRetry(() => import('./pages/services/ServiceCategories'))
 const ServiceCategory = lazyWithRetry(() => import('./pages/services/ServiceCategory'))
 const ServiceBooking = lazyWithRetry(() => import('./pages/services/ServiceBooking'))
+const ServiceInquiry = lazyWithRetry(() => import('./pages/services/ServiceInquiry'))
 const MyBookings = lazyWithRetry(() => import('./pages/services/MyBookings'))
 
 
@@ -138,6 +139,7 @@ const AdminBlog = lazyWithRetry(() => import('./pages/admin/Blog'))
 const AdminPhoneCaptureSandbox = lazyWithRetry(() => import('./pages/admin/PhoneCaptureSandbox'))
 const AdminFestivals = lazyWithRetry(() => import('./pages/admin/Festivals'))
 const AdminErrorLogs = lazyWithRetry(() => import('./pages/admin/ErrorLogs'))
+const AdminServicesManage = lazyWithRetry(() => import('./pages/admin/ServicesManageAdmin'))
 
 
 // Lazy loaded Mart & Captain Dashboards
@@ -536,6 +538,7 @@ function App() {
             <Route path="services/categories" element={<ServiceCategories />} />
             <Route path="services/category/:slug" element={<ServiceCategory />} />
             <Route path="services/booking/:serviceId" element={<ServiceBooking />} />
+            <Route path="services/inquiry" element={<ServiceInquiry />} />
             <Route path="services/my-bookings" element={<MyBookings />} />
 
             {/* Auth Route */}
@@ -618,6 +621,7 @@ function App() {
             <Route path="phone-capture-sandbox" element={<AdminPhoneCaptureSandbox />} />
             <Route path="festivals" element={<AdminFestivals />} />
             <Route path="errors" element={<AdminErrorLogs />} />
+            <Route path="services" element={<AdminServicesManage />} />
           </Route>
 
           {/* Mart & Captain Standalone Portals */}

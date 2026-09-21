@@ -45,6 +45,27 @@
     touch-action: manipulation;
   }
 
+  /* Cross-browser Native Select & Option Dark Mode Styling */
+  select {
+    color-scheme: light;
+  }
+  select:focus {
+    outline: none !important;
+  }
+  .dark select {
+    color-scheme: dark;
+  }
+  select option,
+  select optgroup {
+    background-color: #ffffff;
+    color: #111827;
+  }
+  .dark select option,
+  .dark select optgroup {
+    background-color: #1c1c24;
+    color: #f3f4f6;
+  }
+
 
   /* Global Premium Scrollbar Styles */
   ::-webkit-scrollbar {

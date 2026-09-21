@@ -1,8 +1,12 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocationStore } from '../stores/locationStore';
-import { MapPin, AlertTriangle, X, Compass } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Compass, X, Store } from 'lucide-react';
 
 export default function BrowsingBanner() {
+  const navigate = useNavigate();
+  const [dismissed, setDismissed] = useState(false);
+
   const { 
     browsingCitySlug, 
     deliveryCitySlug, 
@@ -16,10 +20,11 @@ export default function BrowsingBanner() {
     selectedCitySlug
   } = useLocationStore();
 
-  const browsingCity = activeCities?.find(c => c.slug === browsingCitySlug);
+  if (dismissed) return null;
+
+  const browsingCity = activeCities?.find(c => c.slug === browsingCitySlug) || activeCities?.[0];
   const deliveryCity = activeCities?.find(c => c.slug === deliveryCitySlug);
 
-  // We calculate if the selected delivery location is serviceable using coordinates or selectedCitySlug
   const isLocationServiceable = React.useMemo(() => {
     if (!address) return true;
 
@@ -60,53 +65,55 @@ export default function BrowsingBanner() {
     return null;
   }
 
+  const shortAddress = address ? address.split(',')[0] : '';
+  const storeName = browsingCity?.name ? browsingCity.name.split(',')[0] : 'Aurangabad';
+
   if (showUnserviceableWarning) {
     return (
-      <div className="w-full bg-red-50 border-b border-red-200 text-red-900 text-xs md:text-sm px-4 py-2.5 flex items-center justify-between shadow-xs transition-all z-[100] relative">
-        <div className="flex items-center gap-2 flex-1">
-          <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 animate-pulse" />
-          <span>
-            Browsing <strong className="font-semibold">{browsingCity?.name || browsingCitySlug || 'Aurangabad'}</strong> store — Delivery to <span className="font-semibold text-red-700">{address}</span> is unavailable.
+      <div className="w-full bg-slate-900 text-white text-xs px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 shadow-xs transition-all z-[100] relative border-b border-white/10">
+        <div className="flex items-center gap-1.5 min-w-0 flex-1">
+          <Store className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+          <span className="text-[11px] sm:text-xs font-medium truncate">
+            Browsing <strong className="text-amber-400 font-extrabold">{storeName}</strong> catalog
+            <span className="opacity-80 hidden md:inline ml-1">(Delivery to {shortAddress} outside zone)</span>
           </span>
+        </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+          <button
+            onClick={() => navigate('/select-location')}
+            className="text-[10px] font-bold uppercase tracking-wide bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md transition whitespace-nowrap"
+          >
+            <span className="sm:hidden">Change</span>
+            <span className="hidden sm:inline">Change Location</span>
+          </button>
+          <button
+            onClick={() => setDismissed(true)}
+            className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition shrink-0"
+            aria-label="Dismiss banner"
+          >
+            <X size={14} />
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full bg-amber-50 border-b border-amber-200 text-amber-900 text-xs md:text-sm px-4 py-2 flex items-center justify-between shadow-xs transition-all z-[100] relative">
-      <div className="flex items-center gap-2 flex-1">
-        {invalidCitySlugNotice ? (
-          <>
-            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-            <span>{invalidCitySlugNotice}</span>
-          </>
-        ) : showBrowsingNotice ? (
-          <>
-            <Compass className="w-4 h-4 text-emerald-600 shrink-0 animate-pulse" />
-            <span>
-              Browsing catalog for <strong className="font-semibold">{browsingCity?.name || browsingCitySlug}</strong>. Delivery address set to <strong className="font-semibold">{deliveryCity?.name || deliveryCitySlug}</strong>. (Serviceability verified at checkout)
-            </span>
-          </>
-        ) : hasLocationDrift ? (
-          <>
-            <MapPin className="w-4 h-4 text-indigo-600 shrink-0" />
-            <span>
-              Your current GPS location appears to be ~{driftDistanceKm} km away from your saved delivery address.
-            </span>
-          </>
-        ) : null}
+    <div className="w-full bg-slate-900 text-white text-xs px-3 py-1.5 sm:px-3.5 sm:py-2 flex items-center justify-between gap-1.5 sm:gap-2 shadow-xs transition-all z-[100] relative border-b border-white/10">
+      <div className="flex items-center gap-1.5 min-w-0 flex-1">
+        <Compass className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+        <span className="text-[11px] sm:text-xs font-medium truncate">
+          Browsing <strong className="text-sky-400 font-extrabold">{storeName}</strong> catalog
+        </span>
       </div>
-
-      {invalidCitySlugNotice && (
-        <button 
-          onClick={clearInvalidCitySlugNotice} 
-          className="p-1 hover:bg-amber-100 rounded-full text-amber-700 transition"
-          title="Dismiss"
-        >
-          <X className="w-4 h-4" />
-        </button>
-      )}
+      <button
+        onClick={() => setDismissed(true)}
+        className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition shrink-0"
+        aria-label="Dismiss banner"
+      >
+        <X size={14} />
+      </button>
     </div>
   );
 }
+

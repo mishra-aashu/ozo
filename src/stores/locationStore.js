@@ -381,9 +381,11 @@ export const useLocationStore = create(
 
             const maxRadius = Math.max(parseFloat(nearestCityObj.service_radius_km) || 25.0, 25.0)
             const isServiceable = minDistance <= maxRadius
+            const currentTraced = get().tracedThrough
+            const currentBrowsing = get().browsingCitySlug || get().selectedCitySlug
 
             set({ 
-              selectedCitySlug: isServiceable ? nearestCityObj.slug : null,
+              selectedCitySlug: isServiceable ? nearestCityObj.slug : (currentTraced === 'active_city_browse' ? currentBrowsing : null),
               nearestCity: nearestCityObj,
               activeCities: activeCities
             })
@@ -730,6 +732,10 @@ export const useLocationStore = create(
       },
 
       detectLocation: async (isManual = false, silent = false) => {
+        if (!isManual && get().tracedThrough === 'active_city_browse' && get().selectedCitySlug) {
+          set({ isDetecting: false })
+          return true
+        }
         set({ isDetecting: true, error: null })
         if (isManual) {
           localStorage.removeItem('ozo_location_permission_denied')

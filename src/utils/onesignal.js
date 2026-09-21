@@ -107,7 +107,11 @@ export const initOneSignal = async () => {
           resolve(OneSignal);
           if (resolveInitPromise) resolveInitPromise(OneSignal);
         } catch (err) {
-          console.error('[OneSignal] SDK push init execution failed:', err);
+          if (err?.message?.includes('Can only be used on')) {
+            console.warn('[OneSignal] Domain mismatch (requires production domain ozomart.store):', err.message);
+          } else {
+            console.error('[OneSignal] SDK push init execution failed:', err);
+          }
           resolve(null);
           if (resolveInitPromise) resolveInitPromise(null);
         }

@@ -17,7 +17,8 @@ import {
   User,
   Users,
   MoreVertical,
-  Phone
+  Phone,
+  Store
 } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
@@ -645,29 +646,93 @@ const LocationPicker = ({ isOpen, onClose }) => {
               {/* Current Location Button */}
               <button 
                 onClick={async () => {
-                  const success = await detectLocation(true, true)
-                  if (success) {
+                  try {
+                    const success = await detectLocation(true, true)
                     const currentAddress = useLocationStore.getState().address
                     const currentCoords = useLocationStore.getState().coordinates
                     if (currentCoords) {
                       setAddress(currentAddress)
                       setCoordinates({ lat: currentCoords.lat, lng: currentCoords.lng })
+                      toast.success(`Location set to ${useLocationStore.getState().nearestCity?.name || 'your area'} successfully`)
+                      onClose?.()
+                    } else if (success) {
+                      onClose?.()
+                    } else {
+                      toast.error('Could not detect live location. Please select manually or allow location access.')
                     }
-                    onClose()
+                  } catch (err) {
+                    console.error('Error detecting location:', err)
+                    toast.error('Error detecting location.')
                   }
                 }}
                 disabled={isDetecting}
-                className="w-full flex items-center gap-5 p-5 rounded-[2rem] bg-red-50 dark:bg-ozo-red/10 text-ozo-red hover:bg-red-100 dark:hover:bg-ozo-red/20 transition-all group border border-ozo-red/10"
+                className="w-full flex items-center gap-3.5 sm:gap-5 p-3.5 sm:p-5 rounded-[2rem] bg-red-50 dark:bg-ozo-red/10 text-ozo-red hover:bg-red-100 dark:hover:bg-ozo-red/20 transition-all group border border-ozo-red/10"
               >
-                  <div className={`w-12 h-12 rounded-2xl bg-white dark:bg-[#1a1a1a] shadow-sm flex items-center justify-center ${isDetecting ? 'animate-pulse' : 'group-hover:scale-110 group-hover:rotate-12 transition-all'}`}>
-                    <Navigation size={22} className={isDetecting ? 'animate-spin' : ''} />
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-2xl bg-white dark:bg-[#1a1a1a] shadow-sm flex items-center justify-center shrink-0 ${isDetecting ? 'animate-pulse' : 'group-hover:scale-110 group-hover:rotate-12 transition-all'}`}>
+                    <Navigation size={20} className={isDetecting ? 'animate-spin' : ''} />
                   </div>
-                  <div className="text-left flex-1">
-                    <p className="font-black text-sm">Use Current Location</p>
-                    <p className="text-[10px] uppercase tracking-widest font-bold opacity-60">{isDetecting ? 'Detecting...' : 'Using GPS'}</p>
+                  <div className="text-left flex-1 min-w-0">
+                    <p className="font-extrabold text-xs sm:text-sm truncate">Use Current Location</p>
+                    <p className="text-[10px] uppercase tracking-wider font-bold opacity-60 truncate">{isDetecting ? 'Detecting...' : 'Using GPS'}</p>
                   </div>
-                  <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform" />
+                  <ChevronRight className="opacity-40 group-hover:translate-x-1 transition-transform shrink-0" />
                 </button>
+
+              {/* Explore Active Stores */}
+              {activeCities && activeCities.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2 px-1 sm:px-2">
+                    <h3 className="text-[11px] sm:text-xs font-black text-ozo-gray dark:text-gray-500 uppercase tracking-wide whitespace-nowrap">Explore Active Stores</h3>
+                    <span className="text-[9px] font-extrabold text-emerald-600 bg-emerald-100 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full shrink-0 whitespace-nowrap">
+                      Live Catalog
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {activeCities.map((city) => (
+                      <button
+                        key={city.id || city.slug}
+                        onClick={() => {
+                          const baseCityName = city.name ? city.name.split(',')[0].trim() : city.slug
+                          useLocationStore.setState({
+                            address: `${baseCityName}, ${city.state || 'Bihar'}`,
+                            coordinates: {
+                              lat: parseFloat(city.latitude || 24.7527),
+                              lng: parseFloat(city.longitude || 84.3740)
+                            },
+                            addressDetails: {
+                              road: '',
+                              suburb: '',
+                              city: baseCityName,
+                              state: city.state || 'Bihar',
+                              postcode: (city.allowed_pincodes && city.allowed_pincodes[0]) || ''
+                            },
+                            selectedCitySlug: city.slug,
+                            browsingCitySlug: city.slug,
+                            nearestCity: city,
+                            tracedThrough: 'active_city_browse'
+                          })
+                          toast.success(`Browsing ${baseCityName} Store Catalog!`)
+                          navigate(`/${city.slug}`)
+                          onClose?.()
+                        }}
+                        className="flex items-center gap-3 p-3.5 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/20 dark:to-orange-950/20 border border-amber-200/60 dark:border-amber-900/40 rounded-2xl text-left hover:scale-[1.02] transition-all group cursor-pointer"
+                      >
+                        <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0 shadow-sm">
+                          <Store size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="font-extrabold text-xs text-gray-900 dark:text-white truncate">
+                            {city.name}
+                          </p>
+                          <p className="text-[10px] text-amber-700 dark:text-amber-400 font-bold leading-none mt-0.5">
+                            Browse Live Store
+                          </p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
 
                 {/* Database Matches Section */}
                 {searchQuery && dbMatches.length > 0 && (

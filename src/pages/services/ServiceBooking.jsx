@@ -21,8 +21,21 @@ export default function ServiceBooking() {
 
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [slot, setSlot] = useState('10:00 AM - 12:00 PM')
+  const [isCustomTime, setIsCustomTime] = useState(false)
+  const [customTime, setCustomTime] = useState('11:30')
   const [paymentMode, setPaymentMode] = useState('cod')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const format12Hour = (time24) => {
+    if (!time24) return ''
+    const parts = time24.split(':')
+    const h = parseInt(parts[0], 10)
+    const m = parseInt(parts[1], 10)
+    const period = h >= 12 ? 'PM' : 'AM'
+    const hour12 = h % 12 === 0 ? 12 : h % 12
+    const minFormatted = m < 10 ? `0${m}` : m
+    return `${hour12 < 10 ? '0' + hour12 : hour12}:${minFormatted} ${period}`
+  }
 
   const handleConfirmBooking = async () => {
     if (!user) {
@@ -34,18 +47,20 @@ export default function ServiceBooking() {
     setIsSubmitting(true)
     try {
       const bookingNumber = 'OZO-SRV-' + Math.floor(100000 + Math.random() * 900000)
+      const selectedSlot = isCustomTime ? `Custom Time (${format12Hour(customTime)})` : slot
 
       const { data, error } = await supabase.from('service_bookings').insert({
         booking_number: bookingNumber,
         user_id: user.id,
         service_id: service.id,
-        scheduled_at: `${date}T${slot.split(' ')[0]}:00Z`,
+        scheduled_at: `${date} ${selectedSlot}`,
         total_amount: service.price,
         status: 'pending',
         payment_status: 'pending',
         address_json: {
           full_address: address || 'Default Customer Address',
           city: 'Patna',
+          time_slot: selectedSlot
         },
       })
 
@@ -102,23 +117,76 @@ export default function ServiceBooking() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-gray-500 mb-1">Preferred Time Slot</label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-gray-500 dark:text-gray-400">Preferred Time Slot</label>
+              {isCustomTime && (
+                <span className="text-[10px] font-black text-sky-500 uppercase tracking-wider bg-sky-500/10 px-2.5 py-0.5 rounded-full border border-sky-500/20">
+                  Custom Time Selected
+                </span>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {['08:00 AM - 10:00 AM', '10:00 AM - 12:00 PM', '02:00 PM - 04:00 PM', '05:00 PM - 07:00 PM'].map((s) => (
                 <button
                   key={s}
                   type="button"
-                  onClick={() => setSlot(s)}
+                  onClick={() => {
+                    setIsCustomTime(false)
+                    setSlot(s)
+                  }}
                   className={`p-3 rounded-xl text-xs font-bold transition-all border text-center ${
-                    slot === s
-                      ? 'bg-sky-500 text-white border-sky-500 shadow-md'
-                      : 'bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-white/10'
+                    !isCustomTime && slot === s
+                      ? 'bg-sky-500 text-white border-sky-500 shadow-md scale-[1.02]'
+                      : 'bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-sky-500/40'
                   }`}
                 >
                   {s}
                 </button>
               ))}
+
+              {/* Custom Time Option Button */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsCustomTime(true)
+                  setSlot(`Custom: ${format12Hour(customTime)}`)
+                }}
+                className={`p-3 rounded-xl text-xs font-bold transition-all border text-center flex items-center justify-center gap-1.5 col-span-2 sm:col-span-1 ${
+                  isCustomTime
+                    ? 'bg-sky-500 text-white border-sky-500 shadow-md scale-[1.02]'
+                    : 'bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-sky-500/40'
+                }`}
+              >
+                <Clock size={14} />
+                <span>Custom Time</span>
+              </button>
             </div>
+
+            {/* Custom Time Picker Box */}
+            {isCustomTime && (
+              <div className="mt-3 p-3.5 bg-sky-500/10 dark:bg-sky-500/10 border border-sky-500/30 rounded-2xl">
+                <label className="block text-xs font-black text-sky-600 dark:text-sky-400 mb-1.5">
+                  Pick Specific Visit Time (e.g. 11:30 AM)
+                </label>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="time"
+                    value={customTime}
+                    onChange={(e) => {
+                      const val = e.target.value
+                      setCustomTime(val)
+                      setSlot(`Custom: ${format12Hour(val)}`)
+                    }}
+                    className="flex-1 px-4 py-2.5 bg-white dark:bg-[#1a1a1a] border border-sky-500/40 rounded-xl text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 dark:[color-scheme:dark]"
+                  />
+                  <div className="text-right shrink-0">
+                    <span className="text-[10px] font-black uppercase text-sky-500 block tracking-wider">Scheduled At</span>
+                    <span className="text-sm font-black text-gray-900 dark:text-white">{format12Hour(customTime)}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
