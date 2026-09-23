@@ -27,6 +27,7 @@ import ProductCard from '../components/ProductCard'
 import { useOzoQuery } from '../hooks/useOzoQuery'
 import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import Breadcrumb from '../components/Breadcrumb'
+import { resolveCategoryIcon, getGradient } from '../components/CategoryChip'
 import { useServiceModeStore } from '../stores/serviceModeStore'
 import { Wrench, Zap, Snowflake, Hammer, Paintbrush, Bug, Sparkles as ServiceSparkles } from 'lucide-react'
 

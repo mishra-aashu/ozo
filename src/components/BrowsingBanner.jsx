@@ -20,8 +20,6 @@ export default function BrowsingBanner() {
     selectedCitySlug
   } = useLocationStore();
 
-  if (dismissed) return null;
-
   const browsingCity = activeCities?.find(c => c.slug === browsingCitySlug) || activeCities?.[0];
   const deliveryCity = activeCities?.find(c => c.slug === deliveryCitySlug);
 
@@ -61,7 +59,7 @@ export default function BrowsingBanner() {
   const showUnserviceableWarning = !isLocationServiceable && address;
   const showBrowsingNotice = browsingCitySlug && deliveryCitySlug && browsingCitySlug !== deliveryCitySlug;
 
-  if (!showUnserviceableWarning && !invalidCitySlugNotice && !showBrowsingNotice && !hasLocationDrift) {
+  if (dismissed || (!showUnserviceableWarning && !invalidCitySlugNotice && !showBrowsingNotice && !hasLocationDrift)) {
     return null;
   }
 
