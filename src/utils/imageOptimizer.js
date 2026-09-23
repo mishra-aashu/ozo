@@ -46,3 +46,24 @@ export const getOptimizedImageUrl = (url, { width = 300, quality = 80, output = 
     return url;
   }
 };
+
+/**
+ * Checks if a product image URL is missing, invalid, or a default placeholder
+ */
+export const isImageMissing = (url) => {
+  if (!url || typeof url !== 'string') return true;
+  const trimmed = url.trim().toLowerCase();
+  if (
+    trimmed === '' || 
+    trimmed === 'null' || 
+    trimmed === 'undefined' ||
+    trimmed.includes('raw.githubusercontent.com') ||
+    trimmed.includes('logo_transparent.png') ||
+    trimmed.includes('placeholder') ||
+    trimmed.includes('unsplash.com/photo-1542838132-92c53300491e') ||
+    trimmed.includes('unsplash.com/photo-1619566636858')
+  ) {
+    return true;
+  }
+  return false;
+};
