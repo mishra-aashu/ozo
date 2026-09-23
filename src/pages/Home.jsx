@@ -326,13 +326,7 @@ const applyCityOverrides = (products, citySlug) => {
   }).filter(Boolean);
 };
 
-const Home = () => {
-  const currentMode = useServiceModeStore(state => state.currentMode)
-
-  if (currentMode === 'services') {
-    return <ServicesHome />
-  }
-
+const MartHome = () => {
   const [shuffleSeed] = useState(() => PAGE_LOAD_SHUFFLE_SEED)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const [activeFestivals, setActiveFestivals] = useState([])
@@ -2837,6 +2831,14 @@ const Home = () => {
       </AnimatePresence>
     </div>
   )
+}
+
+const Home = () => {
+  const currentMode = useServiceModeStore(state => state.currentMode)
+  if (currentMode === 'services') {
+    return <ServicesHome />
+  }
+  return <MartHome />
 }
 
 export default Home
