@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { useLocationStore } from './locationStore'
 import { useCartStore } from './cartStore'
+import { isImageMissing } from '../utils/imageOptimizer'
 
 // File-scoped references to cancel active in-flight requests on concurrent calls
 let fetchProductsController = null
@@ -63,15 +64,13 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
       return null
     }
 
-    const isImageMissing = !product.image_url || 
-      product.image_url.includes('raw.githubusercontent.com') || 
-      product.image_url.includes('logo_transparent.png');
+    const imageMissing = isImageMissing(product.image_url);
 
     const isAdminOrMart = typeof window !== 'undefined' && 
       (window.location.pathname.includes('/admin') || 
        window.location.pathname.includes('/mart'));
 
-    if (isImageMissing && !isAdminOrMart && !allowMissingImage) {
+    if (imageMissing && !isAdminOrMart && !allowMissingImage) {
       return null
     }
 
@@ -755,15 +754,13 @@ export const useProductStore = create((set, get) => ({
         
         products = products
           .map(p => {
-            const isImageMissing = !p.image_url || 
-              p.image_url.includes('raw.githubusercontent.com') || 
-              p.image_url.includes('logo_transparent.png');
+            const imageMissing = isImageMissing(p.image_url);
 
             const isAdminOrMart = typeof window !== 'undefined' && 
               (window.location.pathname.includes('/admin') || 
                window.location.pathname.includes('/mart'));
 
-            if (isImageMissing && !isAdminOrMart) return null;
+            if (imageMissing && !isAdminOrMart) return null;
 
             const pca = availMap.get(p.id)
             const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
@@ -812,15 +809,13 @@ export const useProductStore = create((set, get) => ({
           .filter(Boolean)
       } else {
         products = products.map(product => {
-          const isImageMissing = !product.image_url || 
-            product.image_url.includes('raw.githubusercontent.com') || 
-            product.image_url.includes('logo_transparent.png');
+          const imageMissing = isImageMissing(product.image_url);
 
           const isAdminOrMart = typeof window !== 'undefined' && 
             (window.location.pathname.includes('/admin') || 
              window.location.pathname.includes('/mart'));
 
-          if (isImageMissing && !isAdminOrMart) return null;
+          if (imageMissing && !isAdminOrMart) return null;
 
           const sellingPriceVal = parseFloat(product.price)
           const mrpVal = parseFloat(product.mrp)

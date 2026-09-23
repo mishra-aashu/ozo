@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useLocationStore } from '../stores/locationStore';
 import { useCartStore } from '../stores/cartStore';
 import { useProductStore } from '../stores/productStore';
+import { isImageMissing } from '../utils/imageOptimizer';
 
 export const PAGINATION_LIMIT = 24;
 
@@ -267,15 +268,13 @@ export function useProductPagination() {
       let formatted = (data || [])
         .filter(product => !(product.category && product.category.is_active === false))
         .map(product => {
-          const isImageMissing = !product.image_url || 
-            product.image_url.includes('raw.githubusercontent.com') || 
-            product.image_url.includes('logo_transparent.png');
+          const imageMissing = isImageMissing(product.image_url);
 
           const isAdminOrMart = typeof window !== 'undefined' && 
             (window.location.pathname.includes('/admin') || 
              window.location.pathname.includes('/mart'));
 
-          if (isImageMissing && !isAdminOrMart) return null;
+          if (imageMissing && !isAdminOrMart) return null;
 
           return {
             ...product,
