@@ -541,10 +541,10 @@ export default function SearchedPage() {
         </div>
       </div>
 
-      <div className="container-custom py-4 sm:py-8">
+      <div className="container-custom py-2 sm:py-6">
         <div className="max-w-6xl mx-auto">
           {/* Breadcrumbs for desktop */}
-          <Breadcrumb items={breadcrumbItems} className="hidden md:block mb-6" />
+          <Breadcrumb items={breadcrumbItems} className="hidden md:block mb-3" />
 
           <AnimatePresence mode="wait">
             {!urlQuery ? (
@@ -689,16 +689,16 @@ export default function SearchedPage() {
                 key="results"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="space-y-6"
+                className="space-y-2.5 sm:space-y-4"
               >
                 {/* Spelling Suggestion Banner */}
                 {spellingSuggestion && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="p-4 rounded-3xl bg-white dark:bg-[#111] border border-ozo-red/15 dark:border-ozo-red/20 shadow-sm flex items-center justify-between"
+                    className="p-2.5 sm:p-3 rounded-xl sm:rounded-2xl bg-white dark:bg-[#111] border border-ozo-red/15 dark:border-ozo-red/20 shadow-2xs flex items-center justify-between"
                   >
-                    <div className="flex items-center gap-2 flex-wrap text-sm">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap text-xs">
                       <Sparkles size={16} className="text-ozo-red animate-pulse" />
                       <span className="text-gray-500 dark:text-gray-400 font-medium">Showing results for:</span>
                       <button
@@ -722,27 +722,26 @@ export default function SearchedPage() {
                   </motion.div>
                 )}
 
-                {/* Filters, Badges and Results Header */}
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-white dark:bg-[#111] p-6 md:p-8 rounded-[2rem] border border-gray-150/20 dark:border-white/5 shadow-sm">
-                  <div>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-ozo-gray dark:text-gray-500">Search Results</span>
-                    <h1 className="text-xl md:text-2xl font-display font-black text-gray-900 dark:text-white mt-1 flex flex-wrap items-center gap-2">
-                      Showing results for <span className="text-gradient">"{urlQuery}"</span>
-                      <span className="inline-flex items-center px-3 py-1 bg-gray-50 dark:bg-white/5 rounded-xl text-xs font-black text-ozo-gray uppercase tracking-wider border border-gray-100 dark:border-white/5">
-                        {products.length} {products.length === 1 ? 'item' : 'items'} found
-                      </span>
+                {/* Compact Filters, Badges and Results Header */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-white dark:bg-[#111] p-3 sm:p-4 md:p-5 rounded-2xl md:rounded-3xl border border-gray-150/20 dark:border-white/5 shadow-2xs">
+                  <div className="flex items-center justify-between sm:justify-start gap-2 min-w-0">
+                    <h1 className="text-sm sm:text-base md:text-lg font-extrabold text-gray-900 dark:text-white truncate">
+                      Results for <span className="text-gradient">"{urlQuery}"</span>
                     </h1>
+                    <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 dark:bg-white/5 rounded-lg text-[11px] font-extrabold text-gray-600 dark:text-gray-300 shrink-0 border border-gray-150/40 dark:border-white/5">
+                      {products.length} {products.length === 1 ? 'item' : 'items'}
+                    </span>
                   </div>
 
                   {/* Filter / Sort Actions */}
-                  <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2 overflow-x-auto scrollbar-hide py-0.5">
                     {/* Sort Dropdown */}
-                    <div className="flex items-center gap-2.5 bg-gray-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 rounded-2xl px-4 py-2.5 border border-gray-100 dark:border-white/10 transition-all duration-300 shadow-sm focus-within:border-ozo-red/40">
-                      <ArrowUpDown size={16} className="text-ozo-gray" />
+                    <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl px-2.5 py-1.5 border border-gray-150/60 dark:border-white/10 transition-all shadow-2xs shrink-0 focus-within:border-ozo-red/40">
+                      <ArrowUpDown size={13} className="text-ozo-gray shrink-0" />
                       <select
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
-                        className="bg-transparent text-sm font-black text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer pr-1"
+                        className="bg-transparent text-xs font-bold text-gray-700 dark:text-gray-300 focus:outline-none cursor-pointer pr-1"
                       >
                         <option value="relevance">Sort: Relevance</option>
                         <option value="price_asc">Price: Low to High</option>
@@ -754,10 +753,10 @@ export default function SearchedPage() {
                     {/* Bestseller Filter Chip */}
                     <button
                       onClick={() => setFilterBestseller(!filterBestseller)}
-                      className={`px-5 py-2.5 rounded-2xl border text-sm font-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs shrink-0 active:scale-95 ${
                         filterBestseller
-                          ? 'bg-ozo-yellow/10 border-ozo-yellow text-ozo-yellow-dark dark:text-ozo-yellow shadow-sm'
-                          : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'
+                          ? 'bg-ozo-yellow/10 border-ozo-yellow text-ozo-yellow-dark dark:text-ozo-yellow shadow-2xs'
+                          : 'bg-gray-50 dark:bg-white/5 border-gray-150/60 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300'
                       }`}
                     >
                       Bestsellers
@@ -766,10 +765,10 @@ export default function SearchedPage() {
                     {/* Featured Filter Chip */}
                     <button
                       onClick={() => setFilterFeatured(!filterFeatured)}
-                      className={`px-5 py-2.5 rounded-2xl border text-sm font-black transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] ${
+                      className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all shadow-2xs shrink-0 active:scale-95 ${
                         filterFeatured
-                          ? 'bg-ozo-green/10 border-ozo-green text-ozo-green-dark dark:text-ozo-green shadow-sm'
-                          : 'bg-gray-50 dark:bg-white/5 border-gray-100 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-white/20'
+                          ? 'bg-ozo-green/10 border-ozo-green text-ozo-green-dark dark:text-ozo-green shadow-2xs'
+                          : 'bg-gray-50 dark:bg-white/5 border-gray-150/60 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:border-gray-300'
                       }`}
                     >
                       Featured
