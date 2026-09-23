@@ -6,6 +6,10 @@ import { useProductStore } from '../stores/productStore';
 
 export const PAGINATION_LIMIT = 24;
 
+// In-memory pagination and search results cache (2 min TTL)
+const paginationCache = new Map();
+const PAGINATION_CACHE_TTL = 2 * 60 * 1000;
+
 export function useProductPagination() {
   const [products, setProducts] = useState([]);
   const [spellingSuggestion, setSpellingSuggestion] = useState(null);
@@ -31,10 +35,28 @@ export function useProductPagination() {
       categorySlug: options.categorySlug || null,
       featured: !!options.featured,
       bestseller: !!options.bestseller,
-      search: options.search || null,
+      search: options.search ? options.search.trim().toLowerCase() : null,
       sortBy: options.sortBy || 'relevance',
       ascending: options.ascending !== undefined ? options.ascending : true
     });
+
+    const currentCitySlug = useLocationStore.getState().selectedCitySlug || 'global';
+    const cacheKey = `${filterKey}:${currentOffset}:${currentCitySlug}`;
+    const now = Date.now();
+
+    // Fast path: Check cache for instant 0ms return
+    const cached = paginationCache.get(cacheKey);
+    if (!isLoadMore && cached && (now - cached.timestamp < PAGINATION_CACHE_TTL)) {
+      queryKeyRef.current = filterKey;
+      setProducts(cached.formatted);
+      setSpellingSuggestion(cached.spellingSuggestion);
+      setHasMore(cached.hasMore);
+      offsetRef.current = currentOffset + PAGINATION_LIMIT;
+      setIsLoading(false);
+      setIsError(false);
+      isLoadingRef.current = false;
+      return;
+    }
 
     if (!isLoadMore) {
       if (abortControllerRef.current) {
@@ -61,14 +83,17 @@ export function useProductPagination() {
       }
     }, 12000); // 12 seconds timeout
 
+    let spellingSuggestionVal = null;
+
     try {
       const runQuery = async (applyFeatured, applyBestseller) => {
         let query;
         
         // If a search query is active, use fuzzy & full-text search RPC
         if (options.search) {
+          const trimmedSearch = options.search.trim();
           query = supabase.rpc('search_products_fuzzy', { 
-            search_term: options.search,
+            search_term: trimmedSearch,
             similarity_threshold: 0.2
           }).select(`
             id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
@@ -81,20 +106,20 @@ export function useProductPagination() {
             )
           `).abortSignal(signal);
 
-          // Fetch spelling suggestion in parallel for page 1
+          // Fetch spelling suggestion in parallel without blocking main query
           if (!isLoadMore) {
-            try {
-              const { data: suggestionData } = await supabase.rpc('get_spelling_suggestion', { 
-                search_term: options.search 
-              }).abortSignal(signal);
+            supabase.rpc('get_spelling_suggestion', { 
+              search_term: trimmedSearch 
+            }).abortSignal(signal).then(({ data: suggestionData }) => {
+              spellingSuggestionVal = suggestionData || null;
               if (queryKeyRef.current === filterKey) {
                 setSpellingSuggestion(suggestionData || null);
               }
-            } catch (sErr) {
+            }).catch(sErr => {
               if (sErr.name !== 'AbortError') {
                 console.error('[useProductPagination] Spelling suggestion error:', sErr);
               }
-            }
+            });
           }
         } else {
           query = supabase.from('products').select(`
@@ -207,6 +232,27 @@ export function useProductPagination() {
       };
 
       let { data, error } = await runQuery(!!options.featured, !!options.bestseller);
+
+      // Resilient Fallback: If RPC permission denied or Unauthorized, query products table directly
+      if (error && options.search && (error.code === '42501' || error.status === 401 || error.message?.includes('permission denied'))) {
+        console.warn('[useProductPagination] RPC search permission denied, using standard table fallback');
+        const sanitizedSearch = options.search.trim().replace(/[%_]/g, '');
+        const fallbackRes = await supabase.from('products').select(`
+          id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
+          category:categories (
+            id, name, slug, parent_id, is_active
+          )
+        `)
+        .or(`name.ilike.%${sanitizedSearch}%,brand.ilike.%${sanitizedSearch}%`)
+        .abortSignal(signal)
+        .range(currentOffset, currentOffset + PAGINATION_LIMIT - 1);
+
+        if (!fallbackRes.error) {
+          data = fallbackRes.data;
+          error = null;
+        }
+      }
+
       if (error) throw error;
 
       // Fallback: If query returned no products and bestseller/featured filter was applied, run it again without them
@@ -313,6 +359,18 @@ export function useProductPagination() {
 
       // Avoid setting state if query has changed in the meantime
       if (queryKeyRef.current === filterKey) {
+        // Save to in-memory pagination cache
+        if (paginationCache.size > 120) {
+          const firstKey = paginationCache.keys().next().value;
+          paginationCache.delete(firstKey);
+        }
+        paginationCache.set(cacheKey, {
+          formatted,
+          spellingSuggestion: spellingSuggestionVal,
+          hasMore: (data || []).length === PAGINATION_LIMIT,
+          timestamp: Date.now()
+        });
+
         setProducts(prev => {
           if (!isLoadMore) return formatted;
           const existingIds = new Set(prev.map(p => p.id));

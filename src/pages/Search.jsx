@@ -31,6 +31,7 @@ const Search = () => {
     spellingSuggestion: state.spellingSuggestion,
   })))
   const searchControllerRef = useRef(null)
+  const debounceTimerRef = useRef(null)
 
   const { data: categoriesData, isLoading: isCategoriesLoading, isError: isCategoriesError, refetch } = useOzoQuery(
     async (signal) => {
@@ -54,6 +55,9 @@ const Search = () => {
 
   useEffect(() => {
     return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current)
+      }
       useProductStore.getState().clearSearchResults()
       if (searchControllerRef.current) {
         searchControllerRef.current.abort()
@@ -64,9 +68,16 @@ const Search = () => {
   const handleSearch = useCallback((e) => {
     const value = e.target.value
     setSearchTerm(value)
-    if (value.length >= 2) {
-      performSearch(value)
-    } else if (value.length === 0) {
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+
+    if (value.trim().length >= 2) {
+      debounceTimerRef.current = setTimeout(() => {
+        performSearch(value.trim())
+      }, 250)
+    } else if (value.trim().length === 0) {
       if (searchControllerRef.current) {
         searchControllerRef.current.abort()
       }

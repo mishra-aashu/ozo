@@ -14,6 +14,10 @@ let fetchProductBySlugController = null
 let searchProductsController = null
 let getProductsByCategoryController = null
 
+// In-memory search results cache with 3 min TTL
+const searchCache = new Map()
+const SEARCH_CACHE_TTL = 3 * 60 * 1000
+
 // Helper to construct product query with city filters and overrides
 const buildProductQuery = (supabaseClient, citySlug, fields = 'id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id', includeUnavailable = true) => {
   if (citySlug) {
@@ -655,6 +659,28 @@ export const useProductStore = create((set, get) => ({
     searchProductsController = controller
     const signal = options.signal || controller.signal
 
+    const trimmed = (searchTerm || '').trim()
+    if (!trimmed) {
+      set({ searchResults: [], spellingSuggestion: null, isSearchError: false, isSearchLoading: false })
+      return { success: true, data: [] }
+    }
+
+    const citySlug = useLocationStore.getState().selectedCitySlug || 'global'
+    const cacheKey = `${trimmed.toLowerCase()}:${citySlug}`
+    const now = Date.now()
+
+    // Fast path: instant 0ms return if cached and within TTL
+    const cached = searchCache.get(cacheKey)
+    if (cached && (now - cached.timestamp < SEARCH_CACHE_TTL)) {
+      set({ 
+        searchResults: cached.products, 
+        spellingSuggestion: cached.spellingSuggestion, 
+        isSearchLoading: false, 
+        isSearchError: false 
+      })
+      return { success: true, data: cached.products }
+    }
+
     let isTimeout = false
     const timeoutId = setTimeout(() => {
       isTimeout = true
@@ -662,17 +688,12 @@ export const useProductStore = create((set, get) => ({
     }, 12000) // 12 seconds timeout
 
     try {
-      if (!searchTerm || searchTerm.trim() === '') {
-        set({ searchResults: [], spellingSuggestion: null, isSearchError: false })
-        return { success: true, data: [] }
-      }
-
       set({ isSearchLoading: true, isSearchError: false, isLoading: true })
 
       // Fetch search results and spelling suggestion in parallel
       const searchPromise = supabase
         .rpc('search_products_fuzzy', { 
-          search_term: searchTerm,
+          search_term: trimmed,
           similarity_threshold: 0.2
         })
         .select(`
@@ -689,21 +710,36 @@ export const useProductStore = create((set, get) => ({
         .abortSignal(signal)
 
       const suggestionPromise = supabase
-        .rpc('get_spelling_suggestion', { search_term: searchTerm })
+        .rpc('get_spelling_suggestion', { search_term: trimmed })
         .abortSignal(signal)
 
-      const [searchRes, suggestionRes] = await Promise.all([
-        searchPromise,
-        suggestionPromise
-      ])
+      let products = []
+      if (searchRes.error) {
+        if (searchRes.error.code === '42501' || searchRes.error.status === 401 || searchRes.error.message?.includes('permission denied')) {
+          console.warn('[searchProducts] RPC search permission denied, using standard table fallback');
+          const sanitized = trimmed.replace(/[%_]/g, '');
+          const fallbackRes = await supabase.from('products').select(`
+            id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
+            category:categories (
+              id, name, slug, parent_id, is_active
+            )
+          `)
+          .or(`name.ilike.%${sanitized}%,brand.ilike.%${sanitized}%`)
+          .limit(20)
+          .abortSignal(signal);
 
-      if (searchRes.error) throw searchRes.error
+          if (fallbackRes.error) throw fallbackRes.error;
+          products = fallbackRes.data || [];
+        } else {
+          throw searchRes.error;
+        }
+      } else {
+        products = searchRes.data || [];
+      }
 
       if (signal.aborted) {
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
-
-      let products = searchRes.data || []
       const citySlug = useLocationStore.getState().selectedCitySlug
 
       if (citySlug && products.length > 0) {
@@ -813,9 +849,22 @@ export const useProductStore = create((set, get) => ({
         return 0;
       });
 
+      const spellingSuggestion = suggestionRes.data || null
+
+      // Save to in-memory search cache
+      if (searchCache.size > 100) {
+        const firstKey = searchCache.keys().next().value
+        searchCache.delete(firstKey)
+      }
+      searchCache.set(cacheKey, {
+        products,
+        spellingSuggestion,
+        timestamp: Date.now()
+      })
+
       set({ 
         searchResults: products, 
-        spellingSuggestion: suggestionRes.data || null,
+        spellingSuggestion,
         isSearchLoading: false, 
         isSearchError: false,
         isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isCategoriesLoading || get().isOffersLoading || get().isProductDetailLoading 

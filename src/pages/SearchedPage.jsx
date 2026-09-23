@@ -337,8 +337,21 @@ export default function SearchedPage() {
     }
   }, [urlQuery, sortBy, filterBestseller, filterFeatured, fetchProductsPage, reset])
 
+  const debounceUrlTimerRef = useRef(null)
+
+  useEffect(() => {
+    return () => {
+      if (debounceUrlTimerRef.current) {
+        clearTimeout(debounceUrlTimerRef.current)
+      }
+    }
+  }, [])
+
   const handleSearchSubmit = (e) => {
     e.preventDefault()
+    if (debounceUrlTimerRef.current) {
+      clearTimeout(debounceUrlTimerRef.current)
+    }
     if (searchTerm.trim()) {
       saveSearchQuery(searchTerm.trim())
       setSearchParams({ q: searchTerm.trim() })
@@ -348,13 +361,25 @@ export default function SearchedPage() {
   const handleSearchChange = (e) => {
     const val = e.target.value
     setSearchTerm(val)
+
+    if (debounceUrlTimerRef.current) {
+      clearTimeout(debounceUrlTimerRef.current)
+    }
+
     if (val.trim() === '') {
       setSearchParams({})
       reset()
+    } else if (val.trim().length >= 2) {
+      debounceUrlTimerRef.current = setTimeout(() => {
+        setSearchParams({ q: val.trim() }, { replace: true })
+      }, 350)
     }
   }
 
   const triggerSearch = (term) => {
+    if (debounceUrlTimerRef.current) {
+      clearTimeout(debounceUrlTimerRef.current)
+    }
     setSearchTerm(term)
     saveSearchQuery(term)
     setSearchParams({ q: term })

@@ -49,7 +49,8 @@ const LocationPicker = ({ isOpen, onClose }) => {
     landmarks,
     galis,
     fetchHierarchicalData,
-    nearestCity
+    nearestCity,
+    activeCities
   } = useLocationStore()
   const { isAuthenticated, profile } = useAuthStore()
   const { mapConfig } = useCartStore()
