@@ -29,6 +29,7 @@ import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
 function ProductCard({ product, variant = 'default', index }) {
   const navigate = useNavigate()
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const openAddToCartCityModal = useLocationStore(state => state.openAddToCartCityModal)
   const categorySlug = product.category?.slug || product.category_slug || 'item'
   const productLink = selectedCitySlug ? `/${selectedCitySlug}/${categorySlug}/${product.slug}` : `/product/${categorySlug}/${product.slug}`
   const hasVariants = Array.isArray(product?.variants) && product.variants.length > 0
@@ -161,6 +162,13 @@ function ProductCard({ product, variant = 'default', index }) {
     if (e) {
       e.preventDefault()
       e.stopPropagation()
+    }
+
+    // If no city has been selected/confirmed, prompt user to pick their city first.
+    // The modal will auto-add the product once they confirm a city.
+    if (!selectedCitySlug) {
+      openAddToCartCityModal(selectedProduct, 1)
+      return
     }
 
     setIsAdding(true)

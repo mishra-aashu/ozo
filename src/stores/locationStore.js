@@ -47,6 +47,12 @@ export const useLocationStore = create(
         pincode: '',
         onConfirm: null
       },
+      // Modal shown when addToCart is triggered without a selected city
+      addToCartCityModal: {
+        isOpen: false,
+        product: null,
+        quantity: 1
+      },
 
       showServiceabilityModal: (cityName, pincode, onConfirm = null) => {
         set({
@@ -72,6 +78,16 @@ export const useLocationStore = create(
             onConfirm: null
           }
         })
+      },
+
+      // Open the "Select City to Add to Cart" modal with the pending product
+      openAddToCartCityModal: (product, quantity = 1) => {
+        set({ addToCartCityModal: { isOpen: true, product, quantity } })
+      },
+
+      // Close the "Select City to Add to Cart" modal
+      closeAddToCartCityModal: () => {
+        set({ addToCartCityModal: { isOpen: false, product: null, quantity: 1 } })
       },
 
       fetchActiveCities: async () => {

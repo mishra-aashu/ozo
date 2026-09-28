@@ -151,6 +151,7 @@ import ScrollToTop from './components/ScrollToTop'
 import NotificationPromptModal from './components/NotificationPromptModal'
 import ServiceabilityModal from './components/ServiceabilityModal'
 import LocationPromptModal from './components/LocationPromptModal'
+import AddToCartCityModal from './components/AddToCartCityModal'
 
 // Hooks
 import { useAuthStore } from './stores/authStore'
