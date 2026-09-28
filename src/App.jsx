@@ -643,6 +643,7 @@ function App() {
         <NotificationPromptModal />
         <ServiceabilityModal />
         <LocationPromptModal />
+        <AddToCartCityModal />
       </Router>
     </>
   )
