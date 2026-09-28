@@ -411,6 +411,11 @@ const MartHome = () => {
   const coordinates = useLocationStore(state => state.coordinates)
   const addressDetails = useLocationStore(state => state.addressDetails)
   const activeCities = useLocationStore(state => state.activeCities)
+  const nearestCity = useLocationStore(state => state.nearestCity)
+
+  const homeCityName = useMemo(() => {
+    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
+  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
 
   const homeSchema = useMemo(() => ({
     "@context": "https://schema.org",
@@ -1821,15 +1826,6 @@ const MartHome = () => {
       </div>
     )
   }
-
-  const homeNearestCity = useLocationStore(state => state.nearestCity)
-  const homeAddressDetails = useLocationStore(state => state.addressDetails)
-  const homeSelectedCitySlug = useLocationStore(state => state.selectedCitySlug)
-  const homeActiveCities = useLocationStore(state => state.activeCities)
-
-  const homeCityName = useMemo(() => {
-    return resolveCityName(homeNearestCity, homeAddressDetails, homeSelectedCitySlug, homeActiveCities)
-  }, [homeNearestCity, homeAddressDetails, homeSelectedCitySlug, homeActiveCities])
 
   return (
     <div className="min-h-screen pb-16">
