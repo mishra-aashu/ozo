@@ -27,7 +27,7 @@ import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
 import toast from 'react-hot-toast'
 import SEO from '../components/SEO'
 import { useLocationStore } from '../stores/locationStore'
-import { resolveCityName } from '../utils/seoHelpers'
+import { resolveCityName, getFreeDeliveryText } from '../utils/seoHelpers'
 
 // Premium "Listing Soon" interactive widget for Fruits & Vegetables categories
 const ComingSoonSection = ({ category }) => {
@@ -592,7 +592,7 @@ const CategoryProducts = () => {
 
   const catName = currentCategory?.name || slug
   const catDesc = currentCategory?.description
-    || `Best market rates, free delivery over ₹200. Order ${catName} online now on OZO Mart in ${currentCityName}. 10-minute instant delivery guaranteed.`
+    || `Best market rates, ${getFreeDeliveryText()}. Order ${catName} online now on OZO Mart in ${currentCityName}. 10-minute instant delivery guaranteed.`
 
   return (
     <motion.div
