@@ -34,7 +34,8 @@ import {
   Store,
   Smartphone,
   AlertOctagon,
-  Wrench
+  Wrench,
+  Megaphone
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -113,6 +114,13 @@ const AdminLayout = () => {
       path: '/admin/offers',
       color: 'text-red-600 dark:text-red-400',
       bgColor: 'bg-red-100 dark:bg-red-950/30',
+    },
+    {
+      icon: Megaphone,
+      label: 'City Ad Portal',
+      path: '/admin/ads',
+      color: 'text-amber-600 dark:text-amber-400',
+      bgColor: 'bg-amber-100 dark:bg-amber-950/30',
     },
     {
       icon: Calendar,

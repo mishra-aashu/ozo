@@ -57,6 +57,7 @@ import SEO from '../components/SEO'
 import { resolveCityName, getFreeDeliveryText } from '../utils/seoHelpers'
 import { useServiceModeStore } from '../stores/serviceModeStore'
 import ServicesHome from './services/ServicesHome'
+import CityAdBanner from '../components/CityAdBanner'
 
 
 // Import Swiper styles
@@ -1937,6 +1938,9 @@ const MartHome = () => {
           </Swiper>
         </div>
       </section>
+
+      {/* City-specific Ad / Main Promo Banner (Right below Hero Swiper) */}
+      <CityAdBanner />
 
       {/* Homepage Main Layout Grid */}
       <section className="py-6">
