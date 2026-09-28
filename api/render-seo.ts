@@ -1195,6 +1195,31 @@ function renderStaticPage(res: VercelResponse, slug: string, activeCities: any[]
   return res.status(200).send(html);
 }
 
+function findMatchingCity(cityStr: string | null | undefined, activeCities: any[]) {
+  if (!Array.isArray(activeCities) || activeCities.length === 0) {
+    return null;
+  }
+  if (!cityStr) {
+    return activeCities[0];
+  }
+  const cleanStr = String(cityStr).toLowerCase().trim();
+  if (cleanStr === 'product' || cleanStr === 'item') {
+    return activeCities[0];
+  }
+
+  // 1. Exact slug match
+  let matched = activeCities.find(c => c.slug === cleanStr);
+  if (matched) return matched;
+
+  // 2. Match first word segment (e.g. 'aurangabad-bihar' -> 'aurangabad')
+  const firstWord = cleanStr.split('-')[0];
+  matched = activeCities.find(c => c.slug === firstWord || c.slug.startsWith(firstWord) || firstWord.startsWith(c.slug));
+  if (matched) return matched;
+
+  // 3. Fallback to first operating city
+  return activeCities[0];
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Apply Inbound Rate Limiting (e.g., 60 requests per minute)
   const rateLimitResult = await checkRateLimit(req, 60, 60);
@@ -1253,10 +1278,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (city && !product) {
     let cityStr = String(city).toLowerCase();
-    const matchingCity = activeCities.find(c => c.slug === cityStr);
-    if (!matchingCity) {
-      return renderHomepage(res, activeCities);
+
+    // Check if cityStr is actually a category slug or product slug (e.g. /coffee or /dettol-skincare-...)
+    try {
+      const { data: catData } = await supabase
+        .from('categories')
+        .select('slug')
+        .eq('slug', cityStr)
+        .maybeSingle();
+
+      if (catData) {
+        return renderCategoryPage(res, catData.slug, activeCities[0]?.slug || null, activeCities);
+      }
+
+      const { data: prodData } = await supabase
+        .from('products')
+        .select('slug')
+        .eq('slug', cityStr)
+        .maybeSingle();
+
+      if (prodData) {
+        req.query.product = prodData.slug;
+        req.query.city = activeCities[0]?.slug || 'aurangabad';
+        return handler(req, res);
+      }
+    } catch (err) {
+      // ignore fallback error
     }
+
+    const matchingCity = findMatchingCity(cityStr, activeCities) || activeCities[0];
     return renderCityPage(res, matchingCity, activeCities);
   }
 
@@ -1268,17 +1318,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   let cityStr = String(city).toLowerCase();
   const productStr = String(product);
 
-  // If city is literally 'product' (e.g. from /product/:slug crawler route), fallback to first active city
-  if (cityStr === 'product') {
-    cityStr = activeCities[0]?.slug || '';
-  }
-
-  const matchingCity = activeCities.find(c => c.slug === cityStr);
-
-  if (!matchingCity) {
-    return res.status(404).send('City Not Serviceable Yet');
-  }
-
+  const matchingCity = findMatchingCity(cityStr, activeCities) || activeCities[0];
   const cleanCityName = matchingCity.name.split(',')[0].trim();
 
   try {
@@ -1308,27 +1348,36 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         )
       `)
       .eq('slug', productStr)
-      .eq('is_available', true)
       .maybeSingle();
 
     if (error || !productData) {
-      console.warn(`Product not found or not active: ${productStr}`);
-      return res.status(404).send('Product Not Found');
+      // Fallback 1: Check if productStr is actually a category slug (e.g. /aurangabad-bihar/coffee or /aurangabad/beverages)
+      try {
+        const { data: catData } = await supabase
+          .from('categories')
+          .select('slug')
+          .eq('slug', productStr)
+          .maybeSingle();
+
+        if (catData) {
+          return renderCategoryPage(res, catData.slug, matchingCity.slug, activeCities);
+        }
+      } catch (err) {
+        // ignore category fallback error
+      }
+
+      console.warn(`Product or category not found: ${productStr}`);
+      return renderHomepage(res, activeCities);
     }
 
     const pcaList = productData.product_city_availability;
     const pca = Array.isArray(pcaList)
-      ? (pcaList.find((p: any) => p.city_slug === cityStr) || null)
+      ? (pcaList.find((p: any) => p.city_slug === matchingCity.slug || p.city_slug === cityStr) || null)
       : (pcaList || null);
 
-    const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-      ? pca.is_available
-      : productData.is_available;
-
-    if (!isAvailable) {
-      console.warn(`Product is not available: ${productStr}`);
-      return res.status(404).send('Product Not Available');
-    }
+    const isAvailable = productData.is_available !== false && (
+      pca ? (pca.is_available !== false) : true
+    );
 
     const prod = productData;
     const categoryObj = prod.categories as any;
