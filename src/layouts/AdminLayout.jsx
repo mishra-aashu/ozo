@@ -58,180 +58,208 @@ const AdminLayout = () => {
   const isCityManager = profile?.isCityManager
   const isMartOwner = profile?.isMartOwner
 
-  const menuItems = [
+  const navGroups = [
     {
-      icon: LayoutDashboard,
-      label: 'Dashboard',
-      path: '/admin',
-      color: 'text-purple-600 dark:text-purple-400',
-      bgColor: 'bg-purple-100 dark:bg-purple-950/30',
+      title: 'Catalog & Store',
+      items: [
+        {
+          icon: LayoutDashboard,
+          label: 'Dashboard',
+          path: '/admin',
+          color: 'text-purple-600 dark:text-purple-400',
+          bgColor: 'bg-purple-100 dark:bg-purple-950/30',
+        },
+        {
+          icon: Package,
+          label: 'Products',
+          path: '/admin/products',
+          color: 'text-blue-600 dark:text-blue-400',
+          bgColor: 'bg-blue-100 dark:bg-blue-950/30',
+        },
+        {
+          icon: Coins,
+          label: 'Profit Optimizer',
+          path: '/admin/profit-optimizer',
+          color: 'text-emerald-600 dark:text-emerald-400',
+          bgColor: 'bg-emerald-100 dark:bg-emerald-950/30',
+        },
+        {
+          icon: Tag,
+          label: 'Categories',
+          path: '/admin/categories',
+          color: 'text-green-600 dark:text-green-400',
+          bgColor: 'bg-green-100 dark:bg-green-950/30',
+        },
+      ]
     },
     {
-      icon: Package,
-      label: 'Products',
-      path: '/admin/products',
-      color: 'text-blue-600 dark:text-blue-400',
-      bgColor: 'bg-blue-100 dark:bg-blue-950/30',
+      title: 'Operations & Orders',
+      items: [
+        {
+          icon: ShoppingBag,
+          label: 'Orders',
+          path: '/admin/orders',
+          color: 'text-orange-600 dark:text-orange-400',
+          bgColor: 'bg-orange-100 dark:bg-orange-950/30',
+        },
+        {
+          icon: MapPin,
+          label: 'Cities',
+          path: '/admin/cities',
+          color: 'text-teal-600 dark:text-teal-400',
+          bgColor: 'bg-teal-100 dark:bg-teal-950/30',
+        },
+        {
+          icon: Wrench,
+          label: 'Services Manager',
+          path: '/admin/services',
+          color: 'text-sky-500 dark:text-sky-400',
+          bgColor: 'bg-sky-100 dark:bg-sky-950/30',
+        },
+        {
+          icon: Store,
+          label: 'Mart Settings',
+          path: '/admin/marts',
+          color: 'text-rose-500 dark:text-[#FF4A70]',
+          bgColor: 'bg-rose-100 dark:bg-rose-950/30',
+        },
+        {
+          icon: DollarSign,
+          label: 'Mart Payouts',
+          path: '/admin/marts/payouts',
+          color: 'text-amber-500 dark:text-[#FFB800]',
+          bgColor: 'bg-amber-100 dark:bg-amber-950/30',
+        },
+        {
+          icon: Bike,
+          label: 'Rider Settings',
+          path: '/admin/riders',
+          color: 'text-emerald-500 dark:text-blue-500',
+          bgColor: 'bg-emerald-100 dark:bg-emerald-950/30',
+        },
+      ]
     },
     {
-      icon: Coins,
-      label: 'Profit Optimizer',
-      path: '/admin/profit-optimizer',
-      color: 'text-emerald-600 dark:text-emerald-400',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-950/30',
+      title: 'Marketing & Promos',
+      items: [
+        {
+          icon: DollarSign,
+          label: 'Offers',
+          path: '/admin/offers',
+          color: 'text-red-600 dark:text-red-400',
+          bgColor: 'bg-red-100 dark:bg-red-950/30',
+        },
+        {
+          icon: Megaphone,
+          label: 'City Ad Portal',
+          path: '/admin/ads',
+          color: 'text-amber-600 dark:text-amber-400',
+          bgColor: 'bg-amber-100 dark:bg-amber-950/30',
+        },
+        {
+          icon: Calendar,
+          label: 'Festival Planner',
+          path: '/admin/festivals',
+          color: 'text-fuchsia-600 dark:text-fuchsia-400',
+          bgColor: 'bg-fuchsia-100 dark:bg-fuchsia-950/30',
+        },
+      ]
     },
     {
-      icon: Tag,
-      label: 'Categories',
-      path: '/admin/categories',
-      color: 'text-green-600 dark:text-green-400',
-      bgColor: 'bg-green-100 dark:bg-green-950/30',
+      title: 'Community & Content',
+      items: [
+        {
+          icon: ClipboardCheck,
+          label: 'Requests',
+          path: '/admin/requests',
+          color: 'text-pink-600 dark:text-pink-400',
+          bgColor: 'bg-pink-100 dark:bg-pink-950/30',
+        },
+        {
+          icon: Star,
+          label: 'Reviews',
+          path: '/admin/reviews',
+          color: 'text-yellow-600 dark:text-yellow-400',
+          bgColor: 'bg-yellow-100 dark:bg-yellow-950/30',
+        },
+        {
+          icon: Newspaper,
+          label: 'Blogs',
+          path: '/admin/blog',
+          color: 'text-sky-600 dark:text-sky-400',
+          bgColor: 'bg-sky-100 dark:bg-sky-950/30',
+        },
+        {
+          icon: MessageSquare,
+          label: 'Support Messages',
+          path: '/admin/messages',
+          color: 'text-amber-600 dark:text-amber-400',
+          bgColor: 'bg-amber-100 dark:bg-amber-950/30',
+        },
+      ]
     },
     {
-      icon: Wrench,
-      label: 'Services Manager',
-      path: '/admin/services',
-      color: 'text-sky-500 dark:text-sky-400',
-      bgColor: 'bg-sky-100 dark:bg-sky-950/30',
-    },
-    {
-      icon: MapPin,
-      label: 'Cities',
-      path: '/admin/cities',
-      color: 'text-teal-600 dark:text-teal-400',
-      bgColor: 'bg-teal-100 dark:bg-teal-950/30',
-    },
-    {
-      icon: ShoppingBag,
-      label: 'Orders',
-      path: '/admin/orders',
-      color: 'text-orange-600 dark:text-orange-400',
-      bgColor: 'bg-orange-100 dark:bg-orange-950/30',
-    },
-    {
-      icon: DollarSign,
-      label: 'Offers',
-      path: '/admin/offers',
-      color: 'text-red-600 dark:text-red-400',
-      bgColor: 'bg-red-100 dark:bg-red-950/30',
-    },
-    {
-      icon: Megaphone,
-      label: 'City Ad Portal',
-      path: '/admin/ads',
-      color: 'text-amber-600 dark:text-amber-400',
-      bgColor: 'bg-amber-100 dark:bg-amber-950/30',
-    },
-    {
-      icon: Calendar,
-      label: 'Festival Planner',
-      path: '/admin/festivals',
-      color: 'text-fuchsia-600 dark:text-fuchsia-400',
-      bgColor: 'bg-fuchsia-100 dark:bg-fuchsia-950/30',
-    },
-    {
-      icon: Users,
-      label: 'Users',
-      path: '/admin/users',
-      color: 'text-indigo-600 dark:text-indigo-400',
-      bgColor: 'bg-indigo-100 dark:bg-indigo-950/30',
-    },
-    {
-      icon: ClipboardCheck,
-      label: 'Requests',
-      path: '/admin/requests',
-      color: 'text-pink-600 dark:text-pink-400',
-      bgColor: 'bg-pink-100 dark:bg-pink-950/30',
-    },
-    {
-      icon: Star,
-      label: 'Reviews',
-      path: '/admin/reviews',
-      color: 'text-yellow-600 dark:text-yellow-400',
-      bgColor: 'bg-yellow-100 dark:bg-yellow-950/30',
-    },
-    {
-      icon: Newspaper,
-      label: 'Blogs',
-      path: '/admin/blog',
-      color: 'text-sky-605 dark:text-sky-400',
-      bgColor: 'bg-sky-100 dark:bg-sky-950/30',
-    },
-    {
-      icon: Terminal,
-      label: 'SQL Console',
-      path: '/admin/sql',
-      color: 'text-rose-600 dark:text-rose-400',
-      bgColor: 'bg-rose-100 dark:bg-rose-950/30',
-    },
-    {
-      icon: AlertOctagon,
-      label: 'Diagnostics Logs',
-      path: '/admin/errors',
-      color: 'text-red-550 dark:text-red-450',
-      bgColor: 'bg-red-100 dark:bg-red-950/20',
-    },
-    {
-      icon: Database,
-      label: 'Database Backup',
-      path: '/admin/backup',
-      color: 'text-amber-500 dark:text-amber-400',
-      bgColor: 'bg-amber-100 dark:bg-amber-950/30',
-    },
-    {
-      icon: MessageSquare,
-      label: 'Support Messages',
-      path: '/admin/messages',
-      color: 'text-amber-600 dark:text-amber-400',
-      bgColor: 'bg-amber-100 dark:bg-amber-950/30',
-    },
-    {
-      icon: Globe,
-      label: 'SEO Panel',
-      path: '/admin/seo',
-      color: 'text-emerald-650 dark:text-emerald-400',
-      bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
-    },
-    {
-      icon: Bike,
-      label: 'Rider Settings',
-      path: '/admin/riders',
-      color: 'text-emerald-500 dark:text-blue-500',
-      bgColor: 'bg-emerald-100 dark:bg-emerald-950/30',
-    },
-    {
-      icon: Store,
-      label: 'Mart Settings',
-      path: '/admin/marts',
-      color: 'text-rose-500 dark:text-[#FF4A70]',
-      bgColor: 'bg-rose-100 dark:bg-rose-950/30',
-    },
-    {
-      icon: DollarSign,
-      label: 'Mart Payouts',
-      path: '/admin/marts/payouts',
-      color: 'text-amber-500 dark:text-[#FFB800]',
-      bgColor: 'bg-amber-100 dark:bg-amber-950/30',
-    },
-    {
-      icon: Smartphone,
-      label: 'Capture Sandbox',
-      path: '/admin/phone-capture-sandbox',
-      color: 'text-[#e11d48] dark:text-rose-400',
-      bgColor: 'bg-rose-100/50 dark:bg-rose-950/20',
-    },
+      title: 'System & Utilities',
+      items: [
+        {
+          icon: Users,
+          label: 'Users',
+          path: '/admin/users',
+          color: 'text-indigo-600 dark:text-indigo-400',
+          bgColor: 'bg-indigo-100 dark:bg-indigo-950/30',
+        },
+        {
+          icon: Globe,
+          label: 'SEO Panel',
+          path: '/admin/seo',
+          color: 'text-emerald-600 dark:text-emerald-400',
+          bgColor: 'bg-emerald-50 dark:bg-emerald-950/20',
+        },
+        {
+          icon: Terminal,
+          label: 'SQL Console',
+          path: '/admin/sql',
+          color: 'text-rose-600 dark:text-rose-400',
+          bgColor: 'bg-rose-100 dark:bg-rose-950/30',
+        },
+        {
+          icon: AlertOctagon,
+          label: 'Diagnostics Logs',
+          path: '/admin/errors',
+          color: 'text-red-500 dark:text-red-400',
+          bgColor: 'bg-red-100 dark:bg-red-950/20',
+        },
+        {
+          icon: Database,
+          label: 'Database Backup',
+          path: '/admin/backup',
+          color: 'text-amber-500 dark:text-amber-400',
+          bgColor: 'bg-amber-100 dark:bg-amber-950/30',
+        },
+        {
+          icon: Smartphone,
+          label: 'Capture Sandbox',
+          path: '/admin/phone-capture-sandbox',
+          color: 'text-rose-600 dark:text-rose-400',
+          bgColor: 'bg-rose-100/50 dark:bg-rose-950/20',
+        },
+      ]
+    }
   ]
 
-  const filteredMenuItems = menuItems.filter(item => {
-    if (isSuperAdmin) return true
-    if (isCityManager) {
-      return ['Dashboard', 'Products', 'Orders', 'Reviews', 'Rider Settings', 'Mart Settings'].includes(item.label)
-    }
-    if (isMartOwner) {
-      return ['Dashboard', 'Products', 'Orders', 'Reviews'].includes(item.label)
-    }
-    return ['Dashboard'].includes(item.label)
-  })
+  const filteredNavGroups = navGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => {
+      if (isSuperAdmin) return true
+      if (isCityManager) {
+        return ['Dashboard', 'Products', 'Orders', 'Reviews', 'Rider Settings', 'Mart Settings'].includes(item.label)
+      }
+      if (isMartOwner) {
+        return ['Dashboard', 'Products', 'Orders', 'Reviews'].includes(item.label)
+      }
+      return ['Dashboard'].includes(item.label)
+    })
+  })).filter(group => group.items.length > 0)
 
   const [isUnlocked, setIsUnlocked] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -431,49 +459,58 @@ const AdminLayout = () => {
 
           {/* Scrollable Navigation */}
           <div className="flex-1 overflow-y-auto min-h-0 scrollbar-hide">
-            <nav className="px-4 py-3 space-y-1">
-              {filteredMenuItems.map((item) => {
-                const count = getBadgeCount(item.label)
-                return (
-                  <NavLink
-                    key={item.path}
-                    to={item.path}
-                    end={item.path === '/admin'}
-                    className={({ isActive }) =>
-                      `group flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${
-                        isActive
-                          ? 'bg-gradient-ozo text-white shadow-ozo'
-                          : 'hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 font-medium'
-                      }`
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-white/20' : item.bgColor}`}>
-                          <item.icon className={`w-4.5 h-4.5 ${isActive ? 'text-white' : item.color}`} />
-                        </div>
-                        <span className="font-semibold text-sm">{item.label}</span>
-                        
-                        {count > 0 && (
-                          <motion.span
-                            initial={{ scale: 0.6, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className={`ml-auto flex items-center justify-center h-5 min-w-[20px] px-1.5 text-[10px] font-black rounded-full transition-all duration-200 ${
-                              isActive
-                                ? 'bg-white text-ozo-red shadow-sm'
-                                : 'bg-red-500 text-white animate-pulse shadow-sm shadow-red-500/20'
-                            }`}
-                          >
-                            {count}
-                          </motion.span>
+            <nav className="px-4 py-3 space-y-5">
+              {filteredNavGroups.map((group, groupIdx) => (
+                <div key={groupIdx} className="space-y-1">
+                  {/* Category Section Title */}
+                  <div className="px-3 pt-1 pb-1 flex items-center justify-between text-[10px] font-black tracking-widest text-gray-400 dark:text-zinc-500 uppercase select-none">
+                    <span>{group.title}</span>
+                  </div>
+
+                  {group.items.map((item) => {
+                    const count = getBadgeCount(item.label)
+                    return (
+                      <NavLink
+                        key={item.path}
+                        to={item.path}
+                        end={item.path === '/admin'}
+                        className={({ isActive }) =>
+                          `group flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-all duration-200 ${
+                            isActive
+                              ? 'bg-gradient-ozo text-white shadow-ozo'
+                              : 'hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 font-medium'
+                          }`
+                        }
+                      >
+                        {({ isActive }) => (
+                          <>
+                            <div className={`p-1.5 rounded-lg transition-colors ${isActive ? 'bg-white/20' : item.bgColor}`}>
+                              <item.icon className={`w-4.5 h-4.5 ${isActive ? 'text-white' : item.color}`} />
+                            </div>
+                            <span className="font-semibold text-sm">{item.label}</span>
+                            
+                            {count > 0 && (
+                              <motion.span
+                                initial={{ scale: 0.6, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                className={`ml-auto flex items-center justify-center h-5 min-w-[20px] px-1.5 text-[10px] font-black rounded-full transition-all duration-200 ${
+                                  isActive
+                                    ? 'bg-white text-ozo-red shadow-sm'
+                                    : 'bg-red-500 text-white animate-pulse shadow-sm shadow-red-500/20'
+                                }`}
+                              >
+                                {count}
+                              </motion.span>
+                            )}
+                            
+                            <ChevronRight className={`w-3.5 h-3.5 transition-opacity ${count > 0 ? 'ml-1.5' : 'ml-auto'} opacity-0 group-hover:opacity-100`} />
+                          </>
                         )}
-                        
-                        <ChevronRight className={`w-3.5 h-3.5 transition-opacity ${count > 0 ? 'ml-1.5' : 'ml-auto'} opacity-0 group-hover:opacity-100`} />
-                      </>
-                    )}
-                  </NavLink>
-                )
-              })}
+                      </NavLink>
+                    )
+                  })}
+                </div>
+              ))}
             </nav>
           </div>
 
