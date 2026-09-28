@@ -54,7 +54,7 @@ import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import useOzoQuery from '../hooks/useOzoQuery'
 import ImageUpload from '../components/ImageUpload'
 import SEO from '../components/SEO'
-import { resolveCityName } from '../utils/seoHelpers'
+import { resolveCityName, getFreeDeliveryText } from '../utils/seoHelpers'
 import { useServiceModeStore } from '../stores/serviceModeStore'
 import ServicesHome from './services/ServicesHome'
 
@@ -1835,7 +1835,7 @@ const MartHome = () => {
     <div className="min-h-screen pb-16">
       <SEO 
         title={`OZO Mart - 10 Min Grocery Delivery in ${homeCityName}`}
-        description={`Best market rates, free delivery over ₹200. Order fresh vegetables, fruits, dairy, and daily groceries online in ${homeCityName}. 10-minute instant delivery guaranteed. सोचो मत, #OZOपेखोजो!`}
+        description={`Best market rates, ${getFreeDeliveryText()}. Order fresh vegetables, fruits, dairy, and daily groceries online in ${homeCityName}. 10-minute instant delivery guaranteed. सोचो मत, #OZOपेखोजो!`}
         keywords={`ozo mart, ozo delivery, online grocery ${homeCityName}, grocery delivery ${homeCityName}, fresh fruits, vegetables, Bihar quick commerce`}
         schema={homeSchema}
       />

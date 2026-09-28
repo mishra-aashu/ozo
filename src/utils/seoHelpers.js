@@ -1,6 +1,9 @@
+import { DELIVERY_DEFAULTS } from '../config/deliveryDefaults';
+import { useCartStore } from '../stores/cartStore';
+
 /**
  * SEO & CTR Optimization Helpers for OZO Mart
- * Dynamically resolves location and builds rich meta tags & JSON-LD schema.
+ * Dynamically resolves location, delivery thresholds, and builds rich meta tags & JSON-LD schema.
  */
 
 /**
@@ -28,6 +31,32 @@ export const resolveCityName = (nearestCity, addressDetails, selectedCitySlug, a
 };
 
 /**
+ * Dynamically resolves free delivery threshold from cartStore deliveryConfig or DELIVERY_DEFAULTS.
+ * Never hardcodes delivery threshold amounts (e.g. ₹200).
+ */
+export const getFreeDeliveryThreshold = () => {
+  try {
+    const deliveryConfig = useCartStore.getState()?.deliveryConfig;
+    if (deliveryConfig && deliveryConfig.free_above != null) {
+      const val = parseFloat(deliveryConfig.free_above);
+      if (!isNaN(val) && val >= 0) return val;
+    }
+  } catch (err) {
+    // fallback
+  }
+  return DELIVERY_DEFAULTS?.free_above || 99;
+};
+
+/**
+ * Formats dynamic free delivery callout string.
+ * Example: "free delivery over ₹99"
+ */
+export const getFreeDeliveryText = (customThreshold = null) => {
+  const threshold = customThreshold != null ? customThreshold : getFreeDeliveryThreshold();
+  return `free delivery over ₹${threshold}`;
+};
+
+/**
  * Builds local urgency CTR-boosting Meta Title
  * Example: "Cadbury Oreo Biscuit (120g) - 10 Min Delivery in Aurangabad | OZO Mart"
  */
@@ -38,13 +67,14 @@ export const generateProductMetaTitle = (productName, unit, cityName) => {
 };
 
 /**
- * Builds pricing and instant delivery CTR-boosting Meta Description
- * Example: "Best market rates at ₹45, free delivery over ₹200. Order Cadbury Oreo Biscuit online now on OZO Mart in Aurangabad. 10-minute instant delivery guaranteed."
+ * Builds pricing and instant delivery CTR-boosting Meta Description dynamically.
+ * Uses dynamic free delivery threshold rather than hardcoding ₹200.
  */
-export const generateProductMetaDescription = (productName, price, cityName) => {
-  if (!productName) return `Best market rates & free delivery over ₹200. Order groceries online on OZO Mart in ${cityName}. 10-minute instant delivery guaranteed.`;
+export const generateProductMetaDescription = (productName, price, cityName, customThreshold = null) => {
+  const deliveryText = getFreeDeliveryText(customThreshold);
+  if (!productName) return `Best market rates & ${deliveryText}. Order groceries online on OZO Mart in ${cityName}. 10-minute instant delivery guaranteed.`;
   const priceText = price && price > 0 ? ` at ₹${price}` : '';
-  return `Best market rates${priceText}, free delivery over ₹200. Order ${productName.trim()} online now on OZO Mart in ${cityName}. 10-minute instant delivery guaranteed.`;
+  return `Best market rates${priceText}, ${deliveryText}. Order ${productName.trim()} online now on OZO Mart in ${cityName}. 10-minute instant delivery guaranteed.`;
 };
 
 /**
@@ -55,6 +85,7 @@ export const generateProductSchema = ({ product, reviews = [], averageRating = 4
 
   const siteUrl = 'https://ozomart.store';
   const pageUrl = currentUrl || (typeof window !== 'undefined' ? window.location.href : siteUrl);
+  const deliveryText = getFreeDeliveryText();
 
   // Filter valid image URLs
   const validImages = [
@@ -73,7 +104,7 @@ export const generateProductSchema = ({ product, reviews = [], averageRating = 4
     "@type": "Product",
     "name": product.name,
     "image": validImages.length > 0 ? validImages : ["https://ozomart.store/android-chrome-512x512.png"],
-    "description": product.description || `Buy ${product.name} (${product.unit || ''}) online at OZO Mart in ${cityName}. Best market prices, free delivery over ₹200, 10-minute instant delivery.`,
+    "description": product.description || `Buy ${product.name} (${product.unit || ''}) online at OZO Mart in ${cityName}. Best market prices, ${deliveryText}, 10-minute instant delivery.`,
     "sku": `OZO-${product.id}`,
     "mpn": String(product.id),
     "category": product.category?.name || "Groceries",
@@ -85,7 +116,8 @@ export const generateProductSchema = ({ product, reviews = [], averageRating = 4
       "@type": "Offer",
       "url": pageUrl,
       "priceCurrency": "INR",
-      "price": Number(product.price || 0),
+      "price": Number(product.price || product.base_price || 0),
+      "validFrom": new Date().toISOString().split('T')[0],
       "priceValidUntil": new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().split('T')[0],
       "itemCondition": "https://schema.org/NewCondition",
       "availability": isAvailable ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",

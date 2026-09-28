@@ -26,7 +26,7 @@ import TopCategories from '../components/TopCategories'
 import ProductSkeleton from '../components/ProductSkeleton'
 import SEO from '../components/SEO'
 import { useLocationStore } from '../stores/locationStore'
-import { resolveCityName } from '../utils/seoHelpers'
+import { resolveCityName, getFreeDeliveryText } from '../utils/seoHelpers'
 
 const Products = () => {
   const productsSchema = useMemo(() => ({
@@ -275,7 +275,7 @@ const Products = () => {
     <div className="min-h-screen bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300">
       <SEO 
         title={`Shop Online Grocery - 10 Min Delivery in ${currentCityName} | OZO Mart`}
-        description={`Best market rates, free delivery over ₹200. Order fresh groceries, snacks, beverages and daily essentials online in ${currentCityName}. 10-minute instant delivery guaranteed.`}
+        description={`Best market rates, ${getFreeDeliveryText()}. Order fresh groceries, snacks, beverages and daily essentials online in ${currentCityName}. 10-minute instant delivery guaranteed.`}
         keywords={`shop online grocery ${currentCityName}, buy fresh fruits ${currentCityName}, order organic vegetables online, grocery delivery in ${currentCityName}`}
         schema={productsSchema}
       />

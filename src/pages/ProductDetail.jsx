@@ -3,7 +3,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import Breadcrumb from '../components/Breadcrumb'
-import { resolveCityName, generateProductMetaTitle, generateProductMetaDescription, generateProductSchema } from '../utils/seoHelpers'
+import { resolveCityName, generateProductMetaTitle, generateProductMetaDescription, generateProductSchema, getFreeDeliveryText } from '../utils/seoHelpers'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ShoppingCart, 
@@ -838,7 +838,7 @@ const ProductDetail = () => {
   }, [currentProduct, currentCityName])
 
   const dynamicDescription = useMemo(() => {
-    if (!currentProduct) return 'Best market rates, free delivery over ₹200. Order online on OZO Mart.'
+    if (!currentProduct) return `Best market rates, ${getFreeDeliveryText()}. Order online on OZO Mart.`
     return generateProductMetaDescription(currentProduct.name, currentProduct.price, currentCityName)
   }, [currentProduct, currentCityName])
 

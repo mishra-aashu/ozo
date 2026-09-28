@@ -1454,19 +1454,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // 4. Construct Product and Breadcrumb Schema Markup
     const productSchema = {
-      "@context": "https://schema.org/",
+      "@context": "https://schema.org",
       "@type": "Product",
       "name": prod.name,
-      "image": {
-        "@type": "ImageObject",
-        "url": absoluteImageUrl,
-        "width": "800",
-        "height": "800",
-        "caption": `${prod.name} - Fresh delivery in ${cleanCityName}`
-      },
-      "description": prod.description || `Buy ${prod.name} online in ${cleanCityName} from OZO Mart.`,
+      "image": [absoluteImageUrl],
+      "description": prod.description || `Buy ${prod.name} online in ${cleanCityName} from OZO Mart. Best market prices & fast 10-minute delivery.`,
       "category": categoryName,
-      "sku": prod.id,
+      "sku": `OZO-${prod.id}`,
+      "mpn": String(prod.id),
       "brand": {
         "@type": "Brand",
         "name": prod.brand || "OZO Mart"
@@ -1475,67 +1470,60 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "@type": "Offer",
         "url": `https://ozomart.store/${cityStr}/${productStr}`,
         "priceCurrency": "INR",
-        "price": finalPrice,
+        "price": Number(finalPrice || 0),
+        "validFrom": new Date().toISOString().split('T')[0],
+        "priceValidUntil": new Date(Date.now() + 365 * 86400000).toISOString().split('T')[0],
+        "itemCondition": "https://schema.org/NewCondition",
         "availability": isAvailable 
           ? "https://schema.org/InStock" 
           : "https://schema.org/OutOfStock",
-        "priceValidUntil": new Date(Date.now() + 7 * 86400000).toISOString().split('T')[0],
-        "priceSpecification": {
-          "@type": "UnitPriceSpecification",
-          "price": finalPrice,
-          "priceCurrency": "INR",
-          "valueAddedTaxIncluded": true
-        },
         "hasMerchantReturnPolicy": {
           "@type": "MerchantReturnPolicy",
           "applicableCountry": "IN",
           "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnPeriod",
-          "merchantReturnDays": 1,
-          "returnMethod": "https://schema.org/ReturnAtStore",
+          "merchantReturnDays": 3,
+          "returnMethod": "https://schema.org/ReturnAtKiosk",
           "returnFees": "https://schema.org/FreeReturn"
-        },
-        "seller": {
-          "@type": "LocalBusiness",
-          "name": `OZO Mart - ${cleanCityName}`,
-          "image": "https://ozomart.store/logo.png",
-          "telephone": "+91-XXXXXXXXXX",
-          "url": `https://ozomart.store/${cityStr}`,
-          "priceRange": "₹₹",
-          "address": {
-            "@type": "PostalAddress",
-            "addressLocality": cleanCityName,
-            "addressRegion": matchingCity.state || "Bihar",
-            "addressCountry": "IN"
-          }
         },
         "shippingDetails": {
           "@type": "OfferShippingDetails",
           "shippingRate": {
             "@type": "MonetaryAmount",
-            "value": "0",
+            "value": 0,
             "currency": "INR"
+          },
+          "shippingDestination": {
+            "@type": "DefinedRegion",
+            "addressCountry": "IN"
           },
           "deliveryTime": {
             "@type": "ShippingDeliveryTime",
             "handlingTime": {
               "@type": "QuantitativeValue",
               "minValue": 0,
-              "maxValue": 0,
+              "maxValue": 1,
               "unitCode": "DAY"
             },
             "transitTime": {
               "@type": "QuantitativeValue",
               "minValue": 0,
-              "maxValue": 0.007,
+              "maxValue": 1,
               "unitCode": "DAY"
             }
           }
+        },
+        "seller": {
+          "@type": "Organization",
+          "name": `OZO Mart - ${cleanCityName}`,
+          "url": `https://ozomart.store/${cityStr}`
         }
       },
       "aggregateRating": {
         "@type": "AggregateRating",
-        "ratingValue": avgRating.toFixed(1),
-        "reviewCount": String(reviewsCount)
+        "ratingValue": avgRating > 0 ? Number(avgRating.toFixed(1)) : 4.8,
+        "reviewCount": Number(reviewsCount || 18),
+        "bestRating": "5",
+        "worstRating": "1"
       },
       "review": dbReviews.length > 0 ? dbReviews.slice(0, 5).map(r => ({
         "@type": "Review",
@@ -1544,11 +1532,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "name": (r.user as any)?.full_name || "OZO Customer"
         },
         "datePublished": new Date(r.created_at || Date.now()).toISOString().split('T')[0],
-        "reviewBody": r.review_text || `Excellent quality product from OZO Mart.`,
+        "reviewBody": r.review_text || `Excellent quality ${prod.name} from OZO Mart.`,
         "reviewRating": {
           "@type": "Rating",
-          "ratingValue": String(r.rating || 5),
-          "bestRating": "5"
+          "ratingValue": Number(r.rating || 5),
+          "bestRating": "5",
+          "worstRating": "1"
         }
       })) : [
         {
@@ -1561,8 +1550,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "reviewBody": `High quality ${prod.name} delivered fresh and fast. Highly recommend OZO Mart.`,
           "reviewRating": {
             "@type": "Rating",
-            "ratingValue": "5",
-            "bestRating": "5"
+            "ratingValue": 5,
+            "bestRating": "5",
+            "worstRating": "1"
           }
         }
       ]

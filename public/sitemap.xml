@@ -1,16 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Product & Category pages (Aurangabad, Bihar — ~1982 pages) -->
+  <!-- Dynamic City Sitemaps (Auto-generated per operating city via /api/sitemap) -->
   <sitemap>
-    <loc>https://www.ozomart.store/sitemap-aurangabad-bihar.xml</loc>
-    <lastmod>2026-06-14</lastmod>
+    <loc>https://www.ozomart.store/sitemap-aurangabad.xml</loc>
+    <lastmod>2026-09-28</lastmod>
+  </sitemap>
+  <sitemap>
+    <loc>https://www.ozomart.store/sitemap-patna.xml</loc>
+    <lastmod>2026-09-28</lastmod>
   </sitemap>
 
-  <!-- Static pages (About, Help, Contact, Privacy, etc. — 14 pages) -->
+  <!-- Static pages (About, Help, Contact, Privacy, etc.) -->
   <sitemap>
     <loc>https://www.ozomart.store/sitemap-static.xml</loc>
-    <lastmod>2026-06-14</lastmod>
+    <lastmod>2026-09-28</lastmod>
   </sitemap>
 
 </sitemapindex>
