@@ -54,6 +54,7 @@ import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import useOzoQuery from '../hooks/useOzoQuery'
 import ImageUpload from '../components/ImageUpload'
 import SEO from '../components/SEO'
+import { resolveCityName } from '../utils/seoHelpers'
 import { useServiceModeStore } from '../stores/serviceModeStore'
 import ServicesHome from './services/ServicesHome'
 
@@ -1821,12 +1822,21 @@ const MartHome = () => {
     )
   }
 
+  const homeNearestCity = useLocationStore(state => state.nearestCity)
+  const homeAddressDetails = useLocationStore(state => state.addressDetails)
+  const homeSelectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const homeActiveCities = useLocationStore(state => state.activeCities)
+
+  const homeCityName = useMemo(() => {
+    return resolveCityName(homeNearestCity, homeAddressDetails, homeSelectedCitySlug, homeActiveCities)
+  }, [homeNearestCity, homeAddressDetails, homeSelectedCitySlug, homeActiveCities])
+
   return (
     <div className="min-h-screen pb-16">
       <SEO 
-        title="OZO Mart | 30-Min Grocery Delivery in Aurangabad"
-        description="Order fresh vegetables, fruits, dairy, and daily groceries on OZO Mart. Fast 30-minute delivery in Aurangabad, Bihar. सोचो मत, #OZOपेखोजो!"
-        keywords="ozo mart, ozo delivery, online grocery, grocery delivery, fresh fruits, vegetables, Patna grocery delivery, Aurangabad grocery delivery, Bihar quick commerce, Mithila specials"
+        title={`OZO Mart - 10 Min Grocery Delivery in ${homeCityName}`}
+        description={`Best market rates, free delivery over ₹200. Order fresh vegetables, fruits, dairy, and daily groceries online in ${homeCityName}. 10-minute instant delivery guaranteed. सोचो मत, #OZOपेखोजो!`}
+        keywords={`ozo mart, ozo delivery, online grocery ${homeCityName}, grocery delivery ${homeCityName}, fresh fruits, vegetables, Bihar quick commerce`}
         schema={homeSchema}
       />
       <section className="relative overflow-hidden transition-colors duration-500">

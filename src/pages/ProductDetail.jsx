@@ -3,6 +3,7 @@ import { useShallow } from 'zustand/react/shallow'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import Breadcrumb from '../components/Breadcrumb'
+import { resolveCityName, generateProductMetaTitle, generateProductMetaDescription, generateProductSchema } from '../utils/seoHelpers'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
   ShoppingCart, 
@@ -203,7 +204,12 @@ const ProductDetail = () => {
   const coordinates = useLocationStore(state => state.coordinates)
   const addressDetails = useLocationStore(state => state.addressDetails)
   const activeCities = useLocationStore(state => state.activeCities)
+  const nearestCity = useLocationStore(state => state.nearestCity)
   const isFirstMount = useRef(true)
+
+  const currentCityName = useMemo(() => {
+    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
+  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
 
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
@@ -776,69 +782,14 @@ const ProductDetail = () => {
 
   const productSchema = useMemo(() => {
     if (!currentProduct) return null
-    
-    const schema = {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "name": currentProduct.name,
-      "image": [
-        currentProduct.image_url,
-        ...(Array.isArray(currentProduct.images) ? currentProduct.images : [])
-      ].filter(img => img && !img.includes('raw.githubusercontent.com') && !img.includes('logo_transparent.png')),
-      "description": currentProduct.description || `${currentProduct.name} - high quality grocery item from OZO Mart.`,
-      "sku": `OZO-${currentProduct.id}`,
-      "mpn": currentProduct.id,
-      "category": currentProduct.category?.name || "Groceries",
-      "brand": {
-        "@type": "Brand",
-        "name": getProductBrand(currentProduct) || "OZO Mart"
-      },
-      "offers": {
-        "@type": "Offer",
-        "url": window.location.href,
-        "priceCurrency": "INR",
-        "price": currentProduct.price,
-        "priceValidUntil": new Date(Date.now() + 1000 * 60 * 60 * 24 * 365).toISOString().split('T')[0],
-        "itemCondition": "https://schema.org/NewCondition",
-        "availability": currentProduct.is_available 
-          ? "https://schema.org/InStock" 
-          : "https://schema.org/OutOfStock",
-        "seller": {
-          "@type": "Organization",
-          "name": "OZO Mart",
-          "url": "https://ozomart.store"
-        }
-      }
-    }
-
-    if (Array.isArray(reviews) && reviews.length > 0) {
-      const ratingVal = Number(averageRating)
-      schema.aggregateRating = {
-        "@type": "AggregateRating",
-        "ratingValue": ratingVal > 0 ? ratingVal : 5,
-        "reviewCount": reviews.length,
-        "bestRating": "5",
-        "worstRating": "1"
-      }
-      schema.review = reviews.slice(0, 5).map(r => ({
-        "@type": "Review",
-        "author": {
-          "@type": "Person",
-          "name": r.user?.full_name || "OZO Customer"
-        },
-        "datePublished": new Date(r.created_at).toISOString().split('T')[0],
-        "reviewBody": r.review_text,
-        "reviewRating": {
-          "@type": "Rating",
-          "ratingValue": r.rating,
-          "bestRating": "5",
-          "worstRating": "1"
-        }
-      }))
-    }
-
-    return schema
-  }, [currentProduct, reviews, averageRating])
+    return generateProductSchema({
+      product: currentProduct,
+      reviews,
+      averageRating,
+      cityName: currentCityName,
+      currentUrl: typeof window !== 'undefined' ? window.location.href : `https://ozomart.store/product/${slug}`
+    })
+  }, [currentProduct, reviews, averageRating, currentCityName, slug])
 
   const breadcrumbItems = useMemo(() => {
     const items = [
@@ -858,8 +809,8 @@ const ProductDetail = () => {
     return items
   }, [currentProduct])
 
-  // BreadcrumbList schema — shows breadcrumb trail in Google search snippets (boosts CTR)
-  const breadcrumbSchema = useMemo(() => {
+  // BreadcrumbList + Product schema graph — shows rich snippets & merchant listing status in Google search (boosts CTR)
+  const combinedSchema = useMemo(() => {
     if (!currentProduct) return productSchema
     const base = 'https://ozomart.store'
     return {
@@ -880,6 +831,16 @@ const ProductDetail = () => {
       ]
     }
   }, [currentProduct, breadcrumbItems, productSchema])
+
+  const dynamicTitle = useMemo(() => {
+    if (!currentProduct) return 'OZO Mart - 10 Min Grocery Delivery'
+    return generateProductMetaTitle(currentProduct.name, currentProduct.unit, currentCityName)
+  }, [currentProduct, currentCityName])
+
+  const dynamicDescription = useMemo(() => {
+    if (!currentProduct) return 'Best market rates, free delivery over ₹200. Order online on OZO Mart.'
+    return generateProductMetaDescription(currentProduct.name, currentProduct.price, currentCityName)
+  }, [currentProduct, currentCityName])
 
   const isLoading = isInitializing || isProductDetailLoading
 
@@ -911,11 +872,11 @@ const ProductDetail = () => {
       <div className="min-h-screen bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-500">
         {currentProduct && (
           <SEO 
-            title={`${currentProduct.name} (${currentProduct.unit}) | OZO Mart`}
-            description={currentProduct.description || `Order ${currentProduct.name} (${currentProduct.unit}) online on OZO Mart. Swift 30-minute grocery delivery in Patna & Aurangabad.`}
-            keywords={`${currentProduct.name}, buy ${currentProduct.name} online, ${getProductBrand(currentProduct) || 'Ozo Fresh'} products, Patna grocery, Aurangabad grocery`}
+            title={dynamicTitle}
+            description={dynamicDescription}
+            keywords={`${currentProduct.name}, buy ${currentProduct.name} online, 10 min delivery in ${currentCityName}, ${getProductBrand(currentProduct) || 'OZO'} ${currentProduct.name}, grocery delivery ${currentCityName}`}
             canonical={`https://www.ozomart.store/product/${slug}`}
-            schema={breadcrumbSchema}
+            schema={combinedSchema}
           />
         )}
       {/* Breadcrumbs & Back */}

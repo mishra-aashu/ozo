@@ -25,6 +25,8 @@ import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import TopCategories from '../components/TopCategories'
 import ProductSkeleton from '../components/ProductSkeleton'
 import SEO from '../components/SEO'
+import { useLocationStore } from '../stores/locationStore'
+import { resolveCityName } from '../utils/seoHelpers'
 
 const Products = () => {
   const productsSchema = useMemo(() => ({
@@ -253,6 +255,15 @@ const Products = () => {
 
   const groupedProducts = filteredAndSortedProducts
 
+  const nearestCity = useLocationStore(state => state.nearestCity)
+  const addressDetails = useLocationStore(state => state.addressDetails)
+  const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const activeCities = useLocationStore(state => state.activeCities)
+
+  const currentCityName = useMemo(() => {
+    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
+  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
+
   const getPageTitle = () => {
     if (searchParam) return `Results for "${searchParam}"`
     if (filterParam === 'featured') return 'Featured Products'
@@ -263,9 +274,9 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors duration-300">
       <SEO 
-        title="Shop Online Grocery & Fresh Produce | OZO Mart"
-        description="Browse and order online from OZO Mart's wide catalog of products, including fresh seasonal fruits, organic vegetables, daily snacks, beverages, and Mithila regional foods."
-        keywords="shop online grocery, buy fresh fruits, order organic vegetables online, buy Mithila sweets, Patna grocery delivery, Aurangabad grocery delivery"
+        title={`Shop Online Grocery - 10 Min Delivery in ${currentCityName} | OZO Mart`}
+        description={`Best market rates, free delivery over ₹200. Order fresh groceries, snacks, beverages and daily essentials online in ${currentCityName}. 10-minute instant delivery guaranteed.`}
+        keywords={`shop online grocery ${currentCityName}, buy fresh fruits ${currentCityName}, order organic vegetables online, grocery delivery in ${currentCityName}`}
         schema={productsSchema}
       />
       <div 

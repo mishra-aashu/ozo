@@ -26,6 +26,8 @@ import Breadcrumb from '../components/Breadcrumb'
 import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
 import toast from 'react-hot-toast'
 import SEO from '../components/SEO'
+import { useLocationStore } from '../stores/locationStore'
+import { resolveCityName } from '../utils/seoHelpers'
 
 // Premium "Listing Soon" interactive widget for Fruits & Vegetables categories
 const ComingSoonSection = ({ category }) => {
@@ -579,9 +581,18 @@ const CategoryProducts = () => {
     }
   }
 
+  const nearestCity = useLocationStore(state => state.nearestCity)
+  const addressDetails = useLocationStore(state => state.addressDetails)
+  const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const activeCities = useLocationStore(state => state.activeCities)
+
+  const currentCityName = useMemo(() => {
+    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
+  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
+
   const catName = currentCategory?.name || slug
   const catDesc = currentCategory?.description
-    || `Buy fresh ${catName} online in Aurangabad & Patna. Delivered in 30 minutes by OZO Mart. Best quality, best price.`
+    || `Best market rates, free delivery over ₹200. Order ${catName} online now on OZO Mart in ${currentCityName}. 10-minute instant delivery guaranteed.`
 
   return (
     <motion.div
@@ -592,9 +603,9 @@ const CategoryProducts = () => {
       className={`flex flex-col bg-gradient-to-br ${pageBgGradient} dark:from-[#0a0a0a] dark:to-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible`}
     >
       <SEO
-        title={`Buy ${catName} Online | OZO Mart Aurangabad`}
+        title={`Buy ${catName} Online - 10 Min Delivery in ${currentCityName} | OZO Mart`}
         description={catDesc}
-        keywords={`buy ${catName} online, ${catName} delivery Aurangabad, ${catName} online grocery, OZO Mart ${catName}, fresh ${catName} Bihar`}
+        keywords={`buy ${catName} online, ${catName} delivery ${currentCityName}, ${catName} online grocery, OZO Mart ${catName}, fresh ${catName} ${currentCityName}`}
         canonical={`https://www.ozomart.store/category/${slug}`}
         schema={categorySchema}
       />
