@@ -152,13 +152,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       </url>
       `;
 
-      // 4. Product page URL entries
-      const urls = availableProducts.map((prod: any) => {
-        const categoryObj = prod.categories as any;
-        const categorySlug = (Array.isArray(categoryObj) ? categoryObj[0]?.slug : categoryObj?.slug) || 'item';
+      // 4. Fetch categories for category page URLs
+      let allCategories: any[] = [];
+      try {
+        const { data: catData } = await supabase
+          .from('categories')
+          .select('slug, updated_at')
+          .eq('is_active', true);
+        if (catData) allCategories = catData;
+      } catch (err) {
+        console.warn('Failed to fetch categories for sitemap:', err);
+      }
+
+      // 5. Product page URL entries — 2-segment /{city}/{product} matching canonical
+      const productUrls = availableProducts.map((prod: any) => {
         return `
       <url>
-        <loc>https://www.ozomart.store/${cityStr}/${categorySlug}/${prod.slug}</loc>
+        <loc>https://www.ozomart.store/${cityStr}/${prod.slug}</loc>
         <lastmod>${new Date(prod.updated_at || Date.now()).toISOString().split('T')[0]}</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.8</priority>
@@ -166,11 +176,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       `;
       }).join('');
 
-      // 5. Wrap in urlset
+      // 6. Category page URL entries — /{city}/category/{slug}
+      const categoryUrls = allCategories.map((cat: any) => `
+      <url>
+        <loc>https://www.ozomart.store/${cityStr}/category/${cat.slug}</loc>
+        <lastmod>${new Date(cat.updated_at || Date.now()).toISOString().split('T')[0]}</lastmod>
+        <changefreq>daily</changefreq>
+        <priority>0.7</priority>
+      </url>
+      `).join('');
+
+      // 7. Wrap in urlset
       const xml = `<?xml version="1.0" encoding="UTF-8"?>
       <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
         ${cityUrl}
-        ${urls}
+        ${categoryUrls}
+        ${productUrls}
       </urlset>`.trim();
 
       // 6. Set caching headers

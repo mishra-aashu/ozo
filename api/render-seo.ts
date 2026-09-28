@@ -680,8 +680,9 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
     console.error('Error fetching products for homepage SEO:', err);
   }
 
+  const activeCityNames = activeCities.map(c => c.name.split(',')[0].trim()).join(', ');
   const title = "OZO Mart | Jo Chahiye, Jab Chahiye | Online Grocery Delivery";
-  const description = "Order fresh vegetables, organic fruits, daily essentials, and Mithila regional specialities online on OZO Mart (OZO). Fast 10-30 min delivery in Aurangabad, Bihar. सोचो मत, #OZOपेखोजो!";
+  const description = `Order fresh vegetables, organic fruits, daily essentials, and Mithila regional specialities online on OZO Mart (OZO). Fast 10-30 min delivery in ${activeCityNames || 'Aurangabad'}, Bihar. सोचो मत, #OZOपेखोजो!`;
   const keywords = "OZO, OZO Mart, OZO Grocery, online grocery, grocery delivery, fresh fruits, fresh vegetables, Mithila specials, makhana, thekua, quick commerce, Bihar grocery delivery";
   const canonicalUrl = "https://ozomart.store";
 
@@ -730,7 +731,7 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
         "name": "How fast does OZO deliver?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "OZO delivers fresh groceries and vegetables in 10 to 30 minutes in Aurangabad, Bihar."
+          "text": `OZO delivers fresh groceries and vegetables in 10 to 30 minutes in ${activeCityNames || 'Aurangabad'}, Bihar.`
         }
       }
     ]
@@ -753,7 +754,7 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
   const featuredProductsHTML = products.map(p => `
     <div class="related-card">
       <a href="/${currentCitySlug}/${p.slug}">
-        <img src="${p.image_url}" alt="${p.name} - Fresh delivery in Aurangabad" loading="lazy" />
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name} - Fast delivery in ${activeCityNames || currentCitySlug}" loading="lazy" />` : ''}
         <h3>${p.name}</h3>
         <p>₹${p.base_price}</p>
         <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
@@ -826,7 +827,7 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
 
       <div class="faq-card">
         <h3>Where is OZO Mart active?</h3>
-        <p>We are currently fully operational in Aurangabad, Bihar, and expanding rapidly to other cities in Bihar, including Patna and Gaya.</p>
+        <p>We are currently fully operational in ${activeCityNames || 'Aurangabad'}, Bihar, and expanding rapidly to other cities.</p>
       </div>
     </div>
   `;
@@ -941,7 +942,7 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
   const featuredProductsHTML = products.map(p => `
     <div class="related-card">
       <a href="/${city.slug}/${p.slug}">
-        <img src="${p.image_url}" alt="${p.name} - Fresh delivery in ${cityName}" loading="lazy" />
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name} - Fresh delivery in ${cityName}" loading="lazy" />` : ''}
         <h3>${p.name}</h3>
         <p>₹${p.base_price}</p>
         <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
@@ -1034,9 +1035,10 @@ async function renderCategoryPage(res: VercelResponse, categorySlug: string, cit
   }
 
   const title = `${categoryName} Online | OZO Mart Grocery Delivery`;
-  const description = `Buy fresh ${categoryName} online on OZO Mart. Fast 10-30 minute grocery delivery. सोचो मत, #OZOपेखोजो!`;
+  const description = `Buy fresh ${categoryName} online on OZO Mart. Fast 10-30 minute grocery delivery in ${activeCities.map(c => c.name.split(',')[0].trim()).join(', ')}. सोचो मत, #OZOपेखोजो!`;
   const keywords = `buy ${categoryName} online, ${categoryName} delivery, OZO ${categoryName}, online grocery Bihar`;
-  const canonicalUrl = `https://www.ozomart.store/category/${categorySlug}`;
+  // Canonical uses city-prefixed URL to match the actual vercel.json route (/:city/category/:slug)
+  const canonicalUrl = `https://www.ozomart.store/${currentCitySlug}/category/${categorySlug}`;
 
   const itemListSchema = {
     "@context": "https://schema.org",
@@ -1054,7 +1056,7 @@ async function renderCategoryPage(res: VercelResponse, categorySlug: string, cit
   const categoryProductsHTML = products.map(p => `
     <div class="related-card">
       <a href="/${currentCitySlug}/${p.slug}">
-        <img src="${p.image_url}" alt="${p.name} - ${categoryName} on OZO Mart" loading="lazy" />
+        ${p.image_url ? `<img src="${p.image_url}" alt="${p.name} - ${categoryName} on OZO Mart" loading="lazy" />` : ''}
         <h3>${p.name}</h3>
         <p>₹${p.base_price}</p>
         <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
@@ -1517,7 +1519,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       "offers": {
         "@type": "Offer",
-        "url": `https://ozomart.store/${cityStr}/${productStr}`,
+        "url": `https://www.ozomart.store/${matchingCity.slug}/${prod.slug}`,
         "priceCurrency": "INR",
         "price": Number(finalPrice || 0),
         "validFrom": new Date().toISOString().split('T')[0],
@@ -1728,7 +1730,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ${relatedProducts.map(rp => `
       <div class="related-card">
         <a href="/${cityStr}/${rp.slug}">
-          <img src="${rp.image_url}" alt="${rp.name} - Fresh delivery in ${cleanCityName}" loading="lazy" />
+          ${rp.image_url ? `<img src="${rp.image_url}" alt="${rp.name} - Fresh delivery in ${cleanCityName}" loading="lazy" />` : ''}
           <h3>${rp.name}</h3>
           <p>₹${rp.price}</p>
         </a>
@@ -1782,14 +1784,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="al:android:app_name" content="OZO Mart">
 
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://www.ozomart.store/product/${prod.slug}">
+  <link rel="canonical" href="https://www.ozomart.store/${matchingCity.slug}/${prod.slug}">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="product">
   <meta property="og:title" content="Buy ${prod.name} - OZO Mart ${cleanCityName}">
   <meta property="og:description" content="Get ${prod.name} (${prod.unit}) at ₹${finalPrice} in just 10 minutes from OZO Mart.">
   <meta property="og:image" content="${absoluteImageUrl}">
-  <meta property="og:url" content="https://ozomart.store/${cityStr}/${productStr}">
+  <meta property="og:url" content="https://www.ozomart.store/${matchingCity.slug}/${prod.slug}">
   <meta property="og:site_name" content="OZO Mart">
   <meta property="product:price:amount" content="${finalPrice}">
   <meta property="product:price:currency" content="INR">
