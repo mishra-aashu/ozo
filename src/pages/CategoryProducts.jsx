@@ -31,6 +31,12 @@ import { resolveCityName, getFreeDeliveryText } from '../utils/seoHelpers'
 
 // Premium "Listing Soon" interactive widget for Fruits & Vegetables categories
 const ComingSoonSection = ({ category }) => {
+  const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const activeCities = useLocationStore(state => state.activeCities)
+  const nearestCity = useLocationStore(state => state.nearestCity)
+  const addressDetails = useLocationStore(state => state.addressDetails)
+  const cityName = useMemo(() => resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities), [nearestCity, addressDetails, selectedCitySlug, activeCities])
+
   const [isSubscribed, setIsSubscribed] = useState(() => {
     try {
       return localStorage.getItem(`notify_cat_${category?.slug}`) === 'true';
@@ -114,7 +120,7 @@ const ComingSoonSection = ({ category }) => {
             Freshness is on its <span className="text-gradient">way!</span>
           </h2>
           <p className="text-xs md:text-sm text-gray-600 dark:text-gray-300 font-semibold leading-relaxed max-w-lg mx-auto">
-            We are working directly with local Aurangabad farmers and trusted distributors to bring you the highest quality, handpicked fresh {category?.name || 'produce'} at the best price.
+            We are working directly with local {cityName} farmers and trusted distributors to bring you the highest quality, handpicked fresh {category?.name || 'produce'} at the best price.
           </p>
         </div>
 
@@ -122,7 +128,7 @@ const ComingSoonSection = ({ category }) => {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
           <div className="bg-white/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 p-4 rounded-2xl text-center shadow-sm">
             <div className="text-lg font-black text-ozo-red mb-1">🌽 Local Sourcing</div>
-            <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold">Directly from Aurangabad farms</div>
+            <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold">Directly from {cityName} farms</div>
           </div>
           <div className="bg-white/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 p-4 rounded-2xl text-center shadow-sm">
             <div className="text-lg font-black text-ozo-red mb-1">🧼 Hygienically Safe</div>
@@ -859,7 +865,7 @@ const CategoryProducts = () => {
               {currentCategory ? currentCategory.name : 'Loading Category...'}
             </h1>
             <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
-              {currentCategory?.description || `Browse fresh and premium-grade segment items handpicked just for you. Guaranteed delivery at your doorstep in Aurangabad within 30 minutes.`}
+              {currentCategory?.description || `Browse fresh and premium-grade segment items handpicked just for you. Guaranteed delivery at your doorstep in ${currentCityName} within 30 minutes.`}
             </p>
           </div>
         </div>
