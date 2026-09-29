@@ -2357,17 +2357,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <body>
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
-  <!-- Structured Data for Delivery Area -->
-  <div itemscope itemtype="https://schema.org/LocalBusiness" style="display:none;">
-    <span itemprop="name">OZO Mart ${cleanCityName}</span>
-    <span itemprop="telephone">+91-XXXXXXXXXX</span>
-    <div itemprop="address" itemscope itemtype="https://schema.org/PostalAddress">
-      <span itemprop="addressLocality">${cleanCityName}</span>
-      <span itemprop="addressRegion">${matchingCity.state || 'Bihar'}</span>
-      <span itemprop="addressCountry">IN</span>
-    </div>
-  </div>
-
   <header class="header">
     <div class="header-content">
       <a href="/" class="logo">OZO<span>Mart</span></a>
@@ -2385,7 +2374,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     </nav>
     
     <!-- Product Grid -->
-    <div class="product-grid" itemscope itemtype="https://schema.org/Product">
+    <div class="product-grid">
       <div class="image-container">
         <img 
           src="${absoluteImageUrl}" 
@@ -2502,24 +2491,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <!-- FAQs -->
     <h2 class="section-title">Frequently Asked Questions</h2>
     <div class="faq-container">
-      <div class="faq-card" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">Is ${prod.name} delivery available in ${cleanCityName}?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">Yes, OZO Mart delivers ${prod.name} across all active areas of ${cleanCityName} within 10 minutes.</p>
+      <div class="faq-card">
+        <h3>Is ${prod.name} delivery available in ${cleanCityName}?</h3>
+        <div>
+          <p>Yes, OZO Mart delivers ${prod.name} across all active areas of ${cleanCityName} within 10 minutes.</p>
         </div>
       </div>
       
-      <div class="faq-card" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">What is the price of ${prod.name} in ${cleanCityName} today?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">The current price of ${prod.name} is ₹${finalPrice} for ${prod.unit}. Prices are updated daily to ensure you get the best deal.</p>
+      <div class="faq-card">
+        <h3>What is the price of ${prod.name} in ${cleanCityName} today?</h3>
+        <div>
+          <p>The current price of ${prod.name} is ₹${finalPrice} for ${prod.unit}. Prices are updated daily to ensure you get the best deal.</p>
         </div>
       </div>
 
-      <div class="faq-card" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">Can I pay Cash on Delivery (COD) for ${prod.name}?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">Yes, Cash on Delivery (COD) as well as online UPI and card payment options are fully supported on the OZO Mart app.</p>
+      <div class="faq-card">
+        <h3>Can I pay Cash on Delivery (COD) for ${prod.name}?</h3>
+        <div>
+          <p>Yes, Cash on Delivery (COD) as well as online UPI and card payment options are fully supported on the OZO Mart app.</p>
         </div>
       </div>
     </div>
