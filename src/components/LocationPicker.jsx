@@ -21,7 +21,7 @@ import {
   Store
 } from 'lucide-react'
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useLocationStore, checkDeliveryZoneStatus, checkPincodeServiceable, showServiceabilityModal, findMatchingActiveCity, findCityByPincode } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore'
@@ -33,6 +33,7 @@ import EarthGlobeBackground from './EarthGlobeBackground'
 
 
 const LocationPicker = ({ isOpen, onClose }) => {
+  const navigate = useNavigate()
   const { 
     address, 
     setAddress, 
