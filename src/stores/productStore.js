@@ -712,6 +712,8 @@ export const useProductStore = create((set, get) => ({
         .rpc('get_spelling_suggestion', { search_term: trimmed })
         .abortSignal(signal)
 
+      const [searchRes, suggestionRes] = await Promise.all([searchPromise, suggestionPromise])
+
       let products = []
       if (searchRes.error) {
         if (searchRes.error.code === '42501' || searchRes.error.status === 401 || searchRes.error.message?.includes('permission denied')) {
