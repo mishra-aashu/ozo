@@ -33,8 +33,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // Handle GET - Product Image Optimized Proxy
   if (req.method === 'GET') {
-    // Apply Inbound Rate Limiting (e.g., 60 requests per minute)
-    const rateLimitResult = await checkRateLimit(req, 60, 60);
+    // Apply Inbound Rate Limiting (e.g., 300 requests per minute)
+    const rateLimitResult = await checkRateLimit(req, 300, 60);
     setRateLimitHeaders(res, rateLimitResult);
     if (!rateLimitResult.success) {
       return res.status(429).json({ 

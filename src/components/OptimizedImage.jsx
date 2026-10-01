@@ -41,19 +41,17 @@ export default function OptimizedImage({
   useEffect(() => {
     setDetectedBg(null)
     
-    if (slug) {
-      // SEO Friendly Local Domain Image Proxy URL
-      // Only pass fallback if src is a real, non-blocked URL
-      const fallbackParam =
-        src && !isBlockedUrl(src) ? `&fallback=${encodeURIComponent(src)}` : ''
-      const localUrl = `/product-images/${slug}.png?w=${width}&q=${quality}${fallbackParam}`
-      setCurrentSrc(localUrl)
-      setStatus('optimizing')
-      setImageLoading(true)
-    } else if (src) {
+    if (src && !isBlockedUrl(src)) {
+      // Prioritize direct, high-performance WebP CDN via wsrv.nl (Cloudflare Edge CDN)
       const optimizedUrl = getOptimizedImageUrl(src, { width, quality })
       setCurrentSrc(optimizedUrl)
       setStatus(optimizedUrl === src ? 'original' : 'optimizing')
+      setImageLoading(true)
+    } else if (slug) {
+      // Fallback: SEO Friendly Local Domain Image Proxy URL when direct src is missing
+      const localUrl = `/product-images/${slug}.png?w=${width}&q=${quality}`
+      setCurrentSrc(localUrl)
+      setStatus('optimizing')
       setImageLoading(true)
     } else {
       setCurrentSrc('')
@@ -64,21 +62,18 @@ export default function OptimizedImage({
 
   const handleError = (e) => {
     if (status === 'optimizing') {
-      // If src is blocked/invalid, skip it and go straight to placeholder
-      if (!src || isBlockedUrl(src)) {
-        setCurrentSrc(fallbackSrc)
-        setStatus('fallback')
-      } else {
-        // Try the original (non-proxied) URL next
+      if (src && !isBlockedUrl(src)) {
+        // Try original URL next if wsrv.nl CDN fails
         setCurrentSrc(src)
         setStatus('original')
+      } else {
+        setCurrentSrc(fallbackSrc)
+        setStatus('fallback')
       }
     } else if (status === 'original') {
-      // If original URL fails, fallback to the placeholder image
       setCurrentSrc(fallbackSrc)
       setStatus('fallback')
     } else {
-      // If even the fallback fails, stop to prevent infinite loops
       setImageLoading(false)
     }
 
