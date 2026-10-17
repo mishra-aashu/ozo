@@ -23,6 +23,35 @@ import {
   BookOpen
 } from 'lucide-react'
 
+// Official Verified Blue Tick Badge Component
+const VerifiedBadge = ({ size = 22, className = '' }) => (
+  <span 
+    className={`inline-flex items-center justify-center flex-shrink-0 align-middle ${className}`} 
+    title="Verified Official"
+  >
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      className="drop-shadow-sm hover:scale-110 transition-transform cursor-pointer"
+      aria-label="Verified"
+    >
+      <path 
+        fill="#1d9bf0" 
+        d="M22.5 12.5c0-1.58-.875-2.95-2.148-3.6.154-.435.238-.905.238-1.4 0-2.21-1.79-4-4-4-.495 0-.965.084-1.4.238C14.55 2.475 13.18 1.6 11.6 1.6c-1.58 0-2.95.875-3.6 2.148-.435-.154-.905-.238-1.4-.238-2.21 0-4 1.79-4 4 0 .495.084.965.238 1.4C1.575 10.45.7 11.82.7 13.4c0 1.58.875 2.95 2.148 3.6-.154.435-.238.905-.238 1.4 0 2.21 1.79 4 4 4 .495 0 .965-.084 1.4-.238 1.05 1.273 2.42 2.148 4 2.148 1.58 0 2.95-.875 3.6-2.148.435.154.905.238 1.4.238 2.21 0 4-1.79 4-4 0-.495-.084-.965-.238-1.4 1.273-1.05 2.148-2.42 2.148-4z"
+      />
+      <path 
+        fill="none" 
+        stroke="#ffffff" 
+        strokeWidth="2.5" 
+        strokeLinecap="round" 
+        strokeLinejoin="round" 
+        d="M7.5 12.5l3 3 6-6"
+      />
+    </svg>
+  </span>
+)
+
 const Developer = () => {
   const navigate = useNavigate()
   const [activeTab, setActiveTab] = useState('all') // all, tech, creative, mission
@@ -197,6 +226,11 @@ const Developer = () => {
                 {/* Animated Scanner Effect */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-ozo-red to-transparent opacity-60 w-full animate-pulse-subtle group-hover:translate-y-48 transition-transform duration-1000" />
               </div>
+
+              {/* Verified Tick Badge on Avatar */}
+              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-[#0a0a0a] p-1 rounded-full shadow-xl border-2 border-white dark:border-[#111111] z-20 flex items-center justify-center">
+                <VerifiedBadge size={26} />
+              </div>
             </motion.div>
 
             {/* Title & Introduction */}
@@ -207,16 +241,18 @@ const Developer = () => {
                 className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red dark:text-red-400 rounded-full text-xs font-black uppercase tracking-wider"
               >
                 <Sparkles size={12} />
-                FOUNDER & LEAD SYSTEMS ENGINEER
+                <span>FOUNDER & LEAD SYSTEMS ENGINEER</span>
+                <VerifiedBadge size={14} />
               </motion.div>
 
               <motion.h1 
                 initial={{ y: 15, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="text-4xl md:text-6xl font-black text-gradient leading-tight font-display tracking-tight"
+                className="text-4xl md:text-6xl font-black text-gradient leading-tight font-display tracking-tight flex items-center justify-center md:justify-start gap-3 flex-wrap"
               >
-                Aashutosh Kumar Mishra
+                <span>Aashutosh Kumar Mishra</span>
+                <VerifiedBadge size={32} />
               </motion.h1>
 
               <motion.p 
@@ -248,6 +284,7 @@ const Developer = () => {
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">BCE Bhagalpur</span>
                       <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300">B.Tech</span>
+                      <VerifiedBadge size={13} />
                     </div>
                     <p className="text-xs text-ozo-gray dark:text-gray-400 font-semibold truncate mt-0.5">
                       Mathematics & Computing
@@ -268,6 +305,7 @@ const Developer = () => {
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">IIT Madras</span>
                       <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300">BS</span>
+                      <VerifiedBadge size={13} />
                     </div>
                     <p className="text-xs text-ozo-gray dark:text-gray-400 font-semibold truncate mt-0.5">
                       Data Science & Applications
@@ -313,16 +351,20 @@ const Developer = () => {
         
         {/* Core Profile Narrative Card */}
         <div className="bg-white dark:bg-[#111111] p-8 md:p-10 rounded-[2.5rem] border border-gray-150/10 dark:border-white/5 shadow-xl space-y-6 mb-16">
-          <h2 className="text-2xl font-black text-gray-900 dark:text-white font-display flex items-center gap-2">
+          <h2 className="text-2xl font-black text-gray-900 dark:text-white font-display flex items-center gap-2.5 flex-wrap">
             <Quote className="text-ozo-red" size={24} />
-             Meeting the Architect
+            <span>Meeting the Architect</span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 text-xs font-bold border border-blue-200/50 dark:border-blue-900/30">
+              <VerifiedBadge size={14} />
+              <span>Verified Architect</span>
+            </span>
           </h2>
           <div className="text-gray-700 dark:text-gray-300 font-medium space-y-4 leading-relaxed">
             <p>
               Every disruptive startup begins with a vision to bridge a massive gap. For <strong>OZO Mart</strong>, that vision is driven by <strong>Aashutosh Kumar Mishra</strong>, our Founder, CEO, and Lead Systems Engineer.
             </p>
             <p>
-              Aashutosh is a rare combination of a <strong>highly technical Software Developer</strong> and a <strong>visionary Filmmaker</strong>. Pursuing <strong>Data Science & Applications from IIT Madras</strong> alongside <strong>Mathematics and Computing from BCE Bhagalpur</strong>, he brings a deep, analytical and computational approach to solving complex logistics, combined with a sharp eye for elite visual branding and consumer psychological behavior.
+              Aashutosh is a rare combination of a <strong>highly technical Software Developer</strong> and a <strong>visionary Filmmaker</strong>. Pursuing <strong>B.Tech in Mathematics & Computing from BCE Bhagalpur</strong> and <strong>BS in Data Science & Applications from IIT Madras</strong>, he brings a deep, analytical and computational approach to solving complex logistics, combined with a sharp eye for elite visual branding and consumer psychological behavior.
             </p>
           </div>
 
@@ -333,7 +375,7 @@ const Developer = () => {
                 <span>The Developer</span>
               </div>
               <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium">
-                Optimizing systems code on Linux Mint, orchestrating database transactions, APIs, and real-time edge triggers.
+                Optimizing systems code on Linux, orchestrating database transactions, APIs, and real-time edge triggers.
               </p>
             </div>
             <div className="space-y-2">
@@ -361,39 +403,11 @@ const Developer = () => {
               </h3>
             </div>
             <span className="text-xs font-bold text-ozo-gray dark:text-gray-400 max-w-xs text-left sm:text-right">
-              World-class Data Science coupled with Computational Mathematics
+              B.Tech from BCE Bhagalpur & BS from IIT Madras
             </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* IIT Madras Card */}
-            <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/5 hover:border-red-500/30 transition-all group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md">
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-white p-2 flex items-center justify-center shadow-md border border-gray-100 flex-shrink-0 group-hover:scale-105 transition-transform">
-                  <img src="/images/iit-madras-logo.svg" alt="IIT Madras Emblem" className="w-full h-full object-contain" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full">Institute of National Importance</span>
-                  </div>
-                  <h4 className="text-lg font-black text-gray-900 dark:text-white font-display mt-1">
-                    IIT Madras
-                  </h4>
-                  <p className="text-xs font-bold text-ozo-gray dark:text-gray-400">
-                    Indian Institute of Technology Madras
-                  </p>
-                </div>
-              </div>
-              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 space-y-1.5">
-                <div className="text-xs font-black text-gray-900 dark:text-gray-200">
-                  Data Science & Applications
-                </div>
-                <p className="text-xs text-ozo-gray dark:text-gray-400 leading-relaxed">
-                  Academic coursework covering machine learning logic, predictive consumer behavior, big data workflows, and statistical inference applied directly to hyper-local delivery optimization.
-                </p>
-              </div>
-            </div>
-
             {/* BCE Bhagalpur Card */}
             <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/5 hover:border-emerald-500/30 transition-all group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md">
               <div className="flex items-start gap-4">
@@ -402,7 +416,10 @@ const Developer = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">Govt. Engineering Institute (Estd. 1960)</span>
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                      <span>B.Tech • Estd. 1960</span>
+                      <VerifiedBadge size={13} />
+                    </span>
                   </div>
                   <h4 className="text-lg font-black text-gray-900 dark:text-white font-display mt-1">
                     BCE Bhagalpur
@@ -414,10 +431,41 @@ const Developer = () => {
               </div>
               <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 space-y-1.5">
                 <div className="text-xs font-black text-gray-900 dark:text-gray-200">
-                  Mathematics and Computing
+                  B.Tech in Mathematics and Computing
                 </div>
                 <p className="text-xs text-ozo-gray dark:text-gray-400 leading-relaxed">
                   Rigorous focus on advanced discrete mathematics, algorithm design, computational graph theory, and matrix algebra powering OZO Mart's real-time spatial delivery matrix.
+                </p>
+              </div>
+            </div>
+
+            {/* IIT Madras Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/5 hover:border-red-500/30 transition-all group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-white p-2 flex items-center justify-center shadow-md border border-gray-100 flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <img src="/images/iit-madras-logo.svg" alt="IIT Madras Emblem" className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2.5 py-0.5 rounded-full flex items-center gap-1.5">
+                      <span>BS • Institute of National Importance</span>
+                      <VerifiedBadge size={13} />
+                    </span>
+                  </div>
+                  <h4 className="text-lg font-black text-gray-900 dark:text-white font-display mt-1">
+                    IIT Madras
+                  </h4>
+                  <p className="text-xs font-bold text-ozo-gray dark:text-gray-400">
+                    Indian Institute of Technology Madras
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 space-y-1.5">
+                <div className="text-xs font-black text-gray-900 dark:text-gray-200">
+                  BS in Data Science & Applications
+                </div>
+                <p className="text-xs text-ozo-gray dark:text-gray-400 leading-relaxed">
+                  Academic coursework covering machine learning logic, predictive consumer behavior, big data workflows, and statistical inference applied directly to hyper-local delivery optimization.
                 </p>
               </div>
             </div>
@@ -616,8 +664,9 @@ const Developer = () => {
               <span className="text-gradient font-black text-xl italic">
                 "We aren't just delivering groceries; we are engineering efficiency and giving people their time back."
               </span>
-              <span className="text-xs font-black tracking-widest text-gray-400 uppercase mt-1">
-                — AASHUTOSH KUMAR MISHRA
+              <span className="text-xs font-black tracking-widest text-gray-400 uppercase mt-1 flex items-center justify-center gap-1.5">
+                <span>— AASHUTOSH KUMAR MISHRA</span>
+                <VerifiedBadge size={14} />
               </span>
             </div>
           </div>
