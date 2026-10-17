@@ -1017,6 +1017,13 @@ export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => 
   useLocationStore.getState().showServiceabilityModal(cityName, pincode, onConfirm);
 };
 
+// Pure helper — resolves the currently active city slug for catalog queries.
+// Priority: browsingCitySlug > selectedCitySlug > deliveryCitySlug > null
+export const getActiveCitySlug = () => {
+  const state = useLocationStore.getState();
+  return state.browsingCitySlug || state.selectedCitySlug || state.deliveryCitySlug || null;
+};
+
 // Initialize active cities on module load
 if (typeof window !== 'undefined') {
   useLocationStore.getState().fetchActiveCities().catch(console.error);

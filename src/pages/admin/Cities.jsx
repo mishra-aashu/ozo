@@ -1089,7 +1089,7 @@ const Cities = () => {
                         {visProducts.map(product => {
                           const pca = visPcaMap[product.id]
                           const local = localOverrides[product.id] || {
-                            is_available: pca ? pca.is_available : true,
+                            is_available: pca ? pca.is_available : product.is_available,
                             is_featured: pca ? pca.is_featured : false,
                             city_price: pca && pca.city_price !== null ? pca.city_price.toString() : '',
                             city_mrp: pca && pca.city_mrp !== null ? pca.city_mrp.toString() : ''
@@ -1125,6 +1125,7 @@ const Cities = () => {
                                   }`}
                                 >
                                   {local.is_available ? 'Available' : 'Hidden'}
+                                  {!hasOverride && <span className="ml-1 text-[8px] opacity-60 font-medium">(global)</span>}
                                 </button>
                               </td>
 

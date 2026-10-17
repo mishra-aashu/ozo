@@ -31,11 +31,11 @@ import { resolveCityName, getFreeDeliveryText } from '../utils/seoHelpers'
 
 // Premium "Listing Soon" interactive widget for Fruits & Vegetables categories
 const ComingSoonSection = ({ category }) => {
-  const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const activeCitySlug = useLocationStore(state => state.browsingCitySlug || state.selectedCitySlug)
   const activeCities = useLocationStore(state => state.activeCities)
   const nearestCity = useLocationStore(state => state.nearestCity)
   const addressDetails = useLocationStore(state => state.addressDetails)
-  const cityName = useMemo(() => resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities), [nearestCity, addressDetails, selectedCitySlug, activeCities])
+  const cityName = useMemo(() => resolveCityName(nearestCity, addressDetails, activeCitySlug, activeCities), [nearestCity, addressDetails, activeCitySlug, activeCities])
 
   const [isSubscribed, setIsSubscribed] = useState(() => {
     try {
@@ -220,6 +220,7 @@ const CategoryProducts = () => {
   const categories = useProductStore(state => state.categories)
   const fetchCategories = useProductStore(state => state.fetchCategories)
   const getProductsByCategory = useProductStore(state => state.getProductsByCategory)
+  const activeCitySlug = useLocationStore(state => state.browsingCitySlug || state.selectedCitySlug)
 
   // Layout and Filter states
   const [viewMode, setViewMode] = useState('grid') // 'grid' | 'list'
@@ -270,7 +271,7 @@ const CategoryProducts = () => {
         categorySlug: slug
       })
     }
-  }, [slug, fetchProductsPage])
+  }, [slug, fetchProductsPage, activeCitySlug])
 
   const handleLoadMore = useCallback(() => {
     fetchProductsPage({ categorySlug: slug }, true)
@@ -589,12 +590,11 @@ const CategoryProducts = () => {
 
   const nearestCity = useLocationStore(state => state.nearestCity)
   const addressDetails = useLocationStore(state => state.addressDetails)
-  const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
   const activeCities = useLocationStore(state => state.activeCities)
 
   const currentCityName = useMemo(() => {
-    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
-  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
+    return resolveCityName(nearestCity, addressDetails, activeCitySlug, activeCities)
+  }, [nearestCity, addressDetails, activeCitySlug, activeCities])
 
   const catName = currentCategory?.name || slug
   const catDesc = currentCategory?.description

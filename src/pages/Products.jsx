@@ -102,6 +102,8 @@ const Products = () => {
     }
   }, [categories, fetchCategories])
 
+  const activeCitySlug = useLocationStore(state => state.browsingCitySlug || state.selectedCitySlug)
+
   const {
     products,
     isLoading: isProductsLoading,
@@ -119,7 +121,7 @@ const Products = () => {
       search: searchParam || undefined,
       categoryId: selectedCategory === 'all' ? undefined : selectedCategory
     })
-  }, [filterParam, searchParam, selectedCategory, fetchProductsPage])
+  }, [filterParam, searchParam, selectedCategory, fetchProductsPage, activeCitySlug])
 
   const handleLoadMore = useCallback(() => {
     fetchProductsPage({
@@ -257,12 +259,11 @@ const Products = () => {
 
   const nearestCity = useLocationStore(state => state.nearestCity)
   const addressDetails = useLocationStore(state => state.addressDetails)
-  const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
   const activeCities = useLocationStore(state => state.activeCities)
 
   const currentCityName = useMemo(() => {
-    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
-  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
+    return resolveCityName(nearestCity, addressDetails, activeCitySlug, activeCities)
+  }, [nearestCity, addressDetails, activeCitySlug, activeCities])
 
   const getPageTitle = () => {
     if (searchParam) return `Results for "${searchParam}"`

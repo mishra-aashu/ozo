@@ -103,7 +103,7 @@ const Checkout = () => {
     platformConfig: state.platformConfig
   })))
   const minOrderValueLimit = orderConfig?.min_order_value ?? 0
-  const hasOutOfStockItems = items.some(item => !item.isAvailable || item.quantityAvailable <= 0)
+  const hasOutOfStockItems = items.some(item => !item.isAvailable || item._cityUnavailable || item.quantityAvailable <= 0)
   const hasInsufficientStockItems = items.some(item => item.isAvailable && item.quantityAvailable > 0 && item.quantity > item.quantityAvailable)
   const savings = Math.round((items.reduce((total, item) => {
     const itemSavings = Math.max(0, (item.mrp || 0) - (item.price || 0))
@@ -256,10 +256,10 @@ const Checkout = () => {
 
   useEffect(() => {
     if (!isLoading && items.length > 0) {
-      const outOfStock = items.some(item => !item.isAvailable || item.quantityAvailable <= 0)
+      const outOfStock = items.some(item => !item.isAvailable || item._cityUnavailable || item.quantityAvailable <= 0)
       const insufficientStock = items.some(item => item.isAvailable && item.quantityAvailable > 0 && item.quantity > item.quantityAvailable)
       if (outOfStock) {
-        toast.error('Some items in your cart are out of stock. Redirecting to cart.')
+        toast.error('Some items in your cart are unavailable in this city. Redirecting to cart.')
         navigate('/cart')
       } else if (insufficientStock) {
         toast.error('Some items in your cart have insufficient stock. Redirecting to cart.')
@@ -1514,8 +1514,8 @@ const Checkout = () => {
                
                <div className="divide-y divide-gray-150/50 dark:divide-white/5 mb-6 max-h-[320px] overflow-y-auto scrollbar-hide">
                  {items.map((item) => {
-                   const isItemOutOfStock = !item.isAvailable || item.quantityAvailable <= 0;
-                   const isItemInsufficient = item.isAvailable && item.quantityAvailable > 0 && item.quantity > item.quantityAvailable;
+                   const isItemOutOfStock = !item.isAvailable || item._cityUnavailable || item.quantityAvailable <= 0;
+                   const isItemInsufficient = item.isAvailable && !item._cityUnavailable && item.quantityAvailable > 0 && item.quantity > item.quantityAvailable;
                    return (
                      <div key={item.productId} className={`flex items-center gap-4 py-3 first:pt-0 last:pb-0 ${isItemOutOfStock ? 'opacity-50' : ''}`}>
                         <OptimizedImage
@@ -1531,7 +1531,7 @@ const Checkout = () => {
                            <p className="text-[10px] text-ozo-gray font-black uppercase mt-0.5">Qty: {item.quantity} × ₹{item.price}</p>
                            {isItemOutOfStock ? (
                              <span className="text-[9px] bg-red-500/10 text-red-500 font-bold px-1.5 py-0.5 rounded border border-red-500/20 block w-fit mt-0.5">
-                               {launchConfig?.launch_mode_enabled ? 'LISTING SOON' : 'OUT OF STOCK'}
+                               {item._cityUnavailable ? 'NOT AVAILABLE IN THIS CITY' : (launchConfig?.launch_mode_enabled ? 'LISTING SOON' : 'OUT OF STOCK')}
                              </span>
                            ) : isItemInsufficient ? (
                              <span className="text-[9px] bg-amber-500/10 text-amber-600 dark:text-amber-400 font-bold px-1.5 py-0.5 rounded border border-amber-500/20 block w-fit mt-0.5">ONLY {item.quantityAvailable} LEFT</span>

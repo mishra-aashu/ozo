@@ -38,7 +38,7 @@ import { Autoplay, Pagination, Navigation } from 'swiper/modules'
 import { useProductStore } from '../stores/productStore'
 import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore'
-import { useLocationStore } from '../stores/locationStore'
+import { useLocationStore, getActiveCitySlug } from '../stores/locationStore'
 import { isProductImageMissing } from '../utils/productUtils'
 import { findMatchingActiveCityForDetails } from '../components/LocationPromptModal'
 import { useTranslation } from '../hooks/useTranslation'
@@ -387,6 +387,8 @@ const MartHome = () => {
   const { city } = useParams()
   const { t } = useTranslation()
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const browsingCitySlug = useLocationStore(state => state.browsingCitySlug)
+  const activeCitySlug = browsingCitySlug || selectedCitySlug
   const isLocationInitialized = useLocationStore(state => state.isLocationInitialized)
   const setSelectedCitySlug = useLocationStore(state => state.setSelectedCitySlug)
 
@@ -415,8 +417,8 @@ const MartHome = () => {
   const nearestCity = useLocationStore(state => state.nearestCity)
 
   const homeCityName = useMemo(() => {
-    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
-  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
+    return resolveCityName(nearestCity, addressDetails, activeCitySlug, activeCities)
+  }, [nearestCity, addressDetails, activeCitySlug, activeCities])
 
   const homeSchema = useMemo(() => ({
     "@context": "https://schema.org",
@@ -524,48 +526,35 @@ const MartHome = () => {
   useEffect(() => {
     const checkAndSetCity = async () => {
       if (!activeCities || activeCities.length === 0) return
-      
-      const isUrlCityValid = activeCities.some(c => c.slug.toLowerCase() === (city || '').toLowerCase())
-      
+
+      const urlCitySlug = (city || '').toLowerCase()
+      const isUrlCityValid = activeCities.some(c => c.slug.toLowerCase() === urlCitySlug)
+
+      // Priority 1: If URL has a valid city slug, ALWAYS honor it for browsing
+      if (isUrlCityValid) {
+        if (useLocationStore.getState().browsingCitySlug !== urlCitySlug) {
+          useLocationStore.getState().setBrowsingCitySlug(urlCitySlug)
+        }
+        return // Don't redirect — user explicitly chose this city URL
+      }
+
+      // Priority 2: No city in URL or invalid city — derive from address
       if (address) {
         const matchedCity = findMatchingActiveCityForDetails(address, coordinates, addressDetails, activeCities)
         if (matchedCity) {
-          if (city !== matchedCity.slug) {
-            navigate(`/${matchedCity.slug}`, { replace: true })
-          }
+          navigate(`/${matchedCity.slug}`, { replace: true })
           if (selectedCitySlug !== matchedCity.slug) {
             setSelectedCitySlug(matchedCity.slug)
           }
         } else {
-          const currentTraced = useLocationStore.getState().tracedThrough
-          const currentBrowsing = useLocationStore.getState().browsingCitySlug || useLocationStore.getState().selectedCitySlug
-          if (currentTraced === 'active_city_browse' && currentBrowsing) {
-            if (selectedCitySlug !== currentBrowsing) {
-              setSelectedCitySlug(currentBrowsing)
-            }
-            if (city !== currentBrowsing) {
-              navigate(`/${currentBrowsing}`, { replace: true })
-            }
-            return
-          }
-          if (city) {
-            navigate('/', { replace: true })
-          }
-          if (selectedCitySlug !== null) {
-            setSelectedCitySlug(null)
-          }
+          // Address doesn't match any active city
+          if (city) navigate('/', { replace: true })
+          if (selectedCitySlug !== null) setSelectedCitySlug(null)
         }
-      } else {
-        if (city) {
-          if (isUrlCityValid) {
-            if (selectedCitySlug !== city.toLowerCase()) {
-              setSelectedCitySlug(city.toLowerCase())
-            }
-          } else {
-            console.log(`[Router] Invalid city slug in URL: ${city}. Redirecting to /`);
-            navigate('/', { replace: true })
-          }
-        }
+      } else if (city) {
+        // Invalid city slug in URL, no saved address — redirect to /
+        console.log(`[Router] Invalid city slug in URL: ${city}. Redirecting to /`)
+        navigate('/', { replace: true })
       }
     }
     checkAndSetCity()
@@ -694,7 +683,7 @@ const MartHome = () => {
         }
 
         // 2. Fetch products in those categories
-        const citySlug = useLocationStore.getState().selectedCitySlug;
+        const citySlug = getActiveCitySlug();
         let productsQuery = supabase
           .from('products')
           .select(`
@@ -764,7 +753,7 @@ const MartHome = () => {
     return () => {
       isMounted = false;
     };
-  }, [selectedFeaturedCategory, selectedCitySlug]);
+  }, [selectedFeaturedCategory, activeCitySlug]);
   
   // Custom home page queries
   const { data: recentOrdersData, isLoading: isRecentOrdersLoading } = useOzoQuery(
@@ -812,8 +801,8 @@ const MartHome = () => {
       try {
         if (isMounted) setIsMartsLoading(true)
         let query = supabase.from('marts').select('id, name, slug, city_slug, logo_url, is_active, address').eq('is_active', true)
-        if (selectedCitySlug) {
-          query = query.eq('city_slug', selectedCitySlug)
+        if (activeCitySlug) {
+          query = query.eq('city_slug', activeCitySlug)
         }
         const { data, error } = await query.order('name')
         if (error) throw error
@@ -828,19 +817,19 @@ const MartHome = () => {
     return () => {
       isMounted = false
     }
-  }, [selectedCitySlug])
+  }, [activeCitySlug])
 
   // Fetch standard data on mount using useOzoQuery to preserve initial loading state
   const { isLoading: isHomeDataLoading } = useOzoQuery(
     async (signal) => {
       // Delay fetching until locationStore has initialized selectedCitySlug
-      if (!isLocationInitialized && !selectedCitySlug) return
+      if (!isLocationInitialized && !activeCitySlug) return
       const res = await fetchHomePageData({ signal })
       if (!res?.success) {
         throw res?.error || new Error('Failed to load homepage data')
       }
     },
-    [fetchHomePageData, selectedCitySlug, isLocationInitialized]
+    [fetchHomePageData, activeCitySlug, isLocationInitialized]
   )
 
   // Custom quantity controls for inline cards

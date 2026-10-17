@@ -199,6 +199,8 @@ const ProductDetail = () => {
   const { city, category, slug } = useParams()
   const navigate = useNavigate()
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
+  const browsingCitySlug = useLocationStore(state => state.browsingCitySlug)
+  const activeCitySlug = browsingCitySlug || selectedCitySlug
   const setSelectedCitySlug = useLocationStore(state => state.setSelectedCitySlug)
   const address = useLocationStore(state => state.address)
   const coordinates = useLocationStore(state => state.coordinates)
@@ -208,8 +210,8 @@ const ProductDetail = () => {
   const isFirstMount = useRef(true)
 
   const currentCityName = useMemo(() => {
-    return resolveCityName(nearestCity, addressDetails, selectedCitySlug, activeCities)
-  }, [nearestCity, addressDetails, selectedCitySlug, activeCities])
+    return resolveCityName(nearestCity, addressDetails, activeCitySlug, activeCities)
+  }, [nearestCity, addressDetails, activeCitySlug, activeCities])
 
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
@@ -267,8 +269,8 @@ const ProductDetail = () => {
 
   const categorySlug = currentProduct?.category?.slug || 'item'
 
-  const shareUrl = selectedCitySlug
-    ? `${window.location.origin}/${selectedCitySlug}/${categorySlug}/${slug}`
+  const shareUrl = activeCitySlug
+    ? `${window.location.origin}/${activeCitySlug}/${categorySlug}/${slug}`
     : `${window.location.origin}/product/${categorySlug}/${slug}`
   
   const addToCart = useCartStore(state => state.addToCart)
@@ -637,8 +639,17 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!currentProduct) return
 
-    const isUrlCityValid = activeCities && activeCities.some(c => c.slug === city)
+    const urlCitySlug = (city || '').toLowerCase()
+    const isUrlCityValid = activeCities && activeCities.some(c => c.slug.toLowerCase() === urlCitySlug)
     
+    // Priority 1: If URL has a valid city slug, honor it for browsing
+    if (isUrlCityValid) {
+      if (useLocationStore.getState().browsingCitySlug !== urlCitySlug) {
+        useLocationStore.getState().setBrowsingCitySlug(urlCitySlug)
+      }
+      return // Don't redirect — user explicitly is on this city's product page
+    }
+
     // Determine the correct city/product segment
     let targetCitySegment = 'product'
     
@@ -655,12 +666,9 @@ const ProductDetail = () => {
         }
       }
     } else {
-      // Temporarily use URL city if valid and no location is set yet
-      if (isUrlCityValid) {
-        targetCitySegment = city
-        if (selectedCitySlug !== city) {
-          setSelectedCitySlug(city)
-        }
+      const currentBrowsing = useLocationStore.getState().browsingCitySlug
+      if (currentBrowsing) {
+        targetCitySegment = currentBrowsing
       }
     }
 
@@ -695,7 +703,7 @@ const ProductDetail = () => {
       // Invalidate any in-flight loads on slug change or unmount
       loadIdRef.current++
     }
-  }, [slug, loadProduct])
+  }, [slug, loadProduct, activeCitySlug])
 
   // Page Visibility API — when user returns from background (tab switch,
   // mobile app switch, screen lock) and product data is missing, re-fetch
@@ -1089,8 +1097,8 @@ const ProductDetail = () => {
                       return (
                         <Link
                           key={v.id}
-                          to={selectedCitySlug 
-                            ? `/${selectedCitySlug}/${categorySlug}/${v.slug}` 
+                          to={activeCitySlug 
+                            ? `/${activeCitySlug}/${categorySlug}/${v.slug}` 
                             : `/product/${categorySlug}/${v.slug}`}
                           className={`flex flex-col items-center p-3.5 pb-4 rounded-[1.5rem] border transition-all duration-300 active:scale-95 flex-shrink-0 snap-start select-none w-[150px] shadow-sm text-center ${
                             isSelected

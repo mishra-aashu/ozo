@@ -161,6 +161,8 @@ import { useThemeStore } from './stores/themeStore'
 import { useNotificationStore } from './stores/notificationStore'
 import { useLanguageStore } from './stores/languageStore'
 import { useLocationStore } from './stores/locationStore'
+import { useProductStore, searchCache } from './stores/productStore'
+import { paginationCache } from './hooks/useProductPagination'
 
 // Protected Route Component (requires authentication)
 const ProtectedRoute = ({ children, adminOnly = false }) => {
@@ -311,6 +313,24 @@ function App() {
   const { coordinates, detectLocation, fetchActiveCities } = useLocationStore()
 
   // Geolocation and active cities fetch relocated to MainLayout.jsx (inside Router context)
+
+  // City change listener: invalidate catalog caches and revalidate cart items
+  useEffect(() => {
+    let prevCity = useLocationStore.getState().browsingCitySlug || useLocationStore.getState().selectedCitySlug
+    const unsubscribe = useLocationStore.subscribe((state) => {
+      const newCity = state.browsingCitySlug || state.selectedCitySlug
+      if (newCity && newCity !== prevCity) {
+        prevCity = newCity
+        // Invalidate in-memory search and pagination caches
+        searchCache.clear()
+        paginationCache.clear()
+        useProductStore.getState().clearProducts()
+        // Revalidate cart prices and availability for the new city
+        useCartStore.getState().revalidateCartForCity(newCity)
+      }
+    })
+    return unsubscribe
+  }, [])
 
   useEffect(() => {
     const loadGoogleTranslate = () => {

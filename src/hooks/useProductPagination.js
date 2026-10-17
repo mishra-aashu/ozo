@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { supabase } from '../lib/supabase';
-import { useLocationStore } from '../stores/locationStore';
+import { useLocationStore, getActiveCitySlug } from '../stores/locationStore';
 import { useCartStore } from '../stores/cartStore';
 import { useProductStore } from '../stores/productStore';
 import { isImageMissing } from '../utils/imageOptimizer';
@@ -8,7 +8,7 @@ import { isImageMissing } from '../utils/imageOptimizer';
 export const PAGINATION_LIMIT = 24;
 
 // In-memory pagination and search results cache (2 min TTL)
-const paginationCache = new Map();
+export const paginationCache = new Map();
 const PAGINATION_CACHE_TTL = 2 * 60 * 1000;
 
 export function useProductPagination() {
@@ -41,7 +41,7 @@ export function useProductPagination() {
       ascending: options.ascending !== undefined ? options.ascending : true
     });
 
-    const currentCitySlug = useLocationStore.getState().selectedCitySlug || 'global';
+    const currentCitySlug = getActiveCitySlug() || 'global';
     const cacheKey = `${filterKey}:${currentOffset}:${currentCitySlug}`;
     const now = Date.now();
 
@@ -224,9 +224,10 @@ export function useProductPagination() {
           query = query.order(sortBy, { ascending });
         }
 
-        // Range (Limit & Offset)
+        // Range (Limit & Offset) - Over-fetch for search queries to compensate for city-level availability filtering
+        const fetchLimit = options.search ? PAGINATION_LIMIT * 3 : PAGINATION_LIMIT;
         const from = currentOffset;
-        const to = from + PAGINATION_LIMIT - 1;
+        const to = from + fetchLimit - 1;
         query = query.range(from, to);
 
         return await query;
@@ -246,7 +247,7 @@ export function useProductPagination() {
         `)
         .or(`name.ilike.%${sanitizedSearch}%,brand.ilike.%${sanitizedSearch}%`)
         .abortSignal(signal)
-        .range(currentOffset, currentOffset + PAGINATION_LIMIT - 1);
+        .range(currentOffset, currentOffset + (PAGINATION_LIMIT * 3) - 1);
 
         if (!fallbackRes.error) {
           data = fallbackRes.data;
@@ -288,7 +289,7 @@ export function useProductPagination() {
       // Apply city-level overrides from product_city_availability
       // This ensures city-specific is_available, city_price, city_mrp are respected
       try {
-        const citySlug = useLocationStore.getState().selectedCitySlug;
+        const citySlug = getActiveCitySlug();
 
         if (citySlug && formatted.length > 0) {
           const productIds = formatted.map(p => p.id);
@@ -355,6 +356,11 @@ export function useProductPagination() {
         if (!aOOS && bOOS) return -1;
         return 0;
       });
+
+      // For search queries, cap at PAGINATION_LIMIT after city overrides and sorting
+      if (options.search && formatted.length > PAGINATION_LIMIT) {
+        formatted = formatted.slice(0, PAGINATION_LIMIT);
+      }
 
       // Avoid setting state if query has changed in the meantime
       if (queryKeyRef.current === filterKey) {
