@@ -296,7 +296,7 @@ const MartDashboard = () => {
 
               <div className="pt-2">
                 <p className="text-xs text-gray-400 dark:text-slate-500 font-bold leading-relaxed">
-                  Verification usually takes less than 24 hours. If you have questions, contact us aashutoshk625@gmail.com
+                  Verification usually takes less than 24 hours. If you have questions, contact us at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-red hover:underline">contact@ozomart.store</a>
                 </p>
               </div>
             </div>

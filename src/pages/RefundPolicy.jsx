@@ -83,7 +83,7 @@ const RefundPolicy = () => {
 
               <div className="mt-20 p-8 bg-gray-50 dark:bg-white/5 rounded-[2rem] border border-gray-100 dark:border-white/5">
                  <h3 className="text-xl font-black mb-4">Need Help with a Refund?</h3>
-                 <p className="text-ozo-gray dark:text-gray-400 font-medium mb-6">If you have any questions or would like to request a refund, please open the OZO chat or contact us at aashutoshk625@gmail.com.</p>
+                 <p className="text-ozo-gray dark:text-gray-400 font-medium mb-6">If you have any questions or would like to request a refund, please open the OZO chat or contact us at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-red hover:underline font-bold">contact@ozomart.store</a>.</p>
                  <button className="text-ozo-red font-black uppercase tracking-widest text-xs hover:underline">Download Policy PDF</button>
               </div>
            </div>

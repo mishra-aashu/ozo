@@ -188,7 +188,9 @@ const Careers = () => {
               <h3 className="text-2xl font-black mb-2">Don't see your role?</h3>
               <p className="font-semibold text-white/80 mb-6">We are always looking for smart, ambitious minds to join our teams. Send your resume directly to our inbox.</p>
               <a 
-                href="mailto:careers@ozomart.store"
+                href="https://mail.google.com/mail/?view=cm&fs=1&to=careers@ozomart.store"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="inline-block px-8 py-4 bg-white text-ozo-red font-black uppercase tracking-widest text-xs rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-transform"
               >
                 Send Open Application
