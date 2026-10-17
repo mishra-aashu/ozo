@@ -651,6 +651,8 @@ const MartHome = () => {
 
   const [isReorderingId, setIsReorderingId] = useState(null)
   const [selectedFeaturedCategory, setSelectedFeaturedCategory] = useState('all')
+  const [featuredVisibleCount, setFeaturedVisibleCount] = useState(15)
+  const [isLoadingMoreFeatured, setIsLoadingMoreFeatured] = useState(false)
   const [showAllCategories, setShowAllCategories] = useState(false)
   const [categoryProducts, setCategoryProducts] = useState([])
   const [isCategoryProductsLoading, setIsCategoryProductsLoading] = useState(false)
@@ -658,6 +660,7 @@ const MartHome = () => {
   const summerScrollRef = useRef(null)
 
   useEffect(() => {
+    setFeaturedVisibleCount(15);
     if (selectedFeaturedCategory === 'all') {
       setCategoryProducts([]);
       return;
@@ -710,7 +713,7 @@ const MartHome = () => {
 
         const { data: rawProducts, error: prodError } = await productsQuery
           .in('category_id', categoryIds)
-          .limit(15); // Show top 15 products
+          .limit(60); // Fetch up to 60 products to support Load More
 
         if (prodError) throw prodError;
 
@@ -1619,7 +1622,7 @@ const MartHome = () => {
     return (categoryProducts || []).filter(p => !isUpcoming(p));
   }, [categoryProducts, launchConfig]);
 
-  const displayedFeaturedProducts = useMemo(() => {
+  const fullFeaturedList = useMemo(() => {
     const baseList = selectedFeaturedCategory === 'all' ? featuredProducts : filteredCategoryProducts;
     if (!baseList || baseList.length === 0) return [];
 
@@ -1645,10 +1648,10 @@ const MartHome = () => {
         result = [...result, ...shuffledCandidates];
       }
 
-      return result.slice(0, 15);
+      return result;
     }
 
-    return baseList.slice(0, 15);
+    return baseList;
   }, [
     selectedFeaturedCategory,
     featuredProducts,
@@ -1660,6 +1663,10 @@ const MartHome = () => {
     mandiProductsData,
     shuffleSeed
   ]);
+
+  const displayedFeaturedProducts = useMemo(() => {
+    return fullFeaturedList.slice(0, featuredVisibleCount);
+  }, [fullFeaturedList, featuredVisibleCount]);
 
   const parentCats = useMemo(() => categories.filter(c => !c.parent_id), [categories]);
 
@@ -2767,6 +2774,38 @@ const MartHome = () => {
               ))
             )}
           </div>
+
+          {/* Load More Button for Featured Products */}
+          {!isFeaturedLoading && !isHomeDataLoading && !isCategoryProductsLoading && fullFeaturedList.length > displayedFeaturedProducts.length && (
+            <div className="flex flex-col items-center justify-center mt-10 gap-2.5">
+              <button
+                onClick={() => {
+                  setIsLoadingMoreFeatured(true);
+                  setTimeout(() => {
+                    setFeaturedVisibleCount(prev => prev + 15);
+                    setIsLoadingMoreFeatured(false);
+                  }, 250);
+                }}
+                disabled={isLoadingMoreFeatured}
+                className="px-8 py-3.5 rounded-full bg-white dark:bg-white/5 border-2 border-ozo-red text-ozo-red hover:bg-ozo-red hover:text-white font-black text-xs uppercase tracking-widest shadow-md hover:shadow-xl hover:shadow-ozo-red/20 hover:scale-105 active:scale-95 disabled:opacity-50 transition-all duration-300 flex items-center gap-2 cursor-pointer group"
+              >
+                {isLoadingMoreFeatured ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    <span>Loading More...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>Load More Products</span>
+                    <ChevronDown className="w-4 h-4 transition-transform duration-200 group-hover:translate-y-0.5" />
+                  </>
+                )}
+              </button>
+              <span className="text-xs font-semibold text-gray-500 dark:text-gray-400">
+                Showing {displayedFeaturedProducts.length} of {fullFeaturedList.length} products
+              </span>
+            </div>
+          )}
         </div>
       </section>
 
