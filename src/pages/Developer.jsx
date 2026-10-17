@@ -226,11 +226,6 @@ const Developer = () => {
                 {/* Animated Scanner Effect */}
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-transparent via-ozo-red to-transparent opacity-60 w-full animate-pulse-subtle group-hover:translate-y-48 transition-transform duration-1000" />
               </div>
-
-              {/* Verified Tick Badge on Avatar */}
-              <div className="absolute -bottom-1 -right-1 bg-white dark:bg-[#0a0a0a] p-1 rounded-full shadow-xl border-2 border-white dark:border-[#111111] z-20 flex items-center justify-center">
-                <VerifiedBadge size={26} />
-              </div>
             </motion.div>
 
             {/* Title & Introduction */}
@@ -242,17 +237,19 @@ const Developer = () => {
               >
                 <Sparkles size={12} />
                 <span>FOUNDER & LEAD SYSTEMS ENGINEER</span>
-                <VerifiedBadge size={14} />
               </motion.div>
 
               <motion.h1 
                 initial={{ y: 15, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.1 }}
-                className="text-4xl md:text-6xl font-black text-gradient leading-tight font-display tracking-tight flex items-center justify-center md:justify-start gap-3 flex-wrap"
+                className="text-4xl md:text-5xl lg:text-6xl font-black text-gradient leading-tight font-display tracking-tight"
               >
-                <span>Aashutosh Kumar Mishra</span>
-                <VerifiedBadge size={32} />
+                Aashutosh Kumar{' '}
+                <span className="inline-flex items-center whitespace-nowrap">
+                  <span>Mishra</span>
+                  <VerifiedBadge size={28} className="ml-2.5 inline-block align-middle -translate-y-1" />
+                </span>
               </motion.h1>
 
               <motion.p 
