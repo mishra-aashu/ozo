@@ -15,7 +15,31 @@
       "destination": "/api/sitemap?type=index"
     },
     {
+      "source": "/sitemap-index.xml",
+      "destination": "/api/sitemap?type=index"
+    },
+    {
+      "source": "/api/sitemap-index",
+      "destination": "/api/sitemap?type=index"
+    },
+    {
+      "source": "/api/sitemap-index.xml",
+      "destination": "/api/sitemap?type=index"
+    },
+    {
       "source": "/sitemap-static.xml",
+      "destination": "/api/sitemap?type=static"
+    },
+    {
+      "source": "/sitemap-static",
+      "destination": "/api/sitemap?type=static"
+    },
+    {
+      "source": "/api/sitemap-static",
+      "destination": "/api/sitemap?type=static"
+    },
+    {
+      "source": "/api/sitemap-static.xml",
       "destination": "/api/sitemap?type=static"
     },
     {

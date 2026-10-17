@@ -156,6 +156,19 @@ const SeoDashboard = () => {
       addLog(`Failed to load Sitemap Index: ${e.message}`, 'error')
     }
 
+    // Test 2b: Check Static Sitemap
+    try {
+      addLog('Checking static sitemap generator...', 'info')
+      const staticSitemapRes = await fetch('/sitemap-static.xml')
+      if (staticSitemapRes.ok) {
+        addLog('Static Sitemap is generated correctly (Status 200 OK)', 'success')
+      } else {
+        addLog(`Static Sitemap returned status ${staticSitemapRes.status}`, 'error')
+      }
+    } catch (e) {
+      addLog(`Failed to load Static Sitemap: ${e.message}`, 'error')
+    }
+
     // Test 3: Check Active Cities Data
     try {
       addLog(`Checking database for operating_cities. Total active found: ${stats.activeCities}`, 'info')
@@ -547,14 +560,14 @@ const SeoDashboard = () => {
               </a>
 
               <a
-                href="/api/sitemap-static"
+                href="/sitemap-static.xml"
                 target="_blank"
                 rel="noreferrer"
                 className="p-3 bg-gray-50 dark:bg-white/5 hover:bg-red-50/20 dark:hover:bg-red-950/10 rounded-xl border border-gray-150 dark:border-white/5 flex items-center justify-between group transition-all"
               >
                 <div className="min-w-0">
                   <span className="text-[10px] text-gray-400 font-bold uppercase block">Static Maps</span>
-                  <span className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate mt-0.5">/sitemap-static</span>
+                  <span className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate mt-0.5">/sitemap-static.xml</span>
                 </div>
                 <ExternalLink className="w-4 h-4 text-gray-400 group-hover:text-ozo-red transition-all" />
               </a>
