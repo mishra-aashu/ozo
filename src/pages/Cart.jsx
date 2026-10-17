@@ -115,7 +115,7 @@ const Cart = () => {
 
   const freeAboveLimit = deliveryConfig?.free_above ?? 99
   const minOrderValueLimit = orderConfig?.min_order_value ?? 0
-  const hasOutOfStockItems = items.some(item => !item.isAvailable || item.quantityAvailable <= 0)
+  const hasOutOfStockItems = items.some(item => !item.isAvailable || item._cityUnavailable || item.quantityAvailable <= 0)
   const hasInsufficientStockItems = items.some(item => item.isAvailable && item.quantityAvailable > 0 && item.quantity > item.quantityAvailable)
 
   const coordinates = useLocationStore(state => state.coordinates)
@@ -445,7 +445,7 @@ const Cart = () => {
                   variants={itemVariants}
                   exit={{ opacity: 0, x: -50 }}
                   className={`border rounded-2xl p-4 shadow-card dark:shadow-none transition-all duration-300 overflow-hidden ${
-                    (!item.isAvailable || item.quantityAvailable <= 0)
+                    (!item.isAvailable || item._cityUnavailable || item.quantityAvailable <= 0)
                       ? 'border-red-300 dark:border-red-900/50 bg-red-50/40 dark:bg-red-950/10 shadow-[0_0_12px_rgba(239,68,68,0.06)]'
                       : item.quantity > item.quantityAvailable
                         ? 'border-amber-300 dark:border-amber-900/50 bg-amber-50/20 dark:bg-amber-950/10'
@@ -557,10 +557,10 @@ const Cart = () => {
                   </div>
 
                   {/* Stock Warning & Availability Status */}
-                  {(!item.isAvailable || item.quantityAvailable <= 0) ? (
+                  {(!item.isAvailable || item._cityUnavailable || item.quantityAvailable <= 0) ? (
                     <div className="mt-3 bg-red-500/10 dark:bg-red-500/20 text-red-650 dark:text-red-400 px-3 py-1.5 rounded-xl border border-red-500/20 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 w-fit">
                       <AlertCircle className="w-4 h-4 flex-shrink-0 text-red-500" />
-                      <span>Out of Stock / Unavailable</span>
+                      <span>{item._cityUnavailable ? 'Not available in this city' : 'Out of Stock / Unavailable'}</span>
                     </div>
                   ) : item.quantity > item.quantityAvailable ? (
                     <div className="mt-3 bg-amber-500/10 dark:bg-amber-500/20 text-amber-700 dark:text-amber-400 px-3 py-1.5 rounded-xl border border-amber-500/20 text-xs font-black flex items-center gap-1.5 w-fit">

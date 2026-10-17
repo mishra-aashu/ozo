@@ -2,7 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { supabase } from '../lib/supabase'
 import { useAuthStore } from './authStore'
-import { useLocationStore, checkDeliveryZoneStatus } from './locationStore'
+import { useLocationStore, checkDeliveryZoneStatus, getActiveCitySlug } from './locationStore'
 import toast from 'react-hot-toast'
 import { DELIVERY_DEFAULTS, GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
 
@@ -204,7 +204,7 @@ export const useCartStore = create(
 
         try {
           const productIds = guestItems.map(i => i.productId).filter(Boolean)
-          const citySlug = useLocationStore.getState().selectedCitySlug
+          const citySlug = getActiveCitySlug()
 
           const { data: products, error } = await supabase
             .from('products')
@@ -605,7 +605,7 @@ export const useCartStore = create(
           if (error) throw error
 
           const productIds = data.map(item => item.product?.id).filter(Boolean)
-          const citySlug = useLocationStore.getState().selectedCitySlug
+          const citySlug = getActiveCitySlug()
 
           // Fetch city overrides if city is selected
           let cityAvail = []
@@ -668,6 +668,61 @@ export const useCartStore = create(
         } catch (error) {
           console.error('Fetch cart error:', error)
           set({ isLoading: false })
+        }
+      },
+
+      revalidateCartForCity: async (newCitySlug) => {
+        if (!newCitySlug) return
+        const items = get().items
+        if (items.length === 0) return
+        
+        const productIds = items.map(i => i.productId).filter(Boolean)
+        if (productIds.length === 0) return
+        
+        try {
+          const { data: pcaData } = await supabase
+            .from('product_city_availability')
+            .select('product_id, city_price, city_mrp, city_ozo_price, is_available')
+            .eq('city_slug', newCitySlug)
+            .in('product_id', productIds)
+          
+          const pcaMap = new Map((pcaData || []).map(p => [p.product_id, p]))
+          
+          const updatedItems = items.map(item => {
+            const pca = pcaMap.get(item.productId)
+            if (!pca) {
+              return { ...item, isAvailable: false, _cityUnavailable: true }
+            }
+            
+            const isAvailable = pca.is_available !== false
+            const price = pca.city_price != null ? parseFloat(pca.city_price) : item.price
+            const mrp = pca.city_mrp != null ? parseFloat(pca.city_mrp) : item.mrp
+            const ozoPrice = pca.city_ozo_price != null ? parseFloat(pca.city_ozo_price) : item.ozoPrice
+            const displayPrice = (ozoPrice != null && ozoPrice > 0) ? ozoPrice : price
+            
+            return {
+              ...item,
+              price: displayPrice,
+              sellingPrice: price,
+              ozoPrice,
+              mrp,
+              isAvailable,
+              _cityUnavailable: !isAvailable
+            }
+          })
+          
+          set({ items: updatedItems, cartCitySlug: newCitySlug })
+          get().calculateTotals()
+          
+          const unavailableCount = updatedItems.filter(i => !i.isAvailable || i._cityUnavailable).length
+          if (unavailableCount > 0) {
+            toast(`${unavailableCount} item(s) in your cart are not available in this city`, {
+              icon: '⚠️',
+              duration: 4000
+            })
+          }
+        } catch (err) {
+          console.error('[cartStore] Cart city revalidation failed:', err)
         }
       },
 

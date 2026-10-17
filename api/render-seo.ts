@@ -672,7 +672,7 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
   try {
     const { data } = await supabase
       .from('products')
-      .select('slug, name, base_price, unit, image_url')
+      .select('slug, name, price, ozo_price, unit, image_url')
       .eq('is_available', true)
       .limit(24);
     if (data) products = data;
@@ -756,7 +756,7 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
       <a href="/${currentCitySlug}/${p.slug}">
         ${p.image_url ? `<img src="${p.image_url}" alt="${p.name} - Fast delivery in ${activeCityNames || currentCitySlug}" loading="lazy" />` : ''}
         <h3>${p.name}</h3>
-        <p>₹${p.base_price}</p>
+        <p>₹${p.ozo_price || p.price}</p>
         <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
       </a>
     </div>
@@ -872,7 +872,7 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
   try {
     const { data } = await supabase
       .from('products')
-      .select('slug, name, base_price, unit, image_url')
+      .select('slug, name, price, ozo_price, unit, image_url')
       .eq('is_available', true)
       .limit(24);
     if (data) products = data;
@@ -944,7 +944,7 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
       <a href="/${city.slug}/${p.slug}">
         ${p.image_url ? `<img src="${p.image_url}" alt="${p.name} - Fresh delivery in ${cityName}" loading="lazy" />` : ''}
         <h3>${p.name}</h3>
-        <p>₹${p.base_price}</p>
+        <p>₹${p.ozo_price || p.price}</p>
         <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
       </a>
     </div>
@@ -1021,7 +1021,7 @@ async function renderCategoryPage(res: VercelResponse, categorySlug: string, cit
   try {
     let query = supabase
       .from('products')
-      .select('slug, name, base_price, unit, image_url')
+      .select('slug, name, price, ozo_price, unit, image_url')
       .eq('is_available', true)
       .limit(36);
 
@@ -1058,7 +1058,7 @@ async function renderCategoryPage(res: VercelResponse, categorySlug: string, cit
       <a href="/${currentCitySlug}/${p.slug}">
         ${p.image_url ? `<img src="${p.image_url}" alt="${p.name} - ${categoryName} on OZO Mart" loading="lazy" />` : ''}
         <h3>${p.name}</h3>
-        <p>₹${p.base_price}</p>
+        <p>₹${p.ozo_price || p.price}</p>
         <span style="font-size: 11px; color: var(--text-muted);">${p.unit}</span>
       </a>
     </div>
@@ -1331,8 +1331,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         id,
         slug,
         name,
-        base_price,
-        base_mrp,
+        price,
+        ozo_price,
+        mrp,
         image_url,
         brand,
         unit,
@@ -1345,6 +1346,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           city_slug,
           city_price,
           city_mrp,
+          city_ozo_price,
           is_featured,
           is_available
         )
@@ -1386,15 +1388,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const cleanCategoryName = (Array.isArray(categoryObj) ? categoryObj[0]?.name : categoryObj?.name) || 'Grocery';
     const categoryName = cleanCategoryName;
 
-    const citySellingPrice = pca?.city_price !== null && pca?.city_price !== undefined 
-      ? parseFloat(pca.city_price) 
-      : (prod.base_price ? parseFloat(prod.base_price) : 0);
+    const citySellingPrice = pca?.city_ozo_price !== null && pca?.city_ozo_price !== undefined && parseFloat(pca.city_ozo_price) > 0
+      ? parseFloat(pca.city_ozo_price)
+      : (pca?.city_price !== null && pca?.city_price !== undefined 
+        ? parseFloat(pca.city_price) 
+        : (prod.ozo_price ? parseFloat(prod.ozo_price) : (prod.price ? parseFloat(prod.price) : 0)));
     
     const finalPrice = citySellingPrice;
 
     const finalMrp = pca?.city_mrp !== null && pca?.city_mrp !== undefined
       ? parseFloat(pca.city_mrp)
-      : (prod.base_mrp ? parseFloat(prod.base_mrp) : finalPrice);
+      : (prod.mrp ? parseFloat(prod.mrp) : finalPrice);
 
     const absoluteImageUrl = prod.image_url || 'https://ozomart.store/logo.png';
 
@@ -1408,13 +1412,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             id,
             slug,
             name,
-            base_price,
+            price,
+            ozo_price,
             image_url,
             unit,
             product_city_availability!left(
               city_slug,
               city_price,
               city_mrp,
+              city_ozo_price,
               is_available
             )
           `)
@@ -1429,9 +1435,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             const rPca = Array.isArray(rPcaList)
               ? (rPcaList.find((p: any) => p.city_slug === cityStr) || null)
               : (rPcaList || null);
-            const rpPrice = rPca?.city_price !== null && rPca?.city_price !== undefined 
-              ? parseFloat(rPca.city_price) 
-              : parseFloat(rp.base_price || 0);
+            const rpPrice = rPca?.city_ozo_price !== null && rPca?.city_ozo_price !== undefined && parseFloat(rPca.city_ozo_price) > 0
+              ? parseFloat(rPca.city_ozo_price)
+              : (rPca?.city_price !== null && rPca?.city_price !== undefined 
+                ? parseFloat(rPca.city_price) 
+                : parseFloat(rp.ozo_price || rp.price || 0));
             return {
               slug: rp.slug,
               name: rp.name,

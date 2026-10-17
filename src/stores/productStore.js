@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
-import { useLocationStore } from './locationStore'
+import { useLocationStore, getActiveCitySlug } from './locationStore'
 import { useCartStore } from './cartStore'
 import { isImageMissing } from '../utils/imageOptimizer'
 
@@ -16,7 +16,7 @@ let searchProductsController = null
 let getProductsByCategoryController = null
 
 // In-memory search results cache with 3 min TTL
-const searchCache = new Map()
+export const searchCache = new Map()
 const SEARCH_CACHE_TTL = 3 * 60 * 1000
 
 // Helper to construct product query with city filters and overrides
@@ -190,7 +190,7 @@ export const useProductStore = create((set, get) => ({
     try {
       set({ isProductsLoading: true, isLoading: true })
 
-      const citySlug = useLocationStore.getState().selectedCitySlug
+      const citySlug = getActiveCitySlug()
       let query = buildProductQuery(supabase, citySlug, `
         id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
@@ -307,7 +307,7 @@ export const useProductStore = create((set, get) => ({
     try {
       set({ isFeaturedLoading: true, isLoading: true })
       
-      const citySlug = useLocationStore.getState().selectedCitySlug
+      const citySlug = getActiveCitySlug()
       
       let cityFeaturedIds = []
       if (citySlug) {
@@ -416,7 +416,7 @@ export const useProductStore = create((set, get) => ({
     try {
       set({ isBestsellersLoading: true, isLoading: true })
       
-      const citySlug = useLocationStore.getState().selectedCitySlug
+      const citySlug = getActiveCitySlug()
       let query = buildProductQuery(supabase, citySlug, `
         id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
@@ -500,7 +500,7 @@ export const useProductStore = create((set, get) => ({
     try {
       set({ currentProduct: null, isProductDetailLoading: true, isLoading: true })
 
-      const citySlug = useLocationStore.getState().selectedCitySlug
+      const citySlug = getActiveCitySlug()
       let query = buildProductQuery(supabase, citySlug, `
         *,
         category:categories (
@@ -664,7 +664,7 @@ export const useProductStore = create((set, get) => ({
       return { success: true, data: [] }
     }
 
-    const citySlug = useLocationStore.getState().selectedCitySlug || 'global'
+    const citySlug = getActiveCitySlug() || 'global'
     const cacheKey = `${trimmed.toLowerCase()}:${citySlug}`
     const now = Date.now()
 
@@ -705,7 +705,7 @@ export const useProductStore = create((set, get) => ({
             is_active
           )
         `)
-        .limit(20)
+        .limit(60)
         .abortSignal(signal)
 
       const suggestionPromise = supabase
@@ -726,7 +726,7 @@ export const useProductStore = create((set, get) => ({
             )
           `)
           .or(`name.ilike.%${sanitized}%,brand.ilike.%${sanitized}%`)
-          .limit(20)
+          .limit(60)
           .abortSignal(signal);
 
           if (fallbackRes.error) throw fallbackRes.error;
@@ -741,7 +741,7 @@ export const useProductStore = create((set, get) => ({
       if (signal.aborted) {
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
-      const citySlug = useLocationStore.getState().selectedCitySlug
+      const citySlug = getActiveCitySlug()
 
       if (citySlug && products.length > 0) {
         const productIds = products.map(p => p.id)
@@ -846,6 +846,9 @@ export const useProductStore = create((set, get) => ({
         return 0;
       });
 
+      // Cap results to desired display limit (20) after city filtering and sorting
+      products = products.slice(0, 20);
+
       const spellingSuggestion = suggestionRes.data || null
 
       // Save to in-memory search cache
@@ -934,7 +937,7 @@ export const useProductStore = create((set, get) => ({
       }
 
       // Then get products
-      const citySlug = useLocationStore.getState().selectedCitySlug
+      const citySlug = getActiveCitySlug()
       let productsQuery = buildProductQuery(supabase, citySlug, `
         id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
         category:categories (
@@ -1016,7 +1019,7 @@ export const useProductStore = create((set, get) => ({
       })
 
       const locationState = useLocationStore.getState()
-      const citySlug = locationState.selectedCitySlug
+      const citySlug = getActiveCitySlug()
 
       console.log(`[productStore] fetchHomePageData initiated with citySlug: "${citySlug}" (isLocationInitialized: ${locationState.isLocationInitialized})`)
       
