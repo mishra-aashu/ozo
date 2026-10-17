@@ -824,6 +824,50 @@ WHERE id = '${editingProduct.id}';`
           .eq('id', editingProduct.id)
 
         if (error) throw error
+
+        // Sync with mart_inventory if assigned to a mart
+        if (formData.martId) {
+          if (editingProduct.mart_id && editingProduct.mart_id !== formData.martId) {
+            await supabaseAdmin
+              .from('mart_inventory')
+              .delete()
+              .eq('mart_id', editingProduct.mart_id)
+              .eq('product_id', editingProduct.id)
+          }
+
+          const { error: invErr } = await supabaseAdmin
+            .from('mart_inventory')
+            .upsert({
+              mart_id: formData.martId,
+              product_id: editingProduct.id,
+              stock_quantity: 100,
+              mart_price: parseFloat(formData.price) || null,
+              mart_mrp: parseFloat(formData.mrp) || null,
+              is_available: formData.isAvailable !== false,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'mart_id,product_id' })
+
+          if (invErr) console.error('Failed to sync to mart_inventory:', invErr)
+
+          const targetMart = marts.find(m => m.id === formData.martId)
+          if (targetMart?.city_slug) {
+            await supabaseAdmin
+              .from('product_city_availability')
+              .upsert({
+                product_id: editingProduct.id,
+                city_slug: targetMart.city_slug,
+                is_available: formData.isAvailable !== false,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'product_id,city_slug' })
+          }
+        } else if (editingProduct.mart_id && !formData.martId) {
+          await supabaseAdmin
+            .from('mart_inventory')
+            .delete()
+            .eq('mart_id', editingProduct.mart_id)
+            .eq('product_id', editingProduct.id)
+        }
+
         toast.success('Product updated successfully!')
 
         // Trigger back-in-stock push notification if product becomes available
@@ -874,11 +918,43 @@ WHERE id = '${editingProduct.id}';`
           slug: finalSlug,
           quantity_available: 100
         }
-        const { error } = await supabaseAdmin
+        const { data: insertedProduct, error } = await supabaseAdmin
           .from('products')
           .insert([insertPayload])
+          .select('id, mart_id, price, mrp, is_available')
+          .single()
 
         if (error) throw error
+
+        // Sync with mart_inventory if assigned to a mart
+        if (formData.martId && insertedProduct?.id) {
+          const { error: invErr } = await supabaseAdmin
+            .from('mart_inventory')
+            .upsert({
+              mart_id: formData.martId,
+              product_id: insertedProduct.id,
+              stock_quantity: 100,
+              mart_price: parseFloat(formData.price) || null,
+              mart_mrp: parseFloat(formData.mrp) || null,
+              is_available: formData.isAvailable !== false,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'mart_id,product_id' })
+
+          if (invErr) console.error('Failed to sync to mart_inventory:', invErr)
+
+          const targetMart = marts.find(m => m.id === formData.martId)
+          if (targetMart?.city_slug) {
+            await supabaseAdmin
+              .from('product_city_availability')
+              .upsert({
+                product_id: insertedProduct.id,
+                city_slug: targetMart.city_slug,
+                is_available: formData.isAvailable !== false,
+                updated_at: new Date().toISOString()
+              }, { onConflict: 'product_id,city_slug' })
+          }
+        }
+
         toast.success('Product added successfully!')
 
         // Trigger IndexNow
@@ -1037,6 +1113,27 @@ WHERE id = '${editingProduct.id}';`
 
       if (error) throw error
 
+      const targetProduct = products.find(p => p.id === productId)
+      if (targetProduct?.mart_id) {
+        await supabaseAdmin
+          .from('mart_inventory')
+          .update({ is_available: !currentStatus, updated_at: new Date().toISOString() })
+          .eq('mart_id', targetProduct.mart_id)
+          .eq('product_id', productId)
+
+        const targetMart = marts.find(m => m.id === targetProduct.mart_id)
+        if (targetMart?.city_slug) {
+          await supabaseAdmin
+            .from('product_city_availability')
+            .upsert({
+              product_id: productId,
+              city_slug: targetMart.city_slug,
+              is_available: !currentStatus,
+              updated_at: new Date().toISOString()
+            }, { onConflict: 'product_id,city_slug' })
+        }
+      }
+
       setProducts(prev =>
         prev.map(p => (p.id === productId ? { ...p, is_available: !currentStatus } : p))
       )
@@ -1044,7 +1141,6 @@ WHERE id = '${editingProduct.id}';`
 
       // Trigger back-in-stock push notification if product becomes available
       if (!currentStatus) {
-        const targetProduct = products.find(p => p.id === productId)
         if (targetProduct) {
           try {
             const payload = {
@@ -1072,7 +1168,6 @@ WHERE id = '${editingProduct.id}';`
       }
 
       // Trigger IndexNow
-      const targetProduct = products.find(p => p.id === productId)
       if (targetProduct) {
         try {
           fetch('/api/index-product', {
