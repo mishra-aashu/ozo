@@ -16,25 +16,39 @@ const localApiPlugin = () => ({
       // Apply vercel.json rewrites for local development
       if (pathname.startsWith('/api/proxy/')) {
         pathname = '/api/proxy';
-      } else if (pathname === '/sitemap.xml') {
-        pathname = '/api/sitemap-index';
-      } else if (pathname === '/sitemap-static.xml') {
+      } else if (pathname === '/sitemap.xml' || pathname === '/sitemap-index.xml' || pathname === '/api/sitemap-index' || pathname === '/api/sitemap-index.xml') {
+        pathname = '/api/sitemap';
+        query.type = 'index';
+      } else if (pathname === '/sitemap-static.xml' || pathname === '/sitemap-static' || pathname === '/api/sitemap-static' || pathname === '/api/sitemap-static.xml') {
         pathname = '/api/sitemap-static';
+        query.type = 'static';
       } else if (pathname.startsWith('/sitemap-') && pathname.endsWith('.xml')) {
         const city = pathname.slice('/sitemap-'.length, -'.xml'.length);
-        pathname = '/api/sitemap-city';
-        query.city = city;
+        if (city === 'static') {
+          pathname = '/api/sitemap-static';
+          query.type = 'static';
+        } else {
+          pathname = '/api/sitemap';
+          query.type = 'city';
+          query.city = city;
+        }
       } else if (pathname.startsWith('/api/sitemap-') && pathname.endsWith('.xml')) {
         const city = pathname.slice('/api/sitemap-'.length, -'.xml'.length);
-        pathname = '/api/sitemap-city';
-        query.city = city;
+        if (city === 'static') {
+          pathname = '/api/sitemap-static';
+          query.type = 'static';
+        } else {
+          pathname = '/api/sitemap';
+          query.type = 'city';
+          query.city = city;
+        }
       } else if (pathname.match(/^\/[a-zA-Z0-9]{32}\.txt$/)) {
         const key = pathname.slice(1, -4);
         pathname = '/api/indexnow-key';
         query.key = key;
       } else if (pathname.startsWith('/product-images/') && pathname.endsWith('.png')) {
         const slug = pathname.slice('/product-images/'.length, -'.png'.length);
-        pathname = '/api/product-image';
+        pathname = '/api/image';
         query.slug = slug;
       }
 
