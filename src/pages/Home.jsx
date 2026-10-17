@@ -708,10 +708,6 @@ const MartHome = () => {
           .not('image_url', 'ilike', '%raw.githubusercontent.com%')
           .not('image_url', 'ilike', '%logo_transparent.png%');
 
-        if (citySlug) {
-          productsQuery = productsQuery.eq('product_city_availability.city_slug', citySlug);
-        }
-
         const { data: rawProducts, error: prodError } = await productsQuery
           .in('category_id', categoryIds)
           .limit(15); // Show top 15 products
@@ -1626,10 +1622,17 @@ const MartHome = () => {
       const shuffledInStock = seededSort(inStock, shuffleSeed);
       let result = [...shuffledInStock, ...outOfStock];
 
-      // Pad with bestsellerProducts or other products if we have fewer than 15 items to prevent empty spaces in rows
+      // Pad with bestsellerProducts or other available products if we have fewer than 15 items
       if (result.length < 15) {
         const existingIds = new Set(result.map(p => p.id));
-        const candidates = (bestsellerProducts || []).filter(p => p.is_available && !existingIds.has(p.id));
+        const fallbackPool = [
+          ...(bestsellerProducts || []),
+          ...(stealDealsData || []),
+          ...(budgetProductsData || []),
+          ...(summerSpecialsProductsData || []),
+          ...(mandiProductsData || [])
+        ];
+        const candidates = fallbackPool.filter(p => p && p.is_available && !existingIds.has(p.id));
         const shuffledCandidates = seededSort(candidates, shuffleSeed);
         result = [...result, ...shuffledCandidates];
       }
@@ -1638,7 +1641,17 @@ const MartHome = () => {
     }
 
     return baseList.slice(0, 15);
-  }, [selectedFeaturedCategory, featuredProducts, filteredCategoryProducts, bestsellerProducts, shuffleSeed]);
+  }, [
+    selectedFeaturedCategory,
+    featuredProducts,
+    filteredCategoryProducts,
+    bestsellerProducts,
+    stealDealsData,
+    budgetProductsData,
+    summerSpecialsProductsData,
+    mandiProductsData,
+    shuffleSeed
+  ]);
 
   const parentCats = useMemo(() => categories.filter(c => !c.parent_id), [categories]);
 
