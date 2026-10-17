@@ -1001,13 +1001,16 @@ export const checkPincodeServiceable = (pincode, cityName = null) => {
     }
   }
   
-  // If no city name is provided, check if pincode matches allowed pincodes or starts with Aurangabad prefix 824
+  // If no city name is provided, check if pincode matches allowed pincodes or matches city prefix
   return activeCities.some(c => {
     if (c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.length > 0) {
       return c.allowed_pincodes.includes(cleanPin);
     }
-    if (c.slug === 'aurangabad') {
+    if (c.slug === 'aurangabad' || c.slug === 'aurangabad-bihar') {
       return cleanPin.startsWith('824');
+    }
+    if (c.slug === 'bhagalpur') {
+      return cleanPin.startsWith('812') || cleanPin.startsWith('813');
     }
     return false;
   });

@@ -1825,7 +1825,7 @@ const MartHome = () => {
             <button
               onClick={() => {
                 const { showServiceabilityModal } = useLocationStore.getState()
-                showServiceabilityModal('Aurangabad, Bihar', '')
+                showServiceabilityModal(primaryCity?.name || 'Your Area', '')
               }}
               className="flex-1 py-2.5 px-4 bg-gradient-to-r from-ozo-red to-rose-600 hover:from-rose-600 hover:to-ozo-red text-white font-bold text-xs rounded-xl transition-all shadow-md active:scale-95"
             >

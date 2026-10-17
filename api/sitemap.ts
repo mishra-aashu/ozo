@@ -48,12 +48,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (type === 'index') {
     const activeCities = await getActiveCities();
 
-    const citySitemaps = activeCities.map(c => `
+    const citySitemaps = activeCities.map(c => {
+      const list = [
+        `
       <sitemap>
         <loc>https://www.ozomart.store/sitemap-${c.slug}.xml</loc>
         <lastmod>${new Date().toISOString()}</lastmod>
       </sitemap>
-    `).join('');
+    `
+      ];
+      if (c.slug === 'aurangabad-bihar') {
+        list.push(`
+      <sitemap>
+        <loc>https://www.ozomart.store/sitemap-aurangabad.xml</loc>
+        <lastmod>${new Date().toISOString()}</lastmod>
+      </sitemap>
+    `);
+      }
+      return list.join('');
+    }).join('');
 
     const staticSitemap = `
       <sitemap>
@@ -83,10 +96,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (type === 'city') {
     const { city } = req.query;
-    const cityStr = String(city).toLowerCase();
+    let cityStr = String(city).toLowerCase();
 
     // 1. City validation
     const activeCities = await getActiveCities();
+    if (cityStr === 'aurangabad' && !activeCities.some(c => c.slug === 'aurangabad')) {
+      cityStr = 'aurangabad-bihar';
+    }
     const isValid = activeCities.some(c => c.slug === cityStr);
 
     if (!city || !isValid) {
