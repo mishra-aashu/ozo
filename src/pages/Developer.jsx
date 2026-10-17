@@ -19,7 +19,8 @@ import {
   Quote,
   Zap,
   TrendingUp,
-  Workflow
+  Workflow,
+  BookOpen
 } from 'lucide-react'
 
 const Developer = () => {
@@ -64,11 +65,22 @@ const Developer = () => {
             <span className="text-emerald-400">Real-Time Speed.</span>
           </h3>
           <p className="text-gray-200 text-base md:text-lg font-medium max-w-xl">
-            Enrolled in Data Science & Applications at <strong>IIT Madras</strong>, running a dedicated Linux Mint environment. Architecting production-grade Supabase backends with spatial routing matrixes, Edge proxies, and instant synchronization.
+            Pursuing B.Tech in Mathematics & Computing from <strong>BCE Bhagalpur</strong> and BS in Data Science & Applications from <strong>IIT Madras</strong>, running a dedicated Linux environment. Architecting production-grade Supabase backends with spatial routing matrixes, Edge proxies, and instant synchronization.
           </p>
           <div className="flex flex-wrap gap-2.5 justify-center md:justify-start">
             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-200">Linux Mint</span>
-            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-200">IIT Madras</span>
+            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-200 flex items-center gap-1.5">
+              <span className="w-4 h-4 rounded-full bg-white p-0.5 inline-flex items-center justify-center">
+                <img src="/images/bce-bhagalpur-logo.png" className="w-full h-full object-contain rounded-full" alt="BCE Bhagalpur" />
+              </span>
+              B.Tech (BCE Bhagalpur)
+            </span>
+            <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-200 flex items-center gap-1.5">
+              <span className="w-4 h-4 rounded-full bg-white p-0.5 inline-flex items-center justify-center">
+                <img src="/images/iit-madras-logo.svg" className="w-full h-full object-contain" alt="IIT Madras" />
+              </span>
+              BS (IIT Madras)
+            </span>
             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-200">Supabase</span>
             <span className="px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-gray-200">React & Vite</span>
           </div>
@@ -134,7 +146,8 @@ const Developer = () => {
     { name: 'Supabase Serverless', category: 'backend', icon: Server, desc: 'Edge proxies, real-time channels, and database triggers.' },
     { name: 'Linux Mint Environment', category: 'infrastructure', icon: Terminal, desc: 'Optimized local systems pipeline for compilation and deployment.' },
     { name: 'Spatial Routing Matrixes', category: 'algorithms', icon: Cpu, desc: 'Complex lat-long distance math for automated fulfillment.' },
-    { name: 'Data Science (IIT Madras)', category: 'analytics', icon: GraduationCap, desc: 'Academic logic applied to consumer behavior and predictive analytics.' },
+    { name: 'B.Tech in Math & Computing (BCE)', category: 'analytics', icon: Cpu, desc: 'Algorithmic optimization, computational mathematics, and spatial graph solvers.' },
+    { name: 'BS in Data Science (IIT Madras)', category: 'analytics', icon: GraduationCap, desc: 'Machine learning logic, predictive consumer behavior, and data analytics.' },
     { name: 'Storytelling & Art Direction', category: 'branding', icon: Film, desc: 'Cinematic color palettes, intuitive flows, and brand messaging.' }
   ]
 
@@ -212,8 +225,56 @@ const Developer = () => {
                 transition={{ delay: 0.2 }}
                 className="text-lg text-ozo-gray dark:text-gray-400 font-medium max-w-2xl leading-relaxed"
               >
-                Enrolled in Data Science & Applications at <strong>IIT Madras</strong>. Bringing analytical rigor, optimized systems code, and visual filmmaking narrative to lead the technology architecture of OZO Mart.
+                Pursuing <strong>B.Tech in Mathematics & Computing</strong> from <strong>BCE Bhagalpur</strong> and <strong>BS in Data Science & Applications</strong> from <strong>IIT Madras</strong>. Bringing analytical rigor, optimized systems code, and visual filmmaking narrative to lead the technology architecture of OZO Mart.
               </motion.p>
+
+              {/* Institutional Pedigree Showcase Cards with Logos */}
+              <motion.div 
+                initial={{ y: 20, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 0.25 }}
+                className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 pt-1"
+              >
+                {/* BCE Bhagalpur Card */}
+                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-gray-50/80 dark:bg-white/[0.04] border border-gray-200/80 dark:border-white/10 shadow-sm hover:shadow-md hover:border-emerald-500/40 dark:hover:border-emerald-400/30 transition-all group backdrop-blur-sm">
+                  <div className="w-12 h-12 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-sm flex-shrink-0 border border-gray-100 group-hover:scale-105 transition-transform">
+                    <img 
+                      src="/images/bce-bhagalpur-logo.png" 
+                      alt="BCE Bhagalpur Seal" 
+                      className="w-full h-full object-contain rounded-full"
+                    />
+                  </div>
+                  <div className="min-w-0 text-left">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">BCE Bhagalpur</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-300">B.Tech</span>
+                    </div>
+                    <p className="text-xs text-ozo-gray dark:text-gray-400 font-semibold truncate mt-0.5">
+                      Mathematics & Computing
+                    </p>
+                  </div>
+                </div>
+
+                {/* IIT Madras Card */}
+                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-gray-50/80 dark:bg-white/[0.04] border border-gray-200/80 dark:border-white/10 shadow-sm hover:shadow-md hover:border-red-500/40 dark:hover:border-red-400/30 transition-all group backdrop-blur-sm">
+                  <div className="w-12 h-12 rounded-xl bg-white p-1.5 flex items-center justify-center shadow-sm flex-shrink-0 border border-gray-100 group-hover:scale-105 transition-transform">
+                    <img 
+                      src="/images/iit-madras-logo.svg" 
+                      alt="IIT Madras Emblem" 
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+                  <div className="min-w-0 text-left">
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">IIT Madras</span>
+                      <span className="text-[10px] font-extrabold px-1.5 py-0.2 rounded bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-300">BS</span>
+                    </div>
+                    <p className="text-xs text-ozo-gray dark:text-gray-400 font-semibold truncate mt-0.5">
+                      Data Science & Applications
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
 
               {/* Social Connects */}
               <motion.div 
@@ -251,7 +312,6 @@ const Developer = () => {
       <div className="container-custom max-w-5xl mx-auto px-6 mt-16">
         
         {/* Core Profile Narrative Card */}
-        {/* Core Profile Narrative Card */}
         <div className="bg-white dark:bg-[#111111] p-8 md:p-10 rounded-[2.5rem] border border-gray-150/10 dark:border-white/5 shadow-xl space-y-6 mb-16">
           <h2 className="text-2xl font-black text-gray-900 dark:text-white font-display flex items-center gap-2">
             <Quote className="text-ozo-red" size={24} />
@@ -262,7 +322,7 @@ const Developer = () => {
               Every disruptive startup begins with a vision to bridge a massive gap. For <strong>OZO Mart</strong>, that vision is driven by <strong>Aashutosh Kumar Mishra</strong>, our Founder, CEO, and Lead Systems Engineer.
             </p>
             <p>
-              Aashutosh is a rare combination of a <strong>highly technical Software Developer</strong> and a <strong>visionary Filmmaker</strong>. Enrolled in the prestigious Data Science & Applications program at <strong>IIT Madras</strong>, he brings a deep, analytical approach to solving complex logistics, combined with a sharp eye for elite visual branding and consumer psychological behavior.
+              Aashutosh is a rare combination of a <strong>highly technical Software Developer</strong> and a <strong>visionary Filmmaker</strong>. Pursuing <strong>Data Science & Applications from IIT Madras</strong> alongside <strong>Mathematics and Computing from BCE Bhagalpur</strong>, he brings a deep, analytical and computational approach to solving complex logistics, combined with a sharp eye for elite visual branding and consumer psychological behavior.
             </p>
           </div>
 
@@ -284,6 +344,82 @@ const Developer = () => {
               <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium">
                 Infusing aesthetic branding, cinematography, and human behavior to engineer premium user interfaces.
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Dual Academic Foundation Showcase Card */}
+        <div className="bg-gradient-to-br from-white via-gray-50/50 to-white dark:from-[#111111] dark:via-[#161616] dark:to-[#111111] p-8 md:p-10 rounded-[2.5rem] border border-gray-200/80 dark:border-white/5 shadow-xl mb-16 relative overflow-hidden">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-2 px-3 py-1 bg-red-50 dark:bg-ozo-red/10 text-ozo-red dark:text-red-400 rounded-full text-xs font-black uppercase tracking-wider">
+                <GraduationCap size={14} />
+                ACADEMIC & MATHEMATICAL RIGOR
+              </div>
+              <h3 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white font-display">
+                Institutional Foundations
+              </h3>
+            </div>
+            <span className="text-xs font-bold text-ozo-gray dark:text-gray-400 max-w-xs text-left sm:text-right">
+              World-class Data Science coupled with Computational Mathematics
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* IIT Madras Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/5 hover:border-red-500/30 transition-all group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-white p-2 flex items-center justify-center shadow-md border border-gray-100 flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <img src="/images/iit-madras-logo.svg" alt="IIT Madras Emblem" className="w-full h-full object-contain" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/40 px-2 py-0.5 rounded-full">Institute of National Importance</span>
+                  </div>
+                  <h4 className="text-lg font-black text-gray-900 dark:text-white font-display mt-1">
+                    IIT Madras
+                  </h4>
+                  <p className="text-xs font-bold text-ozo-gray dark:text-gray-400">
+                    Indian Institute of Technology Madras
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 space-y-1.5">
+                <div className="text-xs font-black text-gray-900 dark:text-gray-200">
+                  Data Science & Applications
+                </div>
+                <p className="text-xs text-ozo-gray dark:text-gray-400 leading-relaxed">
+                  Academic coursework covering machine learning logic, predictive consumer behavior, big data workflows, and statistical inference applied directly to hyper-local delivery optimization.
+                </p>
+              </div>
+            </div>
+
+            {/* BCE Bhagalpur Card */}
+            <div className="p-6 rounded-3xl bg-white dark:bg-white/[0.03] border border-gray-200/70 dark:border-white/5 hover:border-emerald-500/30 transition-all group flex flex-col justify-between space-y-4 shadow-sm hover:shadow-md">
+              <div className="flex items-start gap-4">
+                <div className="w-16 h-16 rounded-2xl bg-white p-2 flex items-center justify-center shadow-md border border-gray-100 flex-shrink-0 group-hover:scale-105 transition-transform">
+                  <img src="/images/bce-bhagalpur-logo.png" alt="BCE Bhagalpur Seal" className="w-full h-full object-contain rounded-full" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full">Govt. Engineering Institute (Estd. 1960)</span>
+                  </div>
+                  <h4 className="text-lg font-black text-gray-900 dark:text-white font-display mt-1">
+                    BCE Bhagalpur
+                  </h4>
+                  <p className="text-xs font-bold text-ozo-gray dark:text-gray-400">
+                    Bhagalpur College of Engineering
+                  </p>
+                </div>
+              </div>
+              <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 space-y-1.5">
+                <div className="text-xs font-black text-gray-900 dark:text-gray-200">
+                  Mathematics and Computing
+                </div>
+                <p className="text-xs text-ozo-gray dark:text-gray-400 leading-relaxed">
+                  Rigorous focus on advanced discrete mathematics, algorithm design, computational graph theory, and matrix algebra powering OZO Mart's real-time spatial delivery matrix.
+                </p>
+              </div>
             </div>
           </div>
         </div>
