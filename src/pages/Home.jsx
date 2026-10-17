@@ -1329,10 +1329,18 @@ const MartHome = () => {
       if (result.length < 10 && shuffledOutOfStock.length > 0) {
         result = [...result, ...shuffledOutOfStock.slice(0, 10 - result.length)];
       }
+
+      // Backfill with fallback items if fewer than 4 items to ensure rich carousel layout
+      if (result.length < 4) {
+        const existingIds = new Set(result.map(p => p.id));
+        const needed = fallbackSummer.filter(p => !existingIds.has(p.id));
+        result = [...result, ...needed.slice(0, 4 - result.length)];
+      }
+
       return result;
     }
 
-    return [];
+    return fallbackSummer;
   }, [summerSpecialsProductsData, shuffleSeed, launchConfig]);
 
   // Automatic smooth scrolling for Summer Specials
