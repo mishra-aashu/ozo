@@ -1130,14 +1130,14 @@ function renderStaticPage(res: VercelResponse, slug: string, activeCities: any[]
         <p>Have questions, feedback, or need help with your order? Our support team is here to assist you!</p>
         
         <h2>Customer Support</h2>
-        <p>📧 Email: <a href="mailto:support@ozomart.store" style="color: var(--primary);">support@ozomart.store</a></p>
+        <p>📧 Email: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">contact@ozomart.store</a></p>
         <p>📞 Phone: +91-XXXXXXXXXX (Mon-Sun, 8 AM - 10 PM)</p>
         
         <h2>Office Address</h2>
         <p>OZO Mart Headquarters,<br>Aurangabad, Bihar, India - 824101</p>
 
         <h2>Partner with Us</h2>
-        <p>If you are a vendor, farmer, or local store owner wishing to list your products on OZO, please write to us at <a href="mailto:partners@ozomart.store" style="color: var(--primary);">partners@ozomart.store</a>.</p>
+        <p>If you are a vendor, farmer, or local store owner wishing to list your products on OZO, please write to us at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=partners@ozomart.store" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">partners@ozomart.store</a>.</p>
       </div>
     `;
   } else if (slug === 'help') {

@@ -131,7 +131,7 @@ async function searchImages(query: string, barcode?: string): Promise<ImageSearc
       try {
         const offUrl = `https://world.openfoodfacts.org/api/v0/product/${targetBarcode}.json`;
         const response = await fetch(offUrl, {
-          headers: { 'User-Agent': 'OzoMartImageTool/1.0 (mishra.aashu@gmail.com)' },
+          headers: { 'User-Agent': 'OzoMartImageTool/1.0 (contact@ozomart.store)' },
           signal: AbortSignal.timeout(4000)
         });
         if (response.ok) {
@@ -336,7 +336,7 @@ async function getOpenFoodFactsProductByBarcode(barcode: string): Promise<ImageS
   try {
     const url = `https://world.openfoodfacts.org/api/v0/product/${barcode}.json`;
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'OzoMartImageTool/1.0 (mishra.aashu@gmail.com)' },
+      headers: { 'User-Agent': 'OzoMartImageTool/1.0 (contact@ozomart.store)' },
       signal: AbortSignal.timeout(4000)
     });
     if (response.ok) {
@@ -366,7 +366,7 @@ async function searchOpenFoodFactsImages(query: string): Promise<ImageSearchResu
   try {
     const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=10`;
     const response = await fetch(url, {
-      headers: { 'User-Agent': 'OzoMartImageTool/1.0 (mishra.aashu@gmail.com)' },
+      headers: { 'User-Agent': 'OzoMartImageTool/1.0 (contact@ozomart.store)' },
       signal: AbortSignal.timeout(4000)
     });
     if (response.ok) {

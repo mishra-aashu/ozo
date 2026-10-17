@@ -86,7 +86,7 @@ const PrivacyPolicy = () => {
                    <p className="text-ozo-gray dark:text-gray-400 font-medium mb-2">For privacy inquiries or grievances, contact our designated Grievance Officer under the Consumer Protection Rules and DPDP Act:</p>
                    <div className="text-sm font-semibold text-gray-800 dark:text-gray-300 space-y-1">
                      <p>👤 <span className="text-gray-500">Officer:</span> Aashutosh Kumar Mishra</p>
-                     <p>📧 <span className="text-gray-500">Email:</span> <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-red hover:underline">aashutoshk625@gmail.com</a></p>
+                     <p>📧 <span className="text-gray-500">Email:</span> <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-red hover:underline">contact@ozomart.store</a></p>
                      <p>📞 <span className="text-gray-500">Contact:</span> +91 6206359094</p>
                    </div>
                  </div>

@@ -216,7 +216,7 @@ const TermsOfService = () => {
                       <div>
                         <dt className="text-gray-500 dark:text-gray-400 font-medium">Emails & Support</dt>
                         <dd className="font-bold text-gray-900 dark:text-white space-y-1">
-                          <span className="block">Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></span>
+                          <span className="block">Email: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-green hover:underline">contact@ozomart.store</a></span>
                           <span className="block">Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094 (24 Hours, All Days)</a></span>
                         </dd>
                       </div>
@@ -241,7 +241,7 @@ const TermsOfService = () => {
                         </div>
                         <div>
                           <span className="block text-gray-400 mb-0.5">Email</span>
-                          <span className="text-sm font-bold text-ozo-red"><a href="mailto:aashutoshk625@gmail.com" className="hover:underline">aashutoshk625@gmail.com</a></span>
+                          <span className="text-sm font-bold text-ozo-red"><a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="hover:underline">contact@ozomart.store</a></span>
                         </div>
                         <div>
                           <span className="block text-gray-400 mb-0.5">Contact</span>
@@ -292,7 +292,7 @@ const TermsOfService = () => {
                     <ul className="list-disc pl-6 space-y-2">
                       <li>You are responsible for maintaining confidentiality of your password, OTP, and account credentials.</li>
                       <li>All activity under your account is your responsibility.</li>
-                      <li>Notify us immediately at <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a> if you suspect unauthorized access.</li>
+                      <li>Notify us immediately at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-green hover:underline">contact@ozomart.store</a> if you suspect unauthorized access.</li>
                     </ul>
                   </div>
                   <div>
@@ -606,7 +606,7 @@ const TermsOfService = () => {
                     </p>
                     <ul className="list-disc pl-6 space-y-2 text-sm">
                       <li><span className="font-bold text-gray-900 dark:text-white">In-App Chat / Support Section:</span> Open app &rarr; Go to "My Orders" &rarr; Select the order &rarr; Click "Help" or "Report Issue"</li>
-                      <li><span className="font-bold text-gray-900 dark:text-white">Email:</span> <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a> with Order ID and Live Photo proof</li>
+                      <li><span className="font-bold text-gray-900 dark:text-white">Email:</span> <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-green hover:underline">contact@ozomart.store</a> with Order ID and Live Photo proof</li>
                       <li><span className="font-bold text-gray-900 dark:text-white">Call:</span> <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
                     </ul>
                     <div className="mt-3 p-4 bg-red-50/50 dark:bg-red-950/15 border border-red-100 dark:border-red-900/30 rounded-xl text-xs font-bold text-red-650 dark:text-red-400 space-y-2">
@@ -891,7 +891,7 @@ const TermsOfService = () => {
                   <div>
                     <h3 className="text-xl font-bold text-gray-950 dark:text-white mb-2">13.1 Termination by You</h3>
                     <p>
-                      You may delete your account anytime via the app settings or by emailing <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a>. Any pending refunds will be processed as per policy.
+                      You may delete your account anytime via the app settings or by emailing <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-green hover:underline">contact@ozomart.store</a>. Any pending refunds will be processed as per policy.
                     </p>
                   </div>
                   <div>
@@ -936,8 +936,8 @@ const TermsOfService = () => {
                   <div>
                     <h3 className="text-xl font-bold text-gray-950 dark:text-white mb-2">14.1 Grievance Redressal</h3>
                     <ol className="list-decimal pl-6 space-y-2 text-sm">
-                      <li>Contact Customer Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a> or <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></li>
-                      <li>If unresolved, escalate to Grievance Officer: <a href="mailto:grievance@ozomart.store" className="text-ozo-red hover:underline">grievance@ozomart.store</a></li>
+                      <li>Contact Customer Care: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a> or <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-green hover:underline">contact@ozomart.store</a></li>
+                      <li>If unresolved, escalate to Grievance Officer: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=grievance@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-red hover:underline">grievance@ozomart.store</a></li>
                       <li>Grievance Officer will respond within <span className="font-bold text-gray-950 dark:text-white">48 hours</span> and resolve within <span className="font-bold text-gray-950 dark:text-white">30 days</span>.</li>
                     </ol>
                   </div>
@@ -1049,7 +1049,7 @@ const TermsOfService = () => {
                   <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
                     <h4 className="font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider text-xs">For Support</h4>
                     <ul className="space-y-2 text-sm font-semibold text-gray-800 dark:text-gray-300">
-                      <li>📧 Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-green hover:underline">aashutoshk625@gmail.com</a></li>
+                      <li>📧 Email: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-green hover:underline">contact@ozomart.store</a></li>
                       <li>📞 Phone: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
                       <li>🕒 Hours: 24 Hours, All Days</li>
                     </ul>
@@ -1058,7 +1058,7 @@ const TermsOfService = () => {
                   <div className="p-6 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5">
                     <h4 className="font-bold text-gray-900 dark:text-white mb-4 uppercase tracking-wider text-xs">For Grievances</h4>
                     <ul className="space-y-2 text-sm font-semibold text-gray-800 dark:text-gray-300">
-                      <li>📧 Email: <a href="mailto:aashutoshk625@gmail.com" className="text-ozo-red hover:underline">aashutoshk625@gmail.com</a></li>
+                      <li>📧 Email: <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-red hover:underline">contact@ozomart.store</a></li>
                       <li>👤 Grievance Officer: <span className="font-bold text-gray-900 dark:text-white">Aashutosh Kumar Mishra</span></li>
                       <li>📞 Phone: <a href="tel:+916206359094" className="text-ozo-green hover:underline">+91 6206359094</a></li>
                     </ul>

@@ -101,7 +101,7 @@ const Help = () => {
         "name": "How can I contact customer support?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Our customer support team is available 24/7. You can start a live chat in the OZO app, call our support helpline, or email aashutoshk625@gmail.com."
+          "text": "Our customer support team is available 24/7. You can start a live chat in the OZO app, call our support helpline, or email contact@ozomart.store."
         }
       }
     ]
@@ -131,7 +131,7 @@ const Help = () => {
     { category: 'account', question: 'Can I change my registered phone number?', answer: 'Yes, but for account security, a phone number change requires OTP verification. You can update your details in your Profile section or drop a request on live support.' },
     { category: 'safety', question: 'Is my payment secure on OZO Mart?', answer: 'Absolutely! We use industry-standard encrypted gateways (PCI-DSS compliant SSL channels) to process all online payments. We never store or view your credit card credentials.' },
     { category: 'safety', question: 'How is my personal data protected?', answer: 'We strictly protect your privacy. Your data is encrypted and only shared with dark store operators and delivery riders to fulfill your orders. We never sell your personal information.' },
-    { category: 'others', question: 'How do I contact OZO Mart for corporate partnerships?', answer: 'For marketing, business partnerships, or franchise enquiries, please drop us an email at aashutoshk625@gmail.com. Our corporate team will contact you within 24 hours.' },
+    { category: 'others', question: 'How do I contact OZO Mart for corporate partnerships?', answer: 'For marketing, business partnerships, or franchise enquiries, please drop us an email at contact@ozomart.store. Our corporate team will contact you within 24 hours.' },
     { category: 'others', question: 'Where does OZO Mart operate?', answer: 'We currently operate quick-commerce dark stores in Aurangabad and Patna, Bihar, and are expanding rapidly to other regional hubs.' }
   ], [freeAbove]);
 
@@ -667,7 +667,9 @@ const Help = () => {
                   <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">Reply within 24h</p>
                 </div>
                 <a 
-                  href="mailto:aashutoshk625@gmail.com"
+                  href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="ml-auto px-5 py-2.5 bg-blue-500 hover:bg-blue-500/90 text-white rounded-xl text-sm font-bold shadow-lg hover:shadow-blue-500/30 transition-all active:scale-95 text-center"
                 >
                   Email

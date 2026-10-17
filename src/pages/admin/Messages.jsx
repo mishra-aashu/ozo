@@ -853,7 +853,9 @@ const Messages = () => {
                   <div>
                     <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Email Address</span>
                     <a
-                      href={`mailto:${selectedMessage.email}`}
+                      href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(selectedMessage.email)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       className="text-sm font-extrabold text-blue-600 hover:underline mt-0.5 flex items-center gap-1.5"
                     >
                       <Mail className="w-4 h-4" /> {selectedMessage.email} <ExternalLink className="w-3.5 h-3.5" />
@@ -899,7 +901,9 @@ const Messages = () => {
                   Delete query
                 </button>
                 <a
-                  href={`mailto:${selectedMessage.email}?subject=Re: [OZO Support] ${selectedMessage.subject}`}
+                  href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(selectedMessage.email)}&su=${encodeURIComponent(`Re: [OZO Support] ${selectedMessage.subject || ''}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex-1 flex items-center justify-center gap-2 bg-gradient-ozo text-white px-5 py-3.5 rounded-2xl text-xs font-black uppercase tracking-wider hover:opacity-90 transition-opacity text-center shadow-lg"
                 >
                   <Mail className="w-4 h-4" />

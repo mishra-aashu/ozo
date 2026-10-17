@@ -70,7 +70,7 @@ def get_open_food_facts_name(barcode):
     """
     url = f"https://world.openfoodfacts.org/api/v0/product/{barcode}.json"
     headers = {
-        'User-Agent': 'OzoMartImageTool/1.0 (mishra.aashu@gmail.com) Python-urllib'
+        'User-Agent': 'OzoMartImageTool/1.0 (contact@ozomart.store) Python-urllib'
     }
     try:
         req = urllib.request.Request(url, headers=headers)

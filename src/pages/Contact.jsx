@@ -28,7 +28,7 @@ const Contact = () => {
         "@type": "ContactPoint",
         "telephone": "+91-XXXXXXXXXX",
         "contactType": "customer service",
-        "email": "aashutoshk625@gmail.com",
+        "email": "contact@ozomart.store",
         "contactOption": "TollFree",
         "areaServed": "IN",
         "availableLanguage": ["English", "Hindi"]
@@ -75,12 +75,12 @@ const Contact = () => {
   const contactMethods = [
     { 
       title: 'Email Us', 
-      value: 'aashutoshk625@gmail.com', 
+      value: 'contact@ozomart.store', 
       desc: 'Get a response within 2 hours',
       icon: Mail, 
       color: 'text-blue-500', 
       bgColor: 'bg-blue-50 dark:bg-blue-500/10',
-      action: () => window.location.href = 'mailto:aashutoshk625@gmail.com'
+      action: () => window.open('https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store', '_blank', 'noopener,noreferrer')
     },
     { 
       title: 'Call Us', 
