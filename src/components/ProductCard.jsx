@@ -126,6 +126,15 @@ function ProductCard({ product, variant = 'default', index }) {
 
       if (error) throw error
 
+      if (selectedProduct.mart_id || product.mart_id) {
+        const martId = selectedProduct.mart_id || product.mart_id
+        await supabaseAdmin
+          .from('mart_inventory')
+          .update({ is_available: newStatus, updated_at: new Date().toISOString() })
+          .eq('mart_id', martId)
+          .eq('product_id', selectedProduct.id)
+      }
+
       // Update local state
       setSelectedProduct(prev => ({ ...prev, is_available: newStatus }))
       if (product.variants) {

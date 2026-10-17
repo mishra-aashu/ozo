@@ -178,7 +178,8 @@ const MartProfile = () => {
             is_available,
             quantity_available,
             max_order_qty,
-            category_id
+            category_id,
+            categories(id, name, slug)
           )
         `)
         .eq('mart_id', activeMart.id)
@@ -202,10 +203,61 @@ const MartProfile = () => {
       const { data, error } = await query
       if (error) throw error
 
+      let finalItems = data || []
+
+      // If first page, also fetch any products directly assigned to this mart via products.mart_id that aren't yet in mart_inventory
+      if (pageToFetch === 0) {
+        const existingProductIds = new Set(finalItems.map(i => i.product_id || i.products?.id))
+
+        let directQuery = supabase
+          .from('products')
+          .select(`
+            id,
+            name,
+            slug,
+            brand,
+            unit,
+            image_url,
+            mrp,
+            price,
+            is_available,
+            quantity_available,
+            max_order_qty,
+            category_id,
+            categories(id, name, slug)
+          `)
+          .eq('mart_id', activeMart.id)
+          .eq('is_available', true)
+
+        if (catId && catId !== 'all') {
+          directQuery = directQuery.eq('category_id', catId)
+        }
+        if (searchStr && searchStr.trim() !== '') {
+          directQuery = directQuery.or(`name.ilike.%${searchStr}%,brand.ilike.%${searchStr}%`)
+        }
+
+        const { data: directProds } = await directQuery
+        if (directProds && directProds.length > 0) {
+          const missingProds = directProds.filter(p => !existingProductIds.has(p.id))
+          const formattedMissing = missingProds.map(p => ({
+            id: `direct-${p.id}`,
+            mart_id: activeMart.id,
+            product_id: p.id,
+            stock_quantity: p.quantity_available || 100,
+            mart_price: p.price,
+            mart_mrp: p.mrp,
+            is_available: p.is_available,
+            custom_image_url: null,
+            products: p
+          }))
+          finalItems = [...finalItems, ...formattedMissing]
+        }
+      }
+
       if (append) {
-        setInventory(prev => [...prev, ...(data || [])])
+        setInventory(prev => [...prev, ...finalItems])
       } else {
-        setInventory(data || [])
+        setInventory(finalItems)
       }
 
       setHasMore(data && data.length === ITEMS_PER_PAGE)
@@ -246,6 +298,15 @@ const MartProfile = () => {
       }
 
       setMart(martData)
+
+      // Auto-sync city slug from mart if available and not yet set
+      if (martData.city_slug) {
+        const locState = useLocationStore.getState()
+        if (!locState.selectedCitySlug) {
+          locState.setSelectedCitySlug(martData.city_slug)
+        }
+      }
+
       setEditForm({
         name: martData.name || '',
         description: martData.description || '',
@@ -261,7 +322,7 @@ const MartProfile = () => {
         guarantees: martData.guarantees || []
       })
 
-      // Fetch distinct categories in a separate light query
+      // Fetch distinct categories in a separate light query from mart_inventory
       const { data: catData, error: catError } = await supabase
         .from('mart_inventory')
         .select(`
@@ -274,11 +335,27 @@ const MartProfile = () => {
         .eq('is_available', true)
         .gt('stock_quantity', 0)
 
-      if (catError) throw catError
+      if (catError) console.warn('Error fetching mart_inventory categories:', catError)
+
+      // Also fetch categories directly for products mapped by mart_id
+      const { data: directCatData } = await supabase
+        .from('products')
+        .select(`
+          category_id,
+          categories(id, name, slug)
+        `)
+        .eq('mart_id', martData.id)
+        .eq('is_available', true)
       
       const catsMap = new Map()
       catData?.forEach(item => {
         const cat = item.products?.categories
+        if (cat && cat.id) {
+          catsMap.set(cat.id, cat)
+        }
+      })
+      directCatData?.forEach(item => {
+        const cat = item.categories
         if (cat && cat.id) {
           catsMap.set(cat.id, cat)
         }
@@ -934,9 +1011,11 @@ const MartProfile = () => {
                     {filteredProducts.map(item => {
                       const displayProduct = {
                         ...item.products,
-                        image_url: item.custom_image_url || item.products.image_url,
-                        price: item.mart_price ? parseFloat(item.mart_price) : parseFloat(item.products.price),
-                        mrp: item.mart_mrp ? parseFloat(item.mart_mrp) : parseFloat(item.products.mrp),
+                        category: item.products?.categories || null,
+                        category_slug: item.products?.categories?.slug || null,
+                        image_url: item.custom_image_url || item.products?.image_url,
+                        price: item.mart_price ? parseFloat(item.mart_price) : parseFloat(item.products?.price),
+                        mrp: item.mart_mrp ? parseFloat(item.mart_mrp) : parseFloat(item.products?.mrp),
                         quantity_available: item.stock_quantity,
                         is_available: item.is_available && item.stock_quantity > 0
                       }
