@@ -37,7 +37,7 @@ import toast from 'react-hot-toast'
 import { useTranslation } from '../hooks/useTranslation'
 import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
 import OzoMapPicker from '../components/OzoMapPicker'
-import AddressForm from '../components/AddressForm'
+import OrderDeliveryAddress from '../components/OrderDeliveryAddress'
 import { useAuthStore } from '../stores/authStore'
 import RazorpayShield from '../components/RazorpayShield'
 import CashfreeShield from '../components/CashfreeShield'
@@ -125,51 +125,16 @@ const Checkout = () => {
 
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [paymentMethod, setPaymentMethod] = useState('cod')
-  const [isAddingAddress, setIsAddingAddress] = useState(false)
-  const [editingAddressId, setEditingAddressId] = useState(null)
-  const [showMapPicker, setShowMapPicker] = useState(false)
-  const [addressToDelete, setAddressToDelete] = useState(null)
   const [isShieldOpen, setIsShieldOpen] = useState(false)
   const [isCfShieldOpen, setIsCfShieldOpen] = useState(false)
   const [tempOrderNumber, setTempOrderNumber] = useState('')
-  const [isAddressDropdownOpen, setIsAddressDropdownOpen] = useState(false)
   const [appliedCoupon, setAppliedCoupon] = useState(null)
   const [couponInput, setCouponInput] = useState('')
   const [isApplyingCoupon, setIsApplyingCoupon] = useState(false)
   const [isSuccessRedirecting, setIsSuccessRedirecting] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
   const [pendingOrderId, setPendingOrderId] = useState(null)
-  const [recipientType, setRecipientType] = useState(null)
   const [isCharitySelected, setIsCharitySelected] = useState(false)
-
-  const handleEditAddressInit = (addr) => {
-    const parsed = parseLandmark(addr.landmark)
-    setEditingAddressId(addr.id)
-    setNewAddress({
-      label: addr.label || 'Home',
-      address_line1: addr.address_line1 || '',
-      address_line2: addr.address_line2 || '',
-      city: addr.city || '',
-      state: addr.state || '',
-      pincode: addr.pincode || '',
-      landmark: parsed.landmark || '',
-      receiver_name: parsed.receiverName || '',
-      receiver_phone: parsed.receiverPhone || '',
-      notes: parsed.notes || '',
-      latitude: addr.latitude || null,
-      longitude: addr.longitude || null,
-      google_maps_url: addr.google_maps_url || '',
-      locality_id: addr.locality_id || null,
-      landmark_id: addr.landmark_id || null,
-      gali_id: addr.gali_id || null
-    })
-    setRecipientType('other')
-    setIsAddingAddress(true)
-    setShowMapPicker(false)
-    setIsAddressDropdownOpen(false)
-    // Scroll to top of the page smoothly so the user starts from the top of the address form
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
 
   const baseTotal = subtotal + deliveryFee + platformFee - discount
   const charityDonationAmount = parseFloat(platformConfig?.charity_amount) || 10
@@ -339,76 +304,6 @@ const Checkout = () => {
     setCouponInput('')
   }
   
-  const [newAddress, setNewAddress] = useState(() => {
-    const nearestCity = useLocationStore.getState().nearestCity
-    return {
-      label: 'Home',
-      address_line1: '',
-      address_line2: '',
-      city: '',
-      state: nearestCity?.state || 'Bihar',
-      pincode: '',
-      landmark: '',
-      receiver_name: '',
-      receiver_phone: '',
-      notes: '',
-      latitude: null,
-      longitude: null,
-      google_maps_url: '',
-      locality_id: null,
-      landmark_id: null,
-      gali_id: null
-    }
-  })
-
-  const handleLocationSelect = (loc) => {
-    if (loc.isManualSelect) {
-      setNewAddress(prev => ({
-        ...prev,
-        latitude: loc.lat,
-        longitude: loc.lng
-      }))
-      return
-    }
-
-    const isDeliverable = checkDeliveryZoneStatus(loc.lat, loc.lng, useCartStore.getState())
-    if (!isDeliverable) {
-      const { geofenceConfig } = useCartStore.getState()
-      if (geofenceConfig?.strict_enforcement) {
-        toast.error('Location is outside our active delivery zone.', {
-          duration: 4000
-        })
-      } else {
-        toast.success('Location is outside zone. Double delivery fee will apply.', {
-          duration: 4000
-        })
-      }
-    }
-
-    const { street, cityVal, stateVal, pincodeVal, landmarkVal } = resolveSnappedAddress(loc)
-
-    // Compute smart snapping from hierarchical database nodes
-    const snapResult = useLocationStore.getState().findClosestHierarchicalMatch(loc.lat, loc.lng)
-    const matchedLocalityName = snapResult.locality ? snapResult.locality.name : ''
-    const matchedLandmarkName = snapResult.landmark ? snapResult.landmark.name : ''
-
-    setNewAddress(prev => ({
-      ...prev,
-      latitude: loc.lat,
-      longitude: loc.lng,
-      address_line1: prev.address_line1 || (snapResult.gali ? snapResult.gali.name : ''),
-      address_line2: matchedLocalityName || street || prev.address_line2 || '',
-      city: cityVal || prev.city || '',
-      state: stateVal || prev.state || '',
-      pincode: pincodeVal || prev.pincode || '',
-      landmark: prev.landmark || matchedLandmarkName || landmarkVal || '',
-      traced_through: 'map',
-      locality_id: snapResult.locality ? snapResult.locality.id : prev.locality_id,
-      landmark_id: snapResult.landmark ? snapResult.landmark.id : prev.landmark_id,
-      gali_id: snapResult.gali ? snapResult.gali.id : prev.gali_id
-    }))
-  }
-
   const { isLoading: isAddressesLoading, isError, refetch } = useOzoQuery(
     async (signal) => {
       const res = await fetchUserAddresses({ signal })
@@ -418,12 +313,6 @@ const Checkout = () => {
     },
     [fetchUserAddresses]
   )
-
-  useEffect(() => {
-    if (userAddresses.length > 0 && !selectedAddress) {
-      setSelectedAddress(userAddresses[0].id)
-    }
-  }, [userAddresses, selectedAddress])
 
   useEffect(() => {
     if (selectedAddress) {
@@ -538,6 +427,21 @@ const Checkout = () => {
           duration: 5000
         })
         return
+      }
+
+      // Check if address matches the active cart/browsing city
+      const activeCitySlug = useCartStore.getState().cartCitySlug || useLocationStore.getState().browsingCitySlug || useLocationStore.getState().selectedCitySlug
+      const activeCities = useLocationStore.getState().activeCities || []
+      const matchedCity = activeCities.find(c => c.slug === activeCitySlug || (c.slug && activeCitySlug && activeCitySlug.includes(c.slug)))
+      if (matchedCity) {
+        const allowedPins = matchedCity.allowed_pincodes || []
+        const isPinAllowed = activeAddr.pincode && allowedPins.includes(activeAddr.pincode)
+        const isCityAllowed = activeAddr.city && matchedCity.name && activeAddr.city.toLowerCase().includes(matchedCity.name.split(',')[0].toLowerCase().trim())
+        if (!isPinAllowed && !isCityAllowed && !isAddressServiceable) {
+          const targetCityName = matchedCity.name.split(',')[0].trim()
+          toast.error(`Your cart is for ${targetCityName}. Please select or add an address in ${targetCityName}.`)
+          return
+        }
       }
     }
 
@@ -771,120 +675,7 @@ const Checkout = () => {
     }
   }
 
-  const handleAddAddress = async (e) => {
-    e.preventDefault()
 
-    let finalReceiverName = newAddress.receiver_name
-    let finalReceiverPhone = newAddress.receiver_phone
-
-    if (recipientType === 'myself') {
-      finalReceiverName = profile?.full_name || ''
-      finalReceiverPhone = profile?.phone_number || profile?.phone || ''
-    }
-
-    if (!finalReceiverName.trim()) {
-      toast.error('Receiver name is required')
-      return
-    }
-    if (!finalReceiverPhone.trim()) {
-      toast.error('Receiver phone number is required')
-      return
-    }
-    if (!newAddress.address_line1.trim()) {
-      toast.error('Flat/House/Building number is required')
-      return
-    }
-    if (!newAddress.address_line2.trim()) {
-      toast.error('Street/Gali/Area is required')
-      return
-    }
-    if (!newAddress.city.trim()) {
-      toast.error('City is required')
-      return
-    }
-    if (!newAddress.state.trim()) {
-      toast.error('State is required')
-      return
-    }
-    if (!newAddress.pincode.trim()) {
-      toast.error('Pincode is required')
-      return
-    }
-
-    // Geofence circle check is the Single Source of Truth if coordinates are available.
-    let isNewAddressServiceable = true
-    if (newAddress.latitude && newAddress.longitude) {
-      isNewAddressServiceable = checkDeliveryZoneStatus(newAddress.latitude, newAddress.longitude, useCartStore.getState())
-    } else if (newAddress.pincode) {
-      isNewAddressServiceable = checkPincodeServiceable(newAddress.pincode, newAddress.city)
-    }
-
-    if (!isNewAddressServiceable) {
-      if (newAddress.latitude && newAddress.longitude) {
-        const { geofenceConfig } = useCartStore.getState()
-        if (geofenceConfig?.strict_enforcement) {
-          toast.error('Location is outside our active delivery zone.')
-          return
-        } else {
-          toast.success('Adding location outside zone (double delivery fee will apply).')
-        }
-      } else {
-        showServiceabilityModal(newAddress.city, newAddress.pincode)
-        return
-      }
-    }
-
-    const payload = {
-      label: newAddress.label,
-      address_line1: newAddress.address_line1,
-      address_line2: newAddress.address_line2,
-      city: newAddress.city,
-      state: newAddress.state,
-      pincode: newAddress.pincode,
-      landmark: formatLandmark(finalReceiverName, finalReceiverPhone, newAddress.landmark, newAddress.notes),
-      latitude: newAddress.latitude,
-      longitude: newAddress.longitude,
-      google_maps_url: newAddress.google_maps_url || null,
-      is_default: false,
-      traced_through: newAddress.traced_through || 'map',
-      locality_id: newAddress.locality_id || null,
-      landmark_id: newAddress.landmark_id || null,
-      gali_id: newAddress.gali_id || null
-    }
-
-    const result = editingAddressId 
-      ? await updateUserAddress(editingAddressId, payload)
-      : await addUserAddress(payload)
-
-    if (result) {
-      setIsAddingAddress(false)
-      setEditingAddressId(null)
-      setShowMapPicker(false)
-      setSelectedAddress(result.id)
-      setRecipientType(null) // Reset recipient toggle state
-      const nearestCity = useLocationStore.getState().nearestCity
-      setNewAddress({ 
-        label: 'Home', 
-        address_line1: '', 
-        address_line2: '', 
-        city: '', 
-        state: nearestCity?.state || 'Bihar', 
-        pincode: '',
-        landmark: '',
-        notes: '',
-        receiver_name: '',
-        receiver_phone: '',
-        latitude: null,
-        longitude: null,
-        google_maps_url: '',
-        locality_id: null,
-        landmark_id: null,
-        gali_id: null
-      })
-      // Scroll to the top of the page smoothly so the user sees the updated address card
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
 
   if ((isPlacingOrder || isSuccessRedirecting || isProcessing) && !unserviceableOrderError) {
     return (
@@ -974,454 +765,12 @@ const Checkout = () => {
           <div className="md:col-span-7 lg:col-span-8 space-y-6 md:space-y-10 lg:space-y-12">
             
             {/* Step 1: Delivery Address */}
-            <section className="bg-white dark:bg-[#121214] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center gap-4">
-                   <div className="w-12 h-12 bg-green-50 dark:bg-ozo-green/10 text-ozo-green rounded-2xl flex items-center justify-center">
-                      <MapPin size={24} />
-                   </div>
-                   <h2 className="text-xl font-black">Delivery Address</h2>
-                </div>
-                <button 
-                   onClick={() => {
-                    if (isAddingAddress) {
-                      setIsAddingAddress(false)
-                      setEditingAddressId(null)
-                      window.scrollTo({ top: 0, behavior: 'smooth' })
-                    } else {
-                      setIsAddingAddress(true)
-                    }
-                    setRecipientType(null)
-                    setShowMapPicker(false)
-                    setIsAddressDropdownOpen(false)
-                  }}
-                  className="flex items-center gap-2 text-ozo-red font-black text-sm hover:underline"
-                >
-                  <Plus size={18} />
-                  {isAddingAddress ? (editingAddressId ? 'Cancel Edit' : 'Show List') : 'Add New'}
-                </button>
-              </div>
-
-               {!isAddingAddress && (
-                <OzoLoadingGuard
-                  isLoading={isAddressesLoading}
-                  isEmpty={userAddresses.length === 0}
-                  isError={isError}
-                  onRetry={refetch}
-                  skeleton={
-                    <div className="p-4 md:p-5 rounded-[1.5rem] border border-gray-150 dark:border-white/5 bg-gray-50/50 dark:bg-white/5 animate-pulse space-y-3">
-                      <div className="w-16 h-5 bg-gray-200 dark:bg-white/10 rounded" />
-                      <div className="w-3/4 h-4 bg-gray-200 dark:bg-white/10 rounded" />
-                      <div className="w-1/2 h-3 bg-gray-200 dark:bg-white/10 rounded" />
-                    </div>
-                  }
-                  fallback={
-                    <div className="text-center py-8 px-4 border-2 border-dashed border-gray-200 dark:border-white/10 rounded-[2rem] bg-gray-50/30 dark:bg-white/5 flex flex-col items-center justify-center">
-                      <div className="w-12 h-12 rounded-2xl bg-red-50 dark:bg-ozo-red/10 text-ozo-red flex items-center justify-center mb-3">
-                        <MapPin size={24} />
-                      </div>
-                      <p className="text-sm font-black text-gray-800 dark:text-white mb-1">No Addresses Saved Yet</p>
-                      <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold mb-4">Please add a delivery address to place your order.</p>
-                      <button 
-                        onClick={() => {
-                          setIsAddingAddress(true)
-                          setRecipientType(null)
-                          setShowMapPicker(false)
-                          setIsAddressDropdownOpen(false)
-                        }}
-                        className="px-5 py-2.5 bg-gradient-ozo text-white text-xs font-black rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5"
-                      >
-                        <Plus size={16} /> Add New Address
-                      </button>
-                    </div>
-                  }
-                >
-                  <div className="space-y-4">
-                    {/* Selected Address Card */}
-                    {(() => {
-                      const activeAddr = userAddresses.find(a => a.id === selectedAddress) || userAddresses[0]
-                      if (!activeAddr) return null
-                      const parsed = parseLandmark(activeAddr.landmark)
-                      const Icon = getIcon(activeAddr.label)
-                      return (
-                        <div 
-                          onClick={() => setIsAddressDropdownOpen(!isAddressDropdownOpen)}
-                          className="address-card address-card-selected cursor-pointer group"
-                        >
-                          {/* Left Side Icon */}
-                          <div className="card-icon">
-                            <Icon size={20} />
-                          </div>
-
-                          {/* Right Side Content */}
-                          <div className="card-content">
-                            <div className="card-header">
-                              <div className="title-wrapper">
-                                <h3>{activeAddr.label}</h3>
-                                {activeAddr.latitude && activeAddr.longitude && (
-                                  <span className="badge-pinned">
-                                    <MapPin size={10} /> PINNED
-                                  </span>
-                                )}
-                                {(() => {
-                                  const isServiceable = activeAddr.latitude && activeAddr.longitude
-                                    ? checkDeliveryZoneStatus(activeAddr.latitude, activeAddr.longitude, useCartStore.getState())
-                                    : checkPincodeServiceable(activeAddr.pincode, activeAddr.city);
-                                  return !isServiceable && (
-                                    <span className="badge-non-serviceable">
-                                      ⚠️ Non-Serviceable
-                                    </span>
-                                  );
-                                })()}
-                              </div>
-                              
-                              {/* Right: Action Buttons Group */}
-                              <div className="flex items-center gap-2">
-                                {/* Edit Button */}
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleEditAddressInit(activeAddr)
-                                  }}
-                                  className="flex items-center gap-1.5 bg-white dark:bg-white/5 shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3 rounded-full text-xs font-black text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red transition-all hover:scale-105 active:scale-95"
-                                  title="Edit Address"
-                                >
-                                  <Pencil size={12} />
-                                  <span>Edit</span>
-                                </button>
-                                
-                                {/* Change Button */}
-                                <div className="flex items-center gap-1.5 bg-white dark:bg-white/5 shadow-sm border border-gray-200 dark:border-white/10 py-1.5 px-3.5 rounded-full text-xs font-black text-ozo-red transition-all hover:scale-105 active:scale-95">
-                                  <span>Change</span>
-                                  {isAddressDropdownOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* User details */}
-                            {(parsed.receiverName || parsed.receiverPhone) && (
-                              <div className="user-details">
-                                <span className="user-name">{parsed.receiverName}</span>
-                                {parsed.receiverPhone && (
-                                  <span className="user-phone">• {parsed.receiverPhone}</span>
-                                )}
-                              </div>
-                            )}
-
-                            {/* Address Details Group */}
-                            <div className="address-text">
-                              {activeAddr.address_line1 && activeAddr.address_line1.startsWith('Location Link: ') ? (
-                                <a
-                                  href={activeAddr.google_maps_url || activeAddr.address_line1.replace('Location Link: ', '')}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="address-card-link"
-                                >
-                                  🗺️ View Pin on Map
-                                </a>
-                              ) : (
-                                <p className="font-bold text-gray-800 dark:text-white text-[13px] leading-normal m-0">
-                                  {activeAddr.address_line1}
-                                </p>
-                              )}
-                              {activeAddr.address_line2 && (
-                                <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
-                                  {activeAddr.address_line2}
-                                </p>
-                              )}
-                              <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
-                                {parsed.landmark && `Near ${parsed.landmark}, `}
-                                {activeAddr.city}, {activeAddr.state} - {activeAddr.pincode}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )
-                    })()}
-
-                    {/* Dropdown List of Other Addresses */}
-                    <AnimatePresence>
-                      {isAddressDropdownOpen && (
-                        <motion.div 
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="overflow-hidden border-t border-dashed border-gray-200 dark:border-white/10 pt-4"
-                        >
-                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                            {(() => {
-                              const otherAddresses = userAddresses.filter(addr => addr.id !== selectedAddress)
-                              if (otherAddresses.length === 0) {
-                                return (
-                                  <div className="col-span-full p-6 bg-gray-50/50 dark:bg-white/5 rounded-[1.5rem] border border-dashed border-gray-200 dark:border-white/10 text-center flex flex-col items-center justify-center">
-                                    <p className="text-sm font-black text-gray-700 dark:text-gray-300 mb-1">No other saved addresses</p>
-                                    <p className="text-xs text-ozo-gray dark:text-gray-500 font-bold mb-4">You can add another address to deliver to a different location.</p>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        setIsAddingAddress(true)
-                                        setRecipientType(null)
-                                        setShowMapPicker(false)
-                                        setIsAddressDropdownOpen(false)
-                                      }}
-                                      className="px-4 py-2 bg-gradient-ozo text-white text-xs font-black rounded-xl hover:shadow-lg active:scale-95 transition-all flex items-center gap-1.5"
-                                    >
-                                      <Plus size={14} /> Add New Address
-                                    </button>
-                                  </div>
-                                )
-                              }
-                              return (
-                                <>
-                                  {otherAddresses.map((addr) => {
-                                    const parsed = parseLandmark(addr.landmark)
-                                    const Icon = getIcon(addr.label || '')
-                                    const isUrl = addr.address_line1 && (addr.address_line1.startsWith('Location Link: ') || addr.address_line1.startsWith('http'))
-                                    const urlHref = isUrl ? (addr.google_maps_url || addr.address_line1.replace('Location Link: ', '')) : ''
-                                    return (
-                                      <div 
-                                        key={addr.id}
-                                        onClick={() => {
-                                          setSelectedAddress(addr.id)
-                                          setIsAddressDropdownOpen(false)
-                                        }}
-                                        className="address-card cursor-pointer group"
-                                      >
-                                        {/* Left Side Icon */}
-                                        <div className="card-icon">
-                                          <Icon size={20} />
-                                        </div>
-
-                                        {/* Right Side Content */}
-                                        <div className="card-content">
-                                          <div className="card-header">
-                                            <div className="title-wrapper">
-                                              <h3>{addr.label}</h3>
-                                              {addr.latitude && addr.longitude && (
-                                                <span className="badge-pinned">
-                                                  <MapPin size={10} /> PINNED
-                                                </span>
-                                              )}
-                                              {(() => {
-                                                const isServiceable = addr.latitude && addr.longitude
-                                                  ? checkDeliveryZoneStatus(addr.latitude, addr.longitude, useCartStore.getState())
-                                                  : checkPincodeServiceable(addr.pincode, addr.city);
-                                                return !isServiceable && (
-                                                  <span className="badge-non-serviceable">
-                                                    ⚠️ Non-Serviceable
-                                                  </span>
-                                                );
-                                              })()}
-                                            </div>
-
-                                            {/* Actions Group (Edit & Delete) */}
-                                            <div className="flex items-center gap-1 shrink-0">
-                                              <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  handleEditAddressInit(addr)
-                                                }}
-                                                className="p-2 hover:bg-gray-100 dark:hover:bg-white/10 rounded-xl text-gray-400 hover:text-ozo-red transition-all flex items-center justify-center"
-                                                title="Edit Address"
-                                              >
-                                                <Pencil size={14} />
-                                              </button>
-                                              <button
-                                                type="button"
-                                                onClick={(e) => {
-                                                  e.stopPropagation()
-                                                  setAddressToDelete(addr.id)
-                                                }}
-                                                className="p-2 hover:bg-red-50 dark:hover:bg-red-950/20 rounded-xl text-gray-400 hover:text-red-500 transition-all flex items-center justify-center"
-                                                title="Delete Address"
-                                              >
-                                                <Trash2 size={14} />
-                                              </button>
-                                            </div>
-                                          </div>
-
-                                          {/* User details */}
-                                          {(parsed.receiverName || parsed.receiverPhone) && (
-                                            <div className="user-details">
-                                              <span className="user-name">{parsed.receiverName}</span>
-                                              {parsed.receiverPhone && (
-                                                <span className="user-phone">• {parsed.receiverPhone}</span>
-                                              )}
-                                            </div>
-                                          )}
-
-                                          {/* Address details */}
-                                          <div className="address-text">
-                                            {isUrl ? (
-                                              <a
-                                                href={urlHref}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                onClick={(e) => e.stopPropagation()}
-                                                className="address-card-link"
-                                              >
-                                                🗺️ View Pin on Map
-                                              </a>
-                                            ) : (
-                                              <p className="font-bold text-gray-800 dark:text-white text-[13px] leading-normal m-0">
-                                                {addr.address_line1}
-                                              </p>
-                                            )}
-                                            {addr.address_line2 && (
-                                              <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
-                                                {addr.address_line2}
-                                              </p>
-                                            )}
-                                            <p className="text-gray-550 dark:text-gray-400 text-xs font-semibold mt-0.5 mb-0">
-                                              {parsed.landmark && `Near ${parsed.landmark}, `}
-                                              {addr.city}, {addr.state} - {addr.pincode}
-                                            </p>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    )
-                                  })}
-
-                                  {/* Add New Address Card inside Grid */}
-                                  <div 
-                                    onClick={() => {
-                                      setIsAddingAddress(true)
-                                      setRecipientType(null)
-                                      setShowMapPicker(false)
-                                      setIsAddressDropdownOpen(false)
-                                    }}
-                                    className="relative p-5 rounded-[1.5rem] border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-white/5 cursor-pointer transition-all flex flex-col items-center justify-center min-h-[140px] text-center group"
-                                  >
-                                    <div className="w-10 h-10 rounded-xl bg-red-50 dark:bg-ozo-red/10 text-ozo-red flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
-                                      <Plus size={20} />
-                                    </div>
-                                    <p className="text-sm font-black text-gray-800 dark:text-white">Add New Address</p>
-                                    <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold mt-1">Deliver to another location</p>
-                                  </div>
-                                </>
-                              )
-                            })()}
-                          </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                </OzoLoadingGuard>
-              )}
-
-              {isAddingAddress && (
-                <motion.div 
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  className="mt-8 pt-8 border-t border-gray-100 dark:border-white/5"
-                >
-                  <form onSubmit={handleAddAddress} className="space-y-6">
-                    {!recipientType ? (
-                      <div className="text-center py-12 animate-fadeIn space-y-8">
-                        <div>
-                          <p className="text-base font-black text-gray-800 dark:text-gray-200 mb-2">
-                            Who is this address for?
-                          </p>
-                          <p className="text-xs text-ozo-gray dark:text-gray-400 font-bold">
-                            Please select to continue
-                          </p>
-                        </div>
-                        <div className="grid grid-cols-1 gap-4 max-w-sm mx-auto">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setRecipientType('myself');
-                              setNewAddress({
-                                ...newAddress,
-                                receiver_name: profile?.full_name || '',
-                                receiver_phone: profile?.phone_number || profile?.phone || '',
-                                notes: ''
-                              });
-                            }}
-                            className="p-6 rounded-[2.2rem] border border-gray-200 dark:border-white/5 bg-white dark:bg-[#18181b] hover:border-ozo-red dark:hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-ozo-red/5 transition-all text-left flex items-center gap-4 group active:scale-95 shadow-sm"
-                          >
-                            <div className="w-14 h-14 bg-red-50 dark:bg-ozo-red/10 text-ozo-red rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                              <User size={26} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <h5 className="font-black text-sm text-gray-900 dark:text-white">For Myself</h5>
-                              <p className="text-[10px] text-gray-500 font-bold mt-1 leading-normal truncate">
-                                {profile?.full_name || 'Your Name'} ({profile?.phone_number || profile?.phone || 'Your Phone'})
-                              </p>
-                            </div>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setRecipientType('other');
-                              setNewAddress({
-                                ...newAddress,
-                                receiver_name: '',
-                                receiver_phone: '',
-                                notes: ''
-                              });
-                            }}
-                            className="p-6 rounded-[2.2rem] border border-gray-200 dark:border-white/5 bg-white dark:bg-[#18181b] hover:border-ozo-red dark:hover:border-ozo-red/50 hover:bg-red-50/10 dark:hover:bg-ozo-red/5 transition-all text-left flex items-center gap-4 group active:scale-95 shadow-sm"
-                          >
-                            <div className="w-14 h-14 bg-blue-50 dark:bg-blue-500/10 text-blue-500 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform flex-shrink-0">
-                              <Users size={26} />
-                            </div>
-                            <div>
-                              <h5 className="font-black text-sm text-gray-900 dark:text-white">For Someone Else</h5>
-                              <p className="text-[10px] text-gray-500 font-bold mt-1 leading-normal">
-                                Deliver to a friend, family, or other contact
-                              </p>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="space-y-6 animate-fadeIn">
-                        {/* Recipient Details Header */}
-                        <div className="p-4 bg-red-50/20 dark:bg-white/[0.02] border border-red-500/10 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3 animate-fadeIn">
-                          <div>
-                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-wider">Recipient Mode</p>
-                            <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">
-                              {recipientType === 'myself' 
-                                ? `For Myself (${profile?.full_name || 'Your Name'} - ${profile?.phone_number || profile?.phone || 'No Phone'})` 
-                                : 'For Someone Else'}
-                            </p>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setRecipientType(null)}
-                            className="text-[10px] font-black uppercase tracking-wider text-ozo-red hover:underline"
-                          >
-                            Change
-                          </button>
-                        </div>
-
-                        {/* Reusable AddressForm */}
-                        <AddressForm
-                          formData={newAddress}
-                          onChange={(updated) => setNewAddress(prev => ({ ...prev, ...updated }))}
-                          showContactFields={recipientType === 'other'}
-                          mapConfig={mapConfig}
-                          showMapPicker={showMapPicker}
-                          setShowMapPicker={setShowMapPicker}
-                          OzoMapPicker={OzoMapPicker}
-                          onMapLocationSelect={handleLocationSelect}
-                        />
-
-                        <div className="flex gap-4">
-                           <button type="submit" className="btn btn-primary px-10">{editingAddressId ? 'Update Address' : 'Save Address'}</button>
-                           <button type="button" onClick={() => { setIsAddingAddress(false); setEditingAddressId(null); setShowMapPicker(false); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className="px-10 font-bold text-ozo-gray">Cancel</button>
-                        </div>
-                      </div>
-                    )}
-                  </form>
-                </motion.div>
-              )}
-            </section>
+            <OrderDeliveryAddress
+              selectedAddressId={selectedAddress}
+              onSelectAddress={(id) => setSelectedAddress(id)}
+              mapConfig={mapConfig}
+              OzoMapPicker={OzoMapPicker}
+            />
 
             {/* Step 2: Payment Method */}
             <section className="bg-white dark:bg-[#121214] rounded-[2rem] p-6 md:p-8 lg:p-10 shadow-sm border border-gray-100 dark:border-white/5">
@@ -1741,61 +1090,7 @@ const Checkout = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Dialog */}
-      <AnimatePresence>
-        {addressToDelete && (
-          <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setAddressToDelete(null)}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-            />
 
-            {/* Modal Content */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-8 shadow-2xl border border-gray-100 dark:border-white/5 w-full max-w-md relative z-10 text-center text-gray-800 dark:text-white"
-            >
-              <div className="w-16 h-16 bg-red-50 dark:bg-ozo-red/10 text-ozo-red rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
-                <Trash2 size={28} />
-              </div>
-              
-              <h3 className="text-xl font-black mb-2">Delete Address?</h3>
-              <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-8">
-                Are you sure you want to delete this address? This action cannot be undone.
-              </p>
-
-              <div className="flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setAddressToDelete(null)}
-                  className="flex-1 py-4 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-xs"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await deleteUserAddress(addressToDelete)
-                    if (selectedAddress === addressToDelete) {
-                      setSelectedAddress(null)
-                    }
-                    setAddressToDelete(null)
-                  }}
-                  className="flex-1 py-4 bg-gradient-ozo text-white font-black rounded-2xl shadow-ozo hover:scale-[1.02] active:scale-[0.98] transition-all text-xs"
-                >
-                  Delete
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       {/* Delivery Service Hours Notice Modal */}
       <AnimatePresence>
