@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike, DoorOpen, Bell, BellOff } from 'lucide-react'
+import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike, DoorOpen, Bell, BellOff, GraduationCap } from 'lucide-react'
 import { findCityByPincode, findMatchingActiveCity, checkDeliveryZoneStatus, checkPincodeServiceable, useLocationStore } from '../stores/locationStore'
 import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
@@ -59,7 +59,10 @@ const AppleMapsIcon = ({ className = "w-4 h-4" }) => (
 )
 
 // Helper component for styled suggestion icons
-const SuggestionIcon = ({ type, className = "w-4 h-4" }) => {
+const SuggestionIcon = ({ type, isCampus = false, className = "w-4 h-4" }) => {
+  if (isCampus) {
+    return <GraduationCap className={`${className} text-ozo-red`} />
+  }
   switch (type) {
     case 'locality':
       return <Home className={`${className} text-blue-500`} />
@@ -223,22 +226,36 @@ function SearchableSelect({
                 type="button"
                 onClick={() => handleOptionSelect(opt)}
                 className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-zinc-800/50 flex flex-col transition-colors ${
-                  opt.isCore ? 'bg-amber-500/[0.02] dark:bg-amber-500/[0.03]' : ''
+                  opt.isCampus
+                    ? 'bg-red-500/[0.04] dark:bg-red-500/[0.08] hover:bg-red-500/[0.08] border-l-2 border-ozo-red'
+                    : opt.isCore ? 'bg-amber-500/[0.02] dark:bg-amber-500/[0.03]' : ''
                 }`}
               >
-                <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 font-sans font-medium">
-                  {opt.type && <SuggestionIcon type={opt.type} className="w-3.5 h-3.5 shrink-0" />}
-                  {opt.isCore && <Star size={12} className="text-amber-500 fill-amber-500 shrink-0" />}
-                  {opt.isBikeOnly && <Bike size={12} className="text-amber-500 shrink-0" />}
-                  <span className={opt.isCore ? 'text-amber-600 dark:text-amber-400' : ''}>{opt.name}</span>
-                  {opt.name_hi && (
-                    <span className="text-[10px] text-gray-400 dark:text-gray-500 font-normal">
-                      ({opt.name_hi})
+                <div className="flex items-center justify-between w-full gap-2">
+                  <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 font-sans">
+                    <SuggestionIcon type={opt.type} isCampus={opt.isCampus} className="w-3.5 h-3.5 shrink-0" />
+                    {opt.isCampus && <Star size={11} className="text-ozo-red fill-ozo-red shrink-0" />}
+                    <span className={opt.isCampus ? 'text-ozo-red font-black' : opt.isCore ? 'text-amber-600 dark:text-amber-400 font-bold' : ''}>
+                      {opt.name}
+                    </span>
+                    {opt.isBikeOnly && <Bike size={12} className="text-amber-500 shrink-0" />}
+                  </span>
+                  {opt.badgeText && (
+                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider shrink-0 ${
+                      opt.isCampus
+                        ? 'bg-ozo-red/10 text-ozo-red border border-ozo-red/20'
+                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
+                    }`}>
+                      {opt.badgeText}
                     </span>
                   )}
-                </span>
+                </div>
                 {opt.subtitle && (
-                  <span className="text-[10px] text-gray-500 dark:text-gray-400 mt-0.5">
+                  <span className={`text-[10px] mt-0.5 ${
+                    opt.isCampus 
+                      ? 'text-red-700/80 dark:text-red-400/80 font-medium' 
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}>
                     {opt.subtitle}
                   </span>
                 )}
@@ -556,19 +573,31 @@ export default function AddressForm({
     const relevantLocalityIds = new Set(sourceLocalities.map(l => l.id));
 
     const mappedLocalities = sourceLocalities.map(loc => {
-      const isCore = !loc.is_primary;
+      const isPrimary = !!loc.is_primary;
+      const isCampus = loc.name.toLowerCase().includes('bce') || 
+                       loc.name.toLowerCase().includes('campus') || 
+                       loc.name.toLowerCase().includes('hostel');
       const priority = parseInt(loc.priority) || 0;
       const displayPin = loc.pincode || activePincode;
+      
+      let subtitle = `Area/Mohalla • ${displayPin}`;
+      if (isCampus) {
+        subtitle = `🏛️ BCE Campus Zone • ${displayPin}`;
+      } else if (isPrimary) {
+        subtitle = `Primary Area • ${displayPin}`;
+      }
+
       return {
         id: loc.id,
         name: loc.name,
-        name_hi: loc.name_hi,
         pincode: loc.pincode,
         latitude: loc.latitude,
         longitude: loc.longitude,
-        subtitle: isCore ? `Primary Area • ${displayPin}` : `Area/Mohalla • ${displayPin}`,
-        isCore,
-        priority,
+        subtitle,
+        isCore: isPrimary || isCampus,
+        isCampus,
+        badgeText: isCampus ? 'BCE Campus' : (isPrimary ? 'Primary' : null),
+        priority: isCampus ? priority + 200 : priority,
         type: 'locality'
       };
     });
@@ -583,18 +612,20 @@ export default function AddressForm({
     const mappedGalis = sourceGalis.map(g => {
       const parentLoc = localities.find(l => l.id === g.locality_id);
       const isHostel = g.type === 'hostel' || g.name.toLowerCase().includes('hostel');
+      const isCampus = isHostel || (parentLoc && parentLoc.name.toLowerCase().includes('bce'));
       return {
         id: g.id,
         name: g.name,
-        name_hi: g.name_hi,
         pincode: g.pincode || parentLoc?.pincode,
         latitude: g.latitude,
         longitude: g.longitude,
         subtitle: isHostel 
-          ? `Hostel / Student Block • ${parentLoc ? parentLoc.name : activeCityName}`
+          ? `🛏️ Student Hostel • ${parentLoc ? parentLoc.name : activeCityName}`
           : (parentLoc ? `Street/Apartment in ${parentLoc.name}` : 'Street/Apartment'),
-        isCore: isHostel,
-        priority: isHostel ? 50 : 0,
+        isCore: isCampus,
+        isCampus,
+        badgeText: isHostel ? 'Hostel Block' : null,
+        priority: isHostel ? 150 : 0,
         type: 'gali',
         parentLocalityId: g.locality_id
       };
@@ -604,34 +635,33 @@ export default function AddressForm({
 
     const mappedLandmarks = sourceLandmarks.map(lm => {
       const parentLoc = localities.find(l => l.id === lm.locality_id);
+      const isCampus = lm.name.toLowerCase().includes('bce') || (parentLoc && parentLoc.name.toLowerCase().includes('bce'));
       return {
         id: lm.id,
         name: lm.name,
-        name_hi: lm.name_hi,
         pincode: parentLoc?.pincode,
         latitude: lm.latitude,
         longitude: lm.longitude,
         subtitle: parentLoc ? `Landmark near ${parentLoc.name}` : `Landmark • ${activeCityName}`,
         isCore: false,
+        isCampus,
         priority: 0,
         type: 'landmark',
         parentLocalityId: lm.locality_id
       };
     });
 
-    // Localities are sorted by primary/priority first.
+    // Sort localities: Campus areas first, then primary, then alphabetical
     const sortedLocalities = mappedLocalities.sort((a, b) => {
-      if (a.isCore !== b.isCore) {
-        return a.isCore ? -1 : 1;
-      }
-      if (a.priority !== b.priority) {
-        return b.priority - a.priority;
-      }
+      if (a.isCampus !== b.isCampus) return a.isCampus ? -1 : 1;
+      if (a.isCore !== b.isCore) return a.isCore ? -1 : 1;
+      if (a.priority !== b.priority) return b.priority - a.priority;
       return a.name.localeCompare(b.name);
     });
 
     // Hostels prioritized at the top of streets/galis
     const sortedGalis = mappedGalis.sort((a, b) => {
+      if (a.isCampus !== b.isCampus) return a.isCampus ? -1 : 1;
       if (a.isCore !== b.isCore) return a.isCore ? -1 : 1;
       return a.name.localeCompare(b.name);
     });
@@ -670,21 +700,24 @@ export default function AddressForm({
       const parentLoc = localities.find(l => l.id === g.locality_id)
       const isBikeOnly = g.vehicle_restriction === 'bike_only'
       const isHostel = g.type === 'hostel' || g.name.toLowerCase().includes('hostel')
+      const isCampus = isHostel || (parentLoc && parentLoc.name.toLowerCase().includes('bce'))
       const subtitleText = isHostel
-        ? `Hostel Block • ${parentLoc ? parentLoc.name : activeCityName}`
+        ? `🛏️ Student Hostel • ${parentLoc ? parentLoc.name : activeCityName}`
         : (isBikeOnly 
             ? `Bike Only • Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`
             : `Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`)
       return {
         id: g.id,
         name: g.name,
-        name_hi: g.name_hi,
         pincode: g.pincode || parentLoc?.pincode,
         latitude: g.latitude,
         longitude: g.longitude,
         subtitle: subtitleText,
         vehicle_restriction: g.vehicle_restriction || 'all',
-        isBikeOnly
+        isBikeOnly,
+        isCampus,
+        isCore: isCampus,
+        badgeText: isHostel ? 'Hostel Block' : null
       }
     })
 
