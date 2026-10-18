@@ -60,6 +60,7 @@ export default function OrderDeliveryAddress({
   const updateUserAddress = useLocationStore((state) => state.updateUserAddress)
   const deleteUserAddress = useLocationStore((state) => state.deleteUserAddress)
   const localities = useLocationStore((state) => state.localities || [])
+  const galis = useLocationStore((state) => state.galis || [])
 
   const cartCitySlug = useCartStore((state) => state.cartCitySlug)
   const profile = useAuthStore((state) => state.profile)
@@ -250,21 +251,38 @@ export default function OrderDeliveryAddress({
     let defaultLat = currentCityObj?.latitude ? parseFloat(currentCityObj.latitude) : null
     let defaultLng = currentCityObj?.longitude ? parseFloat(currentCityObj.longitude) : null
     let matchedLocalityId = null
+    let matchedGaliId = null
 
     if (prefillLocation) {
-      defaultArea = prefillLocation.title || prefillLocation.fullText || ''
       if (prefillLocation.details?.city) defaultCity = prefillLocation.details.city
       if (prefillLocation.details?.pincode) defaultPin = prefillLocation.details.pincode
       if (prefillLocation.details?.state) defaultState = prefillLocation.details.state
       if (prefillLocation.coords?.lat) defaultLat = parseFloat(prefillLocation.coords.lat)
       if (prefillLocation.coords?.lng) defaultLng = parseFloat(prefillLocation.coords.lng)
 
-      // Try finding matching locality in database
-      const foundLoc = localities.find(loc => 
-        prefillLocation.fullText.toLowerCase().includes(loc.name.toLowerCase().trim())
+      // Try finding matching locality or gali/hostel in database
+      const locText = `${prefillLocation.fullText || ''} ${prefillLocation.title || ''}`.toLowerCase()
+      const foundGali = galis.find(g => 
+        locText.includes(g.name.toLowerCase().trim())
       )
-      if (foundLoc) {
+      const foundLoc = localities.find(loc => 
+        locText.includes(loc.name.toLowerCase().trim())
+      )
+
+      if (foundGali) {
+        matchedGaliId = foundGali.id
+        matchedLocalityId = foundGali.locality_id
+        const parentLoc = localities.find(l => l.id === foundGali.locality_id)
+        defaultArea = parentLoc ? parentLoc.name : ''
+        if (foundGali.pincode) defaultPin = foundGali.pincode
+      } else if (foundLoc) {
         matchedLocalityId = foundLoc.id
+        defaultArea = foundLoc.name
+        if (foundLoc.pincode) defaultPin = foundLoc.pincode
+      } else {
+        // If it's just the generic city name (e.g. "Bhagalpur, BIHAR" or "Aurangabad, Bihar"),
+        // leave defaultArea empty so the user can select their hostel/campus/area cleanly!
+        defaultArea = ''
       }
     }
 
@@ -284,13 +302,13 @@ export default function OrderDeliveryAddress({
       google_maps_url: '',
       locality_id: matchedLocalityId,
       landmark_id: null,
-      gali_id: null,
+      gali_id: matchedGaliId,
       is_default: serviceableAddresses.length === 0
     })
 
     setIsFormOpen(true)
     setIsAddressDropdownOpen(false)
-  }, [activeCityName, allowedPincodes, currentCityObj, profile, localities, serviceableAddresses.length])
+  }, [activeCityName, allowedPincodes, currentCityObj, profile, localities, galis, serviceableAddresses.length])
 
   const handleStartEditAddress = useCallback((addr) => {
     const parsed = parseLandmark(addr.landmark)
