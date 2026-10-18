@@ -468,7 +468,7 @@ export default function AddressForm({
         })
       } else if (cityLocs.length > 1) {
         const primaryLoc = cityLocs.find(l => l.is_primary || (l.name || '').toLowerCase().includes('campus'))
-        if (primaryLoc && (currentCityObj.slug?.includes('bhagalpur') || (currentCityObj.name || '').toLowerCase().includes('bhagalpur'))) {
+        if (primaryLoc) {
           onChange({
             address_line2: primaryLoc.name,
             locality_id: primaryLoc.id,
