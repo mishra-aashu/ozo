@@ -725,6 +725,27 @@ export default function AddressForm({
     return [...galiOptions, ...landmarkOptions]
   }, [galis, landmarks, currentLocality, localities, activeCityName])
 
+  // Filter landmarks strictly relative to current selected locality ID
+  const filteredLandmarks = React.useMemo(() => {
+    if (!currentLocality) return []
+
+    const matchedLandmarks = landmarks.filter(lm => lm.locality_id === currentLocality.id)
+    return matchedLandmarks.map(lm => {
+      const parentLoc = localities.find(l => l.id === lm.locality_id)
+      const isCampus = (lm.name || '').toLowerCase().includes('bce') || (parentLoc && (parentLoc.name || '').toLowerCase().includes('bce'))
+      return {
+        id: lm.id,
+        name: lm.name,
+        pincode: parentLoc?.pincode,
+        latitude: lm.latitude,
+        longitude: lm.longitude,
+        subtitle: isCampus ? `📍 Campus Spot / Gate` : `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`,
+        type: 'landmark',
+        badgeText: isCampus ? 'Campus Spot' : null
+      }
+    })
+  }, [landmarks, currentLocality, localities, activeCityName])
+
   const housePlaceholder = React.useMemo(() => {
     const locName = (currentLocality?.name || '').toLowerCase()
     const galiName = (currentGali?.name || '').toLowerCase()
