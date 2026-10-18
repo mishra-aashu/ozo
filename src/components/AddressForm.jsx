@@ -265,6 +265,7 @@ export default function AddressForm({
   const localities = useLocationStore((state) => state.localities || [])
   const landmarks = useLocationStore((state) => state.landmarks || [])
   const galis = useLocationStore((state) => state.galis || [])
+  const selectedCitySlug = useLocationStore((state) => state.selectedCitySlug || state.browsingCitySlug || state.deliveryCitySlug)
 
   const [pastedLink, setPastedLink] = React.useState(formData.google_maps_url || '')
   const [isResolving, setIsResolving] = React.useState(false)
@@ -321,19 +322,26 @@ export default function AddressForm({
     return list
   }, [activeCities])
 
-  // Auto-select first serviceable pincode & city if not set
+  // Auto-select relevant serviceable pincode & city if not set
   React.useEffect(() => {
     if (!formData.pincode && serviceablePincodes.length > 0) {
-      const first = serviceablePincodes[0]
+      let matched = serviceablePincodes[0]
+      if (selectedCitySlug) {
+        const found = serviceablePincodes.find(p => 
+          selectedCitySlug.toLowerCase().includes(p.cityName.toLowerCase()) ||
+          p.cityName.toLowerCase().includes(selectedCitySlug.toLowerCase())
+        )
+        if (found) matched = found
+      }
       onChange({
-        pincode: first.pincode,
-        city: first.cityName,
-        state: first.state,
-        latitude: first.latitude ? parseFloat(first.latitude) : null,
-        longitude: first.longitude ? parseFloat(first.longitude) : null
+        pincode: matched.pincode,
+        city: matched.cityName,
+        state: matched.state,
+        latitude: matched.latitude ? parseFloat(matched.latitude) : null,
+        longitude: matched.longitude ? parseFloat(matched.longitude) : null
       })
     }
-  }, [formData.pincode, serviceablePincodes, onChange])
+  }, [formData.pincode, serviceablePincodes, selectedCitySlug, onChange])
 
   // Get active locality object by matching current form's address_line2 string or locality_id
   const currentLocality = React.useMemo(() => {
@@ -456,41 +464,114 @@ export default function AddressForm({
     return null;
   }, [currentLocality, currentGali, currentLandmark, formData.latitude, formData.longitude])
 
+  // Derive active operating city and its allowed pincodes purely from database records
+  const currentCityObj = React.useMemo(() => {
+    const pin = (formData.pincode || '').toString().trim()
+    const city = (formData.city || '').toLowerCase().trim()
+
+    // 1. Match by pincode in operating_cities allowed_pincodes
+    if (pin) {
+      const byPin = activeCities.find(c => 
+        c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.map(p => p.toString().trim()).includes(pin)
+      )
+      if (byPin) return byPin
+    }
+
+    // 2. Match by city name or slug
+    if (city) {
+      const byName = activeCities.find(c => {
+        const cName = (c.name || '').toLowerCase()
+        const cSlug = (c.slug || '').toLowerCase()
+        return cName.includes(city) || city.includes(cName) || cSlug.includes(city)
+      })
+      if (byName) return byName
+    }
+
+    // 3. Fallback to first active city
+    return activeCities[0] || null
+  }, [activeCities, formData.pincode, formData.city])
+
+  const activeCityName = currentCityObj?.name ? currentCityObj.name.split(',')[0].trim() : (formData.city || '')
+  const activePincode = (formData.pincode || currentCityObj?.allowed_pincodes?.[0] || '').toString().trim()
+  const allowedPins = React.useMemo(() => {
+    if (currentCityObj?.allowed_pincodes && Array.isArray(currentCityObj.allowed_pincodes)) {
+      return currentCityObj.allowed_pincodes.map(p => p.toString().trim())
+    }
+    return activePincode ? [activePincode] : []
+  }, [currentCityObj, activePincode])
+
   // Prepare searchable select options for localities, prioritizing core areas dynamically
   const localitySelectOptions = React.useMemo(() => {
-    const mappedLocalities = localities.map(loc => {
-      const isCore = !!loc.is_primary;
+    const relevantLocalities = localities.filter(loc => {
+      const locPin = (loc.pincode || '').toString().trim()
+      // 1. Direct pincode match with active selected pincode
+      if (locPin && activePincode && locPin === activePincode) return true;
+      // 2. Match with any allowed pincode for this operating city from DB
+      if (locPin && allowedPins.includes(locPin)) return true;
+      // 3. Spatial proximity match: If locality coordinates are within city's service_radius_km from DB
+      if (currentCityObj?.latitude && currentCityObj?.longitude && loc.latitude && loc.longitude) {
+        const distKm = getDistance(
+          parseFloat(currentCityObj.latitude),
+          parseFloat(currentCityObj.longitude),
+          parseFloat(loc.latitude),
+          parseFloat(loc.longitude)
+        ) / 1000;
+        const maxRadius = Math.max(parseFloat(currentCityObj.service_radius_km) || 25.0, 25.0);
+        if (distKm <= maxRadius) return true;
+      }
+      return false;
+    });
+
+    // Fallback: If no localities match the filter, show all so user isn't stuck
+    const sourceLocalities = relevantLocalities.length > 0 ? relevantLocalities : localities;
+    const relevantLocalityIds = new Set(sourceLocalities.map(l => l.id));
+
+    const mappedLocalities = sourceLocalities.map(loc => {
+      const isCore = !loc.is_primary;
       const priority = parseInt(loc.priority) || 0;
+      const displayPin = loc.pincode || activePincode;
       return {
         id: loc.id,
         name: loc.name,
         name_hi: loc.name_hi,
         latitude: loc.latitude,
         longitude: loc.longitude,
-        subtitle: isCore ? `Primary Area • ${loc.pincode || '824101'}` : `Area/Mohalla • ${loc.pincode || '824101'}`,
+        subtitle: isCore ? `Primary Area • ${displayPin}` : `Area/Mohalla • ${displayPin}`,
         isCore,
         priority,
         type: 'locality'
       };
     });
 
-    const mappedGalis = galis.map(g => {
+    const sourceGalis = galis.filter(g => {
+      if (relevantLocalityIds.has(g.locality_id)) return true;
+      const gPin = (g.pincode || '').toString().trim();
+      if (gPin && allowedPins.includes(gPin)) return true;
+      return false;
+    });
+
+    const mappedGalis = sourceGalis.map(g => {
       const parentLoc = localities.find(l => l.id === g.locality_id);
+      const isHostel = g.type === 'hostel' || g.name.toLowerCase().includes('hostel');
       return {
         id: g.id,
         name: g.name,
         name_hi: g.name_hi,
         latitude: g.latitude,
         longitude: g.longitude,
-        subtitle: parentLoc ? `Street/Apartment in ${parentLoc.name}` : 'Street/Apartment',
-        isCore: false,
-        priority: 0,
+        subtitle: isHostel 
+          ? `Hostel / Student Block • ${parentLoc ? parentLoc.name : activeCityName}`
+          : (parentLoc ? `Street/Apartment in ${parentLoc.name}` : 'Street/Apartment'),
+        isCore: isHostel,
+        priority: isHostel ? 50 : 0,
         type: 'gali',
         parentLocalityId: g.locality_id
       };
     });
 
-    const mappedLandmarks = landmarks.map(lm => {
+    const sourceLandmarks = landmarks.filter(lm => relevantLocalityIds.has(lm.locality_id));
+
+    const mappedLandmarks = sourceLandmarks.map(lm => {
       const parentLoc = localities.find(l => l.id === lm.locality_id);
       return {
         id: lm.id,
@@ -498,7 +579,7 @@ export default function AddressForm({
         name_hi: lm.name_hi,
         latitude: lm.latitude,
         longitude: lm.longitude,
-        subtitle: parentLoc ? `Landmark near ${parentLoc.name}` : 'Landmark',
+        subtitle: parentLoc ? `Landmark near ${parentLoc.name}` : `Landmark • ${activeCityName}`,
         isCore: false,
         priority: 0,
         type: 'landmark',
@@ -519,7 +600,7 @@ export default function AddressForm({
 
     // Combine all options. Keep localities at the top so they show up initially.
     return [...sortedLocalities, ...mappedGalis, ...mappedLandmarks];
-  }, [localities, galis, landmarks])
+  }, [localities, galis, landmarks, currentCityObj, activeCityName, activePincode, allowedPins])
 
   // Filter landmarks strictly relative to current selected locality ID
   const filteredLandmarks = React.useMemo(() => {
@@ -535,10 +616,10 @@ export default function AddressForm({
         name_hi: lm.name_hi,
         latitude: lm.latitude,
         longitude: lm.longitude,
-        subtitle: `Landmark • ${parentLoc ? parentLoc.name : 'Aurangabad'}`
+        subtitle: `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`
       }
     })
-  }, [landmarks, currentLocality, localities])
+  }, [landmarks, currentLocality, localities, activeCityName])
 
   // Filter galis / apartments strictly relative to current selected locality ID
   const filteredGalis = React.useMemo(() => {
@@ -549,15 +630,19 @@ export default function AddressForm({
     const galiOptions = matchedGalis.map(g => {
       const parentLoc = localities.find(l => l.id === g.locality_id)
       const isBikeOnly = g.vehicle_restriction === 'bike_only'
+      const isHostel = g.type === 'hostel' || g.name.toLowerCase().includes('hostel')
+      const subtitleText = isHostel
+        ? `Hostel Block • ${parentLoc ? parentLoc.name : activeCityName}`
+        : (isBikeOnly 
+            ? `Bike Only • Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`
+            : `Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`)
       return {
         id: g.id,
         name: g.name,
         name_hi: g.name_hi,
         latitude: g.latitude,
         longitude: g.longitude,
-        subtitle: isBikeOnly 
-          ? `Bike Only • Street/Apartment • ${parentLoc ? parentLoc.name : 'Aurangabad'}`
-          : `Street/Apartment • ${parentLoc ? parentLoc.name : 'Aurangabad'}`,
+        subtitle: subtitleText,
         vehicle_restriction: g.vehicle_restriction || 'all',
         isBikeOnly
       }
@@ -573,7 +658,7 @@ export default function AddressForm({
         name_hi: lm.name_hi,
         latitude: lm.latitude,
         longitude: lm.longitude,
-        subtitle: `Landmark • ${parentLoc ? parentLoc.name : 'Aurangabad'}`,
+        subtitle: `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`,
         vehicle_restriction: 'all',
         isBikeOnly: false
       }
@@ -581,26 +666,24 @@ export default function AddressForm({
 
     // Return combined list (galis first, then landmarks)
     return [...galiOptions, ...landmarkOptions]
-  }, [galis, landmarks, currentLocality, localities])
+  }, [galis, landmarks, currentLocality, localities, activeCityName])
 
   const housePlaceholder = React.useMemo(() => {
-    const isSinhaCollege = 
-      (currentLocality && (
-        currentLocality.id === 'f0a21680-4578-4a33-a757-c529dfc03d17' ||
-        currentLocality.name?.includes('Sinha College') ||
-        currentLocality.name?.includes('Ram Nagar') ||
-        currentLocality.name?.includes('Adarsh Colony') ||
-        currentLocality.name?.includes('Professor') ||
-        currentLocality.name?.includes('Surya Nagar')
-      )) ||
-      (currentGali && (
-        currentGali.name?.includes('Coaching Gali') ||
-        currentGali.name?.includes('College Gate Side') ||
-        currentGali.name?.includes('Gate Back Lane')
-      ));
-    return isSinhaCollege 
-      ? 'e.g. Room No 12, Shanti Boys Lodge'
-      : 'e.g. Room No 102, Shanti Boys Lodge / Flat 3A, Maa Sharda Complex';
+    const locName = (currentLocality?.name || '').toLowerCase()
+    const galiName = (currentGali?.name || '').toLowerCase()
+    const galiType = (currentGali?.type || '').toLowerCase()
+
+    const isHostel = galiType === 'hostel' || locName.includes('hostel') || galiName.includes('hostel')
+    if (isHostel) {
+      return 'e.g. Room No 204, Floor 2, Hostel Block'
+    }
+
+    const isCampusOrCollege = locName.includes('college') || locName.includes('campus') || locName.includes('university')
+    if (isCampusOrCollege) {
+      return 'e.g. Room No 12, Student Lodge / Staff Quarters'
+    }
+
+    return 'e.g. Flat 3A, House No 12, Maa Sharda Complex'
   }, [currentLocality, currentGali]);
 
   const updateField = (key, value) => {
@@ -646,14 +729,14 @@ export default function AddressForm({
         onMapLocationSelect({
           lat: parseFloat(opt.latitude),
           lng: parseFloat(opt.longitude),
-          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
           isManualSelect: true,
           addressDetails: {
             road: opt.name,
             suburb: parentLoc ? parentLoc.name : '',
-            city: formData.city || 'Aurangabad',
+            city: activeCityName,
             state: formData.state || 'Bihar',
-            postcode: formData.pincode || '824101'
+            postcode: activePincode
           }
         })
       }
@@ -676,14 +759,14 @@ export default function AddressForm({
         onMapLocationSelect({
           lat: parseFloat(opt.latitude),
           lng: parseFloat(opt.longitude),
-          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
           isManualSelect: true,
           addressDetails: {
             road: '',
             suburb: parentLoc ? parentLoc.name : '',
-            city: formData.city || 'Aurangabad',
+            city: activeCityName,
             state: formData.state || 'Bihar',
-            postcode: formData.pincode || '824101'
+            postcode: activePincode
           }
         })
       }
@@ -705,14 +788,14 @@ export default function AddressForm({
         onMapLocationSelect({
           lat: parseFloat(opt.latitude),
           lng: parseFloat(opt.longitude),
-          displayName: `${opt.name}, Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+          displayName: `${opt.name}, ${activeCityName}, Bihar, ${activePincode}`,
           isManualSelect: true,
           addressDetails: {
             road: '',
             suburb: opt.name,
-            city: formData.city || 'Aurangabad',
+            city: activeCityName,
             state: formData.state || 'Bihar',
-            postcode: formData.pincode || '824101'
+            postcode: activePincode
           }
         })
       }
@@ -743,14 +826,14 @@ export default function AddressForm({
       onMapLocationSelect({
         lat: parseFloat(opt.latitude),
         lng: parseFloat(opt.longitude),
-        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
         isManualSelect: true,
         addressDetails: {
           road: '',
           suburb: formData.address_line2 || '',
-          city: formData.city || 'Aurangabad',
+          city: activeCityName,
           state: formData.state || 'Bihar',
-          postcode: formData.pincode || '824101'
+          postcode: activePincode
         }
       })
     }
@@ -784,14 +867,14 @@ export default function AddressForm({
       onMapLocationSelect({
         lat: parseFloat(opt.latitude),
         lng: parseFloat(opt.longitude),
-        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}Aurangabad, Bihar, ${formData.pincode || '824101'}`,
+        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
         isManualSelect: true,
         addressDetails: {
           road: opt.name,
           suburb: formData.address_line2 || '',
-          city: formData.city || 'Aurangabad',
+          city: activeCityName,
           state: formData.state || 'Bihar',
-          postcode: formData.pincode || '824101'
+          postcode: activePincode
         }
       })
     }
@@ -839,9 +922,9 @@ export default function AddressForm({
             displayName: `Pinned from Link: ${resolvedUrl}`,
             addressDetails: {
               road: resolvedUrl,
-              city: formData.city || 'Aurangabad',
+              city: activeCityName,
               state: formData.state || 'Bihar',
-              postcode: formData.pincode || '824101'
+              postcode: activePincode
             }
           })
         }
@@ -1090,7 +1173,17 @@ export default function AddressForm({
                   key={item.pincode}
                   type="button"
                   onClick={() => {
+                    const isDifferentCity = formData.pincode !== item.pincode;
+                    const resetObj = isDifferentCity ? {
+                      address_line2: '',
+                      locality_id: null,
+                      gali_id: null,
+                      landmark: '',
+                      landmark_id: null
+                    } : {};
+
                     onChange({
+                      ...resetObj,
                       pincode: item.pincode,
                       city: item.cityName,
                       state: item.state,
