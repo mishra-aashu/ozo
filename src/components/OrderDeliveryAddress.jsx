@@ -91,6 +91,7 @@ export default function OrderDeliveryAddress({
     locality_id: null,
     landmark_id: null,
     gali_id: null,
+    gali_name: '',
     is_default: false
   })
 
@@ -328,6 +329,7 @@ export default function OrderDeliveryAddress({
       locality_id: matchedLocalityId,
       landmark_id: null,
       gali_id: matchedGaliId,
+      gali_name: matchedGaliId ? (galis.find(g => g.id === matchedGaliId)?.name || '') : '',
       is_default: serviceableAddresses.length === 0
     })
 
@@ -337,6 +339,9 @@ export default function OrderDeliveryAddress({
 
   const handleStartEditAddress = useCallback((addr) => {
     const parsed = parseLandmark(addr.landmark)
+    const foundGali = addr.gali_id ? galis.find(g => g.id === addr.gali_id) : null
+    const galiName = foundGali ? foundGali.name : ''
+
     setEditingAddressId(addr.id)
     setFormData({
       label: addr.label || 'Home',
@@ -355,11 +360,12 @@ export default function OrderDeliveryAddress({
       locality_id: addr.locality_id || null,
       landmark_id: addr.landmark_id || null,
       gali_id: addr.gali_id || null,
+      gali_name: galiName,
       is_default: !!addr.is_default
     })
     setIsFormOpen(true)
     setIsAddressDropdownOpen(false)
-  }, [activeCityName, currentCityObj, allowedPincodes, profile])
+  }, [activeCityName, currentCityObj, allowedPincodes, profile, galis])
 
   // 6. Submit Address Form
   const handleSubmitForm = async (e) => {
@@ -399,10 +405,22 @@ export default function OrderDeliveryAddress({
         formData.notes
       )
 
+      // Resolve combined address_line2 (Gali/Hostel + Locality) so rider/admin sees full campus block details
+      const selectedGaliObj = galis.find(g => g.id === formData.gali_id) || (formData.gali_name ? { name: formData.gali_name } : null)
+      const selectedLocObj = localities.find(l => l.id === formData.locality_id)
+      
+      const locName = selectedLocObj ? selectedLocObj.name.trim() : formData.address_line2.trim()
+      const galiName = selectedGaliObj ? selectedGaliObj.name.trim() : (formData.gali_name || '').trim()
+
+      let finalAddressLine2 = locName
+      if (galiName && !finalAddressLine2.toLowerCase().includes(galiName.toLowerCase())) {
+        finalAddressLine2 = `${galiName}, ${locName}`
+      }
+
       const payload = {
         label: formData.label || 'Home',
         address_line1: formData.address_line1.trim(),
-        address_line2: formData.address_line2.trim(),
+        address_line2: finalAddressLine2,
         city: formData.city.trim(),
         state: formData.state.trim() || 'Bihar',
         pincode: formData.pincode.trim(),

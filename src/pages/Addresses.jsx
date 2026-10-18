@@ -260,10 +260,22 @@ const Addresses = () => {
       }
     }
 
+    const { localities = [], galis = [] } = useLocationStore.getState()
+    const selectedGaliObj = galis.find(g => g.id === formData.gali_id) || (formData.gali_name ? { name: formData.gali_name } : null)
+    const selectedLocObj = localities.find(l => l.id === formData.locality_id)
+    
+    const locName = selectedLocObj ? selectedLocObj.name.trim() : (formData.address_line2 || '').trim()
+    const galiName = selectedGaliObj ? selectedGaliObj.name.trim() : (formData.gali_name || '').trim()
+
+    let finalAddressLine2 = locName
+    if (galiName && !finalAddressLine2.toLowerCase().includes(galiName.toLowerCase())) {
+      finalAddressLine2 = `${galiName}, ${locName}`
+    }
+
     const payload = {
       label: formData.label,
       address_line1: formData.address_line1,
-      address_line2: formData.address_line2,
+      address_line2: finalAddressLine2,
       city: formData.city,
       state: formData.state,
       pincode: formData.pincode,
