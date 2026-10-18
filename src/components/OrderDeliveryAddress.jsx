@@ -286,6 +286,18 @@ export default function OrderDeliveryAddress({
       }
     }
 
+    // If city is Bhagalpur and no specific area was matched, pre-fill BCE Bhagalpur Campus (Sabour)
+    if (defaultCity.toLowerCase().includes('bhagalpur') && !defaultArea) {
+      const bceLoc = localities.find(l => l.name.toLowerCase().includes('bce'))
+      if (bceLoc) {
+        defaultArea = bceLoc.name
+        matchedLocalityId = bceLoc.id
+        if (bceLoc.pincode) defaultPin = bceLoc.pincode
+        if (bceLoc.latitude) defaultLat = parseFloat(bceLoc.latitude)
+        if (bceLoc.longitude) defaultLng = parseFloat(bceLoc.longitude)
+      }
+    }
+
     setFormData({
       label: 'Home',
       address_line1: '', // To be filled by user: Room / Flat / House
