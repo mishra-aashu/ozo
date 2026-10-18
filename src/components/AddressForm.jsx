@@ -389,6 +389,42 @@ export default function AddressForm({
     }
   }, [formData.address_line2, activeCities, onChange])
 
+  // Derive active operating city and its allowed pincodes purely from database records
+  const currentCityObj = React.useMemo(() => {
+    const pin = (formData.pincode || '').toString().trim()
+    const city = (formData.city || '').toLowerCase().trim()
+
+    // 1. Match by pincode in operating_cities allowed_pincodes
+    if (pin) {
+      const byPin = activeCities.find(c => 
+        c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.map(p => p.toString().trim()).includes(pin)
+      )
+      if (byPin) return byPin
+    }
+
+    // 2. Match by city name or slug
+    if (city) {
+      const byName = activeCities.find(c => {
+        const cName = (c.name || '').toLowerCase()
+        const cSlug = (c.slug || '').toLowerCase()
+        return cName.includes(city) || city.includes(cName) || cSlug.includes(city)
+      })
+      if (byName) return byName
+    }
+
+    // 3. Fallback to first active city
+    return activeCities[0] || null
+  }, [activeCities, formData.pincode, formData.city])
+
+  const activeCityName = currentCityObj?.name ? currentCityObj.name.split(',')[0].trim() : (formData.city || '')
+  const activePincode = (formData.pincode || currentCityObj?.allowed_pincodes?.[0] || '').toString().trim()
+  const allowedPins = React.useMemo(() => {
+    if (currentCityObj?.allowed_pincodes && Array.isArray(currentCityObj.allowed_pincodes)) {
+      return currentCityObj.allowed_pincodes.map(p => p.toString().trim())
+    }
+    return activePincode ? [activePincode] : []
+  }, [currentCityObj, activePincode])
+
   // Get active locality object by matching current form's address_line2 string or locality_id
   const currentLocality = React.useMemo(() => {
     if (formData.locality_id) {
@@ -533,42 +569,6 @@ export default function AddressForm({
 
     return null;
   }, [currentLocality, currentGali, currentLandmark, formData.latitude, formData.longitude])
-
-  // Derive active operating city and its allowed pincodes purely from database records
-  const currentCityObj = React.useMemo(() => {
-    const pin = (formData.pincode || '').toString().trim()
-    const city = (formData.city || '').toLowerCase().trim()
-
-    // 1. Match by pincode in operating_cities allowed_pincodes
-    if (pin) {
-      const byPin = activeCities.find(c => 
-        c.allowed_pincodes && Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.map(p => p.toString().trim()).includes(pin)
-      )
-      if (byPin) return byPin
-    }
-
-    // 2. Match by city name or slug
-    if (city) {
-      const byName = activeCities.find(c => {
-        const cName = (c.name || '').toLowerCase()
-        const cSlug = (c.slug || '').toLowerCase()
-        return cName.includes(city) || city.includes(cName) || cSlug.includes(city)
-      })
-      if (byName) return byName
-    }
-
-    // 3. Fallback to first active city
-    return activeCities[0] || null
-  }, [activeCities, formData.pincode, formData.city])
-
-  const activeCityName = currentCityObj?.name ? currentCityObj.name.split(',')[0].trim() : (formData.city || '')
-  const activePincode = (formData.pincode || currentCityObj?.allowed_pincodes?.[0] || '').toString().trim()
-  const allowedPins = React.useMemo(() => {
-    if (currentCityObj?.allowed_pincodes && Array.isArray(currentCityObj.allowed_pincodes)) {
-      return currentCityObj.allowed_pincodes.map(p => p.toString().trim())
-    }
-    return activePincode ? [activePincode] : []
-  }, [currentCityObj, activePincode])
 
   // Prepare searchable select options for localities, prioritizing core areas dynamically
   const localitySelectOptions = React.useMemo(() => {
