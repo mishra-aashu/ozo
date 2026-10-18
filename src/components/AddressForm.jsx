@@ -301,35 +301,38 @@ export default function AddressForm({
     loadStoreData()
   }, [])
 
-  // Parse serviceable pincodes from operating cities configuration
-  const serviceablePincodes = React.useMemo(() => {
-    const list = []
-    activeCities.forEach(city => {
-      if (city.allowed_pincodes && Array.isArray(city.allowed_pincodes)) {
-        city.allowed_pincodes.forEach(pin => {
-          if (!list.some(item => item.pincode === pin)) {
-            list.push({
-              pincode: pin,
-              cityName: city?.name ? city.name.split(',')[0].trim() : '',
-              state: city.state || 'Bihar',
-              latitude: city.latitude,
-              longitude: city.longitude
-            })
-          }
-        })
+  // Parse serviceable cities from operating cities configuration (1 chip per operating city)
+  const serviceableCities = React.useMemo(() => {
+    return activeCities.map(city => {
+      const cityName = city?.name ? city.name.split(',')[0].trim() : ''
+      const allowedPins = Array.isArray(city.allowed_pincodes) ? city.allowed_pincodes : []
+      const primaryPin = allowedPins[0] || ''
+      return {
+        id: city.id,
+        slug: city.slug,
+        cityName,
+        fullName: city.name,
+        state: city.state || 'Bihar',
+        pincode: primaryPin,
+        allowedPincodes: allowedPins,
+        latitude: city.latitude,
+        longitude: city.longitude,
+        displayLabel: allowedPins.length > 0 
+          ? `${cityName} (${allowedPins.join(', ')})` 
+          : cityName
       }
     })
-    return list
   }, [activeCities])
 
-  // Auto-select relevant serviceable pincode & city if not set
+  // Auto-select relevant serviceable city & pincode if not set
   React.useEffect(() => {
-    if (!formData.pincode && serviceablePincodes.length > 0) {
-      let matched = serviceablePincodes[0]
+    if (!formData.city && !formData.pincode && serviceableCities.length > 0) {
+      let matched = serviceableCities[0]
       if (selectedCitySlug) {
-        const found = serviceablePincodes.find(p => 
-          selectedCitySlug.toLowerCase().includes(p.cityName.toLowerCase()) ||
-          p.cityName.toLowerCase().includes(selectedCitySlug.toLowerCase())
+        const found = serviceableCities.find(c => 
+          selectedCitySlug.toLowerCase().includes(c.cityName.toLowerCase()) ||
+          c.cityName.toLowerCase().includes(selectedCitySlug.toLowerCase()) ||
+          selectedCitySlug.toLowerCase() === (c.slug || '').toLowerCase()
         )
         if (found) matched = found
       }
@@ -341,7 +344,7 @@ export default function AddressForm({
         longitude: matched.longitude ? parseFloat(matched.longitude) : null
       })
     }
-  }, [formData.pincode, serviceablePincodes, selectedCitySlug, onChange])
+  }, [formData.city, formData.pincode, serviceableCities, selectedCitySlug, onChange])
 
   // Get active locality object by matching current form's address_line2 string or locality_id
   const currentLocality = React.useMemo(() => {
@@ -534,6 +537,7 @@ export default function AddressForm({
         id: loc.id,
         name: loc.name,
         name_hi: loc.name_hi,
+        pincode: loc.pincode,
         latitude: loc.latitude,
         longitude: loc.longitude,
         subtitle: isCore ? `Primary Area • ${displayPin}` : `Area/Mohalla • ${displayPin}`,
@@ -557,6 +561,7 @@ export default function AddressForm({
         id: g.id,
         name: g.name,
         name_hi: g.name_hi,
+        pincode: g.pincode || parentLoc?.pincode,
         latitude: g.latitude,
         longitude: g.longitude,
         subtitle: isHostel 
@@ -577,6 +582,7 @@ export default function AddressForm({
         id: lm.id,
         name: lm.name,
         name_hi: lm.name_hi,
+        pincode: parentLoc?.pincode,
         latitude: lm.latitude,
         longitude: lm.longitude,
         subtitle: parentLoc ? `Landmark near ${parentLoc.name}` : `Landmark • ${activeCityName}`,
@@ -614,6 +620,7 @@ export default function AddressForm({
         id: lm.id,
         name: lm.name,
         name_hi: lm.name_hi,
+        pincode: parentLoc?.pincode,
         latitude: lm.latitude,
         longitude: lm.longitude,
         subtitle: `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`
@@ -640,6 +647,7 @@ export default function AddressForm({
         id: g.id,
         name: g.name,
         name_hi: g.name_hi,
+        pincode: g.pincode || parentLoc?.pincode,
         latitude: g.latitude,
         longitude: g.longitude,
         subtitle: subtitleText,
@@ -656,6 +664,7 @@ export default function AddressForm({
         id: lm.id,
         name: lm.name,
         name_hi: lm.name_hi,
+        pincode: parentLoc?.pincode,
         latitude: lm.latitude,
         longitude: lm.longitude,
         subtitle: `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`,
@@ -711,6 +720,7 @@ export default function AddressForm({
       const updatedLine1 = currentLine1.toLowerCase().includes(opt.name.toLowerCase())
         ? currentLine1
         : currentLine1 ? `${currentLine1}, ${opt.name}` : opt.name
+      const targetPin = opt.pincode || parentLoc?.pincode || activePincode
 
       const updateData = {
         address_line2: parentLoc ? parentLoc.name : '',
@@ -719,6 +729,7 @@ export default function AddressForm({
         landmark: '',
         landmark_id: null,
         address_line1: updatedLine1,
+        ...(targetPin ? { pincode: targetPin } : {}),
         latitude: opt.latitude ? parseFloat(opt.latitude) : null,
         longitude: opt.longitude ? parseFloat(opt.longitude) : null
       }
@@ -729,19 +740,20 @@ export default function AddressForm({
         onMapLocationSelect({
           lat: parseFloat(opt.latitude),
           lng: parseFloat(opt.longitude),
-          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
+          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${targetPin}`,
           isManualSelect: true,
           addressDetails: {
             road: opt.name,
             suburb: parentLoc ? parentLoc.name : '',
             city: activeCityName,
             state: formData.state || 'Bihar',
-            postcode: activePincode
+            postcode: targetPin
           }
         })
       }
     } else if (opt.type === 'landmark') {
       const parentLoc = localities.find(l => l.id === opt.parentLocalityId)
+      const targetPin = opt.pincode || parentLoc?.pincode || activePincode
       
       const updateData = {
         address_line2: parentLoc ? parentLoc.name : '',
@@ -749,6 +761,7 @@ export default function AddressForm({
         gali_id: null,
         landmark: opt.name,
         landmark_id: opt.id || null,
+        ...(targetPin ? { pincode: targetPin } : {}),
         latitude: opt.latitude ? parseFloat(opt.latitude) : null,
         longitude: opt.longitude ? parseFloat(opt.longitude) : null
       }
@@ -759,25 +772,27 @@ export default function AddressForm({
         onMapLocationSelect({
           lat: parseFloat(opt.latitude),
           lng: parseFloat(opt.longitude),
-          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
+          displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${targetPin}`,
           isManualSelect: true,
           addressDetails: {
             road: '',
             suburb: parentLoc ? parentLoc.name : '',
             city: activeCityName,
             state: formData.state || 'Bihar',
-            postcode: activePincode
+            postcode: targetPin
           }
         })
       }
     } else {
       // Regular locality
+      const targetPin = opt.pincode || activePincode
       const updateData = {
         address_line2: opt.name,
         locality_id: opt.id || null,
         landmark: '',
         landmark_id: null,
         gali_id: null,
+        ...(targetPin ? { pincode: targetPin } : {}),
         latitude: opt.latitude ? parseFloat(opt.latitude) : null,
         longitude: opt.longitude ? parseFloat(opt.longitude) : null
       }
@@ -788,14 +803,14 @@ export default function AddressForm({
         onMapLocationSelect({
           lat: parseFloat(opt.latitude),
           lng: parseFloat(opt.longitude),
-          displayName: `${opt.name}, ${activeCityName}, Bihar, ${activePincode}`,
+          displayName: `${opt.name}, ${activeCityName}, Bihar, ${targetPin}`,
           isManualSelect: true,
           addressDetails: {
             road: '',
             suburb: opt.name,
             city: activeCityName,
             state: formData.state || 'Bihar',
-            postcode: activePincode
+            postcode: targetPin
           }
         })
       }
@@ -809,9 +824,11 @@ export default function AddressForm({
       return
     }
 
+    const targetPin = opt.pincode || activePincode
     const updateData = {
       landmark: opt.name,
-      landmark_id: opt.id || null
+      landmark_id: opt.id || null,
+      ...(opt.pincode ? { pincode: opt.pincode } : {})
     }
 
     // Set precise snapping coordinates from landmark
@@ -826,14 +843,14 @@ export default function AddressForm({
       onMapLocationSelect({
         lat: parseFloat(opt.latitude),
         lng: parseFloat(opt.longitude),
-        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
+        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}${activeCityName}, Bihar, ${targetPin}`,
         isManualSelect: true,
         addressDetails: {
           road: '',
           suburb: formData.address_line2 || '',
           city: activeCityName,
           state: formData.state || 'Bihar',
-          postcode: activePincode
+          postcode: targetPin
         }
       })
     }
@@ -843,8 +860,10 @@ export default function AddressForm({
   const handleGaliSelect = (opt) => {
     if (!opt) return
 
+    const targetPin = opt.pincode || activePincode
     const updateData = {
-      gali_id: opt.id || null
+      gali_id: opt.id || null,
+      ...(opt.pincode ? { pincode: opt.pincode } : {})
     }
 
     // Snap coordinates to granular street/gali
@@ -867,14 +886,14 @@ export default function AddressForm({
       onMapLocationSelect({
         lat: parseFloat(opt.latitude),
         lng: parseFloat(opt.longitude),
-        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}${activeCityName}, Bihar, ${activePincode}`,
+        displayName: `${opt.name}, ${formData.address_line2 ? formData.address_line2 + ', ' : ''}${activeCityName}, Bihar, ${targetPin}`,
         isManualSelect: true,
         addressDetails: {
           road: opt.name,
           suburb: formData.address_line2 || '',
           city: activeCityName,
           state: formData.state || 'Bihar',
-          postcode: activePincode
+          postcode: targetPin
         }
       })
     }
@@ -1166,14 +1185,19 @@ export default function AddressForm({
             Delivery City & Pincode <span className="text-ozo-red">*</span>
           </label>
           <div className="flex flex-wrap gap-2">
-            {serviceablePincodes.map(item => {
-              const isSelected = formData.pincode === item.pincode
+            {serviceableCities.map(item => {
+              const currentPin = (formData.pincode || '').toString().trim()
+              const currentCity = (formData.city || '').toLowerCase().trim()
+              const isSelected = 
+                (currentCity && (currentCity === item.cityName.toLowerCase() || item.cityName.toLowerCase().includes(currentCity))) ||
+                (currentPin && item.allowedPincodes.includes(currentPin))
+
               return (
                 <button
-                  key={item.pincode}
+                  key={item.id || item.cityName}
                   type="button"
                   onClick={() => {
-                    const isDifferentCity = formData.pincode !== item.pincode;
+                    const isDifferentCity = !isSelected;
                     const resetObj = isDifferentCity ? {
                       address_line2: '',
                       locality_id: null,
@@ -1182,9 +1206,14 @@ export default function AddressForm({
                       landmark_id: null
                     } : {};
 
+                    // Keep existing pincode if it is already in this city's allowed pincodes; otherwise use primary
+                    const resolvedPin = (currentPin && item.allowedPincodes.includes(currentPin)) 
+                      ? currentPin 
+                      : item.pincode;
+
                     onChange({
                       ...resetObj,
-                      pincode: item.pincode,
+                      pincode: resolvedPin,
                       city: item.cityName,
                       state: item.state,
                       latitude: item.latitude ? parseFloat(item.latitude) : null,
@@ -1194,14 +1223,14 @@ export default function AddressForm({
                       onMapLocationSelect({
                         lat: parseFloat(item.latitude),
                         lng: parseFloat(item.longitude),
-                        displayName: `${item.cityName}, Bihar, ${item.pincode}`,
+                        displayName: `${item.cityName}, ${item.state}, ${resolvedPin}`,
                         isManualSelect: true,
                         addressDetails: {
                           road: '',
                           suburb: '',
                           city: item.cityName,
                           state: item.state,
-                          postcode: item.pincode
+                          postcode: resolvedPin
                         }
                       })
                     }
@@ -1213,7 +1242,7 @@ export default function AddressForm({
                   }`}
                 >
                   <MapPin size={12} className={isSelected ? 'text-ozo-red' : 'text-gray-400'} />
-                  {item.cityName} ({item.pincode})
+                  {item.displayLabel}
                   {isSelected && <Check size={11} className="text-ozo-red shrink-0" />}
                 </button>
               )
