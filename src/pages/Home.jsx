@@ -799,9 +799,21 @@ const MartHome = () => {
     const fetchMarts = async () => {
       try {
         if (isMounted) setIsMartsLoading(true)
-        let query = supabase.from('marts').select('id, name, slug, city_slug, logo_url, is_active, address').eq('is_active', true)
+        let query = supabase
+          .from('marts')
+          .select('id, name, slug, city_id, city_slug, logo_url, is_active, address, opens_at, closes_at, is_24_7')
+          .eq('is_active', true)
+
         if (activeCitySlug) {
-          query = query.eq('city_slug', activeCitySlug)
+          const matchedCity = (activeCities || []).find(c => 
+            c.slug === activeCitySlug || 
+            (c.slug && activeCitySlug && (activeCitySlug.startsWith(c.slug) || c.slug.startsWith(activeCitySlug)))
+          )
+          if (matchedCity) {
+            query = query.or(`city_slug.eq.${matchedCity.slug},city_slug.eq.${activeCitySlug},city_id.eq.${matchedCity.id}`)
+          } else {
+            query = query.eq('city_slug', activeCitySlug)
+          }
         }
         const { data, error } = await query.order('name')
         if (error) throw error
@@ -816,7 +828,7 @@ const MartHome = () => {
     return () => {
       isMounted = false
     }
-  }, [activeCitySlug])
+  }, [activeCitySlug, activeCities])
 
   // Fetch standard data on mount using useOzoQuery to preserve initial loading state
   const { isLoading: isHomeDataLoading } = useOzoQuery(
@@ -2201,7 +2213,7 @@ const MartHome = () => {
 
                     {isAdmin && (
                       <Link
-                        to="/admin/cities"
+                        to="/admin/marts"
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-ozo-red/10 border border-ozo-red/30 text-ozo-red hover:bg-ozo-red hover:text-white text-xs font-black uppercase tracking-wider transition-all shadow-sm active:scale-95 self-start sm:self-auto whitespace-nowrap"
                       >
                         <Plus size={14} className="stroke-[3px]" />
@@ -2243,7 +2255,7 @@ const MartHome = () => {
                               onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                navigate('/admin/cities');
+                                navigate('/admin/marts');
                               }}
                             >
                               <Settings size={12} className="stroke-[2.5px]" />
@@ -2301,7 +2313,7 @@ const MartHome = () => {
                     {/* Admin Add New Mart Card */}
                     {isAdmin && (
                       <Link
-                        to="/admin/cities"
+                        to="/admin/marts"
                         className="group bg-ozo-red/5 hover:bg-ozo-red/10 border border-dashed border-ozo-red/30 rounded-2xl md:rounded-3xl p-3.5 sm:p-5 flex flex-col items-center justify-center text-center transition-all duration-300 hover:border-ozo-red/50 hover:shadow-lg"
                       >
                         {/* Match circular shop logo container size */}
