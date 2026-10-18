@@ -286,15 +286,28 @@ export default function OrderDeliveryAddress({
       }
     }
 
-    // If city is Bhagalpur and no specific area was matched, pre-fill BCE Bhagalpur Campus (Sabour)
-    if (defaultCity.toLowerCase().includes('bhagalpur') && !defaultArea) {
-      const bceLoc = localities.find(l => l.name.toLowerCase().includes('bce'))
-      if (bceLoc) {
-        defaultArea = bceLoc.name
-        matchedLocalityId = bceLoc.id
-        if (bceLoc.pincode) defaultPin = bceLoc.pincode
-        if (bceLoc.latitude) defaultLat = parseFloat(bceLoc.latitude)
-        if (bceLoc.longitude) defaultLng = parseFloat(bceLoc.longitude)
+    // If no specific area was matched, check if the current active city has a primary or single locality in DB
+    if (!defaultArea && localities.length > 0) {
+      const cityLocs = localities.filter(l => {
+        const pin = (l.pincode || '').toString().trim()
+        return pin && allowedPincodes.includes(pin)
+      })
+      if (cityLocs.length === 1) {
+        const singleLoc = cityLocs[0]
+        defaultArea = singleLoc.name
+        matchedLocalityId = singleLoc.id
+        if (singleLoc.pincode) defaultPin = singleLoc.pincode
+        if (singleLoc.latitude) defaultLat = parseFloat(singleLoc.latitude)
+        if (singleLoc.longitude) defaultLng = parseFloat(singleLoc.longitude)
+      } else if (cityLocs.length > 1) {
+        const primaryLoc = cityLocs.find(l => l.is_primary || (l.name || '').toLowerCase().includes('campus'))
+        if (primaryLoc && (defaultCity.toLowerCase().includes('bhagalpur') || currentCityObj?.slug?.includes('bhagalpur'))) {
+          defaultArea = primaryLoc.name
+          matchedLocalityId = primaryLoc.id
+          if (primaryLoc.pincode) defaultPin = primaryLoc.pincode
+          if (primaryLoc.latitude) defaultLat = parseFloat(primaryLoc.latitude)
+          if (primaryLoc.longitude) defaultLng = parseFloat(primaryLoc.longitude)
+        }
       }
     }
 
