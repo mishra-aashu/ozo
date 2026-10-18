@@ -127,16 +127,13 @@ function SearchableSelect({
   const filteredOptions = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
     if (!q) {
-      const hasLocalities = options.some(opt => opt.type === 'locality')
-      if (hasLocalities) {
-        return options.filter(opt => opt.type === 'locality').slice(0, 15)
-      }
-      return options.slice(0, 15)
+      return options.slice(0, 30)
     }
     return options.filter(opt => 
       (opt.name && opt.name.toLowerCase().includes(q)) || 
-      (opt.name_hi && opt.name_hi.toLowerCase().includes(q))
-    ).slice(0, 15)
+      (opt.name_hi && opt.name_hi.toLowerCase().includes(q)) ||
+      (opt.subtitle && opt.subtitle.toLowerCase().includes(q))
+    ).slice(0, 30)
   }, [searchQuery, options])
 
   const exactMatch = React.useMemo(() => {
@@ -353,6 +350,27 @@ export default function AddressForm({
       })
     }
   }, [formData.city, formData.pincode, serviceableCities, selectedCitySlug, onChange])
+
+  // If address_line2 was set to generic city name (e.g. "Bhagalpur, BIHAR" or "Bhagalpur"),
+  // reset it so the user can select their hostel/campus/area cleanly.
+  React.useEffect(() => {
+    if (formData.address_line2 && activeCities.length > 0) {
+      const line2Lower = formData.address_line2.toLowerCase().trim()
+      const isJustCity = activeCities.some(c => {
+        const cName = (c.name || '').toLowerCase().trim()
+        const cSlug = (c.slug || '').toLowerCase().trim()
+        const baseName = cName.split(',')[0].trim()
+        return line2Lower === cName || line2Lower === cSlug || line2Lower === baseName || 
+               line2Lower === `${baseName}, bihar` || line2Lower === `${cName}, bihar`
+      })
+      if (isJustCity) {
+        onChange({
+          address_line2: '',
+          locality_id: null
+        })
+      }
+    }
+  }, [formData.address_line2, activeCities, onChange])
 
   // Get active locality object by matching current form's address_line2 string or locality_id
   const currentLocality = React.useMemo(() => {
@@ -612,8 +630,14 @@ export default function AddressForm({
       return a.name.localeCompare(b.name);
     });
 
-    // Combine all options. Keep localities at the top so they show up initially.
-    return [...sortedLocalities, ...mappedGalis, ...mappedLandmarks];
+    // Hostels prioritized at the top of streets/galis
+    const sortedGalis = mappedGalis.sort((a, b) => {
+      if (a.isCore !== b.isCore) return a.isCore ? -1 : 1;
+      return a.name.localeCompare(b.name);
+    });
+
+    // Combine all options. Keep campus areas and hostels at the top so they show up immediately.
+    return [...sortedLocalities, ...sortedGalis, ...mappedLandmarks];
   }, [localities, galis, landmarks, currentCityObj, activeCityName, activePincode, allowedPins])
 
   // Filter landmarks strictly relative to current selected locality ID
