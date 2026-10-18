@@ -116,15 +116,13 @@ function SearchableSelect({
     const handleClickOutside = (event) => {
       if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false)
-        // Restore value if search query was cleared without selection
-        if (!searchQuery && value) {
-          setSearchQuery(value)
-        }
+        // Restore value if search query was modified without selection
+        setSearchQuery(value || '')
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [searchQuery, value])
+  }, [value])
 
   const filteredOptions = React.useMemo(() => {
     const q = searchQuery.toLowerCase().trim()
@@ -174,8 +172,18 @@ function SearchableSelect({
           onChange={(e) => {
             setSearchQuery(e.target.value)
             setIsOpen(true)
-            if (customAllowed) {
-              onChange({ name: e.target.value, isCustom: true })
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              if (searchQuery.trim()) {
+                const match = options.find(o => o.name?.toLowerCase().trim() === searchQuery.toLowerCase().trim())
+                if (match) {
+                  handleOptionSelect(match)
+                } else if (customAllowed) {
+                  handleCustomSelect()
+                }
+              }
             }
           }}
           onFocus={() => setIsOpen(true)}
@@ -716,10 +724,6 @@ export default function AddressForm({
 
     if (opt.type === 'gali') {
       const parentLoc = localities.find(l => l.id === opt.parentLocalityId)
-      const currentLine1 = formData.address_line1 || ''
-      const updatedLine1 = currentLine1.toLowerCase().includes(opt.name.toLowerCase())
-        ? currentLine1
-        : currentLine1 ? `${currentLine1}, ${opt.name}` : opt.name
       const targetPin = opt.pincode || parentLoc?.pincode || activePincode
 
       const updateData = {
@@ -728,7 +732,6 @@ export default function AddressForm({
         gali_id: opt.id || null,
         landmark: '',
         landmark_id: null,
-        address_line1: updatedLine1,
         ...(targetPin ? { pincode: targetPin } : {}),
         latitude: opt.latitude ? parseFloat(opt.latitude) : null,
         longitude: opt.longitude ? parseFloat(opt.longitude) : null
@@ -856,9 +859,12 @@ export default function AddressForm({
     }
   }
 
-  // Handle Gali/Apartment selection (Pre-fills or appends to house details and snaps coordinates)
+  // Handle Gali/Apartment selection (Snaps coordinates and records gali_id)
   const handleGaliSelect = (opt) => {
-    if (!opt) return
+    if (!opt) {
+      onChange({ gali_id: null })
+      return
+    }
 
     const targetPin = opt.pincode || activePincode
     const updateData = {
@@ -870,14 +876,6 @@ export default function AddressForm({
     if (opt.latitude && opt.longitude) {
       updateData.latitude = parseFloat(opt.latitude)
       updateData.longitude = parseFloat(opt.longitude)
-    }
-
-    // Pre-fill or append to address_line1 (House Details)
-    const currentLine1 = formData.address_line1 || ''
-    if (!currentLine1.toLowerCase().includes(opt.name.toLowerCase())) {
-      updateData.address_line1 = currentLine1 
-        ? `${currentLine1}, ${opt.name}`
-        : opt.name
     }
 
     onChange(updateData)
@@ -1268,7 +1266,7 @@ export default function AddressForm({
             <SearchableSelect
               label="Street / Gali / Apartment (Optional)"
               placeholder={currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first"}
-              value=""
+              value={currentGali?.name || ''}
               options={filteredGalis}
               onChange={handleGaliSelect}
               required={false}
