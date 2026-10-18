@@ -437,29 +437,49 @@ export default function AddressForm({
     )
   }, [formData.locality_id, formData.address_line2, localities])
 
-  // Flag indicating if this address is inside BCE Campus or Bhagalpur
+  // Flag indicating if this address is a student hostel or campus block
+  const hasHostels = React.useMemo(() => {
+    if (!currentLocality) return false
+    return galis.some(g => g.locality_id === currentLocality.id && (g.type === 'hostel' || (g.name || '').toLowerCase().includes('hostel')))
+  }, [currentLocality, galis])
+
   const isBCE = React.useMemo(() => {
     const locName = (currentLocality?.name || formData.address_line2 || '').toLowerCase()
     const cName = (formData.city || activeCityName || '').toLowerCase()
-    return locName.includes('bce') || locName.includes('campus') || cName.includes('bhagalpur')
-  }, [currentLocality, formData.address_line2, formData.city, activeCityName])
+    return locName.includes('bce') || locName.includes('campus') || cName.includes('bhagalpur') || hasHostels
+  }, [currentLocality, formData.address_line2, formData.city, activeCityName, hasHostels])
 
-  // Automatically pre-select BCE Bhagalpur Campus (Sabour) when in Bhagalpur if no locality is selected yet
+  // Automatically pre-select locality when an operating city has a single or designated primary/campus locality in DB
   React.useEffect(() => {
-    const cName = (formData.city || activeCityName || '').toLowerCase()
-    if (cName.includes('bhagalpur') && !formData.address_line2 && localities.length > 0) {
-      const bceLoc = localities.find(l => l.name.toLowerCase().includes('bce'))
-      if (bceLoc) {
+    if (!formData.address_line2 && localities.length > 0 && currentCityObj) {
+      const cityLocs = localities.filter(l => {
+        const pin = (l.pincode || '').toString().trim()
+        return pin && allowedPins.includes(pin)
+      })
+
+      if (cityLocs.length === 1) {
+        const singleLoc = cityLocs[0]
         onChange({
-          address_line2: bceLoc.name,
-          locality_id: bceLoc.id,
-          pincode: bceLoc.pincode || formData.pincode || '812001',
-          latitude: bceLoc.latitude ? parseFloat(bceLoc.latitude) : formData.latitude,
-          longitude: bceLoc.longitude ? parseFloat(bceLoc.longitude) : formData.longitude
+          address_line2: singleLoc.name,
+          locality_id: singleLoc.id,
+          pincode: singleLoc.pincode || formData.pincode || allowedPins[0] || '',
+          latitude: singleLoc.latitude ? parseFloat(singleLoc.latitude) : formData.latitude,
+          longitude: singleLoc.longitude ? parseFloat(singleLoc.longitude) : formData.longitude
         })
+      } else if (cityLocs.length > 1) {
+        const primaryLoc = cityLocs.find(l => l.is_primary || (l.name || '').toLowerCase().includes('campus'))
+        if (primaryLoc && (currentCityObj.slug?.includes('bhagalpur') || (currentCityObj.name || '').toLowerCase().includes('bhagalpur'))) {
+          onChange({
+            address_line2: primaryLoc.name,
+            locality_id: primaryLoc.id,
+            pincode: primaryLoc.pincode || formData.pincode || allowedPins[0] || '',
+            latitude: primaryLoc.latitude ? parseFloat(primaryLoc.latitude) : formData.latitude,
+            longitude: primaryLoc.longitude ? parseFloat(primaryLoc.longitude) : formData.longitude
+          })
+        }
       }
     }
-  }, [formData.city, activeCityName, formData.address_line2, localities, onChange, formData.pincode, formData.latitude, formData.longitude])
+  }, [currentCityObj, allowedPins, formData.address_line2, localities, onChange, formData.pincode, formData.latitude, formData.longitude])
 
   // Get active Gali/Apartment object by matching current form's gali_id
   const currentGali = React.useMemo(() => {
@@ -1236,12 +1256,19 @@ export default function AddressForm({
                       ? currentPin 
                       : item.pincode;
 
-                    // If switching to Bhagalpur, pre-select BCE Bhagalpur Campus (Sabour)
-                    if (item.cityName.toLowerCase().includes('bhagalpur')) {
-                      const bceLoc = localities.find(l => l.name.toLowerCase().includes('bce'));
-                      if (bceLoc) {
-                        resetObj.address_line2 = bceLoc.name;
-                        resetObj.locality_id = bceLoc.id;
+                    // If switching cities, check if the selected city has only 1 locality or a designated primary/campus locality in DB
+                    const targetLocs = localities.filter(l => {
+                      const pin = (l.pincode || '').toString().trim()
+                      return pin && item.allowedPincodes.includes(pin)
+                    })
+                    if (targetLocs.length === 1) {
+                      resetObj.address_line2 = targetLocs[0].name
+                      resetObj.locality_id = targetLocs[0].id
+                    } else if (targetLocs.length > 1) {
+                      const primaryLoc = targetLocs.find(l => l.is_primary || (l.name || '').toLowerCase().includes('campus'))
+                      if (primaryLoc && (item.slug?.includes('bhagalpur') || item.cityName.toLowerCase().includes('bhagalpur'))) {
+                        resetObj.address_line2 = primaryLoc.name
+                        resetObj.locality_id = primaryLoc.id
                       }
                     }
 
