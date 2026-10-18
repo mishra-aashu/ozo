@@ -401,6 +401,30 @@ export default function AddressForm({
     )
   }, [formData.locality_id, formData.address_line2, localities])
 
+  // Flag indicating if this address is inside BCE Campus or Bhagalpur
+  const isBCE = React.useMemo(() => {
+    const locName = (currentLocality?.name || formData.address_line2 || '').toLowerCase()
+    const cName = (formData.city || activeCityName || '').toLowerCase()
+    return locName.includes('bce') || locName.includes('campus') || cName.includes('bhagalpur')
+  }, [currentLocality, formData.address_line2, formData.city, activeCityName])
+
+  // Automatically pre-select BCE Bhagalpur Campus (Sabour) when in Bhagalpur if no locality is selected yet
+  React.useEffect(() => {
+    const cName = (formData.city || activeCityName || '').toLowerCase()
+    if (cName.includes('bhagalpur') && !formData.address_line2 && localities.length > 0) {
+      const bceLoc = localities.find(l => l.name.toLowerCase().includes('bce'))
+      if (bceLoc) {
+        onChange({
+          address_line2: bceLoc.name,
+          locality_id: bceLoc.id,
+          pincode: bceLoc.pincode || formData.pincode || '812001',
+          latitude: bceLoc.latitude ? parseFloat(bceLoc.latitude) : formData.latitude,
+          longitude: bceLoc.longitude ? parseFloat(bceLoc.longitude) : formData.longitude
+        })
+      }
+    }
+  }, [formData.city, activeCityName, formData.address_line2, localities, onChange, formData.pincode, formData.latitude, formData.longitude])
+
   // Get active Gali/Apartment object by matching current form's gali_id
   const currentGali = React.useMemo(() => {
     if (formData.gali_id) {
@@ -570,19 +594,17 @@ export default function AddressForm({
 
     // Fallback: If no localities match the filter, show all so user isn't stuck
     const sourceLocalities = relevantLocalities.length > 0 ? relevantLocalities : localities;
-    const relevantLocalityIds = new Set(sourceLocalities.map(l => l.id));
 
     const mappedLocalities = sourceLocalities.map(loc => {
       const isPrimary = !!loc.is_primary;
       const isCampus = loc.name.toLowerCase().includes('bce') || 
-                       loc.name.toLowerCase().includes('campus') || 
-                       loc.name.toLowerCase().includes('hostel');
+                       loc.name.toLowerCase().includes('campus');
       const priority = parseInt(loc.priority) || 0;
       const displayPin = loc.pincode || activePincode;
       
       let subtitle = `Area/Mohalla • ${displayPin}`;
       if (isCampus) {
-        subtitle = `🏛️ BCE Campus Zone • ${displayPin}`;
+        subtitle = `🏛️ BCE Campus & Hostels Zone • ${displayPin}`;
       } else if (isPrimary) {
         subtitle = `Primary Area • ${displayPin}`;
       }
@@ -602,55 +624,6 @@ export default function AddressForm({
       };
     });
 
-    const sourceGalis = galis.filter(g => {
-      if (relevantLocalityIds.has(g.locality_id)) return true;
-      const gPin = (g.pincode || '').toString().trim();
-      if (gPin && allowedPins.includes(gPin)) return true;
-      return false;
-    });
-
-    const mappedGalis = sourceGalis.map(g => {
-      const parentLoc = localities.find(l => l.id === g.locality_id);
-      const isHostel = g.type === 'hostel' || g.name.toLowerCase().includes('hostel');
-      const isCampus = isHostel || (parentLoc && parentLoc.name.toLowerCase().includes('bce'));
-      return {
-        id: g.id,
-        name: g.name,
-        pincode: g.pincode || parentLoc?.pincode,
-        latitude: g.latitude,
-        longitude: g.longitude,
-        subtitle: isHostel 
-          ? `🛏️ Student Hostel • ${parentLoc ? parentLoc.name : activeCityName}`
-          : (parentLoc ? `Street/Apartment in ${parentLoc.name}` : 'Street/Apartment'),
-        isCore: isCampus,
-        isCampus,
-        badgeText: isHostel ? 'Hostel Block' : null,
-        priority: isHostel ? 150 : 0,
-        type: 'gali',
-        parentLocalityId: g.locality_id
-      };
-    });
-
-    const sourceLandmarks = landmarks.filter(lm => relevantLocalityIds.has(lm.locality_id));
-
-    const mappedLandmarks = sourceLandmarks.map(lm => {
-      const parentLoc = localities.find(l => l.id === lm.locality_id);
-      const isCampus = lm.name.toLowerCase().includes('bce') || (parentLoc && parentLoc.name.toLowerCase().includes('bce'));
-      return {
-        id: lm.id,
-        name: lm.name,
-        pincode: parentLoc?.pincode,
-        latitude: lm.latitude,
-        longitude: lm.longitude,
-        subtitle: parentLoc ? `Landmark near ${parentLoc.name}` : `Landmark • ${activeCityName}`,
-        isCore: false,
-        isCampus,
-        priority: 0,
-        type: 'landmark',
-        parentLocalityId: lm.locality_id
-      };
-    });
-
     // Sort localities: Campus areas first, then primary, then alphabetical
     const sortedLocalities = mappedLocalities.sort((a, b) => {
       if (a.isCampus !== b.isCampus) return a.isCampus ? -1 : 1;
@@ -659,56 +632,35 @@ export default function AddressForm({
       return a.name.localeCompare(b.name);
     });
 
-    // Hostels prioritized at the top of streets/galis
-    const sortedGalis = mappedGalis.sort((a, b) => {
-      if (a.isCampus !== b.isCampus) return a.isCampus ? -1 : 1;
-      if (a.isCore !== b.isCore) return a.isCore ? -1 : 1;
-      return a.name.localeCompare(b.name);
-    });
+    // Only return localities in the Area/Locality field. Galis/Hostels belong to the next field!
+    return sortedLocalities;
+  }, [localities, currentCityObj, activePincode, allowedPins])
 
-    // Combine all options. Keep campus areas and hostels at the top so they show up immediately.
-    return [...sortedLocalities, ...sortedGalis, ...mappedLandmarks];
-  }, [localities, galis, landmarks, currentCityObj, activeCityName, activePincode, allowedPins])
-
-  // Filter landmarks strictly relative to current selected locality ID
-  const filteredLandmarks = React.useMemo(() => {
-    if (!currentLocality) return []
-
-    const list = landmarks.filter(lm => lm.locality_id === currentLocality.id)
-    
-    return list.map(lm => {
-      const parentLoc = localities.find(l => l.id === lm.locality_id)
-      return {
-        id: lm.id,
-        name: lm.name,
-        name_hi: lm.name_hi,
-        pincode: parentLoc?.pincode,
-        latitude: lm.latitude,
-        longitude: lm.longitude,
-        subtitle: `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`
-      }
-    })
-  }, [landmarks, currentLocality, localities, activeCityName])
-
-  // Filter galis / apartments strictly relative to current selected locality ID
+  // Filter galis / hostels / apartments strictly relative to current selected locality ID
   const filteredGalis = React.useMemo(() => {
     if (!currentLocality) return []
 
-    // Get galis mapped to this locality
+    // Get galis / hostels mapped to this locality
     const matchedGalis = galis.filter(g => g.locality_id === currentLocality.id)
     const galiOptions = matchedGalis.map(g => {
       const parentLoc = localities.find(l => l.id === g.locality_id)
       const isBikeOnly = g.vehicle_restriction === 'bike_only'
       const isHostel = g.type === 'hostel' || g.name.toLowerCase().includes('hostel')
       const isCampus = isHostel || (parentLoc && parentLoc.name.toLowerCase().includes('bce'))
-      const subtitleText = isHostel
-        ? `🛏️ Student Hostel • ${parentLoc ? parentLoc.name : activeCityName}`
-        : (isBikeOnly 
-            ? `Bike Only • Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`
-            : `Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`)
+      
+      let subtitleText = `Street/Apartment • ${parentLoc ? parentLoc.name : activeCityName}`
+      if (isHostel) {
+        subtitleText = `🛏️ BCE Student Hostel • Room Delivery`
+      } else if (isCampus) {
+        subtitleText = `🏛️ BCE Campus Road / Zone`
+      } else if (isBikeOnly) {
+        subtitleText = `Bike Only • Street/Apartment`
+      }
+
       return {
         id: g.id,
         name: g.name,
+        type: g.type || (isHostel ? 'hostel' : 'gali'),
         pincode: g.pincode || parentLoc?.pincode,
         latitude: g.latitude,
         longitude: g.longitude,
@@ -717,28 +669,39 @@ export default function AddressForm({
         isBikeOnly,
         isCampus,
         isCore: isCampus,
-        badgeText: isHostel ? 'Hostel Block' : null
+        badgeText: isHostel ? 'Hostel Block' : (isCampus ? 'Campus Zone' : null)
       }
     })
 
-    // Get landmarks mapped to this locality to also display in the Gali dropdown
+    // Sort hostels cleanly: Boys Hostel 1..7, Girls Hostel 1..2, campus roads
+    galiOptions.sort((a, b) => {
+      const aHostel = a.type === 'hostel' || a.name.toLowerCase().includes('hostel')
+      const bHostel = b.type === 'hostel' || b.name.toLowerCase().includes('hostel')
+      if (aHostel !== bHostel) return aHostel ? -1 : 1
+      return a.name.localeCompare(b.name, undefined, { numeric: true })
+    })
+
+    // Get landmarks mapped to this locality to also display in the selection
     const matchedLandmarks = landmarks.filter(lm => lm.locality_id === currentLocality.id)
     const landmarkOptions = matchedLandmarks.map(lm => {
       const parentLoc = localities.find(l => l.id === lm.locality_id)
+      const isCampus = lm.name.toLowerCase().includes('bce') || (parentLoc && parentLoc.name.toLowerCase().includes('bce'))
       return {
         id: lm.id,
         name: lm.name,
-        name_hi: lm.name_hi,
         pincode: parentLoc?.pincode,
         latitude: lm.latitude,
         longitude: lm.longitude,
-        subtitle: `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`,
+        subtitle: isCampus ? `📍 Campus Spot / Gate` : `Landmark • ${parentLoc ? parentLoc.name : activeCityName}`,
         vehicle_restriction: 'all',
-        isBikeOnly: false
+        isBikeOnly: false,
+        isCampus,
+        type: 'landmark',
+        badgeText: isCampus ? 'Campus Spot' : null
       }
     })
 
-    // Return combined list (galis first, then landmarks)
+    // Return combined list (hostels/galis first, then landmarks)
     return [...galiOptions, ...landmarkOptions]
   }, [galis, landmarks, currentLocality, localities, activeCityName])
 
@@ -916,20 +879,27 @@ export default function AddressForm({
     }
   }
 
-  // Handle Gali/Apartment selection (Snaps coordinates and records gali_id)
+  // Handle Gali/Apartment/Hostel selection (Snaps coordinates and records gali_id)
   const handleGaliSelect = (opt) => {
     if (!opt) {
-      onChange({ gali_id: null })
+      onChange({ gali_id: null, landmark: '', landmark_id: null })
+      return
+    }
+
+    if (opt.type === 'landmark') {
+      handleLandmarkSelect(opt)
       return
     }
 
     const targetPin = opt.pincode || activePincode
     const updateData = {
       gali_id: opt.id || null,
+      landmark: '',
+      landmark_id: null,
       ...(opt.pincode ? { pincode: opt.pincode } : {})
     }
 
-    // Snap coordinates to granular street/gali
+    // Snap coordinates to granular street/hostel
     if (opt.latitude && opt.longitude) {
       updateData.latitude = parseFloat(opt.latitude)
       updateData.longitude = parseFloat(opt.longitude)
@@ -1266,6 +1236,15 @@ export default function AddressForm({
                       ? currentPin 
                       : item.pincode;
 
+                    // If switching to Bhagalpur, pre-select BCE Bhagalpur Campus (Sabour)
+                    if (item.cityName.toLowerCase().includes('bhagalpur')) {
+                      const bceLoc = localities.find(l => l.name.toLowerCase().includes('bce'));
+                      if (bceLoc) {
+                        resetObj.address_line2 = bceLoc.name;
+                        resetObj.locality_id = bceLoc.id;
+                      }
+                    }
+
                     onChange({
                       ...resetObj,
                       pincode: resolvedPin,
@@ -1313,29 +1292,32 @@ export default function AddressForm({
           options={localitySelectOptions}
           onChange={handleLocalitySelect}
           required={true}
-          icon={Home}
+          icon={isBCE ? GraduationCap : Home}
           noOptionsMessage="No localities found. Type to use custom area."
         />
 
         {formData.address_line2 ? (
           <div className="space-y-4 slide-up">
-            {/* Gali / Apartment / Street */}
+            {/* Gali / Apartment / Hostel */}
             <SearchableSelect
-              label="Street / Gali / Apartment (Optional)"
-              placeholder={currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first"}
-              value={currentGali?.name || ''}
+              label={isBCE ? "Select Hostel / Campus Block (Optional)" : "Street / Gali / Apartment (Optional)"}
+              placeholder={isBCE ? "Select your Hostel (e.g. Boys Hostel 1, Girls Hostel)..." : (currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first")}
+              value={currentGali?.name || currentLandmark?.name || ''}
               options={filteredGalis}
               onChange={handleGaliSelect}
               required={false}
               disabled={!formData.address_line2}
-              icon={Route}
-              noOptionsMessage="No streets recorded in this area. Type custom details above."
+              icon={isBCE ? GraduationCap : Route}
+              noOptionsMessage={isBCE ? "No hostels found. Type custom block name." : "No streets recorded in this area. Type custom details above."}
             />
 
             {/* House details */}
             <div>
               <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
-                Flat / House No. / Building / Lodge <span className="text-ozo-red">*</span>
+                {isBCE 
+                  ? <>Room No. / Wing / Floor <span className="text-ozo-red">*</span></>
+                  : <>Flat / House No. / Building / Lodge <span className="text-ozo-red">*</span></>
+                }
               </label>
               <div className="relative">
                 <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/20 pointer-events-none">
