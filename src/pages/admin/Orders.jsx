@@ -2037,7 +2037,9 @@ const Orders = () => {
                               selectedOrder.address.address_line1
                             )}
                           </p>
-                          {selectedOrder.address.address_line2 && <p>{selectedOrder.address.address_line2}</p>}
+                          {(selectedOrder.street_gali || selectedOrder.address.address_line2) && (
+                            <p>{selectedOrder.street_gali || selectedOrder.address.address_line2}</p>
+                          )}
                           <p>{selectedOrder.address.city}, {selectedOrder.address.state} - {selectedOrder.address.pincode}</p>
                         </div>
                         <a 

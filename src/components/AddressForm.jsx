@@ -432,9 +432,10 @@ export default function AddressForm({
       if (found) return found
     }
     if (!formData.address_line2) return null
-    return localities.find(loc => 
-      loc.name.toLowerCase().trim() === formData.address_line2.toLowerCase().trim()
-    )
+    const line2 = formData.address_line2.toLowerCase().trim()
+    const exact = localities.find(loc => loc.name.toLowerCase().trim() === line2)
+    if (exact) return exact
+    return localities.find(loc => line2.includes(loc.name.toLowerCase().trim())) || null
   }, [formData.locality_id, formData.address_line2, localities])
 
   // Flag indicating if this address is a student hostel or campus block
@@ -481,14 +482,24 @@ export default function AddressForm({
     }
   }, [currentCityObj, allowedPins, formData.address_line2, localities, onChange, formData.pincode, formData.latitude, formData.longitude])
 
-  // Get active Gali/Apartment object by matching current form's gali_id
+  // Get active Gali/Apartment object by matching current form's gali_id, gali_name, or text in address_line2
   const currentGali = React.useMemo(() => {
     if (formData.gali_id) {
       const found = galis.find(g => g.id === formData.gali_id)
       if (found) return found
     }
+    if (formData.gali_name) {
+      const found = galis.find(g => g.name.toLowerCase().trim() === formData.gali_name.toLowerCase().trim())
+      if (found) return found
+      return { id: null, name: formData.gali_name }
+    }
+    if (formData.address_line2) {
+      const line2 = formData.address_line2.toLowerCase().trim()
+      const found = galis.find(g => line2.includes(g.name.toLowerCase().trim()))
+      if (found) return found
+    }
     return null
-  }, [formData.gali_id, galis])
+  }, [formData.gali_id, formData.gali_name, formData.address_line2, galis])
 
   // Get active landmark object by matching current form's landmark_id or name
   const currentLandmark = React.useMemo(() => {
@@ -856,6 +867,7 @@ export default function AddressForm({
         landmark: '',
         landmark_id: null,
         gali_id: null,
+        gali_name: '',
         ...(targetPin ? { pincode: targetPin } : {}),
         latitude: opt.latitude ? parseFloat(opt.latitude) : null,
         longitude: opt.longitude ? parseFloat(opt.longitude) : null
@@ -920,10 +932,10 @@ export default function AddressForm({
     }
   }
 
-  // Handle Gali/Apartment/Hostel selection (Snaps coordinates and records gali_id)
+  // Handle Gali/Apartment/Hostel selection (Snaps coordinates and records gali_id and gali_name)
   const handleGaliSelect = (opt) => {
     if (!opt) {
-      onChange({ gali_id: null, landmark: '', landmark_id: null })
+      onChange({ gali_id: null, gali_name: '', landmark: '', landmark_id: null })
       return
     }
 
@@ -935,6 +947,7 @@ export default function AddressForm({
     const targetPin = opt.pincode || activePincode
     const updateData = {
       gali_id: opt.id || null,
+      gali_name: opt.name || '',
       landmark: '',
       landmark_id: null,
       ...(opt.pincode ? { pincode: opt.pincode } : {})
@@ -1336,7 +1349,7 @@ export default function AddressForm({
         <SearchableSelect
           label="Area / Locality"
           placeholder="Search and select your Area/Locality..."
-          value={formData.address_line2}
+          value={currentLocality ? currentLocality.name : formData.address_line2}
           options={localitySelectOptions}
           onChange={handleLocalitySelect}
           required={true}
@@ -1350,7 +1363,7 @@ export default function AddressForm({
             <SearchableSelect
               label={isBCE ? "Select Hostel / Campus Block (Optional)" : "Street / Gali / Apartment (Optional)"}
               placeholder={isBCE ? "Select your Hostel (e.g. Boys Hostel 1, Girls Hostel)..." : (currentLocality ? "Search streets/galis in this area..." : "Please select an Area/Locality first")}
-              value={currentGali?.name || currentLandmark?.name || ''}
+              value={currentGali?.name || formData.gali_name || currentLandmark?.name || ''}
               options={filteredGalis}
               onChange={handleGaliSelect}
               required={false}
