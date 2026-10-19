@@ -158,7 +158,7 @@ function SearchableSelect({
   }
 
   return (
-    <div className="relative space-y-1.5" ref={containerRef}>
+    <div className={`relative space-y-1.5 ${isOpen ? 'z-50' : 'z-auto'}`} ref={containerRef}>
       <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
         {label} {required && <span className="text-ozo-red">*</span>}
       </label>
@@ -207,12 +207,12 @@ function SearchableSelect({
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-2xl z-[1050] max-h-56 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-850 scrollbar-hide">
+        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-2xl z-[1050] max-h-56 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-850 scrollbar-hide ring-1 ring-black/10 dark:ring-white/10">
           {customAllowed && searchQuery.trim() && !exactMatch && (
             <button
               type="button"
               onClick={handleCustomSelect}
-              className="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-zinc-800/50 flex items-center justify-between transition-colors text-xs font-bold text-ozo-red border-b border-gray-100 dark:border-zinc-850 bg-red-500/[0.02]"
+              className="w-full text-left px-4 py-2.5 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/80 flex items-center justify-between transition-colors text-xs font-bold text-ozo-red border-b border-gray-100 dark:border-zinc-850"
             >
               <span>Use custom: "{searchQuery}"</span>
               <span className="text-[10px] bg-red-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold text-red-500">Custom</span>
@@ -225,10 +225,12 @@ function SearchableSelect({
                 key={opt.id || opt.name}
                 type="button"
                 onClick={() => handleOptionSelect(opt)}
-                className={`w-full text-left px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-zinc-800/50 flex flex-col transition-colors ${
+                className={`w-full text-left px-4 py-2.5 flex flex-col transition-colors ${
                   opt.isCampus
-                    ? 'bg-red-500/[0.04] dark:bg-red-500/[0.08] hover:bg-red-500/[0.08] border-l-2 border-ozo-red'
-                    : opt.isCore ? 'bg-amber-500/[0.02] dark:bg-amber-500/[0.03]' : ''
+                    ? 'bg-red-50/60 hover:bg-red-50 dark:bg-red-500/10 dark:hover:bg-red-500/15 border-l-2 border-ozo-red'
+                    : opt.isCore
+                    ? 'bg-amber-50/50 hover:bg-amber-50 dark:bg-amber-500/10 dark:hover:bg-amber-500/15'
+                    : 'bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/80'
                 }`}
               >
                 <div className="flex items-center justify-between w-full gap-2">
@@ -262,7 +264,7 @@ function SearchableSelect({
               </button>
             ))
           ) : (
-            <div className="px-4 py-3 text-xs text-gray-400 dark:text-zinc-500 text-center font-semibold">
+            <div className="px-4 py-3 bg-white dark:bg-zinc-900 text-xs text-gray-400 dark:text-zinc-500 text-center font-semibold">
               {noOptionsMessage}
             </div>
           )}
@@ -1251,7 +1253,7 @@ export default function AddressForm({
 
       {/* 4. Address Information Fields */}
       {!activeLinkAutofill && (
-        <div className="space-y-4 pt-2">
+        <div className="space-y-4 pt-2 relative z-20">
           <div className="flex items-center justify-between pb-1 border-b border-gray-150 dark:border-zinc-800">
           <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
             Address Information
@@ -1358,7 +1360,7 @@ export default function AddressForm({
         />
 
         {formData.address_line2 ? (
-          <div className="space-y-4 slide-up">
+          <div className="space-y-4 relative z-20">
             {/* Gali / Apartment / Hostel */}
             <SearchableSelect
               label={isBCE ? "Select Hostel / Campus Block (Optional)" : "Street / Gali / Apartment (Optional)"}
@@ -1470,7 +1472,7 @@ export default function AddressForm({
       )}
 
       {(formData.address_line2 || activeLinkAutofill) && (
-        <div className="space-y-4 slide-up">
+        <div className="space-y-4 relative z-10">
           {/* Notes */}
           <div>
             <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
