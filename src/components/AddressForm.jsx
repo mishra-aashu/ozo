@@ -807,16 +807,18 @@ export default function AddressForm({
         landmark: '',
         landmark_id: null,
         ...(targetPin ? { pincode: targetPin } : {}),
-        latitude: opt.latitude ? parseFloat(opt.latitude) : null,
-        longitude: opt.longitude ? parseFloat(opt.longitude) : null
+        latitude: opt.latitude ? parseFloat(opt.latitude) : (parentLoc?.latitude ? parseFloat(parentLoc.latitude) : null),
+        longitude: opt.longitude ? parseFloat(opt.longitude) : (parentLoc?.longitude ? parseFloat(parentLoc.longitude) : null)
       }
 
       onChange(updateData)
 
-      if (onMapLocationSelect && opt.latitude && opt.longitude) {
+      if (onMapLocationSelect && (opt.latitude || parentLoc?.latitude) && (opt.longitude || parentLoc?.longitude)) {
+        const useLat = parseFloat(opt.latitude || parentLoc.latitude)
+        const useLng = parseFloat(opt.longitude || parentLoc.longitude)
         onMapLocationSelect({
-          lat: parseFloat(opt.latitude),
-          lng: parseFloat(opt.longitude),
+          lat: useLat,
+          lng: useLng,
           displayName: `${opt.name}, ${parentLoc ? parentLoc.name + ', ' : ''}${activeCityName}, Bihar, ${targetPin}`,
           isManualSelect: true,
           addressDetails: {
@@ -839,8 +841,8 @@ export default function AddressForm({
         landmark: opt.name,
         landmark_id: opt.id || null,
         ...(targetPin ? { pincode: targetPin } : {}),
-        latitude: opt.latitude ? parseFloat(opt.latitude) : null,
-        longitude: opt.longitude ? parseFloat(opt.longitude) : null
+        latitude: opt.latitude ? parseFloat(opt.latitude) : (parentLoc?.latitude ? parseFloat(parentLoc.latitude) : null),
+        longitude: opt.longitude ? parseFloat(opt.longitude) : (parentLoc?.longitude ? parseFloat(parentLoc.longitude) : null)
       }
 
       onChange(updateData)

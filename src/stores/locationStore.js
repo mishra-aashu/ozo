@@ -509,31 +509,95 @@ export const useLocationStore = create(
         }
       },
 
+      // Fast in-memory coordinate resolution from preloaded DB entities (0ms execution)
+      resolveLocalCoordinates: (addressData) => {
+        let lat = addressData.latitude ? parseFloat(addressData.latitude) : null
+        let lng = addressData.longitude ? parseFloat(addressData.longitude) : null
+        let tracedThrough = addressData.traced_through || 'manual'
+
+        if (lat && lng) {
+          return { lat, lng, tracedThrough }
+        }
+
+        const { localities = [], galis = [], landmarks = [] } = get()
+
+        // 1. Check selected gali_id
+        if (addressData.gali_id) {
+          const matchedGali = galis.find(g => g.id === addressData.gali_id)
+          if (matchedGali?.latitude && matchedGali?.longitude) {
+            return {
+              lat: parseFloat(matchedGali.latitude),
+              lng: parseFloat(matchedGali.longitude),
+              tracedThrough: 'gali_db'
+            }
+          }
+        }
+
+        // 2. Check selected locality_id
+        if (addressData.locality_id) {
+          const matchedLoc = localities.find(l => l.id === addressData.locality_id)
+          if (matchedLoc?.latitude && matchedLoc?.longitude) {
+            return {
+              lat: parseFloat(matchedLoc.latitude),
+              lng: parseFloat(matchedLoc.longitude),
+              tracedThrough: 'locality_db'
+            }
+          }
+        }
+
+        // 3. Check selected landmark_id
+        if (addressData.landmark_id) {
+          const matchedLm = landmarks.find(lm => lm.id === addressData.landmark_id)
+          if (matchedLm?.latitude && matchedLm?.longitude) {
+            return {
+              lat: parseFloat(matchedLm.latitude),
+              lng: parseFloat(matchedLm.longitude),
+              tracedThrough: 'landmark_db'
+            }
+          }
+        }
+
+        // 4. Try matching text in address_line2 / landmark against cached names
+        const searchText = `${addressData.address_line2 || ''} ${addressData.landmark || ''}`.toLowerCase()
+        const matchedGaliText = galis.find(g => g.name && searchText.includes(g.name.toLowerCase().trim()))
+        if (matchedGaliText?.latitude && matchedGaliText?.longitude) {
+          return {
+            lat: parseFloat(matchedGaliText.latitude),
+            lng: parseFloat(matchedGaliText.longitude),
+            tracedThrough: 'gali_db_text'
+          }
+        }
+
+        const matchedLocText = localities.find(l => l.name && searchText.includes(l.name.toLowerCase().trim()))
+        if (matchedLocText?.latitude && matchedLocText?.longitude) {
+          return {
+            lat: parseFloat(matchedLocText.latitude),
+            lng: parseFloat(matchedLocText.longitude),
+            tracedThrough: 'locality_db_text'
+          }
+        }
+
+        // 5. Instant city fallback from operating cities
+        const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
+        if (matchedCity?.latitude && matchedCity?.longitude) {
+          return {
+            lat: parseFloat(matchedCity.latitude),
+            lng: parseFloat(matchedCity.longitude),
+            tracedThrough: 'city_fallback'
+          }
+        }
+
+        return { lat: null, lng: null, tracedThrough: 'manual' }
+      },
+
       // Add a new address
       addUserAddress: async (addressData, silent = false) => {
         try {
           const { data: { session } } = await supabase.auth.getSession()
           const userAddresses = get().userAddresses || []
 
-          let lat = addressData.latitude
-          let lng = addressData.longitude
-          let tracedThrough = addressData.traced_through || 'manual'
-
-          if (!lat || !lng) {
-            const resolvedCoords = await resolveAddressToCoordinates(addressData)
-            if (resolvedCoords) {
-              lat = resolvedCoords.lat
-              lng = resolvedCoords.lng
-              tracedThrough = resolvedCoords.traced_through
-            } else {
-              const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
-              if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
-                lat = parseFloat(matchedCity.latitude)
-                lng = parseFloat(matchedCity.longitude)
-                tracedThrough = 'city_fallback'
-              }
-            }
-          }
+          // 1. Instant local coords resolution (0ms - no blocking HTTP geocoding)
+          const { lat, lng, tracedThrough } = get().resolveLocalCoordinates(addressData)
 
           const resolvedAddressData = {
             ...addressData,
@@ -560,15 +624,21 @@ export const useLocationStore = create(
             if (resolvedAddressData.is_default && !existingAddress.is_default) {
               existingAddress.is_default = true
               if (session) {
-                await supabase
-                  .from('addresses')
-                  .update({ is_default: false })
-                  .eq('user_id', session.user.id)
-                await supabase
+                // Database trigger trg_single_default_address automatically resets other defaults
+                const { data: updatedAddr } = await supabase
                   .from('addresses')
                   .update({ is_default: true })
                   .eq('id', existingAddress.id)
-                await get().fetchUserAddresses()
+                  .select()
+                  .single()
+
+                const currentAddresses = get().userAddresses || []
+                set({
+                  userAddresses: currentAddresses.map(a => 
+                    a.id === existingAddress.id ? (updatedAddr || { ...a, is_default: true }) : { ...a, is_default: false }
+                  )
+                })
+                return updatedAddr || existingAddress
               } else {
                 set({
                   userAddresses: userAddresses.map(a => 
@@ -604,14 +674,7 @@ export const useLocationStore = create(
 
           set({ isLoading: true })
 
-          // If the new address is default, reset other default addresses first
-          if (resolvedAddressData.is_default) {
-            await supabase
-              .from('addresses')
-              .update({ is_default: false })
-              .eq('user_id', session.user.id)
-          }
-
+          // Single atomic DB call: trg_single_default_address trigger automatically resets other defaults
           const { data, error } = await supabase
             .from('addresses')
             .insert([{ ...resolvedAddressData, user_id: session.user.id }])
@@ -619,8 +682,36 @@ export const useLocationStore = create(
             .single()
 
           if (error) throw error
-          
-          await get().fetchUserAddresses()
+
+          // Merge directly into in-memory store without slow full-table re-fetching
+          const currentAddresses = get().userAddresses || []
+          const updatedAddresses = resolvedAddressData.is_default
+            ? [data, ...currentAddresses.map(a => ({ ...a, is_default: false }))]
+            : [data, ...currentAddresses]
+
+          set({ userAddresses: updatedAddresses, isLoading: false })
+
+          // Non-blocking background coordinate refinement if only city fallback was used
+          if (data?.id && tracedThrough === 'city_fallback') {
+            resolveAddressToCoordinates(addressData).then(async (betterCoords) => {
+              if (betterCoords?.lat && betterCoords?.lng) {
+                await supabase
+                  .from('addresses')
+                  .update({
+                    latitude: betterCoords.lat,
+                    longitude: betterCoords.lng,
+                    traced_through: betterCoords.traced_through
+                  })
+                  .eq('id', data.id)
+                set(state => ({
+                  userAddresses: (state.userAddresses || []).map(a =>
+                    a.id === data.id ? { ...a, latitude: betterCoords.lat, longitude: betterCoords.lng, traced_through: betterCoords.traced_through } : a
+                  )
+                }))
+              }
+            }).catch(() => {})
+          }
+
           if (!silent) {
             toast.success('Address saved successfully')
           }
@@ -634,29 +725,12 @@ export const useLocationStore = create(
       },
 
       // Update an address
-      updateUserAddress: async (addressId, addressData) => {
+      updateUserAddress: async (addressId, addressData, silent = false) => {
         try {
           const { data: { session } } = await supabase.auth.getSession()
           
-          let lat = addressData.latitude
-          let lng = addressData.longitude
-          let tracedThrough = addressData.traced_through || 'manual'
-
-          if (!lat || !lng) {
-            const resolvedCoords = await resolveAddressToCoordinates(addressData)
-            if (resolvedCoords) {
-              lat = resolvedCoords.lat
-              lng = resolvedCoords.lng
-              tracedThrough = resolvedCoords.traced_through
-            } else {
-              const matchedCity = findCityByPincode(addressData.pincode) || findMatchingActiveCity(addressData.city)
-              if (matchedCity && matchedCity.latitude && matchedCity.longitude) {
-                lat = parseFloat(matchedCity.latitude)
-                lng = parseFloat(matchedCity.longitude)
-                tracedThrough = 'city_fallback'
-              }
-            }
-          }
+          // 1. Instant local coords resolution (0ms)
+          const { lat, lng, tracedThrough } = get().resolveLocalCoordinates(addressData)
 
           const resolvedAddressData = {
             ...addressData,
@@ -675,20 +749,15 @@ export const useLocationStore = create(
               addr.id === addressId ? { ...addr, ...resolvedAddressData } : addr
             )
             set({ userAddresses: updatedAddresses })
-            toast.success('Address updated locally')
+            if (!silent) {
+              toast.success('Address updated locally')
+            }
             return updatedAddresses.find(addr => addr.id === addressId)
           }
 
           set({ isLoading: true })
 
-          // If this address is set to default, reset other default addresses first
-          if (resolvedAddressData.is_default) {
-            await supabase
-              .from('addresses')
-              .update({ is_default: false })
-              .eq('user_id', session.user.id)
-          }
-
+          // Single atomic DB call: trg_single_default_address trigger handles default resetting
           const { data, error } = await supabase
             .from('addresses')
             .update(resolvedAddressData)
@@ -699,8 +768,39 @@ export const useLocationStore = create(
 
           if (error) throw error
 
-          await get().fetchUserAddresses()
-          toast.success('Address updated successfully')
+          // Update in-memory store immediately without slow refetch
+          const currentAddresses = get().userAddresses || []
+          const updatedAddresses = currentAddresses.map(a => {
+            if (a.id === addressId) return data
+            if (resolvedAddressData.is_default) return { ...a, is_default: false }
+            return a
+          })
+          set({ userAddresses: updatedAddresses, isLoading: false })
+
+          // Non-blocking background coordinate refinement if only city fallback was used
+          if (data?.id && tracedThrough === 'city_fallback') {
+            resolveAddressToCoordinates(addressData).then(async (betterCoords) => {
+              if (betterCoords?.lat && betterCoords?.lng) {
+                await supabase
+                  .from('addresses')
+                  .update({
+                    latitude: betterCoords.lat,
+                    longitude: betterCoords.lng,
+                    traced_through: betterCoords.traced_through
+                  })
+                  .eq('id', data.id)
+                set(state => ({
+                  userAddresses: (state.userAddresses || []).map(a =>
+                    a.id === data.id ? { ...a, latitude: betterCoords.lat, longitude: betterCoords.lng, traced_through: betterCoords.traced_through } : a
+                  )
+                }))
+              }
+            }).catch(() => {})
+          }
+
+          if (!silent) {
+            toast.success('Address updated successfully')
+          }
           return data
         } catch (error) {
           console.error('Update address error:', error)
@@ -711,7 +811,7 @@ export const useLocationStore = create(
       },
 
       // Delete an address
-      deleteUserAddress: async (addressId) => {
+      deleteUserAddress: async (addressId, silent = false) => {
         try {
           const { data: { session } } = await supabase.auth.getSession()
           if (!session) {
@@ -719,7 +819,9 @@ export const useLocationStore = create(
             set({
               userAddresses: (get().userAddresses || []).filter(addr => addr.id !== addressId)
             })
-            toast.success('Address deleted locally')
+            if (!silent) {
+              toast.success('Address deleted locally')
+            }
             return true
           }
 
@@ -732,8 +834,14 @@ export const useLocationStore = create(
 
           if (error) throw error
 
-          await get().fetchUserAddresses()
-          toast.success('Address deleted successfully')
+          // Direct local state filter without re-fetch
+          set({
+            userAddresses: (get().userAddresses || []).filter(addr => addr.id !== addressId),
+            isLoading: false
+          })
+          if (!silent) {
+            toast.success('Address deleted successfully')
+          }
           return true
         } catch (error) {
           console.error('Delete address error:', error)
