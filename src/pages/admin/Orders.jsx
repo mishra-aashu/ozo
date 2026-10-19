@@ -36,6 +36,7 @@ import {
   Bell
 } from 'lucide-react'
 import { useOrderStore } from '../../stores/orderStore'
+import { useProductStore } from '../../stores/productStore'
 import { supabase as supabaseClient, supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
 import RiderAdmin from './RiderAdmin'
@@ -285,62 +286,49 @@ const Orders = () => {
     }
   }
 
-  const handleToggleProductAvailability = async (productId, currentStatus) => {
-    setUpdatingProductId(productId)
-    const toastId = toast.loading(currentStatus ? 'Marking as Out of Stock...' : 'Marking as Available...')
-    try {
-      const { error } = await supabase
-        .from('products')
-        .update({ is_available: !currentStatus })
-        .eq('id', productId)
+  const handleToggleProductAvailability = (productId, currentStatus) => {
+    const newStatus = !currentStatus
 
-      if (error) throw error
+    // 1. Instant optimistic update in selectedOrder.order_items
+    if (selectedOrder) {
+      const updatedItems = (selectedOrder.order_items || []).map(item => {
+        if (item.product_id === productId) {
+          return { ...item, is_available: newStatus }
+        }
+        return item
+      })
+      setSelectedOrder(prev => prev ? { ...prev, order_items: updatedItems } : null)
+    }
 
-      toast.success(currentStatus ? 'Marked as Out of Stock' : 'Marked as Available', { id: toastId })
-
-      // Update in selectedOrder.order_items
-      if (selectedOrder) {
-        const updatedItems = (selectedOrder.order_items || []).map(item => {
+    // 2. Instant update in useOrderStore's orders array
+    const storeOrders = useOrderStore.getState().orders
+    const updatedStoreOrders = storeOrders.map(order => {
+      if (order.order_items) {
+        const newItems = order.order_items.map(item => {
           if (item.product_id === productId) {
-            return { ...item, is_available: !currentStatus }
+            return { ...item, is_available: newStatus }
           }
           return item
         })
-        setSelectedOrder(prev => prev ? { ...prev, order_items: updatedItems } : null)
+        return { ...order, order_items: newItems }
       }
+      return order
+    })
+    useOrderStore.setState({ orders: updatedStoreOrders })
 
-      // Also update in useOrderStore's orders array
-      const storeOrders = useOrderStore.getState().orders
-      const updatedStoreOrders = storeOrders.map(order => {
-        if (order.order_items) {
-          const newItems = order.order_items.map(item => {
-            if (item.product_id === productId) {
-              return { ...item, is_available: !currentStatus }
-            }
-            return item
-          })
-          return { ...order, order_items: newItems }
-        }
-        return order
-      })
-      useOrderStore.setState({ orders: updatedStoreOrders })
+    // 3. Delegate to productStore for global optimistic update + background sync
+    useProductStore.getState().toggleProductAvailability(productId, newStatus)
 
-      // Trigger IndexNow (same as Products.jsx)
-      const targetItem = selectedOrder?.order_items?.find(item => item.product_id === productId)
-      if (targetItem && targetItem.product_slug) {
-        try {
-          fetch('/api/index-product', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ productSlug: targetItem.product_slug })
-          }).catch(err => console.warn('Async IndexNow ping failed:', err))
-        } catch (e) {}
-      }
-    } catch (err) {
-      console.error('Error updating availability:', err)
-      toast.error('Failed to update product status', { id: toastId })
-    } finally {
-      setUpdatingProductId(null)
+    // Trigger IndexNow asynchronously
+    const targetItem = selectedOrder?.order_items?.find(item => item.product_id === productId)
+    if (targetItem && targetItem.product_slug) {
+      try {
+        fetch('/api/index-product', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ productSlug: targetItem.product_slug })
+        }).catch(err => console.warn('Async IndexNow ping failed:', err))
+      } catch (e) {}
     }
   }
 

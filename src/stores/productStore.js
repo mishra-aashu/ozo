@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { supabase } from '../lib/supabase'
+import { supabase, supabaseAdmin } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { useLocationStore, getActiveCitySlug } from './locationStore'
 import { useCartStore } from './cartStore'
@@ -1076,6 +1076,79 @@ export const useProductStore = create((set, get) => ({
         isLoading: get().isProductsLoading || get().isSearchLoading || get().isProductDetailLoading
       })
       return { success: false, error }
+    }
+  },
+
+  // Optimistic toggle product availability (instant 0ms UI update + background sync)
+  toggleProductAvailability: async (productId, newStatus, martId = null) => {
+    if (!productId) return { success: false }
+
+    // Snapshot current state for rollback on error
+    const prevProducts = get().products
+    const prevFeatured = get().featuredProducts
+    const prevBestsellers = get().bestsellerProducts
+    const prevCurrentProduct = get().currentProduct
+
+    const updateProductInList = (list) =>
+      (list || []).map(p => {
+        if (p.id === productId) {
+          return { ...p, is_available: newStatus }
+        }
+        if (p.variants && Array.isArray(p.variants)) {
+          return {
+            ...p,
+            variants: p.variants.map(v => v.id === productId ? { ...v, is_available: newStatus } : v)
+          }
+        }
+        return p
+      })
+
+    // 1. OPTIMISTIC UPDATE: Update UI state instantly (0ms)
+    set({
+      products: updateProductInList(prevProducts),
+      featuredProducts: updateProductInList(prevFeatured),
+      bestsellerProducts: updateProductInList(prevBestsellers),
+      currentProduct: prevCurrentProduct && prevCurrentProduct.id === productId
+        ? { ...prevCurrentProduct, is_available: newStatus }
+        : prevCurrentProduct
+    })
+
+    toast.success(newStatus ? 'Product marked In Stock!' : 'Product marked Out of Stock!', { duration: 1500 })
+
+    // 2. BACKGROUND SYNC (Non-blocking):
+    try {
+      const updates = [
+        supabaseAdmin.from('products').update({ is_available: newStatus }).eq('id', productId)
+      ]
+
+      if (martId) {
+        updates.push(
+          supabaseAdmin
+            .from('mart_inventory')
+            .update({ is_available: newStatus, updated_at: new Date().toISOString() })
+            .eq('mart_id', martId)
+            .eq('product_id', productId)
+        )
+      }
+
+      const results = await Promise.all(updates)
+      const hasError = results.some(r => r.error)
+      if (hasError) {
+        const firstErr = results.find(r => r.error)?.error
+        throw firstErr || new Error('Failed to update product availability')
+      }
+      return { success: true }
+    } catch (err) {
+      console.error('Failed to sync product availability to database:', err)
+      // Rollback to previous state on failure
+      set({
+        products: prevProducts,
+        featuredProducts: prevFeatured,
+        bestsellerProducts: prevBestsellers,
+        currentProduct: prevCurrentProduct
+      })
+      toast.error('Failed to save stock change to server')
+      return { success: false, error: err }
     }
   },
 

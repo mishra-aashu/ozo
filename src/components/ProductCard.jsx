@@ -21,7 +21,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useWishlistStore } from '../stores/wishlistStore'
 import { useAuthStore } from '../stores/authStore'
 import { useLocationStore } from '../stores/locationStore'
-import { supabase, supabaseAdmin } from '../lib/supabase'
+import { useProductStore } from '../stores/productStore'
 import toast from 'react-hot-toast'
 import OptimizedImage from './OptimizedImage'
 import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
@@ -109,51 +109,29 @@ function ProductCard({ product, variant = 'default', index }) {
     }
   };
 
-  const toggleAvailability = async (e) => {
+  const toggleAvailability = (e) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
     if (!selectedProduct?.id) return;
-    setIsUpdating(true)
-    const newStatus = !selectedProduct.is_available
-    const toastId = toast.loading(newStatus ? 'Marking as In Stock...' : 'Marking as Out of Stock...')
-    try {
-      const { error } = await supabaseAdmin
-        .from('products')
-        .update({ is_available: newStatus })
-        .eq('id', selectedProduct.id)
+    const newStatus = !selectedProduct.is_available;
+    const martId = selectedProduct.mart_id || product.mart_id || null;
 
-      if (error) throw error
-
-      if (selectedProduct.mart_id || product.mart_id) {
-        const martId = selectedProduct.mart_id || product.mart_id
-        await supabaseAdmin
-          .from('mart_inventory')
-          .update({ is_available: newStatus, updated_at: new Date().toISOString() })
-          .eq('mart_id', martId)
-          .eq('product_id', selectedProduct.id)
+    // 1. Instant local component update (0ms)
+    setSelectedProduct(prev => ({ ...prev, is_available: newStatus }));
+    if (product.variants) {
+      const idx = product.variants.findIndex(v => v.id === selectedProduct.id);
+      if (idx !== -1) {
+        product.variants[idx] = { ...product.variants[idx], is_available: newStatus };
       }
-
-      // Update local state
-      setSelectedProduct(prev => ({ ...prev, is_available: newStatus }))
-      if (product.variants) {
-        const idx = product.variants.findIndex(v => v.id === selectedProduct.id)
-        if (idx !== -1) {
-          product.variants[idx] = { ...product.variants[idx], is_available: newStatus }
-        }
-      } else {
-        product.is_available = newStatus
-      }
-      
-      toast.success(newStatus ? 'Product marked In Stock!' : 'Product marked Out of Stock!', { id: toastId })
-    } catch (err) {
-      console.error('Error toggling availability:', err)
-      toast.error('Failed to update availability', { id: toastId })
-    } finally {
-      setIsUpdating(false)
+    } else {
+      product.is_available = newStatus;
     }
-  }
+
+    // 2. Delegate to productStore for global optimistic update + background sync
+    useProductStore.getState().toggleProductAvailability(selectedProduct.id, newStatus, martId);
+  };
 
   // Sync selectedProduct if the main product prop changes
   useEffect(() => {

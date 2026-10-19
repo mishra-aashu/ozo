@@ -40,7 +40,7 @@ import OptimizedImage from '../components/OptimizedImage'
 import { useCartStore } from '../stores/cartStore'
 import { useWishlistStore } from '../stores/wishlistStore'
 import { useAuthStore } from '../stores/authStore'
-import { supabase, supabaseAdmin } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import ImageUpload from '../components/ImageUpload'
 import toast from 'react-hot-toast'
 import SuggestedProducts from '../components/SuggestedProducts'
@@ -331,27 +331,13 @@ const ProductDetail = () => {
     }
   };
 
-  const toggleAvailability = async () => {
+  const toggleAvailability = () => {
     if (!currentProduct?.id) return
-    setIsUpdatingAvailability(true)
     const newStatus = !currentProduct.is_available
-    const toastId = toast.loading(newStatus ? 'Marking as In Stock...' : 'Marking as Out of Stock...')
-    try {
-      const { error } = await supabaseAdmin
-        .from('products')
-        .update({ is_available: newStatus })
-        .eq('id', currentProduct.id)
+    const martId = currentProduct.mart_id || null
 
-      if (error) throw error
-
-      await fetchProductBySlug(slug)
-      toast.success(newStatus ? 'Product marked In Stock!' : 'Product marked Out of Stock!', { id: toastId })
-    } catch (err) {
-      console.error('Error toggling availability:', err)
-      toast.error('Failed to update product availability', { id: toastId })
-    } finally {
-      setIsUpdatingAvailability(false)
-    }
+    // Delegate to productStore for instant 0ms optimistic update + background sync
+    useProductStore.getState().toggleProductAvailability(currentProduct.id, newStatus, martId)
   }
 
   // Reviews State
