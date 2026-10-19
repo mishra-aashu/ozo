@@ -438,10 +438,8 @@ export default function OrderDeliveryAddress({
       let result
       if (editingAddressId) {
         result = await updateUserAddress(editingAddressId, payload)
-        toast.success('Address updated successfully!')
       } else {
         result = await addUserAddress(payload)
-        toast.success('Address added and selected for this order!')
       }
 
       if (result) {
@@ -467,7 +465,6 @@ export default function OrderDeliveryAddress({
       if (selectedAddressId === idToDelete) {
         onSelectAddress(null)
       }
-      toast.success('Address deleted')
     } catch (err) {
       console.error('Error deleting address:', err)
       toast.error('Failed to delete address')

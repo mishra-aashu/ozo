@@ -356,7 +356,7 @@ export const resolveAddressToCoordinates = async (addressObj) => {
   if (!addressObj) return null;
   const { address_line2, landmark, city, state, pincode } = addressObj;
   
-  // Construct queries of varying specificity
+  // Construct queries of varying specificity (Query 1 and 2 only; pincode/city centroids are already locally cached)
   const queries = [];
   
   // Query 1: Specific Street + Landmark + City + State + Pincode
@@ -369,60 +369,18 @@ export const resolveAddressToCoordinates = async (addressObj) => {
     queries.push(`${address_line2}, ${city}, ${pincode}, India`);
   }
 
-  // Query 3: Pincode + India
-  if (pincode) {
-    queries.push(`${pincode}, India`);
-  }
-
-  // Query 4: City + State + India
-  if (city) {
-    queries.push(`${city}, ${state || 'Bihar'}, India`);
-  }
+  if (queries.length === 0) return null;
 
   for (const q of queries) {
     try {
-      // 1. Try serverless proxy first
-      const isDev = import.meta.env.DEV;
-      if (!isDev) {
-        const res = await fetch(`/api/geocode?type=search&q=${encodeURIComponent(q)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data) && data.length > 0) {
-            const match = data[0];
-            return {
-              lat: parseFloat(match.lat || match.latitude),
-              lng: parseFloat(match.lon || match.longitude),
-              traced_through: 'nominatim-proxy'
-            };
-          }
-        }
-      }
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1500);
 
-      // 2. Fallback to direct LocationIQ if key is available
-      if (LOCATIONIQ_KEY && LOCATIONIQ_KEY !== 'YOUR_FREE_KEY_HERE' && !LOCATIONIQ_KEY.includes('YOUR_')) {
-        const url = `https://api.locationiq.com/v1/autocomplete?key=${LOCATIONIQ_KEY}&q=${encodeURIComponent(q)}&limit=1&countrycodes=in&accept-language=en`;
-        const res = await fetch(url);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && Array.isArray(data) && data.length > 0) {
-            const match = data[0];
-            return {
-              lat: parseFloat(match.lat || match.latitude),
-              lng: parseFloat(match.lon || match.longitude),
-              traced_through: 'locationiq-direct'
-            };
-          }
-        }
-      }
-
-      // 3. Fallback to direct Nominatim
-      const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}&limit=1&addressdetails=1&countrycodes=in`;
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent': 'OZOMart/1.0 (contact@ozomart.store)',
-          'Referer': 'https://ozomart.store'
-        }
+      const res = await fetch(`/api/geocode?type=search&q=${encodeURIComponent(q)}`, {
+        signal: controller.signal
       });
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
         if (data && Array.isArray(data) && data.length > 0) {
@@ -430,12 +388,12 @@ export const resolveAddressToCoordinates = async (addressObj) => {
           return {
             lat: parseFloat(match.lat || match.latitude),
             lng: parseFloat(match.lon || match.longitude),
-            traced_through: 'nominatim-direct'
+            traced_through: 'geocode-proxy'
           };
         }
       }
     } catch (e) {
-      console.warn(`Geocoding failed for query "${q}":`, e);
+      // Abort or network failure, move to next or return
     }
   }
 
