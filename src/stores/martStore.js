@@ -21,8 +21,16 @@ export const useMartStore = create((set, get) => {
     activeTab: 'incoming', // 'incoming', 'preparing', 'ready'
     notificationSoundEnabled: true,
     
-    // Application state
-    martApplication: null,
+    // Application state (with instant localStorage cache for zero delay)
+    martApplication: (() => {
+      if (typeof window === 'undefined') return null
+      try {
+        const cached = localStorage.getItem('ozo_mart_application')
+        return cached ? JSON.parse(cached) : null
+      } catch (_) {
+        return null
+      }
+    })(),
     isLoadingApplication: false,
     submittingApplication: false,
 
@@ -1099,16 +1107,21 @@ export const useMartStore = create((set, get) => {
       }
     },
 
-    // Fetch Mart Onboarding / Application
+    // Fetch Mart Onboarding / Application (silent background revalidation)
     fetchMartApplication: async () => {
       try {
         const user = useAuthStore.getState().user
         if (!user) {
-          set({ martApplication: null })
+          set({ martApplication: null, isLoadingApplication: false })
+          try { localStorage.removeItem('ozo_mart_application') } catch (_) {}
           return null
         }
 
-        set({ isLoadingApplication: true })
+        // Only mark loading if we don't have any cached application yet
+        if (!get().martApplication) {
+          set({ isLoadingApplication: true })
+        }
+
         const { data, error } = await supabase
           .from('mart_applications')
           .select('*')
@@ -1116,6 +1129,14 @@ export const useMartStore = create((set, get) => {
           .maybeSingle()
 
         if (error) throw error
+
+        try {
+          if (data) {
+            localStorage.setItem('ozo_mart_application', JSON.stringify(data))
+          } else {
+            localStorage.removeItem('ozo_mart_application')
+          }
+        } catch (_) {}
 
         set({ martApplication: data, isLoadingApplication: false })
         return data
@@ -1155,6 +1176,12 @@ export const useMartStore = create((set, get) => {
           .single()
 
         if (error) throw error
+
+        try {
+          if (data) {
+            localStorage.setItem('ozo_mart_application', JSON.stringify(data))
+          }
+        } catch (_) {}
 
         set({ martApplication: data, submittingApplication: false })
         toast.success('Mart application submitted successfully!')
