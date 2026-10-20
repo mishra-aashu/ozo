@@ -795,13 +795,14 @@ const Header = () => {
                   </AnimatePresence>
                 </div>
               ) : (
-                <Link
-                  to="/auth"
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-ozo text-white rounded-xl hover:shadow-ozo-lg transition-all duration-300 font-bold text-sm"
+                <button
+                  type="button"
+                  onClick={() => window.dispatchEvent(new CustomEvent('open_login_modal'))}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-ozo text-white rounded-xl hover:shadow-ozo-lg transition-all duration-300 font-bold text-sm cursor-pointer"
                 >
                   <User size={18} />
                   <span className="hidden md:block">Login</span>
-                </Link>
+                </button>
               )}
 
               {/* Theme Toggle */}
@@ -1046,14 +1047,17 @@ const Header = () => {
                       <p className="text-xs sm:text-sm text-ozo-gray dark:text-gray-400 font-extrabold whitespace-nowrap truncate">
                         Experience the 30-minute magic!
                       </p>
-                      <Link 
-                        to="/auth" 
-                        className="btn btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-extrabold whitespace-nowrap"
-                        onClick={() => setIsMenuOpen(false)}
+                      <button 
+                        type="button"
+                        className="btn btn-primary w-full py-3 rounded-xl flex items-center justify-center gap-2 text-xs sm:text-sm font-extrabold whitespace-nowrap cursor-pointer"
+                        onClick={() => {
+                          setIsMenuOpen(false)
+                          window.dispatchEvent(new CustomEvent('open_login_modal'))
+                        }}
                       >
                         <User size={18} className="shrink-0" />
                         <span>Login / Register</span>
-                      </Link>
+                      </button>
                     </div>
                   )}
                 </div>

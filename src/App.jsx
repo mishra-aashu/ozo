@@ -153,6 +153,7 @@ import NotificationPromptModal from './components/NotificationPromptModal'
 import ServiceabilityModal from './components/ServiceabilityModal'
 import LocationPromptModal from './components/LocationPromptModal'
 import AddToCartCityModal from './components/AddToCartCityModal'
+import LoginPromptModal from './components/LoginPromptModal'
 
 // Hooks
 import { useAuthStore } from './stores/authStore'
@@ -666,6 +667,7 @@ function App() {
         <ServiceabilityModal />
         <LocationPromptModal />
         <AddToCartCityModal />
+        <LoginPromptModal />
       </Router>
     </>
   )
