@@ -84,12 +84,12 @@ const ComingSoonSection = ({ category }) => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="card p-6 md:p-10 border border-gray-150 dark:border-white/5 shadow-premium rounded-3xl overflow-hidden relative mt-2"
+      className="card p-4 sm:p-6 md:p-10 border border-gray-150 dark:border-white/5 shadow-premium rounded-3xl overflow-hidden relative mt-2 w-full max-w-full"
     >
       {/* Background Glow */}
       <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-amber-500/10 to-red-500/10 blur-3xl pointer-events-none rounded-full" />
       
-      <div className="relative z-10 max-w-2xl mx-auto text-center space-y-6">
+      <div className="relative z-10 max-w-2xl mx-auto text-center space-y-6 w-full">
         {/* Animated Icon Container */}
         <div className="relative flex justify-center">
           <motion.div
@@ -125,7 +125,7 @@ const ComingSoonSection = ({ category }) => {
         </div>
 
         {/* Informational Cards (Row) */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 py-4 w-full">
           <div className="bg-white/50 dark:bg-white/5 border border-gray-100 dark:border-white/5 p-4 rounded-2xl text-center shadow-sm">
             <div className="text-lg font-black text-ozo-red mb-1">🌽 Local Sourcing</div>
             <div className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 font-bold">Directly from {cityName} farms</div>
@@ -141,7 +141,7 @@ const ComingSoonSection = ({ category }) => {
         </div>
 
         {/* Notification and Request Section */}
-        <div className="max-w-md mx-auto bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 p-6 rounded-2xl shadow-inner space-y-5">
+        <div className="w-full max-w-md mx-auto bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 p-4 sm:p-6 rounded-2xl shadow-inner space-y-5 overflow-hidden">
           <div className="flex flex-col gap-3">
             <h4 className="text-xs font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider font-display">
               {isSubscribed ? "🎉 You're on the list!" : "Get notified when stock arrives"}
@@ -183,22 +183,22 @@ const ComingSoonSection = ({ category }) => {
                 Thank you! We've noted your request and will prioritize stocking those items first.
               </motion.div>
             ) : (
-              <form onSubmit={handleRequestSubmit} className="space-y-2.5">
+              <form onSubmit={handleRequestSubmit} className="space-y-2.5 w-full">
                 <label className="block text-[11px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-wider text-left">
                   Request items you want us to stock first:
                 </label>
-                <div className="flex gap-2">
+                <div className="flex items-center gap-2 w-full">
                   <input
                     type="text"
                     required
                     value={requestText}
                     onChange={(e) => setRequestText(e.target.value)}
-                    placeholder="e.g. Broccoli, Kiwis, Fresh Mint..."
-                    className="flex-1 bg-white dark:bg-[#121212] border border-gray-300 dark:border-white/10 rounded-xl px-3.5 py-2 text-xs md:text-sm font-semibold text-gray-800 dark:text-white focus:outline-none focus:border-ozo-red"
+                    placeholder="e.g. Broccoli, Kiwis, Mint..."
+                    className="min-w-0 flex-1 w-full bg-white dark:bg-[#121212] border border-gray-300 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-gray-800 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-600 focus:outline-none focus:border-ozo-red shadow-sm"
                   />
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-gray-900 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-850 dark:hover:bg-gray-50 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer"
+                    className="shrink-0 px-4 py-2.5 bg-gray-900 dark:bg-white text-white dark:text-gray-950 hover:bg-gray-800 dark:hover:bg-gray-100 text-xs font-black uppercase tracking-wider rounded-xl transition-all cursor-pointer whitespace-nowrap active:scale-95 shadow-sm"
                   >
                     Submit
                   </button>
