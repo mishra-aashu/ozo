@@ -18,7 +18,7 @@ import {
   Mic,
   MicOff
 } from 'lucide-react'
-import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import { useProductStore } from '../stores/productStore'
 import { useLocationStore, checkPincodeServiceable, checkDeliveryZoneStatus } from '../stores/locationStore'
 import { useCartStore } from '../stores/cartStore'
@@ -95,6 +95,7 @@ const clearSearchHistory = () => {
 
 export default function SearchedPage() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [searchParams, setSearchParams] = useSearchParams()
   const urlQuery = searchParams.get('q') || ''
   
@@ -488,7 +489,7 @@ export default function SearchedPage() {
           <div className="max-w-4xl mx-auto">
             <button 
               onClick={() => {
-                navigate('/select-location')
+                navigate('/select-location', { state: { from: location.pathname + location.search } })
               }}
               className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-300 border shadow-sm group ${
                 isLocationServiceable

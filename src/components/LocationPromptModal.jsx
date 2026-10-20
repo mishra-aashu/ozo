@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { MapPin, Navigation, Search, X } from 'lucide-react'
 import { useLocationStore, checkPincodeServiceable, findMatchingActiveCity } from '../stores/locationStore'
 import { useAuthStore } from '../stores/authStore'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import toast from 'react-hot-toast'
 
 export const isAddressIncomplete = (addr, activeCities = []) => {
@@ -102,6 +102,7 @@ export default function LocationPromptModal() {
   const [pincodeInput, setPincodeInput] = useState('')
   const [isValidating, setIsValidating] = useState(false)
   const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     let timer
@@ -294,7 +295,7 @@ export default function LocationPromptModal() {
   const handleSelectOnMap = () => {
     setIsOpen(false)
     sessionStorage.setItem('ozo_location_prompt_dismissed', 'true')
-    navigate('/select-location')
+    navigate('/select-location', { state: { from: location.pathname + location.search } })
   }
 
   return (

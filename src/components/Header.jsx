@@ -499,7 +499,7 @@ const Header = () => {
               <button 
                 onClick={() => {
                   if (window.innerWidth < 1024) {
-                    navigate('/select-location')
+                    navigate('/select-location', { state: { from: location.pathname + location.search } })
                   } else {
                     setIsLocationPickerOpen(true)
                   }
@@ -954,7 +954,7 @@ const Header = () => {
             {/* Row 3: Delivery Location Selector */}
             <button 
               onClick={() => {
-                navigate('/select-location')
+                navigate('/select-location', { state: { from: location.pathname + location.search } })
               }}
               aria-label="Select Delivery Location"
               className={`w-full flex items-center gap-2.5 px-3.5 py-2 rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group ${

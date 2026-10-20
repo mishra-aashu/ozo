@@ -37,9 +37,9 @@ const MainLayout = () => {
   useEffect(() => {
     const address = useLocationStore.getState().address
     if (isLocationInitialized && !address && !isSelectLocation && !isAuthPage && !isAdminPage) {
-      navigate('/select-location', { replace: true })
+      navigate('/select-location', { replace: true, state: { from: location.pathname + location.search } })
     }
-  }, [isLocationInitialized, isSelectLocation, isAuthPage, isAdminPage, navigate])
+  }, [isLocationInitialized, isSelectLocation, isAuthPage, isAdminPage, navigate, location])
 
   useEffect(() => {
     let checkInterval

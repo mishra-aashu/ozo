@@ -1845,7 +1845,7 @@ const MartHome = () => {
             </button>
             <button
               onClick={() => {
-                navigate('/select-location')
+                navigate('/select-location', { state: { from: window.location.pathname } })
               }}
               className="flex-1 py-2.5 px-4 bg-gray-150 hover:bg-gray-250 dark:bg-zinc-800 dark:hover:bg-zinc-750 text-zinc-800 dark:text-white font-bold text-xs rounded-xl transition-all active:scale-95"
             >
