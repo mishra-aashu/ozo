@@ -114,7 +114,31 @@ const AuthCallback = () => {
         isInitialized: true,
       })
 
-      // 5. Navigate immediately
+      // 5. If opened in a popup window, notify opener and close window
+      const isPopup = typeof window !== 'undefined' && (
+        new URLSearchParams(window.location.search).get('popup') === 'true' ||
+        (window.opener && !window.opener.closed)
+      )
+
+      if (isPopup) {
+        try {
+          if (window.opener) {
+            window.opener.postMessage({ 
+              type: 'OZO_AUTH_SUCCESS', 
+              session,
+              needsPhone: !enrichedProfile.phone
+            }, window.location.origin)
+          }
+        } catch (_) {}
+        setTimeout(() => {
+          try {
+            window.close()
+          } catch (_) {}
+        }, 200)
+        return
+      }
+
+      // Standard navigation for full-page redirect flow
       if (enrichedProfile.phone) {
         navigate('/', { replace: true })
       } else {
@@ -122,6 +146,14 @@ const AuthCallback = () => {
       }
     } catch (err) {
       console.error('[AuthCallback] Error handling auth success:', err)
+      const isPopup = typeof window !== 'undefined' && (
+        new URLSearchParams(window.location.search).get('popup') === 'true' ||
+        (window.opener && !window.opener.closed)
+      )
+      if (isPopup) {
+        try { window.close() } catch (_) {}
+        return
+      }
       navigate('/', { replace: true })
     }
   }
