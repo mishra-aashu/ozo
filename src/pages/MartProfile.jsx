@@ -38,6 +38,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useLocationStore } from '../stores/locationStore'
 import ProductCard from '../components/ProductCard'
 import SEO from '../components/SEO'
+import { getDirectStorageUrl } from '../utils/imageOptimizer'
 import toast from 'react-hot-toast'
 
 const getBadgeConfig = (badgeText) => {
@@ -115,6 +116,8 @@ const MartProfile = () => {
   const [hasMore, setHasMore] = useState(true)
   const [isFetchingMore, setIsFetchingMore] = useState(false)
   const [isQrModalOpen, setIsQrModalOpen] = useState(false)
+  const [logoError, setLogoError] = useState(false)
+  const [bannerError, setBannerError] = useState(false)
   const ITEMS_PER_PAGE = 24
 
   // Edit Modal State
@@ -298,6 +301,8 @@ const MartProfile = () => {
       }
 
       setMart(martData)
+      setLogoError(false)
+      setBannerError(false)
 
       // Auto-sync city slug from mart if available and not yet set
       if (martData.city_slug) {
@@ -760,12 +765,13 @@ const MartProfile = () => {
       />
 
       {/* Hero Banner Section */}
-      <div className="relative h-40 md:h-80 overflow-hidden">
-        {mart.banner_url ? (
+      <div className="relative h-40 md:h-80 overflow-hidden bg-gray-900">
+        {mart.banner_url && !bannerError ? (
           <img 
-            src={mart.banner_url} 
+            src={getDirectStorageUrl(mart.banner_url)} 
             alt={mart.name} 
-            className="w-full h-full object-cover"
+            onError={() => setBannerError(true)}
+            className="w-full h-full object-cover transition-opacity duration-300"
           />
         ) : (
           <div className="w-full h-full relative overflow-hidden bg-gradient-to-r from-violet-900 via-indigo-900 to-blue-900">
@@ -793,11 +799,21 @@ const MartProfile = () => {
           <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 text-center md:text-left w-full">
             {/* Logo */}
             <div className="w-20 h-20 md:w-36 md:h-36 rounded-2xl md:rounded-3xl overflow-hidden bg-white dark:bg-white/5 border border-white dark:border-white/10 shadow-premium flex-shrink-0 flex items-center justify-center relative group">
-              {mart.logo_url ? (
-                <img src={mart.logo_url} alt={mart.name} className="w-full h-full object-cover" />
+              {mart.logo_url && !logoError ? (
+                <img 
+                  src={getDirectStorageUrl(mart.logo_url)} 
+                  alt={mart.name} 
+                  onError={() => setLogoError(true)}
+                  className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" 
+                />
               ) : (
-                <div className="w-full h-full bg-gradient-to-tr from-rose-500 to-amber-500 flex items-center justify-center">
-                  <Store className="w-8 h-8 md:w-12 md:h-12 text-white" />
+                <div className="w-full h-full bg-gradient-to-tr from-rose-600 via-orange-600 to-amber-500 flex flex-col items-center justify-center text-white shadow-inner select-none p-2">
+                  <span className="text-2xl md:text-5xl font-black font-display tracking-wider drop-shadow-sm">
+                    {mart.name ? mart.name.charAt(0).toUpperCase() : <Store className="w-8 h-8 md:w-12 md:h-12" />}
+                  </span>
+                  <span className="text-[8px] md:text-[10px] font-black tracking-widest uppercase opacity-90 mt-0.5 bg-black/25 px-2 py-0.5 rounded-full">
+                    MART
+                  </span>
                 </div>
               )}
             </div>
@@ -1630,7 +1646,7 @@ const MartProfile = () => {
                       {logoFile ? (
                         <img src={URL.createObjectURL(logoFile)} alt="Logo Preview" className="w-full h-full object-cover" />
                       ) : editForm.logo_url ? (
-                        <img src={editForm.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                        <img src={getDirectStorageUrl(editForm.logo_url)} alt="Logo" className="w-full h-full object-cover" />
                       ) : (
                         <Store className="w-6 h-6 text-gray-400" />
                       )}
@@ -1662,7 +1678,7 @@ const MartProfile = () => {
                       {bannerFile ? (
                         <img src={URL.createObjectURL(bannerFile)} alt="Banner Preview" className="w-full h-full object-cover" />
                       ) : editForm.banner_url ? (
-                        <img src={editForm.banner_url} alt="Banner" className="w-full h-full object-cover" />
+                        <img src={getDirectStorageUrl(editForm.banner_url)} alt="Banner" className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full bg-gradient-to-r from-violet-600 via-indigo-600 to-blue-600" />
                       )}

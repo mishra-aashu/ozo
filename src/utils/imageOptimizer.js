@@ -37,16 +37,24 @@ export const getOptimizedImageUrl = (url, { width = 300, quality = 80, output = 
   }
 
   let cleanUrl = url;
-  if (url.startsWith('/')) {
+  
+  // Convert proxied Supabase public storage URLs to direct Supabase storage CDN
+  const directBase = import.meta.env.VITE_SUPABASE_DIRECT_URL || 'https://ungxccwdondssatixzlz.supabase.co';
+  if (cleanUrl.includes('/api/proxy/storage/v1/object/public/')) {
+    const storagePath = cleanUrl.split('/api/proxy/storage/v1/object/public/')[1];
+    cleanUrl = `${directBase}/storage/v1/object/public/${storagePath}`;
+  }
+
+  if (cleanUrl.startsWith('/')) {
     const isLocal = typeof window !== 'undefined' && 
       (window.location.hostname === 'localhost' || 
        window.location.hostname === '127.0.0.1' || 
        window.location.hostname.includes('gitpod') || 
        window.location.hostname.includes('webcontainer'));
     if (!isLocal && typeof window !== 'undefined') {
-      cleanUrl = window.location.origin + url;
+      cleanUrl = window.location.origin + cleanUrl;
     } else {
-      return url;
+      return cleanUrl;
     }
   }
 
@@ -78,4 +86,18 @@ export const isImageMissing = (url) => {
     return true;
   }
   return false;
+};
+
+/**
+ * Resolves a proxied Supabase public storage URL directly to the Supabase CDN.
+ * Ensures zero-latency loading and prevents UTF-8 string conversions on serverless proxies.
+ */
+export const getDirectStorageUrl = (url) => {
+  if (!url || typeof url !== 'string') return '';
+  const directBase = import.meta.env.VITE_SUPABASE_DIRECT_URL || 'https://ungxccwdondssatixzlz.supabase.co';
+  if (url.includes('/api/proxy/storage/v1/object/public/')) {
+    const storagePath = url.split('/api/proxy/storage/v1/object/public/')[1];
+    return `${directBase}/storage/v1/object/public/${storagePath}`;
+  }
+  return url;
 };

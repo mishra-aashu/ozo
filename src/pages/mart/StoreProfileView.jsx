@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useMartStore } from '../../stores/martStore'
 import { supabase } from '../../lib/supabase'
+import { getDirectStorageUrl } from '../../utils/imageOptimizer'
 import toast from 'react-hot-toast'
 import { 
   Store, 
@@ -252,7 +253,7 @@ const StoreProfileView = () => {
                     {profileLogoFile ? (
                       <img src={URL.createObjectURL(profileLogoFile)} alt="Logo Preview" className="w-full h-full object-cover" />
                     ) : profileForm.logo_url ? (
-                      <img src={profileForm.logo_url} alt="Logo" className="w-full h-full object-cover" />
+                      <img src={getDirectStorageUrl(profileForm.logo_url)} alt="Logo" className="w-full h-full object-cover" />
                     ) : (
                       <Store className="w-5 h-5 text-gray-350 dark:text-gray-650" />
                     )}

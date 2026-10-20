@@ -318,7 +318,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     // Encrypt response payload if it is JSON
-    let responseBody: string | null = null;
     if (!isHead) {
       const contentType = responseHeaders.get("content-type") || "";
       if (contentType.includes("application/json")) {
@@ -326,23 +325,26 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           const rawText = await response.text();
           try {
             const encryptedHex = await encryptText(rawText, CRYPTO_SECRET);
-            responseBody = encryptedHex;
             res.setHeader("content-type", "text/plain");
             res.setHeader("x-encrypted", "true");
+            return res.status(response.status).send(encryptedHex);
           } catch {
-            responseBody = rawText;
+            return res.status(response.status).send(rawText);
           }
         } catch {
           // response.text() can only be called once — body is already consumed.
           // Fall back to an empty error placeholder.
-          responseBody = '{"error":"Failed to read response body"}';
+          return res.status(response.status).send('{"error":"Failed to read response body"}');
         }
       } else {
-        responseBody = await response.text();
+        // For binary content (images, audio, documents), send Buffer to preserve byte integrity
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        return res.status(response.status).send(buffer);
       }
     }
 
-    return res.status(response.status).send(responseBody);
+    return res.status(response.status).end();
 
   } catch (error: any) {
     console.error("Proxy Error:", error);
