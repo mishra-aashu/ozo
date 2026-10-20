@@ -50,11 +50,14 @@ export const useOzoQuery = (fetchFn, dependencies = []) => {
 
     const isDepChange = lastDepsKeyRef.current !== depsKey;
     if (isDepChange) {
-      setData(null);
       lastDepsKeyRef.current = depsKey;
+      // Only blank out data if it's a completely different route/dependency key
+      setData(null);
+      setIsLoading(true);
+    } else if (dataRef.current === null) {
+      setIsLoading(true);
     }
-
-    setIsLoading(true);
+    // If data already exists, do not show full-screen skeleton — fetch silently in background
     setIsError(false);
 
     try {

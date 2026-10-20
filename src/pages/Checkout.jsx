@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -36,7 +36,16 @@ import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import { useTranslation } from '../hooks/useTranslation'
 import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
-import OzoMapPicker from '../components/OzoMapPicker'
+const LazyOzoMapPicker = React.lazy(() => import('../components/OzoMapPicker'))
+const OzoMapPicker = (props) => (
+  <React.Suspense fallback={
+    <div className="w-full h-48 flex items-center justify-center bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 text-xs text-gray-400 animate-pulse">
+      Loading Map Interface...
+    </div>
+  }>
+    <LazyOzoMapPicker {...props} />
+  </React.Suspense>
+)
 import OrderDeliveryAddress from '../components/OrderDeliveryAddress'
 import { useAuthStore } from '../stores/authStore'
 import RazorpayShield from '../components/RazorpayShield'

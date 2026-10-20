@@ -175,12 +175,10 @@ export default defineConfig(({ mode }) => {
             vendor: ['react', 'react-dom', 'react-router-dom'],
             supabase: ['@supabase/supabase-js'],
             animations: ['framer-motion'],
-            ui: ['lucide-react', 'react-hot-toast'],
+            toast: ['react-hot-toast'],
             maplibre: ['maplibre-gl'],
-            leaflet: ['leaflet', 'react-leaflet'],
             sentry: ['@sentry/react'],
-            swiper: ['swiper'],
-            datefns: ['date-fns']
+            swiper: ['swiper']
           }
         }
       }

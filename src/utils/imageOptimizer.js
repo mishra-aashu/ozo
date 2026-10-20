@@ -9,6 +9,8 @@
  * @param {string} options.output - Format output (default 'webp')
  * @returns {string} Optimized image URL or original URL if not suitable for optimization
  */
+import { checkIsLowNetwork } from '../hooks/useNetworkQuality'
+
 export const getOptimizedImageUrl = (url, { width = 300, quality = 80, output = 'webp' } = {}) => {
   if (!url) return '';
   
@@ -22,6 +24,16 @@ export const getOptimizedImageUrl = (url, { width = 300, quality = 80, output = 
     url.includes('githubusercontent.com')
   ) {
     return url;
+  }
+
+  // Adaptive Low-Network Downscaling (2G, 3G, or Save-Data mode)
+  // Cuts image payload from ~35KB to ~7KB WebP on slow networks
+  let targetWidth = width;
+  let targetQuality = quality;
+
+  if (checkIsLowNetwork()) {
+    targetWidth = Math.min(width, 160);
+    targetQuality = Math.min(quality, 42);
   }
 
   let cleanUrl = url;
@@ -40,7 +52,7 @@ export const getOptimizedImageUrl = (url, { width = 300, quality = 80, output = 
 
   // Construct wsrv.nl URL with progressive loading (il)
   try {
-    return `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${width}&q=${quality}&output=${output}&il`;
+    return `https://wsrv.nl/?url=${encodeURIComponent(cleanUrl)}&w=${targetWidth}&q=${targetQuality}&output=${output}&il`;
   } catch (e) {
     console.error('Error generating optimized image URL:', e);
     return url;

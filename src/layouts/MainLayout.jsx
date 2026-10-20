@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import BottomNav from '../components/BottomNav'
+import NetworkStatusBanner from '../components/NetworkStatusBanner'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
 import { useWishlistStore } from '../stores/wishlistStore'
@@ -106,6 +107,9 @@ const MainLayout = () => {
 
   return (
     <div className="min-h-screen bg-ozo-gray-bg dark:bg-[#0a0a0a] flex flex-col transition-colors duration-300 w-full max-w-full overflow-x-clip">
+      {/* Real-time Network status pill on slow connections or offline */}
+      <NetworkStatusBanner />
+
       {/* Header - Hidden on select location, auth, and category to avoid double headers or distraction */}
       {!hideHeader && <Header />}
 

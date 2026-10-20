@@ -27,7 +27,16 @@ import { useCartStore } from '../stores/cartStore'
 import { useAuthStore } from '../stores/authStore'
 import { useShallow } from 'zustand/react/shallow'
 import { parseLandmark, formatLandmark, resolveSnappedAddress } from '../lib/addressHelpers'
-import OzoMapPicker from '../components/OzoMapPicker'
+const LazyOzoMapPicker = React.lazy(() => import('../components/OzoMapPicker'))
+const OzoMapPicker = (props) => (
+  <React.Suspense fallback={
+    <div className="w-full h-48 flex items-center justify-center bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 text-xs text-gray-400 animate-pulse">
+      Loading Map Interface...
+    </div>
+  }>
+    <LazyOzoMapPicker {...props} />
+  </React.Suspense>
+)
 import AddressForm from '../components/AddressForm'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
