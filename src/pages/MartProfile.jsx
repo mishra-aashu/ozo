@@ -737,7 +737,7 @@ const MartProfile = () => {
           
           {/* Audio Alert / Order Sound chime notice for Store operators */}
           <div className="mt-6 flex items-center gap-2 justify-center text-[10px] font-bold text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-white/[0.02] border border-gray-150 dark:border-white/5 rounded-xl px-4 py-2 w-full">
-            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+            <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span>Ready for real-time order chimes</span>
           </div>
 
@@ -811,7 +811,7 @@ const MartProfile = () => {
                 <span className={`px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-wider ${
                   isStoreOpen 
                     ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
-                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20 animate-pulse'
+                    : 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                 }`}>
                   {isStoreOpen ? 'Open Now' : 'Closed'}
                 </span>

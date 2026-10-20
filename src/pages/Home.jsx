@@ -2279,11 +2279,8 @@ const MartHome = () => {
                               )}
                             </div>
                             
-                            {/* Elegant Pulsing Status Dot */}
+                            {/* Store Status Dot */}
                             <span className="absolute bottom-0 right-0 flex h-4 w-4">
-                              {isStoreOpen && (
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                              )}
                               <span className={`relative inline-flex rounded-full h-4 w-4 border-2 border-white dark:border-[#16161c] ${isStoreOpen ? 'bg-emerald-500' : 'bg-amber-500'} shadow-sm`}></span>
                             </span>
                           </div>
