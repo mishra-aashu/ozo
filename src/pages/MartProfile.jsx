@@ -37,6 +37,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
 import { useLocationStore } from '../stores/locationStore'
 import ProductCard from '../components/ProductCard'
+import ProductSkeleton from '../components/ProductSkeleton'
 import SEO from '../components/SEO'
 import { getDirectStorageUrl } from '../utils/imageOptimizer'
 import toast from 'react-hot-toast'
@@ -107,6 +108,7 @@ const MartProfile = () => {
   const [mart, setMart] = useState(null)
   const [inventory, setInventory] = useState([])
   const [loading, setLoading] = useState(true)
+  const [productsLoading, setProductsLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategory, setSelectedCategory] = useState('all')
   const [copied, setCopied] = useState(false)
@@ -153,7 +155,12 @@ const MartProfile = () => {
     const activeMart = currentMart || mart
     if (!activeMart) return
     
-    setIsFetchingMore(true)
+    if (pageToFetch === 0 && !append) {
+      setProductsLoading(true)
+    } else {
+      setIsFetchingMore(true)
+    }
+
     try {
       const from = pageToFetch * ITEMS_PER_PAGE
       const to = from + ITEMS_PER_PAGE - 1
@@ -199,9 +206,6 @@ const MartProfile = () => {
       if (searchStr && searchStr.trim() !== '') {
         query = query.or(`name.ilike.%${searchStr}%,brand.ilike.%${searchStr}%`, { foreignTable: 'products' })
       }
-
-      // Order products by name
-      query = query.order('name', { foreignTable: 'products' })
 
       const { data, error } = await query
       if (error) throw error
@@ -255,7 +259,26 @@ const MartProfile = () => {
           }))
           finalItems = [...finalItems, ...formattedMissing]
         }
+
+        // Dynamically populate categories from loaded inventory
+        const catsMap = new Map()
+        finalItems.forEach(item => {
+          const cat = item.products?.categories
+          if (cat && cat.id) {
+            catsMap.set(cat.id, cat)
+          }
+        })
+        if (catsMap.size > 0) {
+          setStoreCategories(prev => {
+            const merged = new Map(prev.map(c => [c.id, c]))
+            catsMap.forEach((v, k) => merged.set(k, v))
+            return Array.from(merged.values())
+          })
+        }
       }
+
+      // Sort items alphabetically
+      finalItems.sort((a, b) => (a.products?.name || '').localeCompare(b.products?.name || ''))
 
       if (append) {
         setInventory(prev => [...prev, ...finalItems])
@@ -269,21 +292,23 @@ const MartProfile = () => {
       toast.error('Failed to load products')
     } finally {
       setIsFetchingMore(false)
+      setProductsLoading(false)
     }
   }
 
-  // Fetch mart details and categories
+  // Fetch mart details and categories with progressive rendering
   const fetchData = async () => {
+    if (!slug) {
+      setLoading(false)
+      return
+    }
     try {
       setLoading(true)
       
-      // 1. Fetch mart details
+      // 1. Fetch mart details (fast single table query, no slow join on users)
       const { data: martData, error: martError } = await supabase
         .from('marts')
-        .select(`
-          *,
-          users!marts_owner_id_fkey (phone)
-        `)
+        .select('*')
         .eq('slug', slug)
         .single()
 
@@ -316,7 +341,7 @@ const MartProfile = () => {
         name: martData.name || '',
         description: martData.description || '',
         address: martData.address || '',
-        phone: martData.phone || martData.users?.phone || '',
+        phone: martData.phone || '',
         opens_at: martData.opens_at || '',
         closes_at: martData.closes_at || '',
         is_24_7: martData.is_24_7 || false,
@@ -327,54 +352,40 @@ const MartProfile = () => {
         guarantees: martData.guarantees || []
       })
 
-      // Fetch distinct categories in a separate light query from mart_inventory
-      const { data: catData, error: catError } = await supabase
-        .from('mart_inventory')
-        .select(`
-          products!inner(
-            category_id,
-            categories(id, name, slug)
-          )
-        `)
-        .eq('mart_id', martData.id)
-        .eq('is_available', true)
-        .gt('stock_quantity', 0)
+      // INSTANTLY render store header & page (no waiting for heavy inventory/categories!)
+      setLoading(false)
 
-      if (catError) console.warn('Error fetching mart_inventory categories:', catError)
-
-      // Also fetch categories directly for products mapped by mart_id
-      const { data: directCatData } = await supabase
-        .from('products')
-        .select(`
-          category_id,
-          categories(id, name, slug)
-        `)
-        .eq('mart_id', martData.id)
-        .eq('is_available', true)
-      
-      const catsMap = new Map()
-      catData?.forEach(item => {
-        const cat = item.products?.categories
-        if (cat && cat.id) {
-          catsMap.set(cat.id, cat)
-        }
-      })
-      directCatData?.forEach(item => {
-        const cat = item.categories
-        if (cat && cat.id) {
-          catsMap.set(cat.id, cat)
-        }
-      })
-      setStoreCategories(Array.from(catsMap.values()))
-
-      // Now fetch initial products
+      // 2. Fetch products in parallel for offerings tab
       setPage(0)
       setHasMore(true)
-      await fetchProducts(0, 'all', '', false, martData)
+      fetchProducts(0, 'all', '', false, martData)
+
+      // Background light query to populate any remaining distinct categories
+      supabase
+        .from('products')
+        .select('category_id, categories(id, name, slug)')
+        .eq('mart_id', martData.id)
+        .eq('is_available', true)
+        .then(({ data: directCatData }) => {
+          if (directCatData && directCatData.length > 0) {
+            setStoreCategories(prev => {
+              const catsMap = new Map(prev.map(c => [c.id, c]))
+              directCatData.forEach(item => {
+                const cat = item.categories
+                if (cat && cat.id) {
+                  catsMap.set(cat.id, cat)
+                }
+              })
+              return Array.from(catsMap.values())
+            })
+          }
+        })
+        .catch(console.warn)
 
     } catch (err) {
       console.error('Error fetching mart details:', err)
-      toast.error('Failed to load store inventory')
+      toast.error('Failed to load store')
+      navigate('/')
     } finally {
       setLoading(false)
     }
@@ -926,7 +937,7 @@ const MartProfile = () => {
           >
             <span className="flex items-center gap-2">
               <ShoppingBag className="w-4 h-4" />
-              <span>Offerings ({filteredProducts.length})</span>
+              <span>Offerings ({productsLoading ? '...' : filteredProducts.length})</span>
             </span>
             {activeTab === 'products' && (
               <motion.div layoutId="activeTabIndicator" className="absolute bottom-0 left-0 right-0 h-1 bg-ozo-red rounded-full" />
@@ -1014,7 +1025,11 @@ const MartProfile = () => {
 
               {/* Product Grid */}
               <div>
-                {filteredProducts.length === 0 ? (
+                {productsLoading ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    <ProductSkeleton count={10} />
+                  </div>
+                ) : filteredProducts.length === 0 ? (
                   <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] border border-gray-100 dark:border-white/5 p-16 text-center max-w-lg mx-auto shadow-sm">
                     <Info className="w-14 h-14 text-gray-400 mx-auto mb-4" />
                     <h3 className="text-xl font-black text-gray-800 dark:text-white mb-2">No Products Available</h3>
