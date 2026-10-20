@@ -147,17 +147,59 @@ const ensureNumericPrices = (product) => {
   };
 };
 
+// ─── SWR CACHE HELPERS (Offline-First & Low-Network Instant Hydration) ────
+const SWR_PREFIX = 'ozo_swr_';
+
+export const getCachedData = (key) => {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(`${SWR_PREFIX}${key}`);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.data || null;
+  } catch (e) {
+    return null;
+  }
+};
+
+export const setCachedData = (key, data) => {
+  if (typeof window === 'undefined' || !data) return;
+  try {
+    localStorage.setItem(`${SWR_PREFIX}${key}`, JSON.stringify({
+      timestamp: Date.now(),
+      data
+    }));
+  } catch (e) {
+    try {
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(SWR_PREFIX) && k !== `${SWR_PREFIX}${key}`) {
+          localStorage.removeItem(k);
+          break;
+        }
+      }
+    } catch (_) {}
+  }
+};
+
+// Pre-hydrate catalog synchronously from cache on app boot for 0ms initial paint
+const initialCachedHome = typeof window !== 'undefined' 
+  ? (getCachedData('home_default') || getCachedData('home_aurangabad-bihar')) 
+  : null;
+const initialCachedCategories = typeof window !== 'undefined' ? getCachedData('categories') : null;
+const initialCachedOffers = typeof window !== 'undefined' ? getCachedData('offers') : null;
+
 export const useProductStore = create((set, get) => ({
-  // State
+  // State — pre-hydrated from cache so UI renders with zero layout shift
   products: [],
-  featuredProducts: [],
-  bestsellerProducts: [],
-  categories: [],
-  offers: [],
-  stealDeals: [],
-  summerSpecials: [],
-  mandi: [],
-  budgetPicks: [],
+  featuredProducts: initialCachedHome?.featuredProducts || [],
+  bestsellerProducts: initialCachedHome?.bestsellerProducts || [],
+  categories: initialCachedHome?.categories || initialCachedCategories || [],
+  offers: initialCachedHome?.offers || initialCachedOffers || [],
+  stealDeals: initialCachedHome?.stealDeals || [],
+  summerSpecials: initialCachedHome?.summerSpecials || [],
+  mandi: initialCachedHome?.mandi || [],
+  budgetPicks: initialCachedHome?.budgetPicks || [],
   isLoading: false,
   isProductsLoading: false,
   isFeaturedLoading: false,
@@ -553,7 +595,7 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
-  // Fetch categories
+  // Fetch categories with SWR caching
   fetchCategories: async (options = {}) => {
     if (fetchCategoriesController) {
       fetchCategoriesController.abort()
@@ -562,8 +604,14 @@ export const useProductStore = create((set, get) => ({
     fetchCategoriesController = controller
     const signal = options.signal || controller.signal
 
-    try {
+    const cached = getCachedData('categories')
+    if (cached && cached.length > 0) {
+      set({ categories: cached, isCategoriesLoading: false })
+    } else {
       set({ isCategoriesLoading: true, isLoading: true })
+    }
+
+    try {
       let query = supabase
           .from('categories')
           .select('*')
@@ -579,11 +627,13 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
-      // Map categories directly from database categories table (which contains pre-populated image URLs)
+      // Map categories directly from database categories table
       const categoriesWithImages = (data || []).map(cat => ({
         ...cat,
         image_url: cat.image_url
       }))
+
+      setCachedData('categories', categoriesWithImages)
 
       set({ 
         categories: categoriesWithImages, 
@@ -595,16 +645,20 @@ export const useProductStore = create((set, get) => ({
       if (signal.aborted || error.name === 'AbortError') {
         return { success: false, error }
       }
-      console.error('Fetch categories error:', error)
+      console.warn('Fetch categories error (falling back to cache):', error)
+      const hasCategories = get().categories.length > 0
       set({ 
         isCategoriesLoading: false, 
         isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isOffersLoading || get().isSearchLoading || get().isProductDetailLoading 
       })
+      if (hasCategories) {
+        return { success: true, fromCache: true, data: get().categories }
+      }
       return { success: false, error }
     }
   },
 
-  // Fetch offers/banners
+  // Fetch offers/banners with SWR caching
   fetchOffers: async (options = {}) => {
     if (fetchOffersController) {
       fetchOffersController.abort()
@@ -613,8 +667,14 @@ export const useProductStore = create((set, get) => ({
     fetchOffersController = controller
     const signal = options.signal || controller.signal
 
-    try {
+    const cached = getCachedData('offers')
+    if (cached && cached.length > 0) {
+      set({ offers: cached, isOffersLoading: false })
+    } else {
       set({ isOffersLoading: true, isLoading: true })
+    }
+
+    try {
       let query = supabase
           .from('offers')
           .select('*')
@@ -630,6 +690,8 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
+      setCachedData('offers', data || [])
+
       set({ 
         offers: data, 
         isOffersLoading: false, 
@@ -640,11 +702,15 @@ export const useProductStore = create((set, get) => ({
       if (signal.aborted || error.name === 'AbortError') {
         return { success: false, error }
       }
-      console.error('Fetch offers error:', error)
+      console.warn('Fetch offers error (falling back to cache):', error)
+      const hasOffers = get().offers.length > 0
       set({ 
         isOffersLoading: false, 
         isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isCategoriesLoading || get().isSearchLoading || get().isProductDetailLoading 
       })
+      if (hasOffers) {
+        return { success: true, fromCache: true, data: get().offers }
+      }
       return { success: false, error }
     }
   },
@@ -1003,12 +1069,33 @@ export const useProductStore = create((set, get) => ({
     set({ searchResults: [], spellingSuggestion: null, isSearchError: false })
   },
 
-  // Fetch all home page data in a single batched RPC query
+  // Fetch all home page data with Stale-While-Revalidate (SWR) local caching
   fetchHomePageData: async (options = {}) => {
     const controller = new AbortController()
     const signal = options.signal || controller.signal
 
-    try {
+    const citySlug = getActiveCitySlug()
+    const cacheKey = `home_${citySlug || 'default'}`
+    const cached = getCachedData(cacheKey) || getCachedData('home_default')
+
+    // If cache exists, hydrate immediately so user gets 0ms instant display on 2G/3G
+    if (cached && (cached.categories?.length || cached.featuredProducts?.length)) {
+      set({
+        categories: cached.categories?.length ? cached.categories : get().categories,
+        offers: cached.offers || get().offers,
+        featuredProducts: cached.featuredProducts || get().featuredProducts,
+        bestsellerProducts: cached.bestsellerProducts || get().bestsellerProducts,
+        stealDeals: cached.stealDeals || get().stealDeals,
+        summerSpecials: cached.summerSpecials || get().summerSpecials,
+        mandi: cached.mandi || get().mandi,
+        budgetPicks: cached.budgetPicks || get().budgetPicks,
+        isHomeLoading: false,
+        isFeaturedLoading: false,
+        isBestsellersLoading: false,
+        isCategoriesLoading: false,
+        isOffersLoading: false
+      })
+    } else {
       set({ 
         isHomeLoading: true, 
         isFeaturedLoading: true,
@@ -1017,12 +1104,9 @@ export const useProductStore = create((set, get) => ({
         isOffersLoading: true,
         isLoading: true 
       })
+    }
 
-      const locationState = useLocationStore.getState()
-      const citySlug = getActiveCitySlug()
-
-      console.log(`[productStore] fetchHomePageData initiated with citySlug: "${citySlug}" (isLocationInitialized: ${locationState.isLocationInitialized})`)
-      
+    try {
       let { data, error } = await supabase
         .rpc('get_home_page_data', { p_city_slug: citySlug || null })
         .abortSignal(signal)
@@ -1033,18 +1117,13 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
-
-
-      console.log(`[productStore] fetchHomePageData succeeded: ${data?.categories?.length || 0} categories, ${data?.featured_products?.length || 0} featured products, ${data?.bestseller_products?.length || 0} bestsellers`)
-
       const formatList = (list) => (list || []).map(ensureNumericPrices).filter(Boolean);
-
       const categoriesWithImages = (data?.categories || []).map(cat => ({
         ...cat,
         image_url: cat.image_url
       }))
 
-      set({
+      const freshHomeData = {
         categories: categoriesWithImages,
         offers: data?.offers || [],
         featuredProducts: formatList(data?.featured_products),
@@ -1053,6 +1132,14 @@ export const useProductStore = create((set, get) => ({
         summerSpecials: formatList(data?.summer_specials),
         mandi: formatList(data?.mandi),
         budgetPicks: formatList(data?.budget_picks),
+      }
+
+      // Persist to local cache for subsequent instant loads & offline browsing
+      setCachedData(cacheKey, freshHomeData)
+      if (citySlug) setCachedData('home_default', freshHomeData)
+
+      set({
+        ...freshHomeData,
         isHomeLoading: false,
         isFeaturedLoading: false,
         isBestsellersLoading: false,
@@ -1066,7 +1153,9 @@ export const useProductStore = create((set, get) => ({
       if (signal.aborted || error.name === 'AbortError') {
         return { success: false, error }
       }
-      console.error('Fetch home page data error:', error)
+      console.warn('Fetch home page data error (falling back to cache):', error)
+      
+      const hasExistingData = get().categories.length > 0 || get().featuredProducts.length > 0
       set({ 
         isHomeLoading: false,
         isFeaturedLoading: false,
@@ -1075,6 +1164,11 @@ export const useProductStore = create((set, get) => ({
         isOffersLoading: false,
         isLoading: get().isProductsLoading || get().isSearchLoading || get().isProductDetailLoading
       })
+
+      // If cached data was already presented, return success so UI remains functional
+      if (hasExistingData) {
+        return { success: true, fromCache: true }
+      }
       return { success: false, error }
     }
   },

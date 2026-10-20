@@ -597,7 +597,27 @@ const customFetch = async (input, init) => {
     }
   }
 
-  let response = await fetch(input, newInit)
+  // Low-network fetch timeout protection (prevents hanging 60-120s on fluctuating 2G/3G)
+  let timeoutId = null
+  if (!newInit.signal) {
+    const timeoutController = new AbortController()
+    newInit.signal = timeoutController.signal
+    const isSlow = typeof navigator !== 'undefined' && navigator.connection && (
+      navigator.connection.saveData ||
+      navigator.connection.effectiveType === '2g' ||
+      navigator.connection.effectiveType === 'slow-2g'
+    )
+    timeoutId = setTimeout(() => {
+      timeoutController.abort(new DOMException('Request timed out on slow connection', 'TimeoutError'))
+    }, isSlow ? 8000 : 16000)
+  }
+
+  let response
+  try {
+    response = await fetch(input, newInit)
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId)
+  }
 
   // Auto-clear invalid/expired sessions or attempt single-flight retry on REST 401 JWT Expiry
   let isInvalidSession = false

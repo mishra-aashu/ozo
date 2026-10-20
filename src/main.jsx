@@ -83,27 +83,25 @@ const ToastLimitController = () => {
   return null;
 };
 
+const isLowNetworkDevice = typeof navigator !== 'undefined' && navigator.connection && (
+  navigator.connection.saveData ||
+  navigator.connection.effectiveType === '2g' ||
+  navigator.connection.effectiveType === 'slow-2g'
+);
+
 Sentry.init({
   dsn: "https://c54b8cf774cb2826aa57147a8d5e847c@o4511610232438784.ingest.us.sentry.io/4511610238402560",
-  dataCollection: {
-    // To disable sending user data and HTTP bodies, uncomment the lines below. For more info visit:
-    // https://docs.sentry.io/platforms/javascript/guides/react/configuration/options/#dataCollection
-    // userInfo: false,
-    // httpBodies: []
-  },
+  dataCollection: {},
   integrations: [
     Sentry.browserTracingIntegration(),
-    Sentry.replayIntegration()
+    // Completely disable Sentry Replay on slow networks to save mobile data and prevent connection clogging
+    ...(!isLowNetworkDevice ? [Sentry.replayIntegration()] : [])
   ],
-  // Tracing
-  tracesSampleRate: 0.05, // Capture 5% of the transactions in production
-  // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
+  tracesSampleRate: isLowNetworkDevice ? 0.01 : 0.05,
   tracePropagationTargets: ["localhost", /^https:\/\/yourserver\.io\/api/],
-  // Session Replay
-  replaysSessionSampleRate: 0.01, // Sample 1% of sessions in production
-  replaysOnErrorSampleRate: 1.0, // If you're not already sampling the entire session, change the sample rate to 100% when sampling sessions where errors occur.
-  // Enable logs to be sent to Sentry
-  enableLogs: true
+  replaysSessionSampleRate: isLowNetworkDevice ? 0 : 0.01,
+  replaysOnErrorSampleRate: isLowNetworkDevice ? 0 : 0.5,
+  enableLogs: !isLowNetworkDevice
 });
 
 // Error Boundary Component
@@ -503,3 +501,16 @@ ReactDOM.createRoot(document.getElementById('root')).render(
     </ErrorBoundary>
   </React.StrictMode>,
 )
+
+// Register unified Service Worker for instant offline loading and asset caching
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' })
+      .then((reg) => {
+        console.log('[OZO SW] Offline-first Service Worker active with scope:', reg.scope)
+      })
+      .catch((err) => {
+        console.warn('[OZO SW] Service Worker registration failed:', err)
+      })
+  })
+}

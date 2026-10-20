@@ -23,7 +23,8 @@ export default function OptimizedImage({
   fetchPriority,
   onLoad: externalOnLoad,
   onError: externalOnError,
-  loading,
+  loading = 'lazy',
+  decoding = 'async',
   fallbackIcon = null,
   showTextFallback = true,
   ...props
@@ -155,6 +156,7 @@ export default function OptimizedImage({
             src={currentSrc}
             alt={alt}
             loading={loading}
+            decoding={decoding}
             onLoad={handleLoad}
             onError={handleError}
             className={`${className} transition-opacity duration-300 ${

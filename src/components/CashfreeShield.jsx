@@ -14,6 +14,7 @@ import {
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
 import { useCartStore } from '../stores/cartStore'
+import { loadCashfreeSdk } from '../utils/loadCashfree'
 
 // ─── Rate Limiter Config ──────────────────────────────────────
 const RATE_LIMIT_WINDOW_MS  = 10 * 60 * 1000   // 10 min window
@@ -211,9 +212,17 @@ const CashfreeShield = ({
 
       const { payment_session_id, cf_order_id, calculatedDetails } = data
 
-      // 2. Check Cashfree SDK is loaded
+      // 2. Check and dynamically load Cashfree SDK if not yet loaded
       if (!window.Cashfree) {
-        toast.error('Cashfree SDK is not loaded. Please refresh the page and try again.')
+        try {
+          await loadCashfreeSdk()
+        } catch (sdkErr) {
+          console.error('[Cashfree] Dynamic load failed:', sdkErr)
+        }
+      }
+
+      if (!window.Cashfree) {
+        toast.error('Cashfree SDK could not be loaded. Please check your internet connection and try again.')
         setIsPaymentLoading(false)
         return
       }
