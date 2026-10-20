@@ -192,9 +192,12 @@ const MartDashboard = () => {
 
   if (isLoadingApplication && !isMartOperator) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-slate-100 flex flex-col items-center justify-center p-6 transition-colors duration-300">
-        <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-        <p className="mt-4 text-gray-600 dark:text-slate-400 font-bold uppercase tracking-widest text-sm animate-pulse">Loading Application Status...</p>
+      <div className="relative min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 overflow-hidden">
+        <MartPortalBackground />
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <p className="mt-4 text-slate-300 font-bold uppercase tracking-widest text-sm animate-pulse">Loading Application Status...</p>
+        </div>
       </div>
     )
   }
@@ -202,30 +205,28 @@ const MartDashboard = () => {
   if (!isMartOperator) {
     if (!martApplication || martApplication.status === 'rejected') {
       return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white flex flex-col font-sans transition-colors duration-300">
-          <header className="border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div className="relative min-h-screen bg-slate-950 text-white flex flex-col font-sans transition-colors duration-300 overflow-hidden">
+          <MartPortalBackground />
+          <header className="border-b border-white/10 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/10">
+              <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/20">
                 <Store className="w-6 h-6" />
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">OZO Mart Portal</h1>
+              <h1 className="text-xl font-bold tracking-tight text-white">OZO Mart Portal</h1>
             </div>
-            <Link to="/" className="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-gray-200 dark:border-slate-700 transition-all flex items-center gap-2">
+            <Link to="/" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-white/10 transition-all flex items-center gap-2 backdrop-blur-md">
               Back to Home
             </Link>
           </header>
           
-          <main className="flex-1 flex items-center justify-center p-6 md:p-12 relative overflow-hidden">
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none"></div>
-            <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-[120px] pointer-events-none"></div>
-            
-            <div className="w-full max-w-lg z-10 space-y-6">
+          <main className="flex-1 flex items-center justify-center p-4 sm:p-6 md:p-12 relative z-10">
+            <div className="w-full max-w-lg space-y-6">
               {martApplication?.status === 'rejected' && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-3xl flex items-start gap-4">
-                  <AlertTriangle className="w-6 h-6 shrink-0 mt-0.5" />
+                <div className="bg-red-500/15 border border-red-500/30 text-red-300 p-5 rounded-3xl flex items-start gap-4 backdrop-blur-xl shadow-xl">
+                  <AlertTriangle className="w-6 h-6 shrink-0 mt-0.5 text-red-400" />
                   <div>
                     <h4 className="font-black text-sm uppercase tracking-wide">Previous Application Rejected</h4>
-                    <p className="text-xs text-red-400/80 mt-1 leading-relaxed">
+                    <p className="text-xs text-red-300/80 mt-1 leading-relaxed">
                       Unfortunately, your previous application was rejected. You can review and resubmit updated details below to re-apply.
                     </p>
                   </div>
@@ -241,63 +242,64 @@ const MartDashboard = () => {
 
     if (martApplication.status === 'pending_verification') {
       return (
-        <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white flex flex-col font-sans transition-colors duration-300">
-          <header className="border-b border-gray-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+        <div className="relative min-h-screen bg-slate-950 text-white flex flex-col font-sans transition-colors duration-300 overflow-hidden">
+          <MartPortalBackground />
+          <header className="border-b border-white/10 bg-slate-950/70 backdrop-blur-xl sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/10">
+              <div className="bg-blue-600 p-2.5 rounded-xl text-white shadow-lg shadow-blue-500/20">
                 <Store className="w-6 h-6" />
               </div>
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">OZO Mart Portal</h1>
+              <h1 className="text-xl font-bold tracking-tight text-white">OZO Mart Portal</h1>
             </div>
-            <Link to="/" className="px-5 py-2.5 bg-white dark:bg-slate-800 hover:bg-gray-50 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-gray-200 dark:border-slate-700 transition-all flex items-center gap-2">
+            <Link to="/" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-white/10 transition-all flex items-center gap-2 backdrop-blur-md">
               Back to Home
             </Link>
           </header>
 
-          <main className="flex-1 flex items-center justify-center p-6">
-            <div className="w-full max-w-md bg-white dark:bg-slate-800 border border-gray-100 dark:border-slate-700 rounded-[2.5rem] p-10 shadow-2xl text-center space-y-6 relative overflow-hidden">
-              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-yellow-400 via-orange-400 to-yellow-500 animate-pulse"></div>
+          <main className="flex-1 flex items-center justify-center p-4 sm:p-6 relative z-10">
+            <div className="w-full max-w-md bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)] text-center space-y-6 relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 animate-pulse"></div>
               
-              <div className="inline-flex bg-yellow-50 dark:bg-yellow-500/10 p-5 rounded-3xl text-yellow-600 dark:text-yellow-400 shadow-md">
+              <div className="inline-flex bg-amber-500/15 border border-amber-500/20 p-5 rounded-3xl text-amber-400 shadow-md">
                 <Clock className="w-10 h-10 animate-spin" style={{ animationDuration: '6s' }} />
               </div>
 
               <div className="space-y-2">
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight">Verification In Progress</h2>
-                <p className="text-sm text-gray-550 dark:text-slate-400 font-medium max-w-sm mx-auto leading-relaxed">
+                <h2 className="text-2xl font-black text-white uppercase tracking-tight">Verification In Progress</h2>
+                <p className="text-sm text-slate-300 font-medium max-w-sm mx-auto leading-relaxed">
                   Thank you for applying! We are currently reviewing your store details and documents.
                 </p>
               </div>
 
-              <div className="border border-gray-100 dark:border-slate-700 bg-gray-50 dark:bg-slate-900/50 rounded-3xl p-6 text-left space-y-4">
+              <div className="border border-white/10 bg-white/5 backdrop-blur-md rounded-3xl p-6 text-left space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold">✓</div>
+                  <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shadow-md shadow-blue-500/30">✓</div>
                   <div>
-                    <p className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Application Submitted</p>
-                    <p className="text-[10px] text-gray-450 font-bold">Details successfully received</p>
+                    <p className="text-xs font-black text-white uppercase tracking-wider">Application Submitted</p>
+                    <p className="text-[10px] text-slate-400 font-bold">Details successfully received</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded-full bg-yellow-500 text-white flex items-center justify-center text-xs font-bold animate-pulse">•</div>
+                  <div className="w-6 h-6 rounded-full bg-yellow-500 text-black flex items-center justify-center text-xs font-bold animate-pulse shadow-md shadow-yellow-500/30">•</div>
                   <div>
-                    <p className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Document Verification</p>
-                    <p className="text-[10px] text-gray-450 font-bold">Reviewing license & store details</p>
+                    <p className="text-xs font-black text-white uppercase tracking-wider">Document Verification</p>
+                    <p className="text-[10px] text-slate-400 font-bold">Reviewing license & store details</p>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 opacity-40">
-                  <div className="w-6 h-6 rounded-full bg-gray-200 dark:bg-slate-700 text-gray-605 dark:text-slate-400 flex items-center justify-center text-xs font-bold">3</div>
+                  <div className="w-6 h-6 rounded-full bg-white/10 text-slate-400 flex items-center justify-center text-xs font-bold">3</div>
                   <div>
-                    <p className="text-xs font-black text-gray-900 dark:text-white uppercase tracking-wider">Portal Activation</p>
-                    <p className="text-[10px] text-gray-450 font-bold">Access to Supermarket Live Desk</p>
+                    <p className="text-xs font-black text-white uppercase tracking-wider">Portal Activation</p>
+                    <p className="text-[10px] text-slate-400 font-bold">Access to Supermarket Live Desk</p>
                   </div>
                 </div>
               </div>
 
               <div className="pt-2">
-                <p className="text-xs text-gray-400 dark:text-slate-500 font-bold leading-relaxed">
-                  Verification usually takes less than 24 hours. If you have questions, contact us at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-ozo-red hover:underline">contact@ozomart.store</a>
+                <p className="text-xs text-slate-400 font-bold leading-relaxed">
+                  Verification usually takes less than 24 hours. If you have questions, contact us at <a href="https://mail.google.com/mail/?view=cm&fs=1&to=contact@ozomart.store" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">contact@ozomart.store</a>
                 </p>
               </div>
             </div>
@@ -307,17 +309,20 @@ const MartDashboard = () => {
     }
 
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-slate-900 text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans transition-colors duration-300">
-        <div className="inline-flex bg-blue-50 dark:bg-blue-600/10 p-5 rounded-3xl text-blue-600 dark:text-blue-400 shadow-md">
-          <Store className="w-10 h-10" />
+      <div className="relative min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 text-center space-y-4 font-sans overflow-hidden">
+        <MartPortalBackground />
+        <div className="relative z-10 flex flex-col items-center max-w-md bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.8)]">
+          <div className="inline-flex bg-blue-600/15 border border-blue-500/20 p-5 rounded-3xl text-blue-400 shadow-md mb-4">
+            <Store className="w-10 h-10" />
+          </div>
+          <h2 className="text-2xl font-black uppercase tracking-tight text-white">Store Application Approved!</h2>
+          <p className="text-slate-300 font-bold text-sm leading-relaxed mt-2 mb-6">
+            Your application has been approved! Admin is currently activating your portal permissions. You will gain full access shortly.
+          </p>
+          <Link to="/" className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-black uppercase tracking-wider rounded-2xl text-xs hover:shadow-xl hover:shadow-blue-500/25 transition-all">
+            Go to Home
+          </Link>
         </div>
-        <h2 className="text-2xl font-black uppercase tracking-tight">Store Application Approved!</h2>
-        <p className="text-gray-900 dark:text-slate-350 max-w-md font-bold text-sm leading-relaxed">
-          Your application has been approved! Admin is currently activating your portal permissions. You will gain full access shortly.
-        </p>
-        <Link to="/" className="px-6 py-3 bg-red-650 hover:bg-red-700 text-white font-black uppercase tracking-wider rounded-2xl text-xs hover:shadow-xl transition-all">
-          Go to Home
-        </Link>
       </div>
     )
   }
