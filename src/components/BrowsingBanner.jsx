@@ -78,7 +78,7 @@ export default function BrowsingBanner() {
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
           <button
-            onClick={() => navigate('/select-location')}
+            onClick={() => navigate('/select-location', { state: { from: window.location.pathname } })}
             className="text-[10px] font-bold uppercase tracking-wide bg-white/15 hover:bg-white/25 text-white px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md transition whitespace-nowrap"
           >
             <span className="sm:hidden">Change</span>
