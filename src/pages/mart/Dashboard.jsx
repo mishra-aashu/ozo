@@ -190,17 +190,6 @@ const MartDashboard = () => {
     }
   }, [isMartOperator])
 
-  if (isLoadingApplication && !isMartOperator) {
-    return (
-      <div className="relative min-h-screen bg-slate-950 text-white flex flex-col items-center justify-center p-6 overflow-hidden">
-        <MartPortalBackground />
-        <div className="relative z-10 flex flex-col items-center">
-          <div className="w-14 h-14 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <p className="mt-4 text-slate-300 font-bold uppercase tracking-widest text-sm animate-pulse">Loading Application Status...</p>
-        </div>
-      </div>
-    )
-  }
 
   if (!isMartOperator) {
     if (!martApplication || martApplication.status === 'rejected') {
