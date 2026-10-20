@@ -596,18 +596,175 @@ export const useAuthStore = create(
         }
       },
 
-      // Sign in with Google
-      signInWithGoogle: async () => {
+      // Sign in with Google (supports popup window / new tab with account selection)
+      signInWithGoogle: async ({ usePopup = true } = {}) => {
+        let popup = null
         try {
           set({ isLoading: true })
+          
+          const isMobile = typeof window !== 'undefined' && window.innerWidth < 640
+          const shouldPopup = usePopup && !isMobile && typeof window !== 'undefined'
+
+          // Open popup synchronously on the click gesture to avoid browser popup blockers
+          if (shouldPopup) {
+            const width = 500
+            const height = 650
+            const left = Math.round(window.screenX + Math.max(0, (window.outerWidth - width) / 2))
+            const top = Math.round(window.screenY + Math.max(0, (window.outerHeight - height) / 2))
+            
+            try {
+              popup = window.open(
+                'about:blank',
+                'OzoGoogleAuthPopup',
+                `width=${width},height=${height},left=${left},top=${top},toolbar=no,menubar=no,location=no,status=no,resizable=yes,scrollbars=yes`
+              )
+              if (popup && !popup.closed) {
+                popup.document.write(`
+                  <!DOCTYPE html>
+                  <html>
+                    <head>
+                      <title>Connecting to Google...</title>
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <style>
+                        body {
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          height: 100vh;
+                          margin: 0;
+                          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                          background: #0d0d0d;
+                          color: #ffffff;
+                        }
+                        .loader { text-align: center; padding: 24px; }
+                        .spinner {
+                          width: 40px;
+                          height: 40px;
+                          border: 3px solid rgba(255, 59, 48, 0.2);
+                          border-top-color: #ff3b30;
+                          border-radius: 50%;
+                          animation: spin 0.8s linear infinite;
+                          margin: 0 auto 16px;
+                        }
+                        @keyframes spin { to { transform: rotate(360deg); } }
+                        .text { font-size: 15px; font-weight: 700; color: #f5f5f5; }
+                        .sub { font-size: 11px; color: #888; margin-top: 6px; }
+                      </style>
+                    </head>
+                    <body>
+                      <div class="loader">
+                        <div class="spinner"></div>
+                        <div class="text">Connecting to Google Accounts...</div>
+                        <div class="sub">Select your account in the window.</div>
+                      </div>
+                    </body>
+                  </html>
+                `)
+              }
+            } catch (pErr) {
+              console.warn('[OZO Auth] Popup open warning:', pErr)
+              popup = null
+            }
+          }
+
+          const isPopupActive = popup && !popup.closed
+
           const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/auth/callback`,
+              redirectTo: `${window.location.origin}/auth/callback${isPopupActive ? '?popup=true' : ''}`,
+              queryParams: {
+                prompt: 'select_account',
+                access_type: 'offline',
+              },
+              skipBrowserRedirect: isPopupActive,
             },
           })
 
-          if (error) throw error
+          if (error) {
+            if (popup && !popup.closed) popup.close()
+            throw error
+          }
+
+          if (isPopupActive) {
+            if (!data?.url) {
+              if (popup && !popup.closed) popup.close()
+              throw new Error('No authorization URL returned from auth provider')
+            }
+
+            popup.location.href = data.url
+            popup.focus?.()
+
+            return new Promise((resolve) => {
+              let resolved = false
+
+              const cleanup = () => {
+                window.removeEventListener('message', handleMessage)
+                clearInterval(checkInterval)
+                clearTimeout(timeout)
+                set({ isLoading: false })
+              }
+
+              const handleMessage = async (event) => {
+                if (event.origin !== window.location.origin) return
+                if (event.data?.type === 'OZO_AUTH_SUCCESS') {
+                  if (resolved) return
+                  resolved = true
+                  cleanup()
+                  try {
+                    popup?.close()
+                  } catch (_) {}
+                  
+                  // Initialize auth store to sync profile
+                  const session = event.data?.session
+                  if (session?.user) {
+                    set({
+                      user: session.user,
+                      isAuthenticated: true,
+                      isLoading: false
+                    })
+                  }
+                  await get().initializeAuth()
+                  resolve({ success: true, user: session?.user || get().user })
+                }
+              }
+
+              window.addEventListener('message', handleMessage)
+
+              // Watch for popup closing
+              const checkInterval = setInterval(async () => {
+                if (!popup || popup.closed) {
+                  if (resolved) return
+                  clearInterval(checkInterval)
+                  // Check if session got saved into localStorage
+                  const { data: { session } } = await supabase.auth.getSession()
+                  if (session?.user) {
+                    resolved = true
+                    cleanup()
+                    await get().initializeAuth()
+                    resolve({ success: true, user: session.user })
+                  } else {
+                    resolved = true
+                    cleanup()
+                    resolve({ success: false, error: 'Sign in cancelled' })
+                  }
+                }
+              }, 600)
+
+              // Timeout after 3 minutes
+              const timeout = setTimeout(() => {
+                if (!resolved) {
+                  resolved = true
+                  cleanup()
+                  try {
+                    popup?.close()
+                  } catch (_) {}
+                  resolve({ success: false, error: 'Sign in timed out' })
+                }
+              }, 180000)
+            })
+          }
+
           return { success: true, data }
         } catch (error) {
           console.error('Google sign in error:', error)

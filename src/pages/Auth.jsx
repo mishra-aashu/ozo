@@ -50,9 +50,10 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      const result = await signInWithGoogle()
+      const result = await signInWithGoogle({ usePopup: true })
       if (result?.success) {
-        toast.loading('Redirecting to Google...')
+        toast.success('Successfully logged in!')
+        navigate('/', { replace: true })
       }
     } catch (error) {
       console.error('Google Auth error:', error)

@@ -73,9 +73,10 @@ export default function LoginPromptModal() {
   const handleGoogleSignIn = async () => {
     setIsLoading(true)
     try {
-      const result = await signInWithGoogle()
+      const result = await signInWithGoogle({ usePopup: true })
       if (result?.success) {
-        toast.loading('Connecting to Google...')
+        toast.success('Successfully logged in!')
+        handleClose()
       }
     } catch (error) {
       console.error('Google Auth Error:', error)
