@@ -1515,7 +1515,7 @@ const MartHome = () => {
       id: 'demo-1',
       title: t('banner1Title') || 'Fresh Organic Vegetables',
       subtitle: t('banner1Subtitle') || 'Farm-fresh arrivals delivered in 30 mins',
-      image_url: '/images/banners/banner1.png',
+      image_url: '/images/banners/banner1.webp',
       tagline: t('banner1Tagline') || 'Farm Fresh',
       categorySlug: 'vegetables'
     },
@@ -1523,7 +1523,7 @@ const MartHome = () => {
       id: 'demo-2',
       title: t('banner2Title') || 'Fresh & Juicy Fruits',
       subtitle: t('banner2Subtitle') || 'Premium quality fruits loaded with vitamins',
-      image_url: '/images/banners/banner2.png',
+      image_url: '/images/banners/banner2.webp',
       tagline: t('banner2Tagline') || 'Premium Fruits',
       categorySlug: 'fruits'
     },
@@ -1531,7 +1531,7 @@ const MartHome = () => {
       id: 'demo-3',
       title: t('banner3Title') || 'Authentic Mithila Delights',
       subtitle: t('banner3Subtitle') || 'Traditional home-made pickles, sweets, & special treats',
-      image_url: '/images/banners/mithila_banner.png',
+      image_url: '/images/banners/mithila_banner.webp',
       tagline: t('banner3Tagline') || 'Mithila Special',
       categorySlug: 'mithila-specials'
     }

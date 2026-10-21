@@ -46,6 +46,11 @@ export const getOptimizedImageUrl = (url, { width = 300, quality = 80, output = 
   }
 
   if (cleanUrl.startsWith('/')) {
+    // Automatically upgrade local static assets to high-efficiency WebP variants
+    if (cleanUrl.startsWith('/images/') && (cleanUrl.endsWith('.png') || cleanUrl.endsWith('.jpg') || cleanUrl.endsWith('.jpeg'))) {
+      cleanUrl = cleanUrl.replace(/\.(png|jpg|jpeg)$/i, '.webp');
+    }
+
     const isLocal = typeof window !== 'undefined' && 
       (window.location.hostname === 'localhost' || 
        window.location.hostname === '127.0.0.1' || 
