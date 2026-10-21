@@ -774,10 +774,10 @@ const Cart = () => {
           </div>
         </div>
 
-        {/* Suggested Products (More Products) */}
+        {/* Suggested Products (Pairs Well With Your Cart) */}
         <SuggestedProducts
+          type="frequently-bought"
           limit={6}
-          title="More Products"
           gridColsClass="grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6"
           className="mt-16 border-t border-gray-150/50 dark:border-white/5 pt-12"
         />
