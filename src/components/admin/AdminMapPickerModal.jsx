@@ -3,27 +3,7 @@ import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
 import { Search, MapPin, X, Loader2, Compass } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
-
-const streetStyle = {
-  version: 8,
-  sources: {
-    'raster-tiles': {
-      type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors'
-    }
-  },
-  layers: [
-    {
-      id: 'simple-tiles',
-      type: 'raster',
-      source: 'raster-tiles',
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-}
+import { streetStyle } from '../../utils/mapStyles'
 
 const AdminMapPickerModal = ({ isOpen, onClose, initialLat, initialLng, onSelect }) => {
   // Default center: Aurangabad, Bihar coordinates (fallback)

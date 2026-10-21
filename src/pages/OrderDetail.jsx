@@ -36,6 +36,7 @@ import { supabase } from '../lib/supabase'
 
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+import { streetStyle } from '../utils/mapStyles'
 
 const getGoogleMapsUrl = (address, order) => {
   if (order?.google_maps_url) return order.google_maps_url;
@@ -76,26 +77,6 @@ const OrderTrackingMap = ({ order }) => {
   const customerMarkerRef = useRef(null)
   const captainMarkerRef = useRef(null)
 
-  const streetStyle = useMemo(() => ({
-    version: 8,
-    sources: {
-      'raster-tiles': {
-        type: 'raster',
-        tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
-        tileSize: 256,
-        attribution: '&copy; OpenStreetMap contributors'
-      }
-    },
-    layers: [
-      {
-        id: 'simple-tiles',
-        type: 'raster',
-        source: 'raster-tiles',
-        minzoom: 0,
-        maxzoom: 19
-      }
-    ]
-  }), [])
 
   const hasRiderCoords = captainLat && captainLng
 
