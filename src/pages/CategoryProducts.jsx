@@ -439,26 +439,22 @@ const CategoryProducts = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const mobileScrollY = productsContainerRef.current ? productsContainerRef.current.scrollTop : 0
-      const currentScrollY = window.innerWidth >= 1024 ? window.scrollY : mobileScrollY
-      // Disable sticky header collapse if the product list is small to prevent layout jitter loop
+      const scrollY = productsContainerRef.current ? productsContainerRef.current.scrollTop : 0
       const hasEnoughItems = filteredAndSortedProducts.length >= 6
-      setIsScrolled(currentScrollY > 50 && hasEnoughItems)
+      setIsScrolled(scrollY > 40 && hasEnoughItems)
     }
 
-    window.addEventListener('scroll', handleScroll, { passive: true })
     const prodEl = productsContainerRef.current
     if (prodEl) {
       prodEl.addEventListener('scroll', handleScroll, { passive: true })
     }
 
     return () => {
-      window.removeEventListener('scroll', handleScroll)
       if (prodEl) {
         prodEl.removeEventListener('scroll', handleScroll)
       }
     }
-  }, [filteredAndSortedProducts.length, productsContainerRef.current])
+  }, [filteredAndSortedProducts.length])
 
   // Title formatter helper
   const renderTitle = (titleString) => {
@@ -606,7 +602,7 @@ const CategoryProducts = () => {
       initial="hidden"
       animate="visible"
       variants={pageVariants}
-      className={`flex flex-col bg-gradient-to-br ${pageBgGradient} dark:from-[#0a0a0a] dark:to-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-[calc(100vh-80px)] h-[calc(100dvh-80px)] lg:h-auto overflow-hidden lg:overflow-visible`}
+      className={`flex flex-col bg-gradient-to-br ${pageBgGradient} dark:from-[#0a0a0a] dark:to-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-screen h-[100dvh] overflow-hidden`}
     >
       <SEO
         title={`Buy ${catName} Online - 10 Min Delivery in ${currentCityName} | OZO Mart`}
@@ -842,37 +838,37 @@ const CategoryProducts = () => {
         </AnimatePresence>
       </motion.div>
 
-      <div className="max-w-[1440px] mx-auto w-full px-2 xs:px-3 sm:px-6 lg:px-8 flex-1 min-h-0 py-2 md:py-6 flex flex-col">
+      <div className="max-w-[1440px] mx-auto w-full px-2 xs:px-3 sm:px-6 lg:px-8 flex-1 min-h-0 pt-1 md:pt-2.5 pb-2 flex flex-col overflow-hidden">
         {/* Breadcrumb path */}
-        <Breadcrumb items={breadcrumbItems} className="hidden md:flex mb-6" />
+        <Breadcrumb items={breadcrumbItems} className="hidden md:flex mb-2 flex-shrink-0 text-xs" />
 
-        {/* Category Banner Card - Desktop/Tablet Only */}
-        <div className={`hidden md:block relative overflow-hidden rounded-[2rem] p-8 mb-6 bg-gradient-to-br ${bannerGradient} border border-ozo-gray-lighter/25 dark:border-white/5 shadow-sm`}>
+        {/* Category Banner Card - Desktop/Tablet Only (Compact & Static) */}
+        <div className={`hidden md:block flex-shrink-0 relative overflow-hidden rounded-2xl p-4 md:p-5 mb-2.5 bg-gradient-to-br ${bannerGradient} border border-ozo-gray-lighter/25 dark:border-white/5 shadow-sm`}>
           {/* Floating Background Icon / Emoji */}
-          <div className="absolute right-8 top-1/2 -translate-y-1/2 opacity-[0.08] dark:opacity-[0.04] pointer-events-none select-none flex items-center justify-center">
+          <div className="absolute right-6 top-1/2 -translate-y-1/2 opacity-[0.08] dark:opacity-[0.04] pointer-events-none select-none flex items-center justify-center">
             {iconEmoji ? (
-              <span className="text-[140px] leading-none block">{iconEmoji}</span>
+              <span className="text-[100px] leading-none block">{iconEmoji}</span>
             ) : (
-              IconComponent && <IconComponent size={200} className="text-current" />
+              IconComponent && <IconComponent size={120} className="text-current" />
             )}
           </div>
 
           <div className="relative z-10 max-w-2xl">
-            <span className="inline-block text-[11px] font-black text-ozo-red dark:text-red-400 uppercase tracking-widest mb-2 px-2.5 py-1 rounded-full bg-ozo-red/10 dark:bg-red-500/10 font-display">
+            <span className="inline-block text-[10px] font-black text-ozo-red dark:text-red-400 uppercase tracking-widest mb-1 px-2 py-0.5 rounded-full bg-ozo-red/10 dark:bg-red-500/10 font-display">
               OZO Mart
             </span>
-            <h1 className="text-3xl md:text-4xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-3 font-display">
+            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white uppercase tracking-tight mb-1 font-display">
               {currentCategory ? currentCategory.name : 'Loading Category...'}
             </h1>
-            <p className="text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed">
+            <p className="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 leading-relaxed line-clamp-1">
               {currentCategory?.description || `Browse fresh and premium-grade segment items handpicked just for you. Guaranteed delivery at your doorstep in ${currentCityName} within 30 minutes.`}
             </p>
           </div>
         </div>
 
-        {/* Subcategory Chips Navigation Bar - Desktop Only */}
+        {/* Subcategory Chips Navigation Bar - Desktop Only (Static) */}
         {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
-          <div className="hidden lg:flex items-center gap-2 overflow-x-auto scrollbar-hide py-2.5 mb-6 border-b border-gray-150/40 dark:border-white/5 no-scrollbar">
+          <div className="hidden lg:flex flex-shrink-0 items-center gap-2 overflow-x-auto scrollbar-hide py-1 mb-2.5 border-b border-gray-150/40 dark:border-white/5 no-scrollbar">
             <button
               onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
               className={`px-4 py-2 rounded-full text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 border flex items-center gap-1.5 ${
@@ -909,8 +905,8 @@ const CategoryProducts = () => {
           </div>
         )}
 
-        {/* Desktop Filters Panel - Premium Style */}
-        <div className="hidden lg:flex items-center justify-between gap-6 bg-white dark:bg-white/[0.02] border border-gray-150/40 dark:border-white/5 rounded-2xl p-4.5 mb-6 shadow-sm">
+        {/* Desktop Filters Panel - Premium Style (Static) */}
+        <div className="hidden lg:flex flex-shrink-0 items-center justify-between gap-6 bg-white dark:bg-white/[0.02] border border-gray-150/40 dark:border-white/5 rounded-xl p-3 mb-2.5 shadow-sm">
           <div className="flex items-center gap-6 flex-1">
             {/* Price Slider */}
             <div className="flex items-center gap-3 w-80">
@@ -1011,7 +1007,7 @@ const CategoryProducts = () => {
         </div>
 
         {/* Main Grid containing filters and products */}
-        <div className="flex gap-1.5 md:gap-8 flex-1 min-h-0 h-full lg:h-auto">
+        <div className="flex gap-1.5 md:gap-6 flex-1 min-h-0 h-full overflow-hidden">
           {/* Sidebar - Mobile/Tablet Subcategories */}
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
@@ -1112,24 +1108,19 @@ const CategoryProducts = () => {
             </motion.div>
           )}
 
-          {/* Sidebar - Desktop */}
+          {/* Sidebar - Desktop (Static & Fixed) */}
           <motion.div 
             variants={sidebarVariants}
-            className="hidden lg:block w-80 flex-shrink-0"
+            className="hidden lg:flex flex-col w-72 xl:w-80 flex-shrink-0 h-full overflow-hidden"
           >
             <div 
-              className="card p-6 sticky border border-gray-100 dark:border-white/5 shadow-sm space-y-4 transition-all duration-300" 
-              style={{ 
-                top: '76px',
-                transition: 'background-color 0.3s, border-color 0.3s'
-              }}
+              className="card p-4 h-full flex flex-col border border-gray-100 dark:border-white/5 shadow-sm overflow-hidden" 
             >
-              <div>
-                <h3 className="font-extrabold text-[13px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4.5 flex items-center gap-2.5 font-display">
-                  <Filter size={16} className="text-ozo-red" />
-                  All Categories
-                </h3>
-                <div className="space-y-1.5 max-h-[calc(100vh-240px)] overflow-y-auto overflow-x-hidden custom-scrollbar pr-3">
+              <h3 className="font-extrabold text-[13px] text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2.5 font-display flex-shrink-0">
+                <Filter size={16} className="text-ozo-red" />
+                All Categories
+              </h3>
+              <div className="space-y-1.5 flex-1 min-h-0 overflow-y-auto overflow-x-hidden custom-scrollbar pr-2">
                   {/* All Products button */}
                   <button
                     onClick={() => navigate('/products')}
@@ -1278,15 +1269,14 @@ const CategoryProducts = () => {
                     )
                   })}
                 </div>
-              </div>
             </div>
           </motion.div>
 
-          {/* Product grid / list main viewport */}
+          {/* Product grid / list main viewport (Only this scrolls) */}
           <motion.div 
             ref={productsContainerRef} 
             variants={contentVariants}
-            className="flex-1 min-w-0 pb-24 lg:pb-6 px-1 py-1 h-full overflow-y-auto no-scrollbar lg:overflow-visible transform-gpu will-change-[transform,scroll-position]"
+            className="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar px-1 py-1 pb-24 lg:pb-8 transform-gpu will-change-[transform,scroll-position]"
           >
             {isListingSoon ? (
               <ComingSoonSection category={currentCategory} />
