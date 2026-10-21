@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { useShallow } from 'zustand/react/shallow'
@@ -6,109 +6,44 @@ import { useCartStore } from '../stores/cartStore'
 import { supabase } from '../lib/supabase'
 import ProductCard from './ProductCard'
 import { isProductImageMissing } from '../utils/productUtils'
+import { 
+  scoreProductRelevance, 
+  resolveComplementarySlugs, 
+  getCachedRecommendations, 
+  setCachedRecommendations 
+} from '../utils/recommendationEngine'
 
-// Complementary categories map for cross-selling recommendations
-const COMPLEMENTARY_CATEGORIES = {
-  'fresh-vegetables': ['staples-dals', 'dairy-bread-eggs'],
-  'fresh-fruits': ['dairy-bread-eggs', 'beverages'],
-  'dairy-bread-eggs': ['fresh-vegetables', 'snacks-packaged-foods'],
-  'beverages': ['snacks-packaged-foods', 'dairy-bread-eggs'],
-  'snacks-packaged-foods': ['beverages', 'dairy-bread-eggs'],
-  'staples-dals': ['fresh-vegetables', 'mithila-bihar-specials'],
-  'mithila-bihar-specials': ['staples-dals', 'snacks-packaged-foods']
-}
+/**
+ * Standard product select query for high-performance recommendation joins
+ */
+const PRODUCT_SELECT_FIELDS = `
+  id, name, slug, brand, image_url, price, mrp, ozo_price, unit, 
+  is_available, is_upcoming, quantity_available, max_order_qty, 
+  is_vegetarian, is_featured, is_bestseller, category_id,
+  category:categories (
+    id,
+    name,
+    slug,
+    parent_id,
+    is_active
+  )
+`
 
-// Standalone function to fetch products without mutating global Zustand store
-const fetchProductsDirect = async (options = {}) => {
-  try {
-    let query = supabase
-      .from('products')
-      .select(`
-        id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
-        category:categories (
-          id,
-          name,
-          slug,
-          is_active
-        )
-      `)
-
-    if (options.categoryId) {
-      // Find subcategories for this category ID
-      const { data: subcategories } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('parent_id', options.categoryId)
-        .eq('is_active', true);
-
-      let categoryIds = [options.categoryId];
-      if (subcategories && subcategories.length > 0) {
-        categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
-      }
-      query = query.in('category_id', categoryIds);
-    }
-    
-    if (options.categorySlug) {
-      const { data: category } = await supabase
-        .from('categories')
-        .select('id')
-        .eq('slug', options.categorySlug)
-        .eq('is_active', true)
-        .single()
-      if (category) {
-        // Find subcategories
-        const { data: subcategories } = await supabase
-          .from('categories')
-          .select('id')
-          .eq('parent_id', category.id)
-          .eq('is_active', true);
-
-        let categoryIds = [category.id];
-        if (subcategories && subcategories.length > 0) {
-          categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
-        }
-        query = query.in('category_id', categoryIds);
-      }
-    }
-
-    if (options.featured) {
-      query = query.eq('is_featured', true)
-    }
-
-    if (options.bestseller) {
-      query = query.eq('is_bestseller', true)
-    }
-
-    if (options.limit) {
-      query = query.limit(options.limit)
-    }
-
-    if (options.signal) {
-      query = query.abortSignal(options.signal)
-    }
-
-    const { data, error } = await query
-    if (error) throw error
-
-    return {
-      success: true,
-      data: (data || [])
-        .filter(product => !(product.category && product.category.is_active === false))
-        .filter(product => !isProductImageMissing(product))
-        .map(product => ({
-          ...product,
-          price: parseFloat(product.price),
-          mrp: parseFloat(product.mrp),
-          discount_percentage: parseFloat(product.discount_percentage || 0),
-        }))
-    }
-  } catch (error) {
-    if (error.name === 'AbortError' || (options.signal && options.signal.aborted)) {
-      return { success: false, data: [] }
-    }
-    console.error('fetchProductsDirect error:', error)
-    return { success: false, data: [] }
-  }
+/**
+ * Normalizes Supabase product rows into clean float numbers & filters missing images
+ */
+const formatCandidateProducts = (rawProducts = []) => {
+  if (!Array.isArray(rawProducts)) return []
+  return rawProducts
+    .filter(p => p && p.category && p.category.is_active !== false)
+    .filter(p => !isProductImageMissing(p))
+    .map(p => ({
+      ...p,
+      price: parseFloat(p.price || 0),
+      mrp: parseFloat(p.mrp || 0),
+      ozo_price: p.ozo_price !== null && p.ozo_price !== undefined ? parseFloat(p.ozo_price) : null,
+      discount_percentage: parseFloat(p.discount_percentage || 0)
+    }))
 }
 
 export default function SuggestedProducts({
@@ -127,203 +62,371 @@ export default function SuggestedProducts({
 }) {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // Reactive fine-grained cart selectors to prevent unnecessary re-renders
   const cartItemsCount = useCartStore(state => state.items.length)
+  const cartItemProductIds = useCartStore(useShallow(state => 
+    state.items.map(item => item.product?.id || item.product_id).filter(Boolean)
+  ))
   const cartCategorySlugs = useCartStore(useShallow(state => 
     state.items.map(item => item.product?.category?.slug || item.category_slug).filter(Boolean)
   ))
 
   const excludeIdsStr = JSON.stringify(excludeProductIds)
   const initialProductsIdsStr = Array.isArray(initialProducts) ? JSON.stringify(initialProducts.map(p => p?.id)) : ''
+  const cartHash = useMemo(() => cartItemProductIds.slice().sort().join(','), [cartItemProductIds])
 
   useEffect(() => {
     let isMounted = true
     const controller = new AbortController()
     const { signal } = controller
 
-    // If initialProducts is provided (e.g. from ProductDetail), use it directly
+    // Fast-path: If caller supplied explicit product list (e.g. from static catalog), score & render directly
     if (Array.isArray(initialProducts)) {
       const excluded = new Set([productId, ...excludeProductIds].filter(Boolean))
-      const filtered = initialProducts.filter(p => p && !excluded.has(p.id) && !isProductImageMissing(p))
-      const sortedFiltered = [...filtered].sort((a, b) => {
-        const aOOS = !a?.is_available || a?.quantity_available === 0;
-        const bOOS = !b?.is_available || b?.quantity_available === 0;
-        if (aOOS && !bOOS) return 1;
-        if (!aOOS && bOOS) return -1;
-        return 0;
-      });
-      setProducts(sortedFiltered.slice(0, limit))
+      const formatted = formatCandidateProducts(initialProducts).filter(p => !excluded.has(p.id))
+      const sorted = formatted.sort((a, b) => scoreProductRelevance(b) - scoreProductRelevance(a))
+      setProducts(sorted.slice(0, limit))
       setLoading(false)
       return
     }
 
     const loadRecommendations = async () => {
-      setLoading(true)
-      try {
-        let recommendedList = []
-        const excluded = new Set([productId, ...excludeProductIds].filter(Boolean))
-
-        // 1. Get Recently Viewed product IDs from local storage
-        const getRecentlyViewed = () => {
+      // 1. Determine effective target type
+      let targetType = type
+      if (type === 'smart') {
+        if (productId) {
+          targetType = 'related'
+        } else if (cartItemsCount > 0) {
+          targetType = 'frequently-bought'
+        } else {
           try {
-            const viewedIds = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
-            return viewedIds.filter(id => !excluded.has(id))
-          } catch (e) {
-            return []
+            const viewed = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
+            targetType = viewed.length > 0 ? 'recently-viewed' : 'trending'
+          } catch {
+            targetType = 'trending'
           }
         }
+      }
 
-        // 2. Cross-selling logic for frequently bought together based on Cart Items
-        const getCrossSellCategorySlugs = () => {
-          // cartCategorySlugs is retrieved via reactive fine-grained selector
-          const result = new Set()
-          cartCategorySlugs.forEach(slug => {
-            const complements = COMPLEMENTARY_CATEGORIES[slug] || []
-            complements.forEach(comp => result.add(comp))
-          })
-          return Array.from(result)
-        }
+      // 2. Check 0ms in-memory cache
+      const cacheKey = `${targetType}:${productId || ''}:${categoryId || ''}:${categorySlug || ''}:${cartHash}:${limit}`
+      const cachedData = getCachedRecommendations(cacheKey)
+      if (cachedData && cachedData.length > 0) {
+        setProducts(cachedData)
+        setLoading(false)
+        return
+      }
 
-        // Determine the actual type of recommendation to run
-        let targetType = type
-        if (type === 'smart') {
+      setLoading(true)
+
+      try {
+        let recommendedList = []
+        const excluded = new Set([productId, ...excludeProductIds, ...cartItemProductIds].filter(Boolean))
+
+        // Contextual variables
+        let baseProduct = null
+
+        // -------------------------------------------------------------
+        // BRANCH A: RELATED PRODUCTS (For ProductDetail page)
+        // -------------------------------------------------------------
+        if (targetType === 'related') {
+          let directCategoryId = categoryId
+
+          // If base product info is not provided, fetch product & category metadata
           if (productId) {
-            targetType = 'related'
-          } else if (cartItemsCount > 0) {
-            targetType = 'frequently-bought'
-          } else {
-            const viewed = getRecentlyViewed()
-            if (viewed.length > 0) {
-              targetType = 'recently-viewed'
-            } else {
-              targetType = 'trending'
+            const { data: baseProdData } = await supabase
+              .from('products')
+              .select(`
+                id, name, brand, price, category_id,
+                category:categories (id, name, slug, parent_id)
+              `)
+              .eq('id', productId)
+              .abortSignal(signal)
+              .maybeSingle()
+
+            if (baseProdData) {
+              baseProduct = baseProdData
+              directCategoryId = directCategoryId || baseProdData.category_id
             }
+          }
+
+          if (!isMounted) return
+
+          // Build hierarchical category collection:
+          // 1. Direct subcategory (e.g. rolled-oats)
+          // 2. Sibling subcategories under parent (e.g. breakfast-cereals, bakery-grains)
+          // 3. High-affinity complementary categories (e.g. milk, peanut-butter)
+          const targetCategoryIds = new Set()
+          const siblingCategoryIds = new Set()
+          const complementaryCategoryIds = new Set()
+
+          if (directCategoryId) {
+            targetCategoryIds.add(directCategoryId)
+
+            // Resolve category record to inspect parent & slug
+            let catRecord = baseProduct?.category
+            if (!catRecord) {
+              const { data: catData } = await supabase
+                .from('categories')
+                .select('id, parent_id, slug')
+                .eq('id', directCategoryId)
+                .abortSignal(signal)
+                .maybeSingle()
+              catRecord = catData
+            }
+
+            if (catRecord) {
+              // Sibling resolution
+              const parentIdToSearch = catRecord.parent_id || catRecord.id
+              const { data: siblings } = await supabase
+                .from('categories')
+                .select('id')
+                .eq('parent_id', parentIdToSearch)
+                .eq('is_active', true)
+                .abortSignal(signal)
+
+              if (siblings && siblings.length > 0) {
+                siblings.forEach(s => {
+                  if (s.id !== directCategoryId) {
+                    siblingCategoryIds.add(s.id)
+                  }
+                })
+              }
+
+              // Complementary slug resolution
+              const compSlugs = resolveComplementarySlugs([catRecord.slug])
+              if (compSlugs.length > 0) {
+                const { data: compCats } = await supabase
+                  .from('categories')
+                  .select('id')
+                  .in('slug', compSlugs)
+                  .eq('is_active', true)
+                  .abortSignal(signal)
+
+                if (compCats && compCats.length > 0) {
+                  compCats.forEach(c => complementaryCategoryIds.add(c.id))
+                }
+              }
+            }
+          }
+
+          // Combine all resolved category IDs for a single batched query
+          const allQueryCategoryIds = [
+            ...Array.from(targetCategoryIds),
+            ...Array.from(siblingCategoryIds),
+            ...Array.from(complementaryCategoryIds)
+          ]
+
+          if (allQueryCategoryIds.length > 0) {
+            const { data: candidates, error } = await supabase
+              .from('products')
+              .select(PRODUCT_SELECT_FIELDS)
+              .in('category_id', allQueryCategoryIds)
+              .limit(Math.max(limit * 5, 30))
+              .abortSignal(signal)
+
+            if (!error && candidates) {
+              const formatted = formatCandidateProducts(candidates).filter(p => !excluded.has(p.id))
+
+              // Score each candidate with hierarchical distance weighting
+              const scored = formatted.map(p => {
+                let score = scoreProductRelevance(p, { baseProduct, isCartContext: false })
+                if (targetCategoryIds.has(p.category_id)) {
+                  score += 60 // Exact same subcategory
+                } else if (siblingCategoryIds.has(p.category_id)) {
+                  score += 25 // Sibling category under same parent
+                } else if (complementaryCategoryIds.has(p.category_id)) {
+                  score += 15 // Complementary cross-sell
+                }
+                return { product: p, score }
+              })
+
+              scored.sort((a, b) => b.score - a.score)
+              recommendedList = scored.map(s => s.product)
+            }
+          }
+
+        // -------------------------------------------------------------
+        // BRANCH B: FREQUENTLY BOUGHT TOGETHER (For Cart cross-sells)
+        // -------------------------------------------------------------
+        } else if (targetType === 'frequently-bought') {
+          // Resolve all complementary category slugs from all items currently in cart
+          const compSlugs = resolveComplementarySlugs(cartCategorySlugs)
+
+          if (compSlugs.length > 0) {
+            // Find both parent and child category IDs matching complementary slugs
+            const { data: matchedCats } = await supabase
+              .from('categories')
+              .select('id, parent_id, slug')
+              .in('slug', compSlugs)
+              .eq('is_active', true)
+              .abortSignal(signal)
+
+            const targetCategoryIds = new Set()
+            const parentIds = []
+
+            if (matchedCats && matchedCats.length > 0) {
+              matchedCats.forEach(c => {
+                targetCategoryIds.add(c.id)
+                if (!c.parent_id) {
+                  parentIds.push(c.id)
+                }
+              })
+            }
+
+            // Include any subcategories under matched parents
+            if (parentIds.length > 0) {
+              const { data: subcats } = await supabase
+                .from('categories')
+                .select('id')
+                .in('parent_id', parentIds)
+                .eq('is_active', true)
+                .abortSignal(signal)
+
+              if (subcats && subcats.length > 0) {
+                subcats.forEach(s => targetCategoryIds.add(s.id))
+              }
+            }
+
+            if (targetCategoryIds.size > 0) {
+              const { data: candidates, error } = await supabase
+                .from('products')
+                .select(PRODUCT_SELECT_FIELDS)
+                .in('category_id', Array.from(targetCategoryIds))
+                .eq('is_available', true)
+                .limit(Math.max(limit * 4, 30))
+                .abortSignal(signal)
+
+              if (!error && candidates) {
+                const formatted = formatCandidateProducts(candidates).filter(p => !excluded.has(p.id))
+
+                // Score candidates with Cart context (impulse sweet-spot under ₹200 bonus)
+                const scored = formatted.map(p => ({
+                  product: p,
+                  score: scoreProductRelevance(p, { isCartContext: true })
+                }))
+
+                scored.sort((a, b) => b.score - a.score)
+                recommendedList = scored.map(s => s.product)
+              }
+            }
+          }
+
+        // -------------------------------------------------------------
+        // BRANCH C: RECENTLY VIEWED PRODUCTS
+        // -------------------------------------------------------------
+        } else if (targetType === 'recently-viewed') {
+          let viewedIds = []
+          try {
+            viewedIds = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
+          } catch {
+            viewedIds = []
+          }
+
+          const filteredViewedIds = viewedIds.filter(id => !excluded.has(id))
+          if (filteredViewedIds.length > 0) {
+            const { data: candidates, error } = await supabase
+              .from('products')
+              .select(PRODUCT_SELECT_FIELDS)
+              .in('id', filteredViewedIds.slice(0, 15))
+              .abortSignal(signal)
+
+            if (!error && candidates) {
+              const formatted = formatCandidateProducts(candidates)
+              // Preserve recency order, but push OOS to bottom
+              recommendedList = formatted.sort((a, b) => {
+                const aOOS = !a?.is_available || a?.quantity_available === 0
+                const bOOS = !b?.is_available || b?.quantity_available === 0
+                if (aOOS && !bOOS) return 1
+                if (!aOOS && bOOS) return -1
+                return filteredViewedIds.indexOf(a.id) - filteredViewedIds.indexOf(b.id)
+              })
+            }
+          }
+
+        // -------------------------------------------------------------
+        // BRANCH D: TRENDING / BESTSELLERS / FEATURED
+        // -------------------------------------------------------------
+        } else if (targetType === 'trending' || targetType === 'bestsellers') {
+          const { data: candidates, error } = await supabase
+            .from('products')
+            .select(PRODUCT_SELECT_FIELDS)
+            .eq('is_bestseller', true)
+            .limit(limit * 3)
+            .abortSignal(signal)
+
+          if (!error && candidates) {
+            const formatted = formatCandidateProducts(candidates).filter(p => !excluded.has(p.id))
+            const scored = formatted.map(p => ({
+              product: p,
+              score: scoreProductRelevance(p, { isCartContext: cartItemsCount > 0 })
+            }))
+            scored.sort((a, b) => b.score - a.score)
+            recommendedList = scored.map(s => s.product)
+          }
+        } else if (targetType === 'featured') {
+          const { data: candidates, error } = await supabase
+            .from('products')
+            .select(PRODUCT_SELECT_FIELDS)
+            .eq('is_featured', true)
+            .limit(limit * 3)
+            .abortSignal(signal)
+
+          if (!error && candidates) {
+            const formatted = formatCandidateProducts(candidates).filter(p => !excluded.has(p.id))
+            const scored = formatted.map(p => ({
+              product: p,
+              score: scoreProductRelevance(p, { isCartContext: cartItemsCount > 0 })
+            }))
+            scored.sort((a, b) => b.score - a.score)
+            recommendedList = scored.map(s => s.product)
           }
         }
 
         if (!isMounted) return
 
-        // Execute queries based on targetType
-        if (targetType === 'related') {
-          // Category products
-          let targetCategoryId = categoryId
-          if (!targetCategoryId && productId) {
-            let categoryQuery = supabase
-              .from('products')
-              .select('category_id')
-              .eq('id', productId)
-              .single()
-            
-            categoryQuery = categoryQuery.abortSignal(signal)
-            const { data: currentProduct } = await categoryQuery
-            if (currentProduct) {
-              targetCategoryId = currentProduct.category_id
-            }
-          }
-          if (!isMounted) return
-          if (targetCategoryId) {
-            const res = await fetchProductsDirect({ categoryId: targetCategoryId, signal })
-            if (!isMounted) return
-            if (res.success && res.data) {
-              recommendedList = res.data.filter(p => !excluded.has(p.id))
-            }
-          }
-        } else if (targetType === 'frequently-bought') {
-          // Frequently bought together / Cross-selling
-          const compSlugs = getCrossSellCategorySlugs()
-          if (compSlugs.length > 0) {
-            // Fetch products from complementary categories
-            const promises = compSlugs.map(slug => fetchProductsDirect({ categorySlug: slug, signal }))
-            const results = await Promise.all(promises)
-            if (!isMounted) return
-            results.forEach(res => {
-              if (res.success && res.data) {
-                recommendedList.push(...res.data)
-              }
-            })
-            // Filter unique & excluded
-            const seen = new Set()
-            recommendedList = recommendedList.filter(p => {
-              if (seen.has(p.id) || excluded.has(p.id)) return false
-              seen.add(p.id)
-              return true
-            })
-          }
-        } else if (targetType === 'recently-viewed') {
-          // Recently viewed products
-          const viewedIds = getRecentlyViewed()
-          if (viewedIds.length > 0) {
-            let recentQuery = supabase
-              .from('products')
-              .select(`
-                id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id,
-                category:categories (
-                  id,
-                  name,
-                  slug,
-                  is_active
-                )
-              `)
-              .in('id', viewedIds)
+        // -------------------------------------------------------------
+        // GUARANTEED FALLBACK: Backfill with top bestsellers if list < limit
+        // -------------------------------------------------------------
+        if (recommendedList.length < limit) {
+          const { data: fallbackCandidates } = await supabase
+            .from('products')
+            .select(PRODUCT_SELECT_FIELDS)
+            .eq('is_bestseller', true)
+            .limit(limit * 2)
+            .abortSignal(signal)
 
-            recentQuery = recentQuery.abortSignal(signal)
-            const { data, error } = await recentQuery
-
-            if (!isMounted) return
-            if (!error && data) {
-              const formatted = data
-                .filter(product => !(product.category && product.category.is_active === false))
-                .filter(product => !isProductImageMissing(product))
-                .map(product => ({
-                  ...product,
-                  price: parseFloat(product.price),
-                  mrp: parseFloat(product.mrp),
-                  discount_percentage: parseFloat(product.discount_percentage || 0),
-                }))
-              recommendedList = formatted.sort((a, b) => viewedIds.indexOf(a.id) - viewedIds.indexOf(b.id))
-            }
-          }
-        } else if (targetType === 'trending' || targetType === 'bestsellers') {
-          // Bestsellers / trending
-          const res = await fetchProductsDirect({ bestseller: true, limit: limit * 2, signal })
-          if (!isMounted) return
-          if (res.success && res.data) {
-            recommendedList = res.data.filter(p => !excluded.has(p.id))
-          }
-        } else if (targetType === 'featured') {
-          // Featured items
-          const res = await fetchProductsDirect({ featured: true, signal })
-          if (!isMounted) return
-          if (res.success && res.data) {
-            recommendedList = res.data.filter(p => !excluded.has(p.id))
+          if (fallbackCandidates && isMounted) {
+            const formatted = formatCandidateProducts(fallbackCandidates)
+              .filter(p => !excluded.has(p.id) && !recommendedList.some(r => r.id === p.id))
+            recommendedList = [...recommendedList, ...formatted]
           }
         }
 
-        // Fallback: If list is empty or has fewer items than limit, backfill with featured
-        if (recommendedList.length < limit) {
-          const res = await fetchProductsDirect({ featured: true, limit: limit * 3, signal })
-          if (!isMounted) return
-          if (res.success && res.data) {
-            const fallbacks = res.data.filter(p => !excluded.has(p.id) && !recommendedList.some(r => r.id === p.id))
-            recommendedList = [...recommendedList, ...fallbacks]
+        // Final deduplication & limit capping
+        const seen = new Set()
+        const finalList = []
+        for (const item of recommendedList) {
+          if (!seen.has(item.id)) {
+            seen.add(item.id)
+            finalList.push(item)
           }
+          if (finalList.length >= limit) break
         }
 
         if (isMounted) {
-          const sortedList = [...recommendedList].sort((a, b) => {
-            const aOOS = !a?.is_available || a?.quantity_available === 0;
-            const bOOS = !b?.is_available || b?.quantity_available === 0;
-            if (aOOS && !bOOS) return 1;
-            if (!aOOS && bOOS) return -1;
-            return 0;
-          });
-          // Take only the specified limit
-          setProducts(sortedList.slice(0, limit))
+          setProducts(finalList)
+          // Cache successful result for instant 0ms subsequent views
+          if (finalList.length > 0) {
+            setCachedRecommendations(cacheKey, finalList)
+          }
         }
       } catch (err) {
         if (err.name === 'AbortError' || signal.aborted) {
           return
         }
-        console.error('Error fetching recommendations:', err)
+        console.error('[SuggestedProducts] recommendation engine error:', err)
       } finally {
         if (isMounted) {
           setLoading(false)
@@ -332,14 +435,25 @@ export default function SuggestedProducts({
     }
 
     loadRecommendations()
-    
+
     return () => {
       isMounted = false
       controller.abort()
     }
-  }, [type, productId, categoryId, categorySlug, limit, initialProductsIdsStr, excludeIdsStr, cartItemsCount, cartCategorySlugs])
+  }, [
+    type, 
+    productId, 
+    categoryId, 
+    categorySlug, 
+    limit, 
+    initialProductsIdsStr, 
+    excludeIdsStr, 
+    cartItemsCount, 
+    cartHash, 
+    cartCategorySlugs
+  ])
 
-  // Helper to get default title if none provided
+  // Contextual header title generator
   const getDefaultTitle = () => {
     if (title) return title
     let targetType = type
@@ -347,20 +461,29 @@ export default function SuggestedProducts({
       if (productId) targetType = 'related'
       else if (cartItemsCount > 0) targetType = 'frequently-bought'
       else {
-        const viewedIds = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
-        targetType = viewedIds.length > 0 ? 'recently-viewed' : 'trending'
+        try {
+          const viewedIds = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
+          targetType = viewedIds.length > 0 ? 'recently-viewed' : 'trending'
+        } catch {
+          targetType = 'trending'
+        }
       }
     }
 
     switch (targetType) {
-      case 'related': return 'Related Products'
-      case 'frequently-bought': return 'Frequently Bought Together'
-      case 'recently-viewed': return 'Recently Viewed Items'
-      case 'trending': return 'Trending Right Now'
-      case 'bestsellers': return 'Our Bestsellers'
+      case 'related': 
+        return 'You Might Also Like'
+      case 'frequently-bought': 
+        return cartItemsCount > 0 ? 'Pairs Well With Your Cart' : 'Frequently Bought Together'
+      case 'recently-viewed': 
+        return 'Recently Viewed Items'
+      case 'trending': 
+        return 'Trending Right Now'
+      case 'bestsellers': 
+        return 'Our Bestsellers'
       case 'featured':
       default:
-        return 'Suggested Products'
+        return 'Suggested For You'
     }
   }
 
