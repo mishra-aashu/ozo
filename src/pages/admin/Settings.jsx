@@ -37,27 +37,7 @@ import { useCartStore, adjustColorBrightness, applyDynamicTheme } from '../../st
 import { useLocationStore } from '../../stores/locationStore'
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
-
-const streetStyle = {
-  version: 8,
-  sources: {
-    'raster-tiles': {
-      type: 'raster',
-      tiles: ['https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png'],
-      tileSize: 256,
-      attribution: '&copy; OpenStreetMap contributors'
-    }
-  },
-  layers: [
-    {
-      id: 'simple-tiles',
-      type: 'raster',
-      source: 'raster-tiles',
-      minzoom: 0,
-      maxzoom: 19
-    }
-  ]
-}
+import { streetStyle } from '../../utils/mapStyles'
 
 const createGeoJSONCircle = (center, radiusInKm, points = 64) => {
   const [lng, lat] = center
