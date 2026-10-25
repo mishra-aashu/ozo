@@ -49,6 +49,7 @@ const formatCandidateProducts = (rawProducts = []) => {
 export default function SuggestedProducts({
   type = 'smart', // 'smart' | 'related' | 'frequently-bought' | 'recently-viewed' | 'trending' | 'bestsellers' | 'featured'
   productId = null, // Current product to exclude
+  currentProduct = null, // Pre-resolved product object to avoid re-fetching
   categoryId = null, // Specific category ID
   categorySlug = null, // Specific category slug
   excludeProductIds = [], // Array of product IDs to exclude
@@ -125,16 +126,16 @@ export default function SuggestedProducts({
         const excluded = new Set([productId, ...excludeProductIds, ...cartItemProductIds].filter(Boolean))
 
         // Contextual variables
-        let baseProduct = null
+        let baseProduct = currentProduct || null
 
         // -------------------------------------------------------------
         // BRANCH A: RELATED PRODUCTS (For ProductDetail page)
         // -------------------------------------------------------------
         if (targetType === 'related') {
-          let directCategoryId = categoryId
+          let directCategoryId = categoryId || currentProduct?.category_id
 
           // If base product info is not provided, fetch product & category metadata
-          if (productId) {
+          if (!baseProduct && productId) {
             const { data: baseProdData } = await supabase
               .from('products')
               .select(`
@@ -153,91 +154,35 @@ export default function SuggestedProducts({
 
           if (!isMounted) return
 
-          // Build hierarchical category collection:
-          // 1. Direct subcategory (e.g. rolled-oats)
-          // 2. Sibling subcategories under parent (e.g. breakfast-cereals, bakery-grains)
-          // 3. High-affinity complementary categories (e.g. milk, peanut-butter)
+          // Fast direct category products retrieval (single efficient query)
           const targetCategoryIds = new Set()
-          const siblingCategoryIds = new Set()
-          const complementaryCategoryIds = new Set()
-
           if (directCategoryId) {
             targetCategoryIds.add(directCategoryId)
-
-            // Resolve category record to inspect parent & slug
-            let catRecord = baseProduct?.category
-            if (!catRecord) {
-              const { data: catData } = await supabase
-                .from('categories')
-                .select('id, parent_id, slug')
-                .eq('id', directCategoryId)
-                .abortSignal(signal)
-                .maybeSingle()
-              catRecord = catData
-            }
-
-            if (catRecord) {
-              // Sibling resolution
-              const parentIdToSearch = catRecord.parent_id || catRecord.id
-              const { data: siblings } = await supabase
-                .from('categories')
-                .select('id')
-                .eq('parent_id', parentIdToSearch)
-                .eq('is_active', true)
-                .abortSignal(signal)
-
-              if (siblings && siblings.length > 0) {
-                siblings.forEach(s => {
-                  if (s.id !== directCategoryId) {
-                    siblingCategoryIds.add(s.id)
-                  }
-                })
-              }
-
-              // Complementary slug resolution
-              const compSlugs = resolveComplementarySlugs([catRecord.slug])
-              if (compSlugs.length > 0) {
-                const { data: compCats } = await supabase
-                  .from('categories')
-                  .select('id')
-                  .in('slug', compSlugs)
-                  .eq('is_active', true)
-                  .abortSignal(signal)
-
-                if (compCats && compCats.length > 0) {
-                  compCats.forEach(c => complementaryCategoryIds.add(c.id))
-                }
-              }
-            }
           }
 
-          // Combine all resolved category IDs for a single batched query
-          const allQueryCategoryIds = [
-            ...Array.from(targetCategoryIds),
-            ...Array.from(siblingCategoryIds),
-            ...Array.from(complementaryCategoryIds)
-          ]
+          const catRecord = baseProduct?.category
+          if (catRecord?.parent_id) {
+            targetCategoryIds.add(catRecord.parent_id)
+          }
+
+          const allQueryCategoryIds = Array.from(targetCategoryIds)
 
           if (allQueryCategoryIds.length > 0) {
             const { data: candidates, error } = await supabase
               .from('products')
               .select(PRODUCT_SELECT_FIELDS)
               .in('category_id', allQueryCategoryIds)
-              .limit(Math.max(limit * 5, 30))
+              .limit(Math.max(limit * 3, 15))
               .abortSignal(signal)
 
             if (!error && candidates) {
               const formatted = formatCandidateProducts(candidates).filter(p => !excluded.has(p.id))
 
-              // Score each candidate with hierarchical distance weighting
+              // Score each candidate with relevance weighting
               const scored = formatted.map(p => {
                 let score = scoreProductRelevance(p, { baseProduct, isCartContext: false })
-                if (targetCategoryIds.has(p.category_id)) {
+                if (p.category_id === directCategoryId) {
                   score += 60 // Exact same subcategory
-                } else if (siblingCategoryIds.has(p.category_id)) {
-                  score += 25 // Sibling category under same parent
-                } else if (complementaryCategoryIds.has(p.category_id)) {
-                  score += 15 // Complementary cross-sell
                 }
                 return { product: p, score }
               })
