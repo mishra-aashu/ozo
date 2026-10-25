@@ -256,7 +256,7 @@ function ProductCard({ product, variant = 'default', index }) {
             <span className="font-black text-sm">
               {Number(selectedProduct?.price) > 0 ? `₹${selectedProduct.price}` : 'On Request'}
             </span>
-            {Boolean(Number(selectedProduct?.price) > 0 && Number(selectedProduct?.mrp) > Number(selectedProduct?.price)) ? (
+            {Number(selectedProduct?.price) > 0 && Number(selectedProduct?.mrp) > Number(selectedProduct?.price) ? (
               <span className="text-xs text-ozo-gray line-through font-bold">₹{selectedProduct?.mrp ?? 0}</span>
             ) : null}
           </div>
@@ -372,7 +372,7 @@ function ProductCard({ product, variant = 'default', index }) {
             <span className="text-2xl font-black text-gray-900 dark:text-white">
               {Number(selectedProduct?.price) > 0 ? `₹${selectedProduct.price}` : 'On Request'}
             </span>
-            {Boolean(Number(selectedProduct?.price) > 0 && Number(selectedProduct?.mrp) > Number(selectedProduct?.price)) ? (
+            {Number(selectedProduct?.price) > 0 && Number(selectedProduct?.mrp) > Number(selectedProduct?.price) ? (
               <div className="flex flex-col">
                 <span className="text-xs text-ozo-gray line-through font-bold leading-none">₹{selectedProduct?.mrp ?? 0}</span>
                 <span className="text-[10px] text-ozo-green font-black uppercase tracking-wider">{discountPercentage}% OFF</span>
@@ -496,11 +496,9 @@ function ProductCard({ product, variant = 'default', index }) {
     >
       {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
       <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
-        {Boolean(
-          Number(selectedProduct?.price) > 0 &&
-          Number(selectedProduct?.mrp) > Number(selectedProduct?.price) &&
-          discountPercentage > 0
-        ) ? (
+        {Number(selectedProduct?.price) > 0 &&
+        Number(selectedProduct?.mrp) > Number(selectedProduct?.price) &&
+        discountPercentage > 0 ? (
           <span className="bg-gradient-to-r from-amber-400 to-yellow-300 dark:from-amber-500 dark:to-yellow-400 text-red-800 dark:text-red-950 font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-sm border border-amber-300/30 select-none uppercase tracking-wider">
             {discountPercentage}% OFF
           </span>
