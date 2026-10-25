@@ -254,11 +254,11 @@ function ProductCard({ product, variant = 'default', index }) {
           <p className="text-xs font-bold text-ozo-gray">{selectedProduct?.unit}</p>
           <div className="flex items-center gap-2 mt-1">
             <span className="font-black text-sm">
-              {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
+              {Number(selectedProduct?.price) > 0 ? `₹${selectedProduct.price}` : 'On Request'}
             </span>
-            {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
+            {Boolean(Number(selectedProduct?.price) > 0 && Number(selectedProduct?.mrp) > Number(selectedProduct?.price)) ? (
               <span className="text-xs text-ozo-gray line-through font-bold">₹{selectedProduct?.mrp ?? 0}</span>
-            )}
+            ) : null}
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -370,14 +370,14 @@ function ProductCard({ product, variant = 'default', index }) {
 
           <div className="flex items-center gap-3">
             <span className="text-2xl font-black text-gray-900 dark:text-white">
-              {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
+              {Number(selectedProduct?.price) > 0 ? `₹${selectedProduct.price}` : 'On Request'}
             </span>
-            {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
+            {Boolean(Number(selectedProduct?.price) > 0 && Number(selectedProduct?.mrp) > Number(selectedProduct?.price)) ? (
               <div className="flex flex-col">
                 <span className="text-xs text-ozo-gray line-through font-bold leading-none">₹{selectedProduct?.mrp ?? 0}</span>
                 <span className="text-[10px] text-ozo-green font-black uppercase tracking-wider">{discountPercentage}% OFF</span>
               </div>
-            )}
+            ) : null}
           </div>
         </div>
         <div className="flex flex-col items-end justify-between py-1">
@@ -496,11 +496,15 @@ function ProductCard({ product, variant = 'default', index }) {
     >
       {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
       <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
-        {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
+        {Boolean(
+          Number(selectedProduct?.price) > 0 &&
+          Number(selectedProduct?.mrp) > Number(selectedProduct?.price) &&
+          discountPercentage > 0
+        ) ? (
           <span className="bg-gradient-to-r from-amber-400 to-yellow-300 dark:from-amber-500 dark:to-yellow-400 text-red-800 dark:text-red-950 font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-sm border border-amber-300/30 select-none uppercase tracking-wider">
             {discountPercentage}% OFF
           </span>
-        )}
+        ) : null}
       </div>
 
       {/* Wishlist Button - Top Right */}
@@ -629,28 +633,36 @@ function ProductCard({ product, variant = 'default', index }) {
         )}
 
         {/* Price & Add Section */}
-        <div className="mt-auto pt-1.5 sm:pt-2 flex items-center justify-between gap-2 border-t border-gray-100 dark:border-white/[0.04]">
-          <div className="flex flex-col min-w-0">
-            <span className="font-black text-gray-900 dark:text-white text-[12px] sm:text-[14px] md:text-[15px] leading-tight">
-              {selectedProduct?.price ? `₹${selectedProduct.price}` : 'Price on Request'}
-            </span>
-            {selectedProduct?.price && selectedProduct?.mrp && selectedProduct.mrp > selectedProduct.price && (
-              <span className="text-gray-400 dark:text-gray-500 line-through leading-none mt-0.5 font-semibold text-[9px] sm:text-[10px] md:text-[11px]">
-                ₹{selectedProduct.mrp}
+        <div className="mt-auto pt-1.5 sm:pt-2 flex items-center justify-between gap-1.5 border-t border-gray-100 dark:border-white/[0.04]">
+          <div className="flex flex-col min-w-0 flex-1 mr-1">
+            {Number(selectedProduct?.price) > 0 ? (
+              <>
+                <span className="font-black text-gray-900 dark:text-white text-[12px] sm:text-[14px] md:text-[15px] leading-tight truncate">
+                  ₹{selectedProduct.price}
+                </span>
+                {Number(selectedProduct?.mrp) > Number(selectedProduct?.price) ? (
+                  <span className="text-gray-400 dark:text-gray-500 line-through leading-none mt-0.5 font-semibold text-[9px] sm:text-[10px] md:text-[11px]">
+                    ₹{selectedProduct.mrp}
+                  </span>
+                ) : null}
+              </>
+            ) : (
+              <span className="font-bold text-gray-400 dark:text-gray-500 text-[10px] sm:text-[11px] leading-tight truncate">
+                On Request
               </span>
             )}
           </div>
 
           {/* Add Button */}
-          <div className="w-[64px] sm:w-[72px] md:w-[84px] flex-shrink-0">
+          <div className="w-[58px] sm:w-[68px] md:w-[76px] flex-shrink-0">
             {quantity > 0 ? (
-              <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-xl py-1.5 px-1.5 sm:py-2 sm:px-2 shadow-md shadow-emerald-600/10">
+              <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-xl py-1 px-1 sm:py-1.5 sm:px-1.5 shadow-md shadow-emerald-600/10">
                 <button
                   onClick={handleDecrement}
                   aria-label="Decrease quantity"
                   className="p-1 hover:bg-white/10 rounded transition-colors active:scale-90"
                 >
-                  <Minus className="w-2 h-2 sm:w-3 sm:h-3 stroke-[3px] text-white" />
+                  <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3px] text-white" />
                 </button>
                 <span className="font-black text-[10px] sm:text-xs select-none text-white">{quantity}</span>
                 <button
@@ -658,7 +670,7 @@ function ProductCard({ product, variant = 'default', index }) {
                   aria-label="Increase quantity"
                   className="p-1 hover:bg-white/10 rounded transition-colors active:scale-95"
                 >
-                  <Plus className="w-2 h-2 sm:w-3 sm:h-3 stroke-[3px] text-white" />
+                  <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3px] text-white" />
                 </button>
               </div>
             ) : !selectedProduct?.is_available || isQtyOOS ? (
@@ -668,9 +680,9 @@ function ProductCard({ product, variant = 'default', index }) {
             ) : (
               <button
                 onClick={handleAddToCart}
-                disabled={!selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price}
+                disabled={!selectedProduct?.is_available || isQtyOOS || !Number(selectedProduct?.price)}
                 className={`w-full py-1.5 sm:py-2 rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
-                  !selectedProduct?.is_available || isQtyOOS || !selectedProduct?.price
+                  !selectedProduct?.is_available || isQtyOOS || !Number(selectedProduct?.price)
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
                     : 'bg-ozo-red hover:bg-ozo-red-dark text-white hover:shadow-lg hover:shadow-ozo-red/20 active:scale-95'
                 }`}

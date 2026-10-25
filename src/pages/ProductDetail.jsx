@@ -1181,7 +1181,7 @@ const ProductDetail = () => {
                         ? `₹${currentProduct.price * (cartQuantity > 0 ? cartQuantity : quantity)}` 
                         : 'Price on Request'}
                     </span>
-                    {currentProduct?.price && currentProduct?.mrp && currentProduct.mrp > currentProduct.price && (
+                    {Boolean(Number(currentProduct?.price) > 0 && Number(currentProduct?.mrp) > Number(currentProduct?.price)) ? (
                       <div className="flex items-center gap-2">
                         <span className="text-lg sm:text-xl text-ozo-gray line-through font-bold">
                           ₹{(currentProduct?.mrp || 0) * (cartQuantity > 0 ? cartQuantity : quantity)}
@@ -1192,7 +1192,7 @@ const ProductDetail = () => {
                           </span>
                         )}
                       </div>
-                    )}
+                    ) : null}
                   </div>
                 </div>
 
@@ -1733,9 +1733,9 @@ const ProductDetail = () => {
                     <span className="text-sm font-black text-ozo-red">
                       {currentProduct?.price ? `₹${currentProduct.price}` : 'Price on Request'}
                     </span>
-                    {currentProduct?.price && currentProduct?.mrp && currentProduct.mrp > currentProduct.price && (
+                    {Boolean(Number(currentProduct?.price) > 0 && Number(currentProduct?.mrp) > Number(currentProduct?.price)) ? (
                       <span className="text-xs text-ozo-gray line-through">₹{currentProduct?.mrp ?? 0}</span>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </div>
