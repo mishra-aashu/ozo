@@ -563,66 +563,85 @@ const ProductDetail = () => {
   // Track current loading session id to discard stale fetch results (e.g. from aborted requests in Strict Mode)
   const loadIdRef = useRef(0)
 
+  const effectiveCity = useMemo(() => {
+    return (city || activeCitySlug || '').toLowerCase() || null
+  }, [city, activeCitySlug])
+
   // Stable load function stored in ref so visibility handler can call it
-  const loadProduct = useCallback(async (productSlug) => {
+  const loadProduct = useCallback(async (productSlug, cityParam) => {
     const currentLoadId = ++loadIdRef.current
     setIsError(false)
-    setIsInitializing(true)
-    const result = await fetchProductBySlug(productSlug)
-    
-    // If a newer load has started, ignore this stale result entirely to prevent race conditions
-    if (currentLoadId !== loadIdRef.current) return
 
-    if (!result.success || !result.data) {
-      setIsError(true)
-      setIsInitializing(false)
-      return
+    // Check if store already holds this product so user sees 0ms skeleton
+    const currentStoreProd = useProductStore.getState().currentProduct
+    if (!currentStoreProd || currentStoreProd.slug !== productSlug) {
+      setIsInitializing(true)
     }
 
-    setActiveImage(result.data.image_url)
-    setImageBgColor(null)
-
-    // Track recently viewed product
     try {
-      const viewed = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
-      const filtered = viewed.filter(id => id !== result.data.id)
-      filtered.unshift(result.data.id)
-      localStorage.setItem('ozo_recently_viewed', JSON.stringify(filtered.slice(0, 10)))
-    } catch (e) {
-      console.error('Failed to track recently viewed:', e)
-    }
-
-    // Set initializing to false immediately so the product details display instantly!
-    setIsInitializing(false)
-
-    // Fetch all products from same category to find variants in the background (Non-Blocking)
-    fetchProducts({
-      categoryId: result.data.category_id,
-      includeUnavailable: true
-    }).then((related) => {
-      // Check if stale before updating state from related products call
+      const result = await fetchProductBySlug(productSlug, { citySlug: cityParam })
+      
+      // If a newer load has started, ignore this stale result entirely to prevent race conditions
       if (currentLoadId !== loadIdRef.current) return
 
-      if (related.success) {
-        const foundVariants = getProductVariants(result.data, related.data)
-        setVariants(foundVariants)
-
-        const variantIds = new Set(foundVariants.map(v => v.id))
-        const filteredRelated = related.data.filter(
-          p => p.id !== result.data.id && !variantIds.has(p.id)
-        )
-        setRelatedProducts(filteredRelated.slice(0, 5))
+      if (!result.success || !result.data) {
+        setIsError(true)
+        setIsInitializing(false)
+        return
       }
-    }).catch((err) => {
-      console.error('Background fetch of related products failed:', err)
-    })
+
+      setActiveImage(result.data.image_url)
+      setImageBgColor(null)
+
+      // Track recently viewed product
+      try {
+        const viewed = JSON.parse(localStorage.getItem('ozo_recently_viewed') || '[]')
+        const filtered = viewed.filter(id => id !== result.data.id)
+        filtered.unshift(result.data.id)
+        localStorage.setItem('ozo_recently_viewed', JSON.stringify(filtered.slice(0, 10)))
+      } catch (e) {
+        console.error('Failed to track recently viewed:', e)
+      }
+
+      // Set initializing to false immediately so the product details display instantly!
+      setIsInitializing(false)
+
+      // Defer variant search so main product paint has 100% CPU and network priority
+      setTimeout(() => {
+        if (currentLoadId !== loadIdRef.current) return
+        fetchProducts({
+          categoryId: result.data.category_id,
+          includeUnavailable: true
+        }).then((related) => {
+          if (currentLoadId !== loadIdRef.current) return
+          if (related.success) {
+            const foundVariants = getProductVariants(result.data, related.data)
+            setVariants(foundVariants)
+            const variantIds = new Set(foundVariants.map(v => v.id))
+            const filteredRelated = related.data.filter(
+              p => p.id !== result.data.id && !variantIds.has(p.id)
+            )
+            setRelatedProducts(filteredRelated.slice(0, 5))
+          }
+        }).catch((err) => {
+          console.error('Background fetch of related products failed:', err)
+        })
+      }, 600)
+    } catch (err) {
+      if (currentLoadId === loadIdRef.current) {
+        setIsError(true)
+        setIsInitializing(false)
+      }
+    }
   }, [fetchProductBySlug, fetchProducts])
 
   // Ref so visibility handler always sees the latest loadProduct + slug
   const loadProductRef = useRef(loadProduct)
   const slugRef = useRef(slug)
+  const effectiveCityRef = useRef(effectiveCity)
   useEffect(() => { loadProductRef.current = loadProduct }, [loadProduct])
   useEffect(() => { slugRef.current = slug }, [slug])
+  useEffect(() => { effectiveCityRef.current = effectiveCity }, [effectiveCity])
 
   // Synchronize URL parameters with location store and product category
   useEffect(() => {
@@ -684,15 +703,15 @@ const ProductDetail = () => {
     setSelectedCitySlug
   ])
 
-  // Primary load — fires when slug changes
+  // Primary load — fires only when slug or effectiveCity actually changes
   useEffect(() => {
-    loadProduct(slug)
+    loadProduct(slug, effectiveCity)
     window.scrollTo(0, 0)
     return () => {
       // Invalidate any in-flight loads on slug change or unmount
       loadIdRef.current++
     }
-  }, [slug, loadProduct, activeCitySlug])
+  }, [slug, effectiveCity, loadProduct])
 
   // Page Visibility API — when user returns from background (tab switch,
   // mobile app switch, screen lock) and product data is missing, re-fetch
@@ -839,7 +858,8 @@ const ProductDetail = () => {
     return generateProductMetaDescription(currentProduct.name, currentProduct.price, currentCityName)
   }, [currentProduct, currentCityName])
 
-  const isLoading = isInitializing || isProductDetailLoading
+  const isDataAvailable = currentProduct && currentProduct.slug === slug
+  const isLoading = !isDataAvailable && (isInitializing || isProductDetailLoading)
 
   return (
     <OzoLoadingGuard
@@ -1649,6 +1669,7 @@ const ProductDetail = () => {
 
         {/* Related Products Section */}
         <SuggestedProducts
+          currentProduct={currentProduct}
           productId={currentProduct?.id}
           categoryId={currentProduct?.category_id}
           excludeProductIds={variants.map(v => v.id)}
