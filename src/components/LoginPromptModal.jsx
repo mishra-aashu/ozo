@@ -3,17 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { 
   X, 
   Sparkles, 
-  Zap, 
   ShoppingBag, 
-  Truck, 
-  ShieldCheck, 
-  CheckCircle2, 
-  Loader2, 
-  ArrowRight 
+  Loader2 
 } from 'lucide-react'
 import { useLocation, Link } from 'react-router-dom'
 import { useAuthStore } from '../stores/authStore'
-import OzoLogo from './OzoLogo'
 import toast from 'react-hot-toast'
 
 export default function LoginPromptModal() {
@@ -118,14 +112,14 @@ export default function LoginPromptModal() {
               <X size={18} strokeWidth={2.5} />
             </button>
 
-            {/* LEFT COLUMN: OZO Brand Hero & Benefits (Flipkart Blue Banner equivalent) */}
+            {/* LEFT COLUMN: OZO Brand & Minimal Visual */}
             <div className="w-full md:w-[42%] bg-gradient-to-br from-ozo-red via-rose-600 to-rose-700 text-white p-6 sm:p-8 flex flex-col justify-between relative overflow-hidden shrink-0">
               {/* Background ambient lighting */}
               <div className="absolute top-0 right-0 w-44 h-44 bg-white/10 rounded-full blur-2xl pointer-events-none" />
               <div className="absolute -bottom-10 -left-10 w-48 h-48 bg-yellow-400/15 rounded-full blur-3xl pointer-events-none" />
 
-              <div className="relative z-10 space-y-4">
-                {/* Logo & Tag */}
+              <div className="relative z-10 space-y-3">
+                {/* Brand Tag */}
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md border border-white/20 text-[10px] font-black uppercase tracking-wider">
                   <Sparkles size={12} className="text-yellow-300" />
                   <span>Welcome to OZO</span>
@@ -133,64 +127,35 @@ export default function LoginPromptModal() {
 
                 <div className="space-y-1">
                   <h2 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-                    Login / Sign up
+                    Fast & Fresh
                   </h2>
-                  <p className="text-xs sm:text-sm text-white/90 font-medium leading-relaxed">
-                    Get access to your Orders, Wishlist and Express 30-min Delivery.
+                  <p className="text-xs sm:text-sm text-white/90 font-medium">
+                    Groceries delivered in 30 minutes.
                   </p>
-                </div>
-
-                {/* Benefits Bullet Points */}
-                <div className="space-y-2.5 pt-2 hidden sm:block">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-white/95">
-                    <div className="w-5 h-5 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                      <Zap size={11} className="text-yellow-300" />
-                    </div>
-                    <span>Superfast 30-min Express Delivery</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-semibold text-white/95">
-                    <div className="w-5 h-5 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                      <Truck size={11} className="text-white" />
-                    </div>
-                    <span>Live GPS Rider Order Tracking</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-xs font-semibold text-white/95">
-                    <div className="w-5 h-5 rounded-lg bg-white/15 flex items-center justify-center shrink-0">
-                      <ShieldCheck size={11} className="text-emerald-300" />
-                    </div>
-                    <span>100% Secure Instant Payments</span>
-                  </div>
                 </div>
               </div>
 
-              {/* Bottom Decorative Graphic (Laptop/Shopping cart illustration like Flipkart) */}
-              <div className="relative z-10 pt-6 mt-auto hidden md:flex items-center justify-center">
-                <div className="w-full bg-white/10 backdrop-blur-md rounded-2xl p-3.5 border border-white/15 flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white text-ozo-red flex items-center justify-center shadow-md shrink-0">
-                    <ShoppingBag size={20} className="stroke-[2.5]" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[11px] font-black uppercase tracking-wider text-yellow-300">
-                      Fresh Mart & Services
-                    </p>
-                    <p className="text-[10px] text-white/80 font-medium truncate">
-                      Groceries delivered at your doorstep
-                    </p>
-                  </div>
+              {/* Bottom Subtle Brand Feature */}
+              <div className="relative z-10 pt-6 mt-auto hidden md:flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-white/15 backdrop-blur-md text-white flex items-center justify-center border border-white/20 shadow-sm shrink-0">
+                  <ShoppingBag size={18} strokeWidth={2.5} />
                 </div>
+                <p className="text-xs font-bold text-white/90">
+                  Fresh Mart & Daily Essentials
+                </p>
               </div>
             </div>
 
             {/* RIGHT COLUMN: 1-Click Google Sign-in & Actions */}
             <div className="w-full md:w-[58%] p-6 sm:p-9 flex flex-col justify-between">
               <div className="space-y-6">
-                {/* Header */}
-                <div className="space-y-1.5 pr-6">
-                  <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white tracking-tight leading-snug">
-                    Log in for the best experience
+                {/* Header - Short & Crisp */}
+                <div className="space-y-1 pr-6">
+                  <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                    Log in to continue
                   </h3>
-                  <p className="text-xs sm:text-[13px] text-gray-500 dark:text-gray-400 font-medium leading-relaxed">
-                    Sign in with Google in 1 click to save addresses, track orders, and get personalized member offers.
+                  <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-medium">
+                    Quick 1-click access to your cart & orders.
                   </p>
                 </div>
 
@@ -242,7 +207,7 @@ export default function LoginPromptModal() {
                       onClick={handleClose}
                       className="text-xs font-bold text-gray-500 hover:text-ozo-red dark:text-gray-400 dark:hover:text-white transition-colors"
                     >
-                      Browse store first as Guest →
+                      Continue as Guest →
                     </button>
 
                     <Link
@@ -250,30 +215,18 @@ export default function LoginPromptModal() {
                       onClick={handleClose}
                       className="text-xs font-bold text-ozo-red hover:underline"
                     >
-                      Use Email / Password
+                      Use Email
                     </Link>
-                  </div>
-                </div>
-
-                {/* Perks Checklist */}
-                <div className="pt-2 pb-1 border-t border-gray-100 dark:border-white/5 space-y-2">
-                  <div className="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300">
-                    <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                    <span>Instant access — No password setup required</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-[11px] sm:text-xs font-bold text-gray-600 dark:text-gray-300">
-                    <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
-                    <span>Auto-saves your cart & delivery addresses</span>
                   </div>
                 </div>
               </div>
 
               {/* Legal Disclaimer */}
-              <div className="pt-4 mt-4 border-t border-gray-100 dark:border-white/5">
+              <div className="pt-4 mt-6 border-t border-gray-100 dark:border-white/5">
                 <p className="text-[10px] text-gray-400 dark:text-gray-500 font-medium text-center leading-relaxed">
                   By continuing, you agree to OZO's{' '}
                   <Link to="/terms" onClick={handleClose} className="text-ozo-red font-bold hover:underline">
-                    Terms of Use
+                    Terms
                   </Link>{' '}
                   and{' '}
                   <Link to="/privacy" onClick={handleClose} className="text-ozo-red font-bold hover:underline">
