@@ -530,8 +530,10 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
-  // Fetch single product by slug
+  // Fetch single product by slug (with Instant In-Memory / SWR Cache Hydration)
   fetchProductBySlug: async (slug, options = {}) => {
+    if (!slug) return { success: false, error: 'No slug provided' }
+
     if (fetchProductBySlugController) {
       fetchProductBySlugController.abort()
     }
@@ -539,10 +541,42 @@ export const useProductStore = create((set, get) => ({
     fetchProductBySlugController = controller
     const signal = options.signal || controller.signal
 
-    try {
-      set({ currentProduct: null, isProductDetailLoading: true, isLoading: true })
+    const citySlug = options.citySlug || getActiveCitySlug()
+    const cacheKey = `prod_${slug}_${citySlug || 'global'}`
 
-      const citySlug = getActiveCitySlug()
+    // 1. FAST PATH: Check memory store or SWR cache for instant 0ms render
+    const currentProd = get().currentProduct
+    let cachedProduct = null
+
+    if (currentProd && currentProd.slug === slug) {
+      cachedProduct = currentProd
+    } else {
+      const allKnownProducts = [
+        ...(get().products || []),
+        ...(get().featuredProducts || []),
+        ...(get().bestsellerProducts || [])
+      ]
+      const foundInMemory = allKnownProducts.find(p => p.slug === slug)
+      cachedProduct = foundInMemory || getCachedData(cacheKey) || getCachedData(`prod_${slug}`)
+    }
+
+    if (cachedProduct) {
+      // Hydrate instantly! User sees page in 0ms!
+      set({
+        currentProduct: cachedProduct,
+        isProductDetailLoading: false,
+        isLoading: false
+      })
+    } else {
+      // Only set loading if no cached version exists
+      set({
+        currentProduct: null,
+        isProductDetailLoading: true,
+        isLoading: true
+      })
+    }
+
+    try {
       let query = buildProductQuery(supabase, citySlug, `
         *,
         category:categories (
@@ -554,15 +588,7 @@ export const useProductStore = create((set, get) => ({
         )
       `, true)
       .eq('slug', slug)
-      
-      // Since buildProductQuery might query multiple rows if PCA has duplicates (though it shouldn't),
-      // we get the single item
-      if (citySlug) {
-        // PostgREST will wrap inner join items, we can call single() or just take the first item
-        query = query.single()
-      } else {
-        query = query.single()
-      }
+      .maybeSingle()
 
       query = query.abortSignal(signal)
       const { data, error } = await query
@@ -573,15 +599,32 @@ export const useProductStore = create((set, get) => ({
         return { success: false, error: new DOMException('Aborted', 'AbortError') }
       }
 
+      if (!data) {
+        set({
+          isProductDetailLoading: false,
+          isLoading: false
+        })
+        return { success: false, error: new Error('Product not found') }
+      }
+
       const formatted = formatProductsWithCity([data], citySlug, true, true)
       const product = formatted[0]
 
-      set({ 
-        currentProduct: product, 
-        isProductDetailLoading: false, 
-        isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isCategoriesLoading || get().isOffersLoading || get().isSearchLoading 
-      })
-      return { success: true, data: product }
+      if (product) {
+        setCachedData(cacheKey, product)
+        set({ 
+          currentProduct: product, 
+          isProductDetailLoading: false, 
+          isLoading: false 
+        })
+        return { success: true, data: product }
+      } else {
+        set({ 
+          isProductDetailLoading: false, 
+          isLoading: false 
+        })
+        return { success: false, error: new Error('Product format returned null') }
+      }
     } catch (error) {
       if (signal.aborted || error.name === 'AbortError') {
         return { success: false, error }
@@ -589,7 +632,7 @@ export const useProductStore = create((set, get) => ({
       console.error('Fetch product error:', error)
       set({ 
         isProductDetailLoading: false, 
-        isLoading: get().isProductsLoading || get().isFeaturedLoading || get().isBestsellersLoading || get().isCategoriesLoading || get().isOffersLoading || get().isSearchLoading 
+        isLoading: false 
       })
       return { success: false, error }
     }

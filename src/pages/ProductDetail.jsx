@@ -384,7 +384,10 @@ const ProductDetail = () => {
 
   useEffect(() => {
     if (currentProduct?.id) {
-      fetchReviews()
+      const timer = setTimeout(() => {
+        fetchReviews()
+      }, 700)
+      return () => clearTimeout(timer)
     }
   }, [currentProduct?.id])
 
