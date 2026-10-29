@@ -24,6 +24,32 @@
 }
 
 @layer base {
+  /* Smooth scrolling with high-performance text rendering and momentum touch physics */
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Honor user preference for reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    html:focus-within {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
   /* Remove tap highlight without destroying keyboard accessibility */
   *,
   *::before,
@@ -875,8 +901,13 @@ html, body, html[style], body[style] {
 }
 
 .product-card-animate {
-  animation: cardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  opacity: 0;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+}
+
+/* Off-screen layout skipping for long pages (Home, Products, etc.) */
+.content-visibility-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 0 450px;
 }
 
 /* =============================================

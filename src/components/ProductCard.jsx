@@ -25,6 +25,7 @@ import { useProductStore } from '../stores/productStore'
 import toast from 'react-hot-toast'
 import OptimizedImage from './OptimizedImage'
 import { promptOneSignalPush, oneSignalAddTag } from '../utils/onesignal'
+import { prefetchRoute } from '../utils/routePrefetch'
 
 function ProductCard({ product, variant = 'default', index }) {
   const navigate = useNavigate()
@@ -37,6 +38,18 @@ function ProductCard({ product, variant = 'default', index }) {
     hasVariants ? product?.variants[0] : product
   )
   const [isAdding, setIsAdding] = useState(false)
+
+  // Prefetch chunk, in-memory cache, and hero image on hover/touch
+  const handlePrefetch = () => {
+    prefetchRoute('/product')
+    if (selectedProduct) {
+      useProductStore.getState().prefetchProduct(selectedProduct)
+      if (selectedProduct.image_url) {
+        const img = new Image()
+        img.src = selectedProduct.image_url
+      }
+    }
+  }
 
   const { isAuthenticated, isAdmin } = useAuthStore()
   const addToCart = useCartStore(state => state.addToCart)
@@ -294,14 +307,22 @@ function ProductCard({ product, variant = 'default', index }) {
           ) {
             return
           }
-          navigate(productLink)
+          navigate(productLink, { state: { product: selectedProduct } })
         }}
+        onMouseEnter={handlePrefetch}
+        onTouchStart={handlePrefetch}
         style={{
           animationDelay: typeof index === 'number' ? `${Math.min(index * 0.035, 0.4)}s` : '0s'
         }}
-        className="product-card-animate flex gap-5 p-5 bg-white dark:bg-white/5 rounded-3xl shadow-premium hover:shadow-ozo-lg hover:-translate-y-2 border border-gray-200/90 dark:border-white/10 cursor-pointer transform-gpu will-change-transform transition-all duration-300"
+        className="product-card-animate flex gap-5 p-5 bg-white dark:bg-white/5 rounded-3xl shadow-premium hover:shadow-ozo-lg hover:-translate-y-2 border border-gray-200/90 dark:border-white/10 cursor-pointer transition-all duration-300"
       >
-        <Link to={productLink} className="flex-shrink-0 relative overflow-hidden rounded-2xl group/img">
+        <Link 
+          to={productLink} 
+          state={{ product: selectedProduct }}
+          onMouseEnter={handlePrefetch}
+          onTouchStart={handlePrefetch}
+          className="flex-shrink-0 relative overflow-hidden rounded-2xl group/img"
+        >
           <OptimizedImage
             src={selectedProduct.image_url}
             slug={selectedProduct.slug}
@@ -335,7 +356,12 @@ function ProductCard({ product, variant = 'default', index }) {
               {product.category.name}
             </span>
           )}
-          <Link to={productLink}>
+          <Link 
+            to={productLink} 
+            state={{ product: selectedProduct }}
+            onMouseEnter={handlePrefetch}
+            onTouchStart={handlePrefetch}
+          >
             <h3 className="font-black text-lg hover:text-ozo-red transition-colors line-clamp-1 mb-1 text-gray-800 dark:text-white break-words">
               {product.name}
             </h3>
@@ -487,12 +513,14 @@ function ProductCard({ product, variant = 'default', index }) {
         ) {
           return
         }
-        navigate(productLink)
+        navigate(productLink, { state: { product: selectedProduct } })
       }}
+      onMouseEnter={handlePrefetch}
+      onTouchStart={handlePrefetch}
       style={{
         animationDelay: typeof index === 'number' ? `${Math.min(index * 0.035, 0.4)}s` : '0s'
       }}
-      className="product-card product-card-animate relative group flex flex-col items-stretch gap-1.5 sm:gap-2.5 p-2 sm:p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg hover:-translate-y-2 transition-all duration-500 cursor-pointer transform-gpu will-change-transform w-full"
+      className="product-card product-card-animate relative group flex flex-col items-stretch gap-1.5 sm:gap-2.5 p-2 sm:p-3 bg-white dark:bg-[#0c0c0e] border border-gray-200/90 dark:border-white/10 rounded-xl sm:rounded-2xl overflow-hidden shadow-sm hover:shadow-ozo-lg hover:-translate-y-2 transition-all duration-300 cursor-pointer w-full"
     >
       {/* Badges (Discount, Featured, Bestseller) - Positioned nicely */}
       <div className="absolute top-1.5 left-1.5 z-10 flex flex-col gap-1 items-start">
@@ -547,6 +575,9 @@ function ProductCard({ product, variant = 'default', index }) {
       {/* Product Image (Top centered) */}
       <Link 
         to={productLink} 
+        state={{ product: selectedProduct }}
+        onMouseEnter={handlePrefetch}
+        onTouchStart={handlePrefetch}
         className="relative w-full h-24 xs:h-28 sm:h-36 md:h-40 flex-shrink-0 overflow-hidden bg-gray-50/50 dark:bg-white/[0.01] rounded-lg sm:rounded-xl border border-gray-100 dark:border-white/[0.02] flex items-center justify-center"
       >
         <OptimizedImage
@@ -595,7 +626,13 @@ function ProductCard({ product, variant = 'default', index }) {
         </div>
 
         {/* Product Name */}
-        <Link to={productLink} className="block mb-0.5 sm:mb-1 pr-1">
+        <Link 
+          to={productLink} 
+          state={{ product: selectedProduct }}
+          onMouseEnter={handlePrefetch}
+          onTouchStart={handlePrefetch}
+          className="block mb-0.5 sm:mb-1 pr-1"
+        >
           <h3 className="font-extrabold text-[11px] sm:text-[13px] md:text-[14px] line-clamp-2 leading-tight text-gray-800 dark:text-gray-100 group-hover:text-ozo-red transition-colors break-words">
             {product.name}
           </h3>

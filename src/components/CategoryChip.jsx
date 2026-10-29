@@ -1,6 +1,7 @@
 import { memo } from 'react'
 import { motion } from 'framer-motion'
 import { getOptimizedImageUrl } from '../utils/imageOptimizer'
+import { prefetchRoute } from '../utils/routePrefetch'
 import { 
   ChevronRight, 
   Apple, 
@@ -388,6 +389,8 @@ export const OzoCategoryGrid = memo(({ categories, products = [], onCategoryClic
             key={category?.id}
             whileHover={{ y: -4, scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
+            onMouseEnter={() => prefetchRoute('/category')}
+            onTouchStart={() => prefetchRoute('/category')}
             onClick={() => onCategoryClick?.(category)}
             className="flex flex-col items-center justify-start p-2 xs:p-3 sm:p-4 rounded-[1.75rem] sm:rounded-[2rem] border border-black/[0.05] dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] hover:bg-white dark:hover:bg-white/10 hover:border-ozo-red/20 dark:hover:border-ozo-red/30 transition-all duration-300 hover:shadow-premium group cursor-pointer w-full relative"
           >

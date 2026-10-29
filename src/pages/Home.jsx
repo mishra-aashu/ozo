@@ -1205,7 +1205,10 @@ const MartHome = () => {
     let direction = 1 // 1 = right, -1 = left
     let currentScroll = el.scrollLeft
     let lastTime = performance.now()
-    const speed = 0.05 // pixels per millisecond (approx 50px/sec, highly smooth and consistent)
+    const speed = 0.05 // pixels per millisecond
+    let isVisible = false
+    let isWindowScrolling = false
+    let scrollStopTimeout
 
     const handleInteractionStart = () => {
       isInteracting = true
@@ -1216,9 +1219,9 @@ const MartHome = () => {
       if (interactionTimeout) clearTimeout(interactionTimeout)
       interactionTimeout = setTimeout(() => {
         isInteracting = false
-        currentScroll = el.scrollLeft // Sync to actual scroll position on resume
-        lastTime = performance.now() // Reset timer accumulator
-      }, 3000) // Resume after 3s of inactivity
+        currentScroll = el.scrollLeft
+        lastTime = performance.now()
+      }, 3000)
     }
 
     const handleWheel = () => {
@@ -1226,6 +1229,30 @@ const MartHome = () => {
       handleInteractionEnd()
     }
 
+    const onWindowScroll = () => {
+      isWindowScrolling = true
+      clearTimeout(scrollStopTimeout)
+      scrollStopTimeout = setTimeout(() => {
+        isWindowScrolling = false
+        lastTime = performance.now()
+      }, 150)
+    }
+
+    // Only run layout animation when element is actually on screen
+    let observer
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting
+        if (isVisible) {
+          lastTime = performance.now()
+        }
+      }, { threshold: 0.05 })
+      observer.observe(el)
+    } else {
+      isVisible = true
+    }
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true })
     el.addEventListener('mouseenter', handleInteractionStart, { passive: true })
     el.addEventListener('mouseleave', handleInteractionEnd, { passive: true })
     el.addEventListener('touchstart', handleInteractionStart, { passive: true })
@@ -1235,13 +1262,12 @@ const MartHome = () => {
     el.addEventListener('wheel', handleWheel, { passive: true })
 
     const animate = (time) => {
-      const delta = time - lastTime
-      lastTime = time
+      // Pause completely if offscreen or when user is scrolling the main page
+      if (isVisible && !isWindowScrolling && !isInteracting && el.scrollWidth > el.clientWidth) {
+        const delta = time - lastTime
+        lastTime = time
+        const cappedDelta = Math.min(delta, 100)
 
-      // Clamp delta to prevent huge jumps (e.g. when tab is backgrounded)
-      const cappedDelta = Math.min(delta, 100)
-
-      if (!isInteracting && el.scrollWidth > el.clientWidth) {
         currentScroll += speed * cappedDelta * direction
         el.scrollLeft = Math.round(currentScroll)
 
@@ -1252,8 +1278,11 @@ const MartHome = () => {
           direction = 1
           currentScroll = el.scrollLeft
         }
-      } else if (isInteracting) {
-        currentScroll = el.scrollLeft // Keep internal state updated with user gestures
+      } else {
+        lastTime = time
+        if (isInteracting) {
+          currentScroll = el.scrollLeft
+        }
       }
       animationId = requestAnimationFrame(animate)
     }
@@ -1267,6 +1296,9 @@ const MartHome = () => {
       clearTimeout(initialTimeout)
       cancelAnimationFrame(animationId)
       if (interactionTimeout) clearTimeout(interactionTimeout)
+      if (scrollStopTimeout) clearTimeout(scrollStopTimeout)
+      if (observer) observer.disconnect()
+      window.removeEventListener('scroll', onWindowScroll)
       el.removeEventListener('mouseenter', handleInteractionStart)
       el.removeEventListener('mouseleave', handleInteractionEnd)
       el.removeEventListener('touchstart', handleInteractionStart)
@@ -1369,7 +1401,10 @@ const MartHome = () => {
     let direction = 1 // 1 = right, -1 = left
     let currentScroll = el.scrollLeft
     let lastTime = performance.now()
-    const speed = 0.05 // pixels per millisecond (approx 50px/sec, highly smooth and consistent)
+    const speed = 0.05 // pixels per millisecond
+    let isVisible = false
+    let isWindowScrolling = false
+    let scrollStopTimeout
 
     const handleInteractionStart = () => {
       isInteracting = true
@@ -1380,9 +1415,9 @@ const MartHome = () => {
       if (interactionTimeout) clearTimeout(interactionTimeout)
       interactionTimeout = setTimeout(() => {
         isInteracting = false
-        currentScroll = el.scrollLeft // Sync to actual scroll position on resume
-        lastTime = performance.now() // Reset timer accumulator
-      }, 3000) // Resume after 3s of inactivity
+        currentScroll = el.scrollLeft
+        lastTime = performance.now()
+      }, 3000)
     }
 
     const handleWheel = () => {
@@ -1390,6 +1425,29 @@ const MartHome = () => {
       handleInteractionEnd()
     }
 
+    const onWindowScroll = () => {
+      isWindowScrolling = true
+      clearTimeout(scrollStopTimeout)
+      scrollStopTimeout = setTimeout(() => {
+        isWindowScrolling = false
+        lastTime = performance.now()
+      }, 150)
+    }
+
+    let observer
+    if (typeof IntersectionObserver !== 'undefined') {
+      observer = new IntersectionObserver(([entry]) => {
+        isVisible = entry.isIntersecting
+        if (isVisible) {
+          lastTime = performance.now()
+        }
+      }, { threshold: 0.05 })
+      observer.observe(el)
+    } else {
+      isVisible = true
+    }
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true })
     el.addEventListener('mouseenter', handleInteractionStart, { passive: true })
     el.addEventListener('mouseleave', handleInteractionEnd, { passive: true })
     el.addEventListener('touchstart', handleInteractionStart, { passive: true })
@@ -1399,13 +1457,11 @@ const MartHome = () => {
     el.addEventListener('wheel', handleWheel, { passive: true })
 
     const animate = (time) => {
-      const delta = time - lastTime
-      lastTime = time
+      if (isVisible && !isWindowScrolling && !isInteracting && el.scrollWidth > el.clientWidth) {
+        const delta = time - lastTime
+        lastTime = time
+        const cappedDelta = Math.min(delta, 100)
 
-      // Clamp delta to prevent huge jumps (e.g. when tab is backgrounded)
-      const cappedDelta = Math.min(delta, 100)
-
-      if (!isInteracting && el.scrollWidth > el.clientWidth) {
         currentScroll += speed * cappedDelta * direction
         el.scrollLeft = Math.round(currentScroll)
 
@@ -1416,8 +1472,11 @@ const MartHome = () => {
           direction = 1
           currentScroll = el.scrollLeft
         }
-      } else if (isInteracting) {
-        currentScroll = el.scrollLeft // Keep internal state updated with user gestures
+      } else {
+        lastTime = time
+        if (isInteracting) {
+          currentScroll = el.scrollLeft
+        }
       }
       animationId = requestAnimationFrame(animate)
     }
@@ -1431,6 +1490,9 @@ const MartHome = () => {
       clearTimeout(initialTimeout)
       cancelAnimationFrame(animationId)
       if (interactionTimeout) clearTimeout(interactionTimeout)
+      if (scrollStopTimeout) clearTimeout(scrollStopTimeout)
+      if (observer) observer.disconnect()
+      window.removeEventListener('scroll', onWindowScroll)
       el.removeEventListener('mouseenter', handleInteractionStart)
       el.removeEventListener('mouseleave', handleInteractionEnd)
       el.removeEventListener('touchstart', handleInteractionStart)
@@ -2683,7 +2745,7 @@ const MartHome = () => {
       </section>
 
       {/* Bestseller Section */}
-      <section className="py-12 bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors border-t border-gray-100 dark:border-white/5">
+      <section className="py-12 bg-ozo-gray-bg dark:bg-[#0a0a0a] transition-colors border-t border-gray-100 dark:border-white/5 content-visibility-auto">
         <div className="container-custom">
           <div className="flex items-start justify-between gap-2 md:gap-4 mb-8">
             <div className="min-w-0 flex-1">
@@ -2712,7 +2774,7 @@ const MartHome = () => {
       </section>
 
       {/* Promo Banner Section */}
-      <section className="py-12">
+      <section className="py-12 content-visibility-auto">
         <div className="container-custom">
           <div className="relative rounded-3xl overflow-hidden bg-ozo-red/5 dark:bg-[#111111]/80 border border-ozo-red/10 dark:border-white/5 p-6 md:p-10 transition-colors duration-500">
             <div className="absolute top-0 right-0 w-1/2 h-full opacity-10 dark:opacity-20 pointer-events-none">
@@ -2745,7 +2807,7 @@ const MartHome = () => {
       </section>
 
       {/* Featured Section */}
-      <section className="py-12 bg-white dark:bg-[#0a0a0a] pb-24 transition-colors">
+      <section className="py-12 bg-white dark:bg-[#0a0a0a] pb-24 transition-colors content-visibility-auto">
         <div className="container-custom">
           <div className="flex items-start justify-between gap-2 md:gap-4 mb-6">
             <div className="min-w-0 flex-1">

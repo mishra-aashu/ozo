@@ -438,10 +438,18 @@ const CategoryProducts = () => {
   const groupedProducts = filteredAndSortedProducts
 
   useEffect(() => {
+    let ticking = false
     const handleScroll = () => {
-      const scrollY = productsContainerRef.current ? productsContainerRef.current.scrollTop : 0
-      const hasEnoughItems = filteredAndSortedProducts.length >= 6
-      setIsScrolled(scrollY > 40 && hasEnoughItems)
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          const scrollY = productsContainerRef.current ? productsContainerRef.current.scrollTop : 0
+          const hasEnoughItems = filteredAndSortedProducts.length >= 6
+          const next = scrollY > 40 && hasEnoughItems
+          setIsScrolled(prev => (prev === next ? prev : next))
+          ticking = false
+        })
+        ticking = true
+      }
     }
 
     const prodEl = productsContainerRef.current
@@ -602,7 +610,7 @@ const CategoryProducts = () => {
       initial="hidden"
       animate="visible"
       variants={pageVariants}
-      className={`flex flex-col bg-gradient-to-br ${pageBgGradient} dark:from-[#0a0a0a] dark:to-[#0a0a0a] transition-colors duration-300 will-change-[transform,opacity] transform-gpu h-screen h-[100dvh] overflow-hidden`}
+      className={`flex flex-col bg-gradient-to-br ${pageBgGradient} dark:from-[#0a0a0a] dark:to-[#0a0a0a] transition-colors duration-300 h-screen h-[100dvh] overflow-hidden`}
     >
       <SEO
         title={`Buy ${catName} Online - 10 Min Delivery in ${currentCityName} | OZO Mart`}
@@ -613,7 +621,7 @@ const CategoryProducts = () => {
       />
       <motion.div 
         variants={headerVariants}
-        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b transform-gpu will-change-[background-color,box-shadow,border-color] ${
+        className={`flex-shrink-0 sticky top-0 z-30 transition-all duration-300 border-b ${
           isScrolled 
             ? 'bg-white/95 dark:bg-[#0d0d0d]/95 backdrop-blur-md shadow-md border-ozo-gray-lighter/30 dark:border-white/5' 
             : 'bg-white/80 dark:bg-[#0d0d0d]/80 border-transparent'
@@ -656,7 +664,7 @@ const CategoryProducts = () => {
               {/* Desktop Filters Toggle Button when scrolled */}
               <button
                 onClick={() => setShowFiltersScrolled(!showFiltersScrolled)}
-                className={`hidden lg:flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs transition-all border transform-gpu will-change-transform ${
+                className={`hidden lg:flex items-center gap-1.5 px-3.5 py-2 rounded-xl font-bold text-xs transition-all border ${
                   showFiltersScrolled
                     ? 'bg-gradient-ozo text-white border-transparent shadow-sm scale-105'
                     : 'bg-white/50 dark:bg-white/5 text-gray-700 dark:text-gray-200 border-ozo-gray-lighter dark:border-white/10 hover:border-ozo-red/30'
@@ -1012,13 +1020,13 @@ const CategoryProducts = () => {
           {currentParentInfo && currentParentInfo.subcategories && currentParentInfo.subcategories.length > 0 && (
             <motion.div 
               variants={sidebarVariants}
-              className="lg:hidden w-[60px] xs:w-[70px] sm:w-[86px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full transform-gpu will-change-[transform,scroll-position]"
+              className="lg:hidden w-[60px] xs:w-[70px] sm:w-[86px] flex-shrink-0 overflow-y-auto no-scrollbar pt-1 pb-24 pr-0.5 border-r border-gray-100 dark:border-white/5 h-full overscroll-contain"
             >
               <div className="space-y-1.5">
                 {/* All parent button */}
                 <button
                   onClick={() => navigate(`/category/${currentParentInfo.slug}`)}
-                  className={`w-full relative flex flex-col items-center gap-1 p-1 rounded-xl text-center transition-all border duration-300 transform-gpu will-change-transform ${
+                  className={`w-full relative flex flex-col items-center gap-1 p-1 rounded-xl text-center transition-all border duration-300 ${
                     slug === currentParentInfo.slug
                       ? 'bg-white dark:bg-[#1a1a1a] border-ozo-red/20 dark:border-white/10 shadow-sm text-ozo-red dark:text-white font-extrabold scale-105'
                       : 'bg-transparent text-gray-700 dark:text-gray-400 border-transparent hover:bg-white/30 dark:hover:bg-white/5'
@@ -1276,7 +1284,7 @@ const CategoryProducts = () => {
           <motion.div 
             ref={productsContainerRef} 
             variants={contentVariants}
-            className="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar px-1 py-1 pb-24 lg:pb-8 transform-gpu will-change-[transform,scroll-position]"
+            className="flex-1 min-w-0 h-full overflow-y-auto custom-scrollbar px-1 py-1 pb-24 lg:pb-8 overscroll-contain"
           >
             {isListingSoon ? (
               <ComingSoonSection category={currentCategory} />
@@ -1323,7 +1331,7 @@ const CategoryProducts = () => {
                     variants={containerVariants}
                     initial="hidden"
                     animate="visible"
-                    className={`grid transform-gpu will-change-transform ${
+                    className={`grid ${
                       viewMode === 'grid'
                         ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4'
                         : 'grid-cols-1'

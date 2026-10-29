@@ -43,6 +43,7 @@ import VerticalDropdownHeader from './VerticalDropdownHeader'
 import toast from 'react-hot-toast'
 import UserAvatar from './UserAvatar'
 import OptimizedImage from './OptimizedImage'
+import { prefetchRoute } from '../utils/routePrefetch'
 
 const getSearchHistory = () => {
   try {
@@ -305,18 +306,17 @@ const Header = () => {
             return prev === next ? prev : next
           })
 
-          if (currentScrollY >= 0) {
-            if (currentScrollY <= 50) {
+          if (currentScrollY <= 80) {
+            setShowHeader(true)
+            lastScrollY.current = currentScrollY
+          } else {
+            const diff = currentScrollY - lastScrollY.current
+            if (diff > 15) {
+              setShowHeader(false)
+              lastScrollY.current = currentScrollY
+            } else if (diff < -15) {
               setShowHeader(true)
-            } else {
-              const diff = currentScrollY - lastScrollY.current
-              if (diff > 5) {
-                setShowHeader(false)
-                lastScrollY.current = currentScrollY
-              } else if (diff < -5) {
-                setShowHeader(true)
-                lastScrollY.current = currentScrollY
-              }
+              lastScrollY.current = currentScrollY
             }
           }
           ticking = false
@@ -328,16 +328,11 @@ const Header = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Update CSS variable for header height dynamically
+  // Measure and set CSS variable for header height once on mount/resize (never on scroll to prevent layout reflows)
   useEffect(() => {
     const headerElement = document.querySelector('.header')
     
     const updateHeaderHeight = () => {
-      if (!showHeader) {
-        document.documentElement.style.setProperty('--header-height', '0px')
-        return
-      }
-
       if (headerElement) {
         const rect = headerElement.getBoundingClientRect()
         if (rect && rect.height > 0) {
@@ -353,7 +348,7 @@ const Header = () => {
     }
 
     updateHeaderHeight()
-    window.addEventListener('resize', updateHeaderHeight)
+    window.addEventListener('resize', updateHeaderHeight, { passive: true })
     
     let resizeObserver
     if (headerElement && typeof ResizeObserver !== 'undefined') {
@@ -369,7 +364,7 @@ const Header = () => {
         resizeObserver.disconnect()
       }
     }
-  }, [showHeader])
+  }, [])
 
   // Handle search
   useEffect(() => {
@@ -477,8 +472,10 @@ const Header = () => {
       <header 
         className={`header ${isScrolled ? 'header-scrolled py-2' : 'py-3 md:py-4'}`}
         style={{
-          top: showHeader ? '0' : '-150px',
-          transition: 'top 0.3s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s, border-color 0.3s'
+          top: 0,
+          transform: showHeader ? 'translateY(0)' : 'translateY(-100%)',
+          transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s, border-color 0.25s, box-shadow 0.25s',
+          willChange: 'transform'
         }}
       >
         <div className="container-custom">

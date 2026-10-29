@@ -17,6 +17,7 @@ import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
 import { useServiceModeStore } from '../stores/serviceModeStore'
+import { prefetchRoute } from '../utils/routePrefetch'
 
 const getStatusText = (status) => {
   const s = status?.toUpperCase() || ''
@@ -302,6 +303,8 @@ const BottomNav = () => {
               <NavLink
                 key={item.path}
                 to={item.path}
+                onMouseEnter={() => prefetchRoute(item.path)}
+                onTouchStart={() => prefetchRoute(item.path)}
                 className={
                   `flex flex-col items-center justify-center py-2 px-3 outline-none transition-all duration-150 ${
                     active 
