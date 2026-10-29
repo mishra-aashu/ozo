@@ -4,6 +4,7 @@ import { useEffect, useState, lazy, Suspense } from 'react'
 import { syncFcmTokenWithDatabase, onMessageListener } from './firebase'
 import { supabase, authHelpers } from './lib/supabase'
 import { initOneSignal } from './utils/onesignal'
+import { initIdlePrefetch } from './utils/routePrefetch'
 import { useRef } from 'react'
 
 // Layouts
@@ -435,6 +436,7 @@ function App() {
     }
     init()
     initTheme()
+    initIdlePrefetch()
   }, [initializeAuth, initTheme])
 
   useEffect(() => {

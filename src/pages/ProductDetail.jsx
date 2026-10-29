@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { useShallow } from 'zustand/react/shallow'
-import { useParams, useNavigate, Link } from 'react-router-dom'
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom'
 import SEO from '../components/SEO'
 import Breadcrumb from '../components/Breadcrumb'
 import { resolveCityName, generateProductMetaTitle, generateProductMetaDescription, generateProductSchema, getFreeDeliveryText } from '../utils/seoHelpers'
@@ -198,6 +198,24 @@ const getProductHighlights = (product) => {
 const ProductDetail = () => {
   const { city, category, slug } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // 0ms Fast Hydration: Check navigation state or in-memory fastProductMap
+  const passedProduct = useMemo(() => {
+    const fromState = location.state?.product
+    if (fromState && fromState.slug === slug) return fromState
+    const fromCache = useProductStore.getState().getCachedProduct?.(slug)
+    if (fromCache && fromCache.slug === slug) return fromCache
+    const current = useProductStore.getState().currentProduct
+    if (current && current.slug === slug) return current
+    return null
+  }, [location.state?.product, slug])
+
+  // Immediately seed store on first render if product was already in state/cache
+  if (passedProduct && useProductStore.getState().currentProduct?.slug !== slug) {
+    useProductStore.setState({ currentProduct: passedProduct, isProductDetailLoading: false, isLoading: false })
+  }
+
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
   const browsingCitySlug = useLocationStore(state => state.browsingCitySlug)
   const activeCitySlug = browsingCitySlug || selectedCitySlug
@@ -265,7 +283,7 @@ const ProductDetail = () => {
   const fetchProducts = useProductStore(state => state.fetchProducts)
   const isProductDetailLoading = useProductStore(state => state.isProductDetailLoading)
   const [isError, setIsError] = useState(false)
-  const [isInitializing, setIsInitializing] = useState(true)
+  const [isInitializing, setIsInitializing] = useState(() => !passedProduct)
 
   const categorySlug = currentProduct?.category?.slug || 'item'
 
@@ -477,7 +495,7 @@ const ProductDetail = () => {
   )
 
   const [variants, setVariants] = useState([])
-  const [activeImage, setActiveImage] = useState(null)
+  const [activeImage, setActiveImage] = useState(() => (passedProduct?.slug === slug ? passedProduct.image_url : null))
   const [isDark, setIsDark] = useState(false)
   const [imageBgColor, setImageBgColor] = useState(null)
 
@@ -492,73 +510,17 @@ const ProductDetail = () => {
     return () => observer.disconnect()
   }, [])
 
-  // Callback to detect background color of product image on load
+  // Fast heuristic to detect background color of product image without canvas overhead
   const handleImageLoad = useCallback((e) => {
     const img = e.target
     if (!img) return
-
-    // If it's a data url, ignore
-    if (img.src && img.src.startsWith('data:')) return
-
-    try {
-      const canvas = document.createElement('canvas')
-      canvas.width = 10
-      canvas.height = 10
-      const ctx = canvas.getContext('2d')
-      if (!ctx) return
-
-      const tempImg = new Image()
-      tempImg.crossOrigin = 'anonymous'
-      tempImg.src = img.src
-      tempImg.onload = () => {
-        try {
-          ctx.drawImage(tempImg, 0, 0, 10, 10)
-          const corners = [
-            ctx.getImageData(0, 0, 1, 1).data,
-            ctx.getImageData(9, 0, 1, 1).data,
-            ctx.getImageData(0, 9, 1, 1).data,
-            ctx.getImageData(9, 9, 1, 1).data
-          ]
-
-          // Check if corners are white/off-white (opaque)
-          const isWhite = corners.every(c => c[0] > 240 && c[1] > 240 && c[2] > 240 && c[3] > 10)
-          if (isWhite) {
-            setImageBgColor('#ffffff')
-          } else {
-            const isTransparent = corners.every(c => c[3] < 30)
-            if (isTransparent) {
-              setImageBgColor('transparent')
-            } else {
-              let r = 0, g = 0, b = 0, a = 0
-              corners.forEach(c => {
-                r += c[0]; g += c[1]; b += c[2]; a += c[3]
-              })
-              r = Math.round(r / 4)
-              g = Math.round(g / 4)
-              b = Math.round(b / 4)
-              a = a / 4
-
-              if (a > 100) {
-                setImageBgColor(`rgb(${r}, ${g}, ${b})`)
-              } else {
-                setImageBgColor('transparent')
-              }
-            }
-          }
-        } catch (err) {
-          // Fallback
-        }
-      }
-      tempImg.onerror = () => {
-        const isProduct = img.src?.includes('ibb.co') || img.src?.includes('freeimage') || img.src?.includes('imagekit')
-        if (isProduct) {
-          setImageBgColor('#ffffff')
-        }
-      }
-    } catch (err) {
-      // Swallowed
-    }
-  }, [])
+    const isProduct =
+      img.src?.includes('ibb.co') ||
+      img.src?.includes('freeimage') ||
+      img.src?.includes('imagekit') ||
+      slug
+    setImageBgColor(isProduct ? '#ffffff' : 'transparent')
+  }, [slug])
 
   // Track current loading session id to discard stale fetch results (e.g. from aborted requests in Strict Mode)
   const loadIdRef = useRef(0)
@@ -572,14 +534,20 @@ const ProductDetail = () => {
     const currentLoadId = ++loadIdRef.current
     setIsError(false)
 
-    // Check if store already holds this product so user sees 0ms skeleton
+    // Check if store or state already holds this product so user sees 0ms skeleton
     const currentStoreProd = useProductStore.getState().currentProduct
-    if (!currentStoreProd || currentStoreProd.slug !== productSlug) {
+    const hasData = (currentStoreProd && currentStoreProd.slug === productSlug) || (passedProduct && passedProduct.slug === productSlug)
+    if (!hasData) {
       setIsInitializing(true)
+    } else {
+      setIsInitializing(false)
     }
 
     try {
-      const result = await fetchProductBySlug(productSlug, { citySlug: cityParam })
+      const result = await fetchProductBySlug(productSlug, { 
+        citySlug: cityParam,
+        initialProduct: passedProduct?.slug === productSlug ? passedProduct : currentStoreProd
+      })
       
       // If a newer load has started, ignore this stale result entirely to prevent race conditions
       if (currentLoadId !== loadIdRef.current) return

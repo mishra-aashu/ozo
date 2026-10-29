@@ -19,6 +19,19 @@ let getProductsByCategoryController = null
 export const searchCache = new Map()
 const SEARCH_CACHE_TTL = 3 * 60 * 1000
 
+// Global fast in-memory map for 0ms instant product hydration across pages
+export const fastProductMap = new Map()
+
+export const cacheProductInMemory = (product) => {
+  if (!product) return
+  if (product.slug) {
+    fastProductMap.set(product.slug, product)
+  }
+  if (product.id) {
+    fastProductMap.set(product.id, product)
+  }
+}
+
 // Helper to construct product query with city filters and overrides
 const buildProductQuery = (supabaseClient, citySlug, fields = 'id, name, slug, brand, image_url, price, mrp, ozo_price, unit, is_available, is_upcoming, quantity_available, max_order_qty, is_vegetarian, is_featured, is_bestseller, category_id', includeUnavailable = true) => {
   if (citySlug) {
@@ -124,13 +137,24 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
     }
   }).filter(Boolean)
 
-  return formatted.sort((a, b) => {
+  const sorted = formatted.sort((a, b) => {
     const aOOS = !a.is_available || a.quantity_available === 0;
     const bOOS = !b.is_available || b.quantity_available === 0;
     if (aOOS && !bOOS) return 1;
     if (!aOOS && bOOS) return -1;
     return 0;
   });
+
+  // Automatically index formatted products for instant 0ms product detail transitions
+  for (let i = 0; i < sorted.length; i++) {
+    const p = sorted[i];
+    if (p && p.slug) {
+      fastProductMap.set(p.slug, p);
+      if (p.id) fastProductMap.set(p.id, p);
+    }
+  }
+
+  return sorted;
 }
 
 const ensureNumericPrices = (product) => {
@@ -530,6 +554,19 @@ export const useProductStore = create((set, get) => ({
     }
   },
 
+  // Prefetch a product into in-memory fastProductMap
+  prefetchProduct: (product) => {
+    if (product) {
+      cacheProductInMemory(product)
+    }
+  },
+
+  // Synchronously get cached product by slug or id
+  getCachedProduct: (slugOrId) => {
+    if (!slugOrId) return null
+    return fastProductMap.get(slugOrId) || null
+  },
+
   // Fetch single product by slug (with Instant In-Memory / SWR Cache Hydration)
   fetchProductBySlug: async (slug, options = {}) => {
     if (!slug) return { success: false, error: 'No slug provided' }
@@ -544,24 +581,32 @@ export const useProductStore = create((set, get) => ({
     const citySlug = options.citySlug || getActiveCitySlug()
     const cacheKey = `prod_${slug}_${citySlug || 'global'}`
 
-    // 1. FAST PATH: Check memory store or SWR cache for instant 0ms render
+    // 1. FAST PATH: Check options.initialProduct, fast in-memory map, memory store or SWR cache for instant 0ms render
     const currentProd = get().currentProduct
-    let cachedProduct = null
+    let cachedProduct = options.initialProduct || null
 
-    if (currentProd && currentProd.slug === slug) {
-      cachedProduct = currentProd
-    } else {
-      const allKnownProducts = [
-        ...(get().products || []),
-        ...(get().featuredProducts || []),
-        ...(get().bestsellerProducts || [])
-      ]
-      const foundInMemory = allKnownProducts.find(p => p.slug === slug)
-      cachedProduct = foundInMemory || getCachedData(cacheKey) || getCachedData(`prod_${slug}`)
+    if (!cachedProduct) {
+      if (currentProd && currentProd.slug === slug) {
+        cachedProduct = currentProd
+      } else if (fastProductMap.has(slug)) {
+        cachedProduct = fastProductMap.get(slug)
+      } else {
+        const allKnownProducts = [
+          ...(get().products || []),
+          ...(get().featuredProducts || []),
+          ...(get().bestsellerProducts || []),
+          ...(get().summerSpecials || []),
+          ...(get().mandi || []),
+          ...(get().budgetPicks || [])
+        ]
+        const foundInMemory = allKnownProducts.find(p => p && p.slug === slug)
+        cachedProduct = foundInMemory || getCachedData(cacheKey) || getCachedData(`prod_${slug}`)
+      }
     }
 
     if (cachedProduct) {
       // Hydrate instantly! User sees page in 0ms!
+      cacheProductInMemory(cachedProduct)
       set({
         currentProduct: cachedProduct,
         isProductDetailLoading: false,
@@ -611,6 +656,7 @@ export const useProductStore = create((set, get) => ({
       const product = formatted[0]
 
       if (product) {
+        cacheProductInMemory(product)
         setCachedData(cacheKey, product)
         set({ 
           currentProduct: product, 
