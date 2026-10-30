@@ -1835,10 +1835,10 @@ const MartHome = () => {
           title="OZO Mart | Out of Service Zone"
           description="OZO Mart is currently not active in your area. We are expanding rapidly!"
         />
-        {/* Blurry background blobs */}
+        {/* Blurry background blobs with GPU compositing */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute -top-[10%] -left-[5%] w-[50%] h-[50%] bg-ozo-red/10 dark:bg-ozo-red/20 blur-[120px] rounded-full animate-float opacity-70" />
-          <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-rose-500/10 dark:bg-rose-500/15 blur-[100px] rounded-full animate-pulse-slow opacity-60" />
+          <div className="absolute -top-[10%] -left-[5%] w-[50%] h-[50%] bg-ozo-red/10 dark:bg-ozo-red/20 blur-[120px] rounded-full animate-float opacity-70 gpu-layer transform-gpu" />
+          <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-rose-500/10 dark:bg-rose-500/15 blur-[100px] rounded-full animate-pulse-slow opacity-60 gpu-layer transform-gpu" />
         </div>
 
         <div className="relative z-10 w-full max-w-[460px] sm:max-w-lg bg-gray-55/95 dark:bg-zinc-900/90 border border-gray-150 dark:border-zinc-800 rounded-[2rem] p-4 xs:p-5 sm:p-6 shadow-premium backdrop-blur-md text-center">
@@ -1933,10 +1933,10 @@ const MartHome = () => {
           {/* Main Hero Gradients */}
           <div className="absolute inset-0 bg-gradient-hero dark:bg-gradient-hero-dark opacity-100 transition-colors duration-500" />
           
-          {/* Dynamic Blurry Blobs */}
-          <div className="absolute -top-[10%] -left-[5%] w-[50%] h-[50%] bg-ozo-red/10 dark:bg-ozo-red/20 blur-[120px] rounded-full animate-float opacity-70" />
-          <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-ozo-green/10 dark:bg-ozo-green/15 blur-[100px] rounded-full animate-pulse-slow opacity-60" />
-          <div className="absolute -bottom-[15%] left-[20%] w-[55%] h-[55%] bg-indigo-500/10 dark:bg-indigo-500/15 blur-[140px] rounded-full animate-float opacity-50" style={{ animationDelay: '2s' }} />
+          {/* Dynamic Blurry Blobs with GPU Compositing */}
+          <div className="absolute -top-[10%] -left-[5%] w-[50%] h-[50%] bg-ozo-red/10 dark:bg-ozo-red/20 blur-[120px] rounded-full animate-float opacity-70 gpu-layer transform-gpu" />
+          <div className="absolute top-[20%] -right-[10%] w-[45%] h-[45%] bg-ozo-green/10 dark:bg-ozo-green/15 blur-[100px] rounded-full animate-pulse-slow opacity-60 gpu-layer transform-gpu" />
+          <div className="absolute -bottom-[15%] left-[20%] w-[55%] h-[55%] bg-indigo-500/10 dark:bg-indigo-500/15 blur-[140px] rounded-full animate-float opacity-50 gpu-layer transform-gpu" style={{ animationDelay: '2s' }} />
           
           {/* Texture Overlay */}
           <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />

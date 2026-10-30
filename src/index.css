@@ -223,8 +223,47 @@ svg {
 #root {
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
+  /* Stacking context isolation without breaking position: fixed for viewport elements (Header, BottomNav, Modals) */
+  isolation: isolate;
+  /* Layout containment optimization to prevent root layout thrashing */
+  contain: layout style;
+  /* Modern horizontal clip to prevent horizontal scrollbars without creating a secondary scroll container */
+  overflow-x: clip;
+}
+
+/* =============================================
+   HARDWARE ACCELERATION & GPU COMPOSITING
+   ============================================= */
+
+/* Force independent GPU compositor layer promotion (3D rendering pipeline) */
+.gpu-layer,
+.gpu-accelerated {
+  transform: translate3d(0, 0, 0);
+  -webkit-transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  perspective: 1000px;
+  -webkit-perspective: 1000px;
+}
+
+/* GPU promotion specifically for moving/animated surfaces */
+.gpu-transform {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Hardware accelerated momentum smooth scrolling container */
+.gpu-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  transform: translateZ(0);
 }
 
 body {
