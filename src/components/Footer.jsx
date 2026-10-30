@@ -27,7 +27,9 @@ const Footer = () => {
   const freeAbove = deliveryConfig?.free_above ?? 99
   const [newsletterEmail, setNewsletterEmail] = useState('')
   const currentMode = useServiceModeStore(state => state.currentMode)
-  const isServices = currentMode === 'services'
+  const servicesConfig = useCartStore(state => state.servicesConfig)
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
+  const isServices = isServicesEnabled && currentMode === 'services'
 
   const handleSubscribe = (e) => {
     e.preventDefault()

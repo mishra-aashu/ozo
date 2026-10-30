@@ -25,6 +25,7 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useServiceModeStore } from '../stores/serviceModeStore'
+import { useCartStore } from '../stores/cartStore'
 import { useShallow } from 'zustand/react/shallow'
 import { useNavigate, Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
@@ -46,7 +47,9 @@ const PRESET_AVATARS = [
 const Profile = () => {
   const { t } = useTranslation()
   const { currentMode, setMode } = useServiceModeStore()
-  const isServices = currentMode === 'services'
+  const servicesConfig = useCartStore(state => state.servicesConfig)
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
+  const isServices = isServicesEnabled && currentMode === 'services'
 
   const { user, profile, signOut, updateProfile, isAdmin } = useAuthStore(useShallow(state => ({
     user: state.user,
@@ -124,13 +127,15 @@ const Profile = () => {
       color: isServices ? 'text-sky-500' : 'text-blue-500',
       bgColor: isServices ? 'bg-sky-50 dark:bg-sky-500/10' : 'bg-blue-50 dark:bg-blue-500/10',
     },
-    {
-      label: isServices ? t('myOrders') : 'My Service Bookings',
-      icon: isServices ? Package : Wrench,
-      to: isServices ? '/orders' : '/services/my-bookings',
-      color: isServices ? 'text-blue-500' : 'text-sky-500',
-      bgColor: isServices ? 'bg-blue-50 dark:bg-blue-500/10' : 'bg-sky-50 dark:bg-sky-500/10',
-    },
+    ...(isServicesEnabled ? [
+      {
+        label: isServices ? t('myOrders') : 'My Service Bookings',
+        icon: isServices ? Package : Wrench,
+        to: isServices ? '/orders' : '/services/my-bookings',
+        color: isServices ? 'text-blue-500' : 'text-sky-500',
+        bgColor: isServices ? 'bg-blue-50 dark:bg-blue-500/10' : 'bg-sky-50 dark:bg-sky-500/10',
+      }
+    ] : []),
     { label: 'Refer & Earn', icon: Gift, to: '/referral', color: 'text-yellow-500', bgColor: 'bg-yellow-50 dark:bg-yellow-500/10' },
     { label: t('wishlist'), icon: Heart, to: '/wishlist', color: 'text-pink-500', bgColor: 'bg-pink-50 dark:bg-pink-500/10' },
     { label: t('savedAddresses'), icon: MapPin, to: '/profile/addresses', color: 'text-ozo-green', bgColor: 'bg-green-50 dark:bg-ozo-green/10' },
@@ -264,30 +269,32 @@ const Profile = () => {
             )}
 
             {/* Vertical Mode Quick Switcher Card */}
-            <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[2.5rem] p-6 border border-white/10 shadow-lg text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">Active Vertical Mode</span>
-                <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
-                  {isServices ? 'OZO Services (Doorstep Local Experts)' : 'OZO Mart (Grocery & Essentials)'}
-                </h3>
-                <p className="text-xs text-gray-400 mt-1">
-                  {isServices ? 'Browse Plumbers, Electricians & AC Repair Technicians' : 'Order Grocery, Fresh Vegetables & Daily Produce'}
-                </p>
+            {isServicesEnabled && (
+              <div className="bg-gradient-to-r from-gray-900 to-gray-800 rounded-[2.5rem] p-6 border border-white/10 shadow-lg text-left flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-sky-400">Active Vertical Mode</span>
+                  <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
+                    {isServices ? 'OZO Services (Doorstep Local Experts)' : 'OZO Mart (Grocery & Essentials)'}
+                  </h3>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {isServices ? 'Browse Plumbers, Electricians & AC Repair Technicians' : 'Order Grocery, Fresh Vegetables & Daily Produce'}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextMode = isServices ? 'mart' : 'services'
+                    setMode(nextMode)
+                    toast.success(`Switched to ${nextMode === 'mart' ? 'OZO Mart' : 'OZO Services'}`)
+                  }}
+                  className={`px-5 py-2.5 rounded-2xl text-xs font-black shadow-md transition-all hover:scale-105 active:scale-95 flex-shrink-0 ${
+                    isServices ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white'
+                  }`}
+                >
+                  Switch to {isServices ? 'OZO Mart' : 'OZO Services'} &rarr;
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  const nextMode = isServices ? 'mart' : 'services'
-                  setMode(nextMode)
-                  toast.success(`Switched to ${nextMode === 'mart' ? 'OZO Mart' : 'OZO Services'}`)
-                }}
-                className={`px-5 py-2.5 rounded-2xl text-xs font-black shadow-md transition-all hover:scale-105 active:scale-95 flex-shrink-0 ${
-                  isServices ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white' : 'bg-gradient-to-r from-sky-500 to-blue-600 text-white'
-                }`}
-              >
-                Switch to {isServices ? 'OZO Mart' : 'OZO Services'} &rarr;
-              </button>
-            </div>
+            )}
 
             {/* Account Dashboard Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
