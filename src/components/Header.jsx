@@ -129,7 +129,9 @@ const Header = () => {
 
   const location = useLocation()
   const navigate = useNavigate()
-  const isServicesMode = currentMode === 'services' || location.pathname.startsWith('/services')
+  const servicesConfig = useCartStore(state => state.servicesConfig)
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
+  const isServicesMode = isServicesEnabled && (currentMode === 'services' || location.pathname.startsWith('/services'))
 
   // Sync search query in header with URL parameter 'q' when on the search page
   useEffect(() => {
@@ -944,9 +946,11 @@ const Header = () => {
           {/* Toggle Switch & Location Selector (Mobile / Tablet - Second & Third Rows) */}
           <div className="mt-2.5 lg:hidden space-y-2">
             {/* Row 2: Mart vs Services Segmented Toggle Switch */}
-            <div className="w-full">
-              <VerticalDropdownHeader fullWidth showLogo={false} />
-            </div>
+            {isServicesEnabled && (
+              <div className="w-full">
+                <VerticalDropdownHeader fullWidth showLogo={false} />
+              </div>
+            )}
 
             {/* Row 3: Delivery Location Selector */}
             <button 

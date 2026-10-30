@@ -38,8 +38,10 @@ const BottomNav = () => {
   const activeOrder = useOrderStore(state => state.activeOrder)
   const fetchActiveOrder = useOrderStore(state => state.fetchActiveOrder)
   const currentMode = useServiceModeStore(state => state.currentMode)
+  const servicesConfig = useCartStore(state => state.servicesConfig)
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
 
-  const isServices = currentMode === 'services'
+  const isServices = isServicesEnabled && currentMode === 'services'
 
   useEffect(() => {
     if (isAuthenticated) {
