@@ -42,6 +42,7 @@ import {
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
 import { useAdminIndicatorStore } from '../stores/adminIndicatorStore'
+import { useCartStore } from '../stores/cartStore'
 import toast from 'react-hot-toast'
 import UserAvatar from '../components/UserAvatar'
 import AdminLockScreen from '../components/AdminLockScreen'
@@ -53,8 +54,13 @@ const AdminLayout = () => {
   const { user, profile, signOut } = useAuthStore()
   const { theme, toggleTheme } = useThemeStore()
   const { badges, todayStats, startSubscribing, stopSubscribing, markAsSeen } = useAdminIndicatorStore()
+  const servicesConfig = useCartStore(state => state.servicesConfig)
   const navigate = useNavigate()
   const location = useLocation()
+
+  useEffect(() => {
+    useCartStore.getState().fetchSettings().catch(() => {})
+  }, [])
 
   const isSuperAdmin = profile?.isSuperAdmin
   const isCityManager = profile?.isCityManager
@@ -135,13 +141,15 @@ const AdminLayout = () => {
           color: 'text-rose-500 dark:text-[#FF4A70]',
           bgColor: 'bg-rose-100 dark:bg-rose-950/30',
         },
-        {
-          icon: Wrench,
-          label: 'Services Manager',
-          path: '/admin/services',
-          color: 'text-sky-500 dark:text-sky-400',
-          bgColor: 'bg-sky-100 dark:bg-sky-950/30',
-        },
+        ...(servicesConfig?.show_in_admin !== false ? [
+          {
+            icon: Wrench,
+            label: 'Services Manager',
+            path: '/admin/services',
+            color: 'text-sky-500 dark:text-sky-400',
+            bgColor: 'bg-sky-100 dark:bg-sky-950/30',
+          }
+        ] : []),
       ]
     },
     {

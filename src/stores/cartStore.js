@@ -175,6 +175,7 @@ export const useCartStore = create(
       geofenceConfig: GEOFENCE_DEFAULTS,
       mapConfig: { hide_map: false, hide_mart_pickup: false, hide_map_links: false },
       launchConfig: { launch_mode_enabled: true, show_out_of_stock_btn: true, show_listing_soon_btn: true, show_mandi_section: true, show_budget_section: true },
+      servicesConfig: { enabled: true, show_in_admin: true, show_in_app: true },
       paymentConfig: { cashfree_enabled: true, cod_enabled: true, razorpay_enabled: false },
       serviceHoursConfig: {
         enabled: true,
@@ -299,6 +300,7 @@ export const useCartStore = create(
               if (item.key === 'geofence_config') updates.geofenceConfig = { ...GEOFENCE_DEFAULTS, ...item.value }
               if (item.key === 'map_config') updates.mapConfig = item.value
               if (item.key === 'launch_config') updates.launchConfig = item.value
+              if (item.key === 'services_config') updates.servicesConfig = { enabled: true, show_in_admin: true, show_in_app: true, ...item.value }
               if (item.key === 'payment_config') updates.paymentConfig = { cashfree_enabled: true, cod_enabled: true, razorpay_enabled: false, ...item.value }
               if (item.key === 'service_hours_config') updates.serviceHoursConfig = item.value
               if (item.key === 'theme_config') updates.themeConfig = item.value
