@@ -24,30 +24,15 @@
 }
 
 @layer base {
-  /* Smooth scrolling with high-performance text rendering and momentum touch physics */
+  /* High-performance text rendering and momentum touch physics */
   html {
-    scroll-behavior: smooth;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
   }
 
-  /* Honor user preference for reduced motion */
-  @media (prefers-reduced-motion: reduce) {
-    html:focus-within {
-      scroll-behavior: auto;
-    }
-    *, *::before, *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
-    }
-  }
-
   body {
     -webkit-overflow-scrolling: touch;
-    overscroll-behavior-y: contain;
   }
 
   /* Remove tap highlight without destroying keyboard accessibility */
@@ -223,15 +208,7 @@ svg {
 #root {
   width: 100%;
   max-width: 100%;
-  min-height: 100vh;
-  min-height: 100dvh;
   position: relative;
-  /* Stacking context isolation without breaking position: fixed for viewport elements (Header, BottomNav, Modals) */
-  isolation: isolate;
-  /* Layout containment optimization to prevent root layout thrashing */
-  contain: layout style;
-  /* Modern horizontal clip to prevent horizontal scrollbars without creating a secondary scroll container */
-  overflow-x: clip;
 }
 
 /* =============================================
