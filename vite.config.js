@@ -22,25 +22,46 @@ const localApiPlugin = () => ({
       } else if (pathname === '/sitemap-static.xml' || pathname === '/sitemap-static' || pathname === '/api/sitemap-static' || pathname === '/api/sitemap-static.xml') {
         pathname = '/api/sitemap-static';
         query.type = 'static';
+      } else if (pathname === '/sitemap-categories.xml' || pathname === '/sitemap-categories' || pathname === '/api/sitemap-categories' || pathname === '/api/sitemap-categories.xml') {
+        pathname = '/api/sitemap-categories';
+        query.type = 'categories';
       } else if (pathname.startsWith('/sitemap-') && pathname.endsWith('.xml')) {
-        const city = pathname.slice('/sitemap-'.length, -'.xml'.length);
-        if (city === 'static') {
+        const raw = pathname.slice('/sitemap-'.length, -'.xml'.length);
+        if (raw === 'static') {
           pathname = '/api/sitemap-static';
           query.type = 'static';
+        } else if (raw === 'categories') {
+          pathname = '/api/sitemap-categories';
+          query.type = 'categories';
         } else {
           pathname = '/api/sitemap';
           query.type = 'city';
-          query.city = city;
+          const chunkMatch = raw.match(/^(.+)-(\d+)$/);
+          if (chunkMatch) {
+            query.city = chunkMatch[1];
+            query.chunk = chunkMatch[2];
+          } else {
+            query.city = raw;
+          }
         }
       } else if (pathname.startsWith('/api/sitemap-') && pathname.endsWith('.xml')) {
-        const city = pathname.slice('/api/sitemap-'.length, -'.xml'.length);
-        if (city === 'static') {
+        const raw = pathname.slice('/api/sitemap-'.length, -'.xml'.length);
+        if (raw === 'static') {
           pathname = '/api/sitemap-static';
           query.type = 'static';
+        } else if (raw === 'categories') {
+          pathname = '/api/sitemap-categories';
+          query.type = 'categories';
         } else {
           pathname = '/api/sitemap';
           query.type = 'city';
-          query.city = city;
+          const chunkMatch = raw.match(/^(.+)-(\d+)$/);
+          if (chunkMatch) {
+            query.city = chunkMatch[1];
+            query.chunk = chunkMatch[2];
+          } else {
+            query.city = raw;
+          }
         }
       } else if (pathname.match(/^\/[a-zA-Z0-9]{32}\.txt$/)) {
         const key = pathname.slice(1, -4);

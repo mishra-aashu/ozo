@@ -25,20 +25,24 @@
       ]
     },
     {
-      "source": "/firebase-messaging-sw.js",
+      "source": "/(sitemap.*\\.xml)",
       "headers": [
         {
           "key": "Cache-Control",
-          "value": "no-cache, no-store, must-revalidate"
+          "value": "public, s-maxage=86400, stale-while-revalidate=43200"
         },
         {
-          "key": "Service-Worker-Allowed",
-          "value": "/"
+          "key": "Content-Type",
+          "value": "application/xml; charset=utf-8"
+        },
+        {
+          "key": "X-Robots-Tag",
+          "value": "noindex, follow"
         }
       ]
     },
     {
-      "source": "/sw.js",
+      "source": "/(sw\\.js|firebase-messaging-sw\\.js)",
       "headers": [
         {
           "key": "Cache-Control",
@@ -61,39 +65,19 @@
       "destination": "/api/sitemap?type=index"
     },
     {
-      "source": "/sitemap-index.xml",
-      "destination": "/api/sitemap?type=index"
-    },
-    {
-      "source": "/api/sitemap-index",
-      "destination": "/api/sitemap?type=index"
-    },
-    {
-      "source": "/api/sitemap-index.xml",
-      "destination": "/api/sitemap?type=index"
-    },
-    {
       "source": "/sitemap-static.xml",
       "destination": "/api/sitemap?type=static"
     },
     {
-      "source": "/sitemap-static",
-      "destination": "/api/sitemap?type=static"
+      "source": "/sitemap-categories.xml",
+      "destination": "/api/sitemap?type=categories"
     },
     {
-      "source": "/api/sitemap-static",
-      "destination": "/api/sitemap?type=static"
+      "source": "/sitemap-:city([a-zA-Z0-9_-]+)-:chunk([0-9]+).xml",
+      "destination": "/api/sitemap?type=city&city=:city&chunk=:chunk"
     },
     {
-      "source": "/api/sitemap-static.xml",
-      "destination": "/api/sitemap?type=static"
-    },
-    {
-      "source": "/sitemap-:city.xml",
-      "destination": "/api/sitemap?type=city&city=:city"
-    },
-    {
-      "source": "/api/sitemap-:city.xml",
+      "source": "/sitemap-:city([a-zA-Z0-9_-]+).xml",
       "destination": "/api/sitemap?type=city&city=:city"
     },
     {
@@ -146,17 +130,6 @@
       "destination": "/api/render-seo?city=:city&category=:slug"
     },
     {
-      "source": "/:city([a-zA-Z0-9_-]+)",
-      "has": [
-        {
-          "type": "header",
-          "key": "user-agent",
-          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
-        }
-      ],
-      "destination": "/api/render-seo?city=:city"
-    },
-    {
       "source": "/product/:category/:product",
       "has": [
         {
@@ -165,7 +138,7 @@
           "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
-      "destination": "/api/render-seo?city=product&product=:product"
+      "destination": "/api/render-seo?category=:category&product=:product"
     },
     {
       "source": "/:city/:category/:product",
@@ -176,7 +149,7 @@
           "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
         }
       ],
-      "destination": "/api/render-seo?city=:city&product=:product"
+      "destination": "/api/render-seo?city=:city&category=:category&product=:product"
     },
     {
       "source": "/:city/:product",
@@ -188,6 +161,17 @@
         }
       ],
       "destination": "/api/render-seo?city=:city&product=:product"
+    },
+    {
+      "source": "/:city([a-zA-Z0-9_-]+)",
+      "has": [
+        {
+          "type": "header",
+          "key": "user-agent",
+          "value": ".*([bB]ot|[cC]rawl|[sS]pider|[gG]oogle|[bB]ing|[yY]andex|[bB]aidu|[dD]uck[dD]uck|[sS]lurp|[pP]interest|[fF]acebook|[tT]witter|[lL]inked[iI]n|[wW]hats[aA]pp|[tT]elegram).*"
+        }
+      ],
+      "destination": "/api/render-seo?city=:city"
     },
     {
       "source": "/((?!api/).*)",

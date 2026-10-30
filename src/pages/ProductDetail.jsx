@@ -231,6 +231,11 @@ const ProductDetail = () => {
     return resolveCityName(nearestCity, addressDetails, activeCitySlug, activeCities)
   }, [nearestCity, addressDetails, activeCitySlug, activeCities])
 
+  const canonicalCitySlug = useMemo(() => {
+    const raw = city || activeCitySlug || 'aurangabad'
+    return raw === 'aurangabad-bihar' ? 'aurangabad' : raw
+  }, [city, activeCitySlug])
+
   const [quantity, setQuantity] = useState(1)
   const [activeTab, setActiveTab] = useState('description')
   const [relatedProducts, setRelatedProducts] = useState([])
@@ -860,7 +865,7 @@ const ProductDetail = () => {
             title={dynamicTitle}
             description={dynamicDescription}
             keywords={`${currentProduct.name}, buy ${currentProduct.name} online, 10 min delivery in ${currentCityName}, ${getProductBrand(currentProduct) || 'OZO'} ${currentProduct.name}, grocery delivery ${currentCityName}`}
-            canonical={`https://www.ozomart.store/product/${slug}`}
+            canonical={`https://www.ozomart.store/${canonicalCitySlug}/${slug}`}
             schema={combinedSchema}
           />
         )}
