@@ -10,8 +10,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(429).send('Too Many Requests');
   }
 
-  const xml = getStaticSitemapXml();
+  const { xml } = getStaticSitemapXml();
   res.setHeader('Content-Type', 'application/xml; charset=utf-8');
+  res.setHeader('X-Robots-Tag', 'noindex, follow');
   res.setHeader('Cache-Control', 'public, max-age=86400, s-maxage=86400, stale-while-revalidate=3600');
   return res.status(200).send(xml);
 }

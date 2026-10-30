@@ -41,9 +41,9 @@ function renderPageWrapper(params: {
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
   <meta name="author" content="OZO Mart">
   <meta name="theme-color" content="#E23744">
-  <link rel="apple-touch-icon" href="https://ozomart.store/apple-touch-icon.png">
-  <link rel="icon" type="image/png" sizes="32x32" href="https://ozomart.store/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://ozomart.store/favicon-16x16.png">
+  <link rel="apple-touch-icon" href="https://www.ozomart.store/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://www.ozomart.store/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://www.ozomart.store/favicon-16x16.png">
 
   <link rel="canonical" href="${canonicalUrl}">
   
@@ -51,7 +51,7 @@ function renderPageWrapper(params: {
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="${description}">
-  <meta property="og:image" content="https://ozomart.store/android-chrome-512x512.png">
+  <meta property="og:image" content="https://www.ozomart.store/android-chrome-512x512.png">
   <meta property="og:url" content="${canonicalUrl}">
   <meta property="og:site_name" content="OZO Mart">
   
@@ -59,7 +59,7 @@ function renderPageWrapper(params: {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${title}">
   <meta name="twitter:description" content="${description}">
-  <meta name="twitter:image" content="https://ozomart.store/android-chrome-512x512.png">
+  <meta name="twitter:image" content="https://www.ozomart.store/android-chrome-512x512.png">
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -684,16 +684,16 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
   const title = "OZO Mart | Jo Chahiye, Jab Chahiye | Online Grocery Delivery";
   const description = `Order fresh vegetables, organic fruits, daily essentials, and Mithila regional specialities online on OZO Mart (OZO). Fast 10-30 min delivery in ${activeCityNames || 'Aurangabad'}, Bihar. सोचो मत, #OZOपेखोजो!`;
   const keywords = "OZO, OZO Mart, OZO Grocery, online grocery, grocery delivery, fresh fruits, fresh vegetables, Mithila specials, makhana, thekua, quick commerce, Bihar grocery delivery";
-  const canonicalUrl = "https://ozomart.store";
+  const canonicalUrl = "https://www.ozomart.store";
 
   const organizationSchema = {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "@id": "https://ozomart.store/#organization",
+    "@id": "https://www.ozomart.store/#organization",
     "name": "OZO Mart",
     "alternateName": ["OZO", "Ozo Mart", "Ozo Grocery", "Ozo Delivery"],
-    "url": "https://ozomart.store",
-    "logo": "https://ozomart.store/android-chrome-512x512.png",
+    "url": "https://www.ozomart.store",
+    "logo": "https://www.ozomart.store/android-chrome-512x512.png",
     "sameAs": [
       "https://play.google.com/store/apps/details?id=com.ozomart"
     ]
@@ -702,13 +702,13 @@ async function renderHomepage(res: VercelResponse, activeCities: any[]) {
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": "https://ozomart.store/#website",
+    "@id": "https://www.ozomart.store/#website",
     "name": "OZO Mart",
-    "url": "https://ozomart.store",
-    "publisher": { "@id": "https://ozomart.store/#organization" },
+    "url": "https://www.ozomart.store",
+    "publisher": { "@id": "https://www.ozomart.store/#organization" },
     "potentialAction": {
       "@type": "SearchAction",
-      "target": "https://ozomart.store/search?q={search_term_string}",
+      "target": "https://www.ozomart.store/search?q={search_term_string}",
       "query-input": "required name=search_term_string"
     }
   };
@@ -852,8 +852,8 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
   const cityName = city.name.split(',')[0].trim();
   const title = `OZO Mart ${cityName} | Online Grocery & Food Delivery`;
   const description = `Order fresh vegetables, organic fruits, daily groceries, and Mithila regional specialities online on OZO Mart in ${cityName}. Fast 10-30 minute delivery. Cash on Delivery available.`;
-  const keywords = `OZO ${cityName}, OZO Mart ${cityName}, online grocery delivery ${cityName}, buy vegetables online in ${cityName}, quick commerce ${cityName}`;
-  const canonicalUrl = `https://ozomart.store/${city.slug}`;
+  const canonicalCitySlug = city.slug === 'aurangabad-bihar' ? 'aurangabad' : city.slug;
+  const canonicalUrl = `https://www.ozomart.store/${canonicalCitySlug}`;
 
   let categories: any[] = [];
   try {
@@ -883,18 +883,18 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
   const websiteSchema = {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "@id": `https://ozomart.store/${city.slug}/#website`,
+    "@id": `https://www.ozomart.store/${canonicalCitySlug}/#website`,
     "name": `OZO Mart - ${cityName}`,
-    "url": `https://ozomart.store/${city.slug}`
+    "url": `https://www.ozomart.store/${canonicalCitySlug}`
   };
 
   const localBusinessSchema = {
     "@context": "https://schema.org",
     "@type": "GroceryStore",
-    "@id": `https://ozomart.store/${city.slug}/#localbusiness`,
+    "@id": `https://www.ozomart.store/${canonicalCitySlug}/#localbusiness`,
     "name": `OZO Mart - ${cityName}`,
-    "image": "https://ozomart.store/android-chrome-512x512.png",
-    "url": `https://ozomart.store/${city.slug}`,
+    "image": "https://www.ozomart.store/android-chrome-512x512.png",
+    "url": `https://www.ozomart.store/${canonicalCitySlug}`,
     "priceRange": "$$",
     "address": {
       "@type": "PostalAddress",
@@ -998,7 +998,8 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
 }
 
 async function renderCategoryPage(res: VercelResponse, categorySlug: string, citySlug: string | null, activeCities: any[]) {
-  const currentCitySlug = citySlug || activeCities[0]?.slug || '';
+  const rawCitySlug = citySlug || activeCities[0]?.slug || 'aurangabad';
+  const currentCitySlug = rawCitySlug === 'aurangabad-bihar' ? 'aurangabad' : rawCitySlug;
   
   let categoryName = categorySlug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   let categoryId: string | null = null;
@@ -1049,7 +1050,7 @@ async function renderCategoryPage(res: VercelResponse, categorySlug: string, cit
       "@type": "ListItem",
       "position": index + 1,
       "name": p.name,
-      "url": `https://ozomart.store/${currentCitySlug}/${p.slug}`
+      "url": `https://www.ozomart.store/${currentCitySlug}/${p.slug}`
     }))
   };
 
@@ -1098,7 +1099,7 @@ function renderStaticPage(res: VercelResponse, slug: string, activeCities: any[]
   let h1 = '';
   let contentHTML = '';
 
-  const canonicalUrl = `https://ozomart.store/${slug}`;
+  const canonicalUrl = `https://www.ozomart.store/${slug}`;
   const keywords = `OZO, OZO Mart, ${slug}, online grocery, Bihar`;
 
   if (slug === 'about') {
@@ -1322,6 +1323,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   const matchingCity = findMatchingCity(cityStr, activeCities) || activeCities[0];
   const cleanCityName = matchingCity.name.split(',')[0].trim();
+  const rawCitySlug = matchingCity.slug || cityStr || 'aurangabad';
+  const canonicalCitySlug = rawCitySlug === 'aurangabad-bihar' ? 'aurangabad' : rawCitySlug;
 
   try {
     // 3. Fetch product details and city availability with left join for fallback
@@ -1400,7 +1403,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       ? parseFloat(pca.city_mrp)
       : (prod.mrp ? parseFloat(prod.mrp) : finalPrice);
 
-    const absoluteImageUrl = prod.image_url || 'https://ozomart.store/logo.png';
+    const absoluteImageUrl = prod.image_url || 'https://www.ozomart.store/logo.png';
 
     // Fetch related products
     let relatedProducts = [];
@@ -1527,7 +1530,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       },
       "offers": {
         "@type": "Offer",
-        "url": `https://www.ozomart.store/${matchingCity.slug}/${prod.slug}`,
+        "url": `https://www.ozomart.store/${canonicalCitySlug}/${prod.slug}`,
         "priceCurrency": "INR",
         "price": Number(finalPrice || 0),
         "validFrom": new Date().toISOString().split('T')[0],
@@ -1574,7 +1577,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "seller": {
           "@type": "Organization",
           "name": `OZO Mart - ${cleanCityName}`,
-          "url": `https://ozomart.store/${cityStr}`
+          "url": `https://www.ozomart.store/${canonicalCitySlug}`
         }
       },
       "aggregateRating": {
@@ -1626,25 +1629,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           "@type": "ListItem",
           "position": 1,
           "name": "Home",
-          "item": "https://ozomart.store"
+          "item": "https://www.ozomart.store"
         },
         {
           "@type": "ListItem",
           "position": 2,
           "name": cleanCityName,
-          "item": `https://ozomart.store/${cityStr}`
+          "item": `https://www.ozomart.store/${canonicalCitySlug}`
         },
         {
           "@type": "ListItem",
           "position": 3,
           "name": categoryName,
-          "item": `https://ozomart.store/${cityStr}/${cleanCategorySlug}`
+          "item": `https://www.ozomart.store/${canonicalCitySlug}/category/${cleanCategorySlug}`
         },
         {
           "@type": "ListItem",
           "position": 4,
           "name": prod.name,
-          "item": `https://ozomart.store/${cityStr}/${productStr}`
+          "item": `https://www.ozomart.store/${canonicalCitySlug}/${productStr}`
         }
       ]
     };
@@ -1653,7 +1656,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       "@context": "https://schema.org",
       "@type": "LocalBusiness",
       "name": `OZO Mart - ${cleanCityName}`,
-      "image": "https://ozomart.store/logo.png",
+      "image": "https://www.ozomart.store/logo.png",
       "address": {
         "@type": "PostalAddress",
         "addressLocality": cleanCityName,
@@ -1665,7 +1668,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         "latitude": matchingCity.latitude,
         "longitude": matchingCity.longitude
       } : undefined,
-      "url": `https://ozomart.store/${cityStr}`,
+      "url": `https://www.ozomart.store/${canonicalCitySlug}`,
       "telephone": "+91-XXXXXXXXXX",
       "priceRange": "₹₹",
       "openingHoursSpecification": [
@@ -1737,7 +1740,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <div class="related-products">
       ${relatedProducts.map(rp => `
       <div class="related-card">
-        <a href="/${cityStr}/${rp.slug}">
+        <a href="/${canonicalCitySlug}/${rp.slug}">
           ${rp.image_url ? `<img src="${rp.image_url}" alt="${rp.name} - Fresh delivery in ${cleanCityName}" loading="lazy" />` : ''}
           <h3>${rp.name}</h3>
           <p>₹${rp.price}</p>
@@ -1775,16 +1778,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="theme-color" content="#E23744">
 
   <!-- Apple Touch Icon -->
-  <link rel="apple-touch-icon" href="https://ozomart.store/apple-touch-icon.png">
+  <link rel="apple-touch-icon" href="https://www.ozomart.store/apple-touch-icon.png">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" sizes="32x32" href="https://ozomart.store/favicon-32x32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="https://ozomart.store/favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="https://www.ozomart.store/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="https://www.ozomart.store/favicon-16x16.png">
 
   <!-- Alternate for Hindi & English -->
-  <link rel="alternate" hreflang="hi" href="https://ozomart.store/${cityStr}/${productStr}">
-  <link rel="alternate" hreflang="en" href="https://ozomart.store/${cityStr}/${productStr}">
-  <link rel="alternate" hreflang="x-default" href="https://ozomart.store/${cityStr}/${productStr}">
+  <link rel="alternate" hreflang="hi" href="https://www.ozomart.store/${canonicalCitySlug}/${productStr}">
+  <link rel="alternate" hreflang="en" href="https://www.ozomart.store/${canonicalCitySlug}/${productStr}">
+  <link rel="alternate" hreflang="x-default" href="https://www.ozomart.store/${canonicalCitySlug}/${productStr}">
 
   <!-- App Deep Link -->
   <meta property="al:android:url" content="ozomart://product/${prod.id}">
@@ -1792,14 +1795,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta property="al:android:app_name" content="OZO Mart">
 
   <!-- Canonical URL -->
-  <link rel="canonical" href="https://www.ozomart.store/${matchingCity.slug}/${prod.slug}">
+  <link rel="canonical" href="https://www.ozomart.store/${canonicalCitySlug}/${prod.slug}">
   
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="product">
   <meta property="og:title" content="Buy ${prod.name} - OZO Mart ${cleanCityName}">
   <meta property="og:description" content="Get ${prod.name} (${prod.unit}) at ₹${finalPrice} in just 10 minutes from OZO Mart.">
   <meta property="og:image" content="${absoluteImageUrl}">
-  <meta property="og:url" content="https://www.ozomart.store/${matchingCity.slug}/${prod.slug}">
+  <meta property="og:url" content="https://www.ozomart.store/${canonicalCitySlug}/${prod.slug}">
   <meta property="og:site_name" content="OZO Mart">
   <meta property="product:price:amount" content="${finalPrice}">
   <meta property="product:price:currency" content="INR">
@@ -2376,8 +2379,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <!-- Breadcrumbs -->
     <nav class="breadcrumbs">
       <a href="/">Home</a> / 
-      <a href="/${cityStr}">${cleanCityName}</a> / 
-      <a href="/${cityStr}/${cleanCategorySlug}">${categoryName}</a> / 
+      <a href="/${canonicalCitySlug}">${cleanCityName}</a> / 
+      <a href="/${canonicalCitySlug}/category/${cleanCategorySlug}">${categoryName}</a> / 
       <span>${prod.name}</span>
     </nav>
     
