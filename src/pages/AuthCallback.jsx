@@ -122,19 +122,19 @@ const AuthCallback = () => {
 
       if (isPopup) {
         try {
-          if (window.opener) {
+          if (window.opener && !window.opener.closed) {
             window.opener.postMessage({ 
               type: 'OZO_AUTH_SUCCESS', 
               session,
               needsPhone: !enrichedProfile.phone
-            }, window.location.origin)
+            }, '*')
           }
         } catch (_) {}
         setTimeout(() => {
           try {
             window.close()
           } catch (_) {}
-        }, 200)
+        }, 250)
         return
       }
 

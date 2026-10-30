@@ -706,7 +706,15 @@ export const useAuthStore = create(
               }
 
               const handleMessage = async (event) => {
-                if (event.origin !== window.location.origin) return
+                const isTrustedOrigin = 
+                  event.origin === window.location.origin ||
+                  event.origin === 'https://ozomart.store' ||
+                  event.origin === 'https://www.ozomart.store' ||
+                  event.origin.includes('localhost') ||
+                  event.origin.includes('127.0.0.1')
+
+                if (!isTrustedOrigin) return
+
                 if (event.data?.type === 'OZO_AUTH_SUCCESS') {
                   if (resolved) return
                   resolved = true
@@ -715,16 +723,34 @@ export const useAuthStore = create(
                     popup?.close()
                   } catch (_) {}
                   
-                  // Initialize auth store to sync profile
                   const session = event.data?.session
-                  if (session?.user) {
+                  if (session?.access_token && session?.refresh_token) {
+                    try {
+                      await supabase.auth.setSession({
+                        access_token: session.access_token,
+                        refresh_token: session.refresh_token,
+                      })
+                    } catch (sErr) {
+                      console.warn('[OZO Auth] setSession failed:', sErr)
+                    }
+                  } else if (session?.user) {
                     set({
                       user: session.user,
                       isAuthenticated: true,
                       isLoading: false
                     })
                   }
+
                   await get().initializeAuth()
+
+                  // Cross-tab broadcast
+                  try {
+                    if (typeof BroadcastChannel !== 'undefined') {
+                      new BroadcastChannel('ozo_auth_sync_channel').postMessage({ type: 'AUTH_STATE_CHANGED' })
+                    }
+                    localStorage.setItem('ozo_auth_sync', Date.now().toString())
+                  } catch (_) {}
+
                   resolve({ success: true, user: session?.user || get().user })
                 }
               }
@@ -1033,4 +1059,33 @@ if (typeof window !== 'undefined') {
       console.warn('[authStore] Visibility check failed:', err)
     }
   })
+
+  // ─── Instant Cross-Tab & Cross-Window Session Synchronization ────────────
+  // When the user logs in or out in another tab/popup window, immediately sync
+  // auth state across all open tabs without requiring manual reload.
+  window.addEventListener('storage', async (e) => {
+    if (e.key === 'ozo-auth-token' || e.key === 'ozo_auth_sync') {
+      try {
+        await useAuthStore.getState().initializeAuth()
+      } catch (err) {
+        console.warn('[authStore] Cross-tab storage auth sync warning:', err)
+      }
+    }
+  })
+
+  if (typeof BroadcastChannel !== 'undefined') {
+    try {
+      const authChannel = new BroadcastChannel('ozo_auth_sync_channel')
+      authChannel.addEventListener('message', async (e) => {
+        if (e.data?.type === 'AUTH_STATE_CHANGED') {
+          try {
+            await useAuthStore.getState().initializeAuth()
+          } catch (err) {
+            console.warn('[authStore] BroadcastChannel sync warning:', err)
+          }
+        }
+      })
+    } catch (_) {}
+  }
 }
+
