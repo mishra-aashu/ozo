@@ -29,7 +29,9 @@ import {
   Play,
   AlertTriangle,
   Image,
-  Palette
+  Palette,
+  Wrench,
+  ExternalLink
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -163,6 +165,14 @@ const AdminSettings = () => {
     show_mandi_section: true,
     show_budget_section: true
   })
+
+  // State for OZO Services Visibility (Admin Sidebar & Customer App)
+  const [servicesConfig, setServicesConfig] = useState({
+    enabled: true,
+    show_in_admin: true,
+    show_in_app: true
+  })
+  const [savingServices, setSavingServices] = useState(false)
 
   const [serviceHoursConfig, setServiceHoursConfig] = useState({
     enabled: true,
@@ -870,6 +880,11 @@ const AdminSettings = () => {
           show_mandi_section: true,
           show_budget_section: true
         }
+        let services = {
+          enabled: true,
+          show_in_admin: true,
+          show_in_app: true
+        }
         let serviceHours = {
           enabled: true,
           start_time: '06:00',
@@ -945,6 +960,10 @@ const AdminSettings = () => {
               launch = { ...launch, ...item.value }
               addLog('Launch phase & button visibility configuration loaded successfully.', 'success')
               break
+            case 'services_config':
+              services = { ...services, ...item.value }
+              addLog('OZO Services visibility configuration loaded successfully.', 'success')
+              break
             case 'service_hours_config':
               serviceHours = { ...serviceHours, ...item.value }
               addLog('Service hours & delivery configuration loaded successfully.', 'success')
@@ -979,6 +998,7 @@ const AdminSettings = () => {
         setSecurityConfig(security)
         setMapConfig(mapConfigObj)
         setLaunchConfig(launch)
+        setServicesConfig(services)
         setServiceHoursConfig(serviceHours)
         setPaymentConfig(payment)
         setMandiSyncConfig(mandiSync)
@@ -1236,6 +1256,37 @@ const AdminSettings = () => {
     fetchHierarchicalData()
   }, [])
 
+  const handleQuickSaveServices = async (configOverride = null) => {
+    const targetConfig = configOverride || servicesConfig
+    setSavingServices(true)
+    addLog('Updating OZO Services configuration...', 'info')
+    try {
+      const payload = {
+        enabled: !!targetConfig.enabled,
+        show_in_admin: !!targetConfig.show_in_admin,
+        show_in_app: !!targetConfig.show_in_app
+      }
+      const { error } = await supabase
+        .from('app_settings')
+        .upsert({
+          key: 'services_config',
+          value: payload,
+          description: 'Controls whether OZO Services is enabled and visible across the customer app and admin panel'
+        })
+      if (error) throw error
+      useCartStore.setState({ servicesConfig: payload })
+      await useCartStore.getState().fetchSettings(true)
+      addLog('services_config saved successfully.', 'success')
+      toast.success('OZO Services visibility settings updated!')
+    } catch (err) {
+      console.error('Failed to save services config:', err)
+      addLog(`Failed to update services_config: ${err.message}`, 'error')
+      toast.error('Failed to save OZO Services settings')
+    } finally {
+      setSavingServices(false)
+    }
+  }
+
   const handleSave = async (e) => {
     e.preventDefault()
     setSaving(true)
@@ -1411,6 +1462,22 @@ const AdminSettings = () => {
         })
       if (errLaunch) throw errLaunch
       addLog('launch_config updated successfully.', 'success')
+
+      // 9b. Save Services configuration
+      addLog('Updating services_config...', 'info')
+      const { error: errServices } = await supabase
+        .from('app_settings')
+        .upsert({
+          key: 'services_config',
+          value: {
+            enabled: !!servicesConfig.enabled,
+            show_in_admin: !!servicesConfig.show_in_admin,
+            show_in_app: !!servicesConfig.show_in_app
+          },
+          description: 'Controls whether OZO Services is enabled and visible across the customer app and admin panel'
+        })
+      if (errServices) throw errServices
+      addLog('services_config updated successfully.', 'success')
 
       // 10. Save Service Hours configuration
       addLog('Updating service_hours_config...', 'info')
@@ -2304,6 +2371,138 @@ const AdminSettings = () => {
                     </div>
                   </div>
                 </div>
+              </div>
+            </motion.div>
+
+            {/* OZO Services Visibility & Controls */}
+            <motion.div
+              variants={cardVariants}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-premium flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-sky-100 dark:bg-sky-950/30 text-sky-600 rounded-2xl">
+                      <Wrench className="w-6 h-6 text-sky-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-gray-800 dark:text-white flex items-center gap-2">
+                        OZO Services Control
+                        <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                          servicesConfig.show_in_admin !== false && (servicesConfig.enabled !== false && servicesConfig.show_in_app !== false)
+                            ? 'bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40'
+                            : 'bg-amber-100 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-800/40'
+                        }`}>
+                          {servicesConfig.show_in_admin !== false && (servicesConfig.enabled !== false && servicesConfig.show_in_app !== false) ? 'Full Active' : 'Custom / Hidden'}
+                        </span>
+                      </h2>
+                      <p className="text-xs text-gray-400">Admin sidebar & customer app visibility settings</p>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/admin/services"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-50 dark:bg-sky-500/10 text-sky-600 dark:text-sky-400 hover:bg-sky-100 dark:hover:bg-sky-500/20 transition-colors"
+                  >
+                    <span>Services Manager</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 space-y-4">
+                    {/* Admin Sidebar Toggle */}
+                    <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-white/5">
+                      <div className="pr-4">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-gray-800 dark:text-white font-display">Show in Admin Sidebar</p>
+                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            servicesConfig.show_in_admin !== false
+                              ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-rose-100 dark:bg-rose-950/30 text-rose-600 dark:text-rose-400'
+                          }`}>
+                            {servicesConfig.show_in_admin !== false ? 'Visible in Menu' : 'Hidden from Menu'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          Admin navigation sidebar me "Services Manager" tab dikhana hai ya hide karna hai.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={servicesConfig.show_in_admin !== false}
+                          onChange={e => setServicesConfig({ ...servicesConfig, show_in_admin: e.target.checked })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-white/10 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-500"></div>
+                      </label>
+                    </div>
+
+                    {/* Customer App Toggle */}
+                    <div className="flex items-center justify-between">
+                      <div className="pr-4">
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-gray-800 dark:text-white font-display">Enable in Customer App</p>
+                          <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full ${
+                            (servicesConfig.enabled !== false && servicesConfig.show_in_app !== false)
+                              ? 'bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400'
+                              : 'bg-amber-100 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400'
+                          }`}>
+                            {(servicesConfig.enabled !== false && servicesConfig.show_in_app !== false) ? 'Active for Users' : 'Mart Only Mode'}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-gray-400 mt-0.5">
+                          Header me Mart/Services toggle switch, bottom nav, aur service booking routes customers ko dikhana hai ya nahi.
+                        </p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer select-none shrink-0">
+                        <input
+                          type="checkbox"
+                          checked={servicesConfig.enabled !== false && servicesConfig.show_in_app !== false}
+                          onChange={e => setServicesConfig({
+                            ...servicesConfig,
+                            enabled: e.target.checked,
+                            show_in_app: e.target.checked
+                          })}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-white/10 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-sky-500"></div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Summary Callout */}
+                  <div className="flex items-start gap-2.5 text-xs bg-sky-500/10 text-sky-700 dark:text-sky-300 p-3.5 rounded-xl border border-sky-500/20">
+                    <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-sky-500" />
+                    <div className="text-[11px] leading-relaxed">
+                      <strong>Current Mode:</strong> {servicesConfig.show_in_admin !== false ? 'Services Manager sidebar me visible hai' : 'Services Manager sidebar se hidden hai'}. Customer app me {(servicesConfig.enabled !== false && servicesConfig.show_in_app !== false) ? 'Services switch on hai' : 'Services mode disabled hai (sirf Mart dikhega)'}.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Card Footer: Quick Save Button */}
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5 flex items-center justify-between">
+                <span className="text-[11px] text-gray-400">Apply instantly or save with form below</span>
+                <button
+                  type="button"
+                  disabled={savingServices || saving}
+                  onClick={() => handleQuickSaveServices()}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {savingServices ? (
+                    <>
+                      <Loader2 size={13} className="animate-spin" />
+                      <span>Saving...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Save size={13} />
+                      <span>Save Services Config</span>
+                    </>
+                  )}
+                </button>
               </div>
             </motion.div>
 

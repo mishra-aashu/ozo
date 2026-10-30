@@ -1,16 +1,30 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShoppingBag, Wrench } from 'lucide-react'
 import OzoLogo from './OzoLogo'
 import { useServiceModeStore } from '../stores/serviceModeStore'
+import { useCartStore } from '../stores/cartStore'
 
 export default function VerticalDropdownHeader({ fullWidth = false, showLogo = true }) {
   const { currentMode, setMode } = useServiceModeStore()
+  const servicesConfig = useCartStore(state => state.servicesConfig)
   const navigate = useNavigate()
   const location = useLocation()
 
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
+
+  // If services are disabled globally, ensure user is switched back to mart mode
+  useEffect(() => {
+    if (!isServicesEnabled && currentMode === 'services') {
+      setMode('mart')
+    }
+  }, [isServicesEnabled, currentMode, setMode])
+
   const handleSelect = (mode) => {
+    if (mode === 'services' && !isServicesEnabled) {
+      return
+    }
     if (currentMode === mode && ((mode === 'mart' && location.pathname === '/') || (mode === 'services' && location.pathname === '/services'))) {
       return
     }
@@ -22,7 +36,30 @@ export default function VerticalDropdownHeader({ fullWidth = false, showLogo = t
     }
   }
 
-  const isServices = currentMode === 'services' || location.pathname.startsWith('/services')
+  const isServices = isServicesEnabled && (currentMode === 'services' || location.pathname.startsWith('/services'))
+
+  if (!isServicesEnabled) {
+    if (!showLogo) return null
+    return (
+      <div className={`flex items-center gap-2 ${fullWidth ? 'w-full' : 'flex-shrink-0 min-w-0'}`}>
+        <button 
+          type="button"
+          onClick={() => {
+            setMode('mart')
+            if (location.pathname !== '/') navigate('/')
+          }}
+          className="flex items-center focus:outline-none hover:scale-105 transition-transform cursor-pointer flex-shrink-0"
+          aria-label="Go to Home"
+        >
+          <OzoLogo
+            mode="both"
+            size="sm"
+            verticalMode="mart"
+          />
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className={`flex items-center gap-2 ${fullWidth ? 'w-full' : 'flex-shrink-0 min-w-0'}`}>

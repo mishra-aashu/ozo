@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Wrench,
@@ -32,11 +33,13 @@ import {
   Save
 } from 'lucide-react'
 import { useServicesStore } from '../../stores/servicesStore'
+import { useCartStore } from '../../stores/cartStore'
 import CategoryIcon from '../../utils/serviceIcons'
 import SEO from '../../components/SEO'
 import toast from 'react-hot-toast'
 
 export default function ServicesManageAdmin() {
+  const servicesConfig = useCartStore(state => state.servicesConfig)
   const {
     categories,
     services,
@@ -280,6 +283,26 @@ export default function ServicesManageAdmin() {
           <span>Refresh Catalog</span>
         </button>
       </div>
+
+      {/* Hidden from sidebar alert banner */}
+      {servicesConfig?.show_in_admin === false && (
+        <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-500 shrink-0" />
+            <div className="text-xs">
+              <span className="font-bold">OZO Services is currently hidden from the Admin sidebar.</span>{' '}
+              Aap ise kisi bhi waqt Admin Settings se wapas visible kar sakte hain.
+            </div>
+          </div>
+          <Link
+            to="/admin/settings"
+            className="px-3.5 py-1.5 rounded-xl bg-amber-500 text-white font-bold text-xs hover:bg-amber-600 transition-colors shrink-0 flex items-center gap-1.5 self-start sm:self-auto"
+          >
+            <span>Open Settings</span>
+            <ChevronRight size={14} />
+          </Link>
+        </div>
+      )}
 
       {/* Overview Stats Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">

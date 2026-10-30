@@ -290,6 +290,16 @@ const CompleteProfileRoute = ({ children }) => {
   return children
 }
 
+// Services Route Guard - redirects customers to Home/Mart if services are disabled in settings
+const ServicesRouteGuard = ({ children }) => {
+  const servicesConfig = useCartStore(state => state.servicesConfig)
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
+  if (!isServicesEnabled) {
+    return <Navigate to="/" replace />
+  }
+  return children
+}
+
 // Normal OZO Page Loader for React.Suspense
 const OzoPageLoader = () => (
   <div className="min-h-[70vh] flex flex-col items-center justify-center p-6 bg-transparent">
@@ -457,6 +467,9 @@ function App() {
               useCartStore.setState({ themeConfig: val })
               applyDynamicTheme(val)
             }
+            if (key === 'services_config') {
+              useCartStore.setState({ servicesConfig: { enabled: true, show_in_admin: true, show_in_app: true, ...val } })
+            }
           }
           // Fetch settings to update stores in sync, bypassing cache
           useCartStore.getState().fetchSettings(true).catch(() => {})
@@ -559,12 +572,12 @@ function App() {
             <Route path="mart/:slug" element={<MartProfile />} />
 
             {/* OZO Services Routes */}
-            <Route path="services" element={<ServicesHome />} />
-            <Route path="services/categories" element={<ServiceCategories />} />
-            <Route path="services/category/:slug" element={<ServiceCategory />} />
-            <Route path="services/booking/:serviceId" element={<ServiceBooking />} />
-            <Route path="services/inquiry" element={<ServiceInquiry />} />
-            <Route path="services/my-bookings" element={<MyBookings />} />
+            <Route path="services" element={<ServicesRouteGuard><ServicesHome /></ServicesRouteGuard>} />
+            <Route path="services/categories" element={<ServicesRouteGuard><ServiceCategories /></ServicesRouteGuard>} />
+            <Route path="services/category/:slug" element={<ServicesRouteGuard><ServiceCategory /></ServicesRouteGuard>} />
+            <Route path="services/booking/:serviceId" element={<ServicesRouteGuard><ServiceBooking /></ServicesRouteGuard>} />
+            <Route path="services/inquiry" element={<ServicesRouteGuard><ServiceInquiry /></ServicesRouteGuard>} />
+            <Route path="services/my-bookings" element={<ServicesRouteGuard><MyBookings /></ServicesRouteGuard>} />
 
             {/* Auth Route */}
             <Route
