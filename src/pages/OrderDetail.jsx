@@ -19,7 +19,10 @@ import {
   Star,
   Loader2,
   ExternalLink,
-  RefreshCw
+  RefreshCw,
+  Copy,
+  KeyRound,
+  ShieldCheck
 } from 'lucide-react'
 import { useOrderStore } from '../stores/orderStore'
 import { useAuthStore } from '../stores/authStore'
@@ -33,6 +36,7 @@ import ImageUpload from '../components/ImageUpload'
 import OptimizedImage from '../components/OptimizedImage'
 import toast from 'react-hot-toast'
 import { supabase } from '../lib/supabase'
+import { getDeliveryOtp } from '../utils/deliveryOtp'
 
 import maplibregl from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
@@ -63,6 +67,114 @@ const getGoogleMapsUrl = (address, order) => {
   const addressString = addressParts.join(', ');
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addressString)}`;
 };
+
+// Active order statuses where PIN should be shown
+const ACTIVE_DELIVERY_STATUSES = [
+  'placed', 'PLACED_COOLING', 'CONFIRMED_SYSTEM', 'confirmed',
+  'preparing', 'packed', 'assigned', 'dispatched'
+]
+const DELIVERED_STATUSES = ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED']
+
+// Delivery PIN Card — shown to customer during active delivery
+const DeliveryPinCard = ({ order }) => {
+  const [copied, setCopied] = useState(false)
+  const pin = getDeliveryOtp(order)
+  const digits = pin.split('')
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(pin).then(() => {
+      setCopied(true)
+      toast.success('Delivery PIN copied!')
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-6 sm:p-8 shadow-sm border border-amber-100 dark:border-amber-500/20 relative z-10 overflow-hidden"
+    >
+      {/* Glow backdrop */}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% -20%, rgba(251,191,36,0.07) 0%, transparent 70%)' }} />
+      
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-500/10 flex items-center justify-center">
+          <KeyRound size={18} className="text-amber-500" />
+        </div>
+        <div>
+          <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-tight">Delivery PIN</h3>
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold leading-tight">Share with your Delivery Captain upon handover</p>
+        </div>
+      </div>
+
+      {/* 4-digit glowing boxes */}
+      <div className="flex items-center gap-3 mb-5">
+        {digits.map((d, i) => (
+          <div
+            key={i}
+            className="flex-1 aspect-square max-w-[72px] rounded-2xl bg-amber-50 dark:bg-amber-500/10 border-2 border-amber-200 dark:border-amber-500/30 flex items-center justify-center shadow-[0_0_18px_rgba(251,191,36,0.15)] dark:shadow-[0_0_18px_rgba(251,191,36,0.1)]"
+          >
+            <span className="text-3xl font-black text-amber-600 dark:text-amber-400 tabular-nums" style={{ fontVariantNumeric: 'tabular-nums' }}>{d}</span>
+          </div>
+        ))}
+        <button
+          onClick={handleCopy}
+          className={`ml-2 p-3 rounded-xl border transition-all duration-200 flex items-center justify-center ${
+            copied
+              ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 dark:border-emerald-500/30 text-emerald-500'
+              : 'bg-gray-50 dark:bg-white/5 border-gray-200 dark:border-white/10 text-gray-400 hover:text-amber-500 hover:border-amber-200 hover:bg-amber-50 dark:hover:border-amber-500/30 dark:hover:bg-amber-500/10'
+          }`}
+          title="Copy PIN"
+        >
+          {copied ? <CheckCircle2 size={18} /> : <Copy size={18} />}
+        </button>
+      </div>
+
+      <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50/60 dark:bg-red-500/5 border border-red-100 dark:border-red-500/15">
+        <ShieldCheck size={14} className="text-red-400 shrink-0 mt-0.5" />
+        <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold leading-relaxed">
+          🔒 <strong>Never share this PIN</strong> over phone calls before the package arrives at your door.
+        </p>
+      </div>
+    </motion.div>
+  )
+}
+
+// Verified delivery badge — shown after delivery is confirmed
+const DeliveredPinBadge = ({ order }) => {
+  const pin = getDeliveryOtp(order)
+  const isOtp = order.delivery_proof_type === 'in_app_otp' || order.delivery_proof_type === 'otp'
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-white dark:bg-[#121214] rounded-[2.5rem] p-5 sm:p-6 shadow-sm border border-emerald-100 dark:border-emerald-500/20 relative z-10"
+    >
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 flex items-center justify-center">
+          <ShieldCheck size={20} className="text-emerald-500" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+            {isOtp ? 'Verified with Handover PIN' : 'Verified with Doorstep Photo'}
+          </p>
+          {isOtp && (
+            <div className="flex items-center gap-1.5 mt-1">
+              {pin.split('').map((d, i) => (
+                <span key={i} className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20 text-sm font-black text-emerald-600 dark:text-emerald-400">{d}</span>
+              ))}
+            </div>
+          )}
+        </div>
+        <span className="px-3 py-1.5 bg-emerald-100 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 rounded-full text-[10px] font-black uppercase tracking-widest border border-emerald-200 dark:border-emerald-500/25">
+          ✓ Verified
+        </span>
+      </div>
+    </motion.div>
+  )
+}
 
 // Live tracking map card component for customers using MapLibre GL JS
 const OrderTrackingMap = ({ order }) => {
@@ -1162,6 +1274,16 @@ const OrderDetail = () => {
                 </div>
               </div>
             </div>
+
+            {/* Delivery PIN Card — active orders */}
+            {ACTIVE_DELIVERY_STATUSES.includes(currentOrder.status) && (
+              <DeliveryPinCard order={currentOrder} />
+            )}
+
+            {/* Verified PIN badge — delivered orders */}
+            {DELIVERED_STATUSES.includes(currentOrder.status) && currentOrder.delivery_proof_type && (
+              <DeliveredPinBadge order={currentOrder} />
+            )}
 
             {/* Live tracking map shown for active (not delivered/cancelled) orders */}
             {!['delivered', 'DELIVERED_VERIFYING', 'COMPLETED', 'cancelled', 'CANCELLED_BY_USER', 'RETURN_REQUESTED'].includes(currentOrder.status) && !mapConfig?.hide_map && (

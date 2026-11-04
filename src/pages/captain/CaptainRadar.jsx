@@ -7,6 +7,7 @@ import ImageUpload from '../../components/ImageUpload'
 import toast from 'react-hot-toast'
 import OptimizedImage from '../../components/OptimizedImage'
 import { parseLandmark } from '../../lib/addressHelpers'
+import { getDeliveryOtp, verifyDeliveryOtp } from '../../utils/deliveryOtp'
 import { 
   Wifi, 
   WifiOff, 
@@ -27,7 +28,8 @@ import {
   Award,
   Camera,
   UploadCloud,
-  X
+  X,
+  KeyRound
 } from 'lucide-react'
 
 // Swipe Slider Button Component
@@ -289,36 +291,103 @@ const CaptainRadar = () => {
   const [isUpdatingStep, setIsUpdatingStep] = useState(false)
   const [verificationChecklist, setVerificationChecklist] = useState([])
 
-  // Delivery proof states
-  const [isProofModalOpen, setIsProofModalOpen] = useState(false)
+  // Delivery verification modal states (replaces old proof-only modal)
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false)
+  const [verificationTab, setVerificationTab] = useState('otp') // 'otp' | 'photo'
+  const [otpDigits, setOtpDigits] = useState(['', '', '', ''])
+  const [otpError, setOtpError] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
   const [proofImage1, setProofImage1] = useState('')
-  const [proofImage2, setProofImage2] = useState('')
   const [isSubmittingProof, setIsSubmittingProof] = useState(false)
+  const otpInputRefs = useRef([])
 
-  // Translation states for delivery instructions
-  const [isTranslating, setIsTranslating] = useState(false)
-  const [showingTranslation, setShowingTranslation] = useState(false)
-  const [translatedText, setTranslatedText] = useState('')
+  // OTP digit input handler
+  const handleOtpChange = useCallback((index, value) => {
+    const sanitized = value.replace(/\D/g, '').slice(-1)
+    setOtpDigits(prev => {
+      const next = [...prev]
+      next[index] = sanitized
+      return next
+    })
+    setOtpError(false)
+    if (sanitized && index < 3) {
+      otpInputRefs.current[index + 1]?.focus()
+    }
+  }, [])
 
-  const handleProofSubmit = useCallback(async () => {
-    if (!proofImage1 || !proofImage2) {
-      toast.error('Both delivery proof photos are mandatory!')
+  const handleOtpKeyDown = useCallback((index, e) => {
+    if (e.key === 'Backspace') {
+      if (otpDigits[index] === '' && index > 0) {
+        otpInputRefs.current[index - 1]?.focus()
+        setOtpDigits(prev => {
+          const next = [...prev]
+          next[index - 1] = ''
+          return next
+        })
+      } else {
+        setOtpDigits(prev => {
+          const next = [...prev]
+          next[index] = ''
+          return next
+        })
+      }
+      setOtpError(false)
+    }
+  }, [otpDigits])
+
+  const handleOtpPaste = useCallback((e) => {
+    e.preventDefault()
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 4)
+    if (pasted.length === 4) {
+      setOtpDigits(pasted.split(''))
+      otpInputRefs.current[3]?.focus()
+    }
+  }, [])
+
+  const handleOtpVerify = useCallback(async () => {
+    const entered = otpDigits.join('')
+    if (entered.length < 4) {
+      toast.error('Please enter all 4 digits')
+      return
+    }
+    setIsVerifying(true)
+    try {
+      if (!verifyDeliveryOtp(activeOrder, entered)) {
+        setOtpError(true)
+        toast.error('Incorrect PIN. Ask customer to re-share.')
+        // Auto-clear error state after shake
+        setTimeout(() => setOtpError(false), 700)
+        return
+      }
+      await deliverOrder({ proofType: 'in_app_otp' })
+      setIsVerificationModalOpen(false)
+      setOtpDigits(['', '', '', ''])
+    } catch (err) {
+      console.error('OTP verification delivery error:', err)
+      toast.error('Failed to complete delivery')
+    } finally {
+      setIsVerifying(false)
+    }
+  }, [otpDigits, activeOrder, deliverOrder])
+
+  const handlePhotoProofSubmit = useCallback(async () => {
+    if (!proofImage1) {
+      toast.error('Please capture a doorstep photo')
       return
     }
     setIsSubmittingProof(true)
     try {
-      await deliverOrder(proofImage1, proofImage2)
-      setIsProofModalOpen(false)
-      // Reset proof states
+      await deliverOrder({ proofType: 'photo_proof', proofImage1 })
+      setIsVerificationModalOpen(false)
       setProofImage1('')
-      setProofImage2('')
     } catch (err) {
-      console.error('Error submitting delivery proof:', err)
+      console.error('Photo proof delivery error:', err)
       toast.error('Failed to complete delivery')
     } finally {
       setIsSubmittingProof(false)
     }
-  }, [proofImage1, proofImage2, deliverOrder])
+  }, [proofImage1, deliverOrder])
+
 
   const geofenceConfig = useCartStore(state => state.geofenceConfig)
   const mapConfig = useCartStore(state => state.mapConfig)
@@ -509,9 +578,17 @@ const CaptainRadar = () => {
     }
   }, [isUpdatingStep, confirmPickup])
 
+
   const handleDeliverySwipe = useCallback(async () => {
-    setIsProofModalOpen(true)
+    setOtpDigits(['', '', '', ''])
+    setOtpError(false)
+    setVerificationTab('otp')
+    setProofImage1('')
+    setIsVerificationModalOpen(true)
+    // Auto-focus first OTP box after modal opens
+    setTimeout(() => otpInputRefs.current[0]?.focus(), 150)
   }, [])
+
 
   const isOnline = captainStatus === 'online' || captainStatus === 'busy'
 
@@ -1057,88 +1134,169 @@ const CaptainRadar = () => {
             )}
           </div>
         )}
-        {/* Delivery Verification Proof Modal */}
+        {/* Delivery Handover Verification Modal */}
         <AnimatePresence>
-          {isProofModalOpen && (
+          {isVerificationModalOpen && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
               <motion.div 
                 initial={{ opacity: 0, scale: 0.95, y: 15 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                className="bg-white dark:bg-[#0c0c14] rounded-[2.5rem] p-6 max-w-md w-full shadow-2xl border border-gray-200 dark:border-[#181829] relative overflow-y-auto max-h-[90vh] space-y-6"
+                className="bg-white dark:bg-[#0c0c14] rounded-[2.5rem] p-6 max-w-sm w-full shadow-2xl border border-gray-200 dark:border-[#181829] relative overflow-y-auto max-h-[90vh]"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-gray-900 dark:text-white">
-                    <Camera size={24} className="text-emerald-500 dark:text-[#00FF66]" />
-                    <h3 className="text-lg font-black uppercase tracking-tight">Delivery Proof</h3>
+                {/* Header */}
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-[#00FF66]/10 flex items-center justify-center">
+                      <ShieldCheck size={18} className="text-emerald-500 dark:text-[#00FF66]" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-black text-gray-900 dark:text-white uppercase tracking-tight">Delivery Handover</h3>
+                      <p className="text-[10px] text-gray-500 dark:text-gray-400 font-semibold">Verify with customer PIN or photo</p>
+                    </div>
                   </div>
                   <button
-                    onClick={() => setIsProofModalOpen(false)}
-                    className="p-1 hover:bg-gray-150 dark:hover:bg-white/5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
+                    onClick={() => setIsVerificationModalOpen(false)}
+                    className="p-1.5 hover:bg-gray-100 dark:hover:bg-white/5 rounded-full text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors"
                   >
-                    <X size={20} />
+                    <X size={18} />
                   </button>
                 </div>
 
-                <div className="p-4 bg-emerald-50/50 dark:bg-[#00FF66]/5 border border-emerald-100 dark:border-[#00FF66]/20 rounded-2xl">
-                  <h5 className="text-[10px] font-black text-emerald-600 dark:text-[#00FF66] uppercase tracking-widest mb-1">Mandatory Photo Upload</h5>
-                  <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
-                    You must upload at least 2 live photos of delivery proof to complete the delivery. Make sure the pictures are clear.
-                  </p>
-                </div>
-
-                {/* Photo 1: Doorstep/Customer handoff */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
-                    Photo 1: Package at doorstep / with customer
-                  </label>
-                  <ImageUpload
-                    value={proofImage1}
-                    onChange={setProofImage1}
-                    multiple={false}
-                    cameraOnly={true}
-                    label="Capture Doorstep Proof"
-                  />
-                </div>
-
-                {/* Photo 2: Location/Building reference */}
-                <div className="flex flex-col gap-2">
-                  <label className="text-[10px] font-black text-gray-400 dark:text-gray-505 uppercase tracking-widest">
-                    Photo 2: Building number / house / location proof
-                  </label>
-                  <ImageUpload
-                    value={proofImage2}
-                    onChange={setProofImage2}
-                    multiple={false}
-                    cameraOnly={true}
-                    label="Capture Location Proof"
-                  />
-                </div>
-
-                <div className="flex gap-3 pt-2">
+                {/* Tabs */}
+                <div className="flex gap-2 mb-5 p-1 bg-gray-100 dark:bg-white/5 rounded-2xl">
                   <button
-                    type="button"
-                    onClick={() => setIsProofModalOpen(false)}
-                    className="flex-1 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#181829] text-gray-900 dark:text-white rounded-2xl font-black text-xs hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
+                    onClick={() => setVerificationTab('otp')}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                      verificationTab === 'otp'
+                        ? 'bg-white dark:bg-[#181829] text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
                   >
-                    Cancel
+                    <KeyRound size={12} className="inline mr-1.5" />
+                    Customer PIN
                   </button>
                   <button
-                    type="button"
-                    onClick={handleProofSubmit}
-                    disabled={isSubmittingProof || !proofImage1 || !proofImage2}
-                    className="flex-1 py-3 bg-[#00FF66] text-black font-black rounded-2xl text-xs hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#00FF66]/10"
+                    onClick={() => setVerificationTab('photo')}
+                    className={`flex-1 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                      verificationTab === 'photo'
+                        ? 'bg-white dark:bg-[#181829] text-gray-900 dark:text-white shadow-sm'
+                        : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
+                    }`}
                   >
-                    {isSubmittingProof ? (
-                      <>
-                        <span className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin text-black"></span>
-                        Submitting...
-                      </>
-                    ) : (
-                      'Complete Delivery'
+                    <Camera size={12} className="inline mr-1.5" />
+                    Photo Proof
+                  </button>
+                </div>
+
+                {/* Tab: OTP */}
+                {verificationTab === 'otp' && (
+                  <div className="space-y-5">
+                    <div className="p-4 bg-emerald-50/60 dark:bg-[#00FF66]/5 border border-emerald-100 dark:border-[#00FF66]/15 rounded-2xl">
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
+                        Ask the customer to share the <strong>4-digit Delivery PIN</strong> shown in their OZO app.
+                      </p>
+                    </div>
+
+                    {/* COD Cash reminder */}
+                    {activeOrder?.payment_method === 'cod' && (
+                      <div className="p-3.5 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 rounded-2xl flex items-center gap-2.5">
+                        <CreditCard size={16} className="text-amber-500 shrink-0" />
+                        <p className="text-xs font-black text-amber-700 dark:text-amber-400">
+                          Collect <span className="text-base">₹{activeOrder?.total?.toFixed(2)}</span> cash before completing
+                        </p>
+                      </div>
                     )}
-                  </button>
-                </div>
+
+                    {/* 4-digit OTP input boxes */}
+                    <motion.div
+                      animate={otpError ? { x: [0, -8, 8, -8, 8, 0] } : {}}
+                      transition={{ duration: 0.4 }}
+                      className="flex gap-3 justify-center"
+                    >
+                      {otpDigits.map((digit, index) => (
+                        <input
+                          key={index}
+                          ref={el => otpInputRefs.current[index] = el}
+                          type="tel"
+                          inputMode="numeric"
+                          maxLength={1}
+                          value={digit}
+                          onChange={e => handleOtpChange(index, e.target.value)}
+                          onKeyDown={e => handleOtpKeyDown(index, e)}
+                          onPaste={index === 0 ? handleOtpPaste : undefined}
+                          className={`w-16 h-16 text-center text-2xl font-black rounded-2xl border-2 outline-none transition-all ${
+                            otpError
+                              ? 'border-red-400 bg-red-50 dark:bg-red-500/10 text-red-600 dark:text-red-400'
+                              : digit
+                                ? 'border-[#00FF66] bg-emerald-50 dark:bg-[#00FF66]/10 text-gray-900 dark:text-white'
+                                : 'border-gray-200 dark:border-[#181829] bg-gray-50 dark:bg-white/5 text-gray-900 dark:text-white focus:border-[#00FF66] focus:bg-emerald-50 dark:focus:bg-[#00FF66]/10'
+                          }`}
+                        />
+                      ))}
+                    </motion.div>
+
+                    <button
+                      type="button"
+                      onClick={handleOtpVerify}
+                      disabled={isVerifying || otpDigits.join('').length < 4}
+                      className="w-full py-4 bg-[#00FF66] text-black font-black rounded-2xl text-sm uppercase tracking-wider hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2 shadow-lg shadow-[#00FF66]/20"
+                    >
+                      {isVerifying ? (
+                        <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> Verifying...</>
+                      ) : (
+                        <><ShieldCheck size={16} /> Verify &amp; Complete Delivery</>
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {/* Tab: Photo Proof */}
+                {verificationTab === 'photo' && (
+                  <div className="space-y-5">
+                    <div className="p-4 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#181829] rounded-2xl">
+                      <h5 className="text-[10px] font-black text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">Doorstep Photo Proof (Fallback)</h5>
+                      <p className="text-xs font-semibold text-gray-600 dark:text-gray-400 leading-relaxed">
+                        Use this when the customer is unavailable or the delivery is contactless. Capture a clear photo of the package at the doorstep.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-widest">
+                        Package at doorstep / with security guard
+                      </label>
+                      <ImageUpload
+                        value={proofImage1}
+                        onChange={setProofImage1}
+                        multiple={false}
+                        cameraOnly={true}
+                        label="Capture Doorstep Photo"
+                      />
+                    </div>
+
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setIsVerificationModalOpen(false)}
+                        className="flex-1 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-[#181829] text-gray-900 dark:text-white rounded-2xl font-black text-xs hover:bg-gray-100 dark:hover:bg-white/10 transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handlePhotoProofSubmit}
+                        disabled={isSubmittingProof || !proofImage1}
+                        className="flex-1 py-3 bg-[#00FF66] text-black font-black rounded-2xl text-xs hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-md shadow-[#00FF66]/10"
+                      >
+                        {isSubmittingProof ? (
+                          <><span className="w-3.5 h-3.5 border-2 border-black border-t-transparent rounded-full animate-spin" /> Submitting...</>
+                        ) : (
+                          'Complete with Photo Proof'
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             </div>
           )}
