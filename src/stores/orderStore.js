@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { supabase, supabaseAdmin } from '../lib/supabase'
 import { useAuthStore } from './authStore'
 import { useCartStore } from './cartStore'
+import { getDeliveryOtp } from '../utils/deliveryOtp'
 import toast from 'react-hot-toast'
 
 export const useOrderStore = create((set, get) => ({

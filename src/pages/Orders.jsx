@@ -23,8 +23,15 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useOzoQuery } from '../hooks/useOzoQuery'
 import OzoLoadingGuard from '../components/OzoLoadingGuard'
 import OptimizedImage from '../components/OptimizedImage'
+import { getDeliveryOtp } from '../utils/deliveryOtp'
+
+const ACTIVE_DELIVERY_STATUSES = [
+  'placed', 'PLACED_COOLING', 'CONFIRMED_SYSTEM', 'confirmed',
+  'preparing', 'packed', 'assigned', 'dispatched'
+]
 
 const getGoogleMapsUrl = (address, order) => {
+
   if (order && order.latitude && order.longitude) {
     return `https://www.google.com/maps/search/?api=1&query=${order.latitude},${order.longitude}`;
   }
@@ -297,11 +304,16 @@ const Orders = () => {
 
                 {/* Footer bar: Payment summary and Actions */}
                 <div className="px-6 py-4 bg-gray-50/50 dark:bg-white/[0.02] border-t border-gray-100 dark:border-white/5 flex items-center justify-between gap-4">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="inline-block w-2 h-2 rounded-full bg-ozo-green animate-pulse" />
                     <p className="text-xs text-gray-500 dark:text-gray-400 font-bold uppercase tracking-wider">
                       {order.payment_method === 'cod' ? 'Cash on Delivery' : 'Paid Online'}
                     </p>
+                    {ACTIVE_DELIVERY_STATUSES.includes(order.status) && (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/25 text-amber-700 dark:text-amber-400 text-[10px] font-black tracking-wider">
+                        🔑 PIN: {getDeliveryOtp(order)}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-3">
                     {['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(order.status) && (

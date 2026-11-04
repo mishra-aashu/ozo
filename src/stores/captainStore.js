@@ -475,23 +475,41 @@ export const useCaptainStore = create((set, get) => {
       }
     },
 
-    // Deliver Order (Swipe to Deliver)
-    deliverOrder: async (proofImage1, proofImage2) => {
+    // Deliver Order (Confirm with In-App OTP or Photo Proof)
+    deliverOrder: async (optionsOrProof1, proofImage2) => {
       const { activeOrder, captainProfile } = get()
       if (!activeOrder || !captainProfile) return
 
       try {
+        let proofType = 'in_app_otp'
+        let img1 = null
+        let img2 = null
+
+        if (optionsOrProof1 && typeof optionsOrProof1 === 'object') {
+          proofType = optionsOrProof1.proofType || 'in_app_otp'
+          img1 = optionsOrProof1.proofImage1 || null
+          img2 = optionsOrProof1.proofImage2 || null
+        } else {
+          img1 = optionsOrProof1 || null
+          img2 = proofImage2 || null
+          proofType = (img1 || img2) ? 'photo_proof' : 'in_app_otp'
+        }
+
+        const updatePayload = {
+          status: 'DELIVERED_VERIFYING',
+          payment_status: 'paid', // Mark paid
+          delivered_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          delivery_proof_type: proofType,
+        }
+
+        if (img1) updatePayload.delivery_proof_image_1 = img1
+        if (img2) updatePayload.delivery_proof_image_2 = img2
+
         // Complete the order transaction
         const { data, error } = await supabase
           .from('orders')
-          .update({
-            status: 'DELIVERED_VERIFYING',
-            payment_status: 'paid', // Mark paid
-            delivered_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-            delivery_proof_image_1: proofImage1,
-            delivery_proof_image_2: proofImage2
-          })
+          .update(updatePayload)
           .eq('id', activeOrder.id)
           .select()
           .single()
