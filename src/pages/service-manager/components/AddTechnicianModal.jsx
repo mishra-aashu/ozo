@@ -52,7 +52,7 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
         <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/10">
           <div>
             <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
-              <UserPlus className="w-6 h-6 text-indigo-500" />
+              <UserPlus className="w-6 h-6 text-amber-500" />
               <span>Onboard New Field Technician</span>
             </h3>
             <p className="text-sm text-gray-400 mt-1">Add a verified technician to your doorstep crew roster</p>
@@ -76,7 +76,7 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
               placeholder="e.g. Ramesh Kumar"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full mt-2 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
+              className="w-full mt-2 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-inner"
             />
           </div>
 
@@ -90,7 +90,7 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
               placeholder="e.g. 9876543210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full mt-2 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-inner"
+              className="w-full mt-2 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-inner"
             />
           </div>
 
@@ -108,7 +108,7 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
                     onClick={() => toggleSkill(skill)}
                     className={`px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold border transition-all ${
                       isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30'
+                        ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-600/30'
                         : 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20'
                     }`}
                   >
@@ -130,7 +130,7 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
             <button
               type="submit"
               disabled={isSubmitting || !fullName.trim() || !phone.trim()}
-              className="px-8 py-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-base font-black tracking-wide shadow-lg shadow-indigo-600/30 transition-all active:scale-[0.98]"
+              className="px-8 py-4 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 text-white rounded-2xl text-base font-black tracking-wide shadow-lg shadow-amber-500/30 transition-all active:scale-[0.98]"
             >
               {isSubmitting ? 'Adding...' : 'Add Technician'}
             </button>
