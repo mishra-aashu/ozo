@@ -44,17 +44,17 @@ export default function MartPortalBackground() {
         />
       </picture>
 
-      {/* 3. Ambient Lighting & Contrast Gradient Overlay */}
+      {/* 3. Ambient Lighting & Contrast Gradient Overlay (Light / Dark Adaptive) */}
       <div 
-        className="absolute inset-0 bg-slate-950/75 mix-blend-multiply transition-colors duration-300" 
+        className="absolute inset-0 bg-slate-100/90 dark:bg-slate-950/75 dark:mix-blend-multiply backdrop-blur-[1.5px] transition-colors duration-300" 
         aria-hidden="true" 
       />
       <div 
-        className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/80 pointer-events-none" 
+        className="absolute inset-0 bg-gradient-to-t from-slate-100 via-transparent to-slate-100/90 dark:from-slate-950 dark:via-transparent dark:to-slate-950/80 pointer-events-none transition-colors duration-300" 
         aria-hidden="true" 
       />
       <div 
-        className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-transparent to-slate-950/70 pointer-events-none" 
+        className="absolute inset-0 bg-gradient-to-r from-slate-100/75 via-transparent to-slate-100/75 dark:from-slate-950/70 dark:via-transparent dark:to-slate-950/70 pointer-events-none transition-colors duration-300" 
         aria-hidden="true" 
       />
     </div>
