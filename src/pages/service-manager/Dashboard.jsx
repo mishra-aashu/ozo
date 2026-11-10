@@ -285,16 +285,16 @@ export default function ServiceManagerDashboard() {
         }`}
       >
         {/* Brand Header */}
-        <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
-              <Wrench size={20} />
+        <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3.5 min-w-0">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
+              <Wrench size={22} />
             </div>
             <div className="text-left min-w-0">
-              <h2 className="text-sm font-black text-gray-900 dark:text-white truncate leading-tight">
+              <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white truncate leading-tight">
                 {provider?.business_name || 'Service Partner'}
               </h2>
-              <span className="text-[10px] font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-0.5 rounded-full inline-block mt-0.5">
                 Partner Portal
               </span>
             </div>
@@ -306,20 +306,20 @@ export default function ServiceManagerDashboard() {
             className="p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 lg:hidden"
             title="Close Menu"
           >
-            <X size={18} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Agency Mini Status Card */}
-        <div className="p-3.5 m-3 rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5">
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+        <div className="p-4 m-3.5 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/5">
+          <div className="flex items-center justify-between gap-2.5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className={`w-3 h-3 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
               <div className="min-w-0">
-                <p className="text-[11px] font-black text-gray-900 dark:text-white truncate">
+                <p className="text-xs sm:text-sm font-black text-gray-900 dark:text-white truncate">
                   {provider?.city || 'Patna'} Hub
                 </p>
-                <p className="text-[10px] text-gray-400 font-semibold truncate">
+                <p className="text-xs text-gray-400 font-semibold truncate">
                   Doorstep Operations
                 </p>
               </div>
@@ -328,14 +328,14 @@ export default function ServiceManagerDashboard() {
             <button
               type="button"
               onClick={toggleOnlineStatus}
-              className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider uppercase border transition-all flex items-center gap-1 shrink-0 ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-black tracking-wider uppercase border transition-all flex items-center gap-1.5 shrink-0 ${
                 isOnline
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                  : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                  : 'bg-rose-500/15 text-rose-500 border-rose-500/30'
               }`}
               title="Click to toggle Duty Status"
             >
-              <Power size={11} className={isOnline ? 'animate-pulse' : ''} />
+              <Power size={12} className={isOnline ? 'animate-pulse' : ''} />
               <span>{isOnline ? 'Online' : 'Offline'}</span>
             </button>
           </div>
