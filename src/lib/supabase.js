@@ -270,13 +270,13 @@ const waitForLeaderTabRefresh = (timeoutMs = 8000) => {
   })
 }
 
-// Helper to execute refreshSession with a strict 4.5-second timeout limit
-// Guarantees no hung socket or frozen fetch can ever stall past the 7.0s lock staleness threshold
-const refreshSessionWithTimeout = async (timeoutMs = 4500) => {
+// Helper to execute refreshSession with a strict 2.5-second timeout limit
+// Prevents hung sockets or frozen fetches from stalling user interactions
+const refreshSessionWithTimeout = async (timeoutMs = 2500) => {
   let timer = null
   const timeoutPromise = new Promise((_, reject) => {
     timer = setTimeout(() => {
-      const err = new Error('Refresh network request timeout (4500ms exceeded)')
+      const err = new Error('Refresh network request timeout (2500ms exceeded)')
       err.name = 'TimeoutError'
       reject(err)
     }, timeoutMs)
@@ -314,14 +314,14 @@ const refreshSessionDeduplicated = async () => {
 
   globalRefreshPromise = (async () => {
     try {
-      // 1. Lock Staleness Expiry Check with 7000ms threshold (survives cumulative backoff delays):
+      // 1. Lock Staleness Expiry Check with 4000ms threshold:
       const lastLock = typeof window !== 'undefined' ? localStorage.getItem('ozo_refresh_lock_ts') : null
       const lockAge = lastLock ? Date.now() - parseInt(lastLock, 10) : Infinity
-      const isLockedByActiveTab = lockAge < 7000
+      const isLockedByActiveTab = lockAge < 4000
 
       if (isLockedByActiveTab) {
         console.log('[OZO Auth] Leader tab is currently refreshing session. Subscribing to REFRESH_SUCCESS broadcast...')
-        const leaderResult = await waitForLeaderTabRefresh(8000)
+        const leaderResult = await waitForLeaderTabRefresh(4000)
         if (leaderResult.data?.session) {
           return leaderResult
         }
@@ -339,18 +339,18 @@ const refreshSessionDeduplicated = async () => {
         refreshBroadcastChannel?.postMessage({ type: 'REFRESH_START' })
       }
 
-      // 3. Exponential Backoff Retry Loop (500ms, 1500ms, 3000ms) with Lock Heartbeat Renewal
-      const backoffDelays = [500, 1500, 3000]
+      // 3. Fast Retry Loop (single 300ms retry) with Lock Heartbeat Renewal
+      const backoffDelays = [300]
       let lastResult = null
 
       for (let attempt = 0; attempt <= backoffDelays.length; attempt++) {
         try {
-          // HEARTBEAT LOCK RENEWAL: Refresh timestamp on every attempt so active leader tab never gets preempted
+          // HEARTBEAT LOCK RENEWAL: Refresh timestamp on every attempt
           if (typeof window !== 'undefined') {
             localStorage.setItem('ozo_refresh_lock_ts', Date.now().toString())
           }
 
-          const result = await refreshSessionWithTimeout(4500)
+          const result = await refreshSessionWithTimeout(2500)
           
           if (!result.error && result.data?.session) {
             if (typeof window !== 'undefined') {
@@ -388,7 +388,6 @@ const refreshSessionDeduplicated = async () => {
           }
 
           if (attempt < backoffDelays.length) {
-            console.warn(`[OZO Auth] Session refresh transient hiccup. Retrying in ${backoffDelays[attempt]}ms (Attempt ${attempt + 1})...`)
             await new Promise(res => setTimeout(res, backoffDelays[attempt]))
           }
         } catch (netErr) {

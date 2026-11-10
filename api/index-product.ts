@@ -65,23 +65,37 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       urlChunks.push(urls.slice(i, i + CHUNK_SIZE));
     }
 
+    // Skip external IndexNow ping on local dev/test environments (prevents connection stall)
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      return res.status(200).json({ success: true, message: 'Skipped IndexNow on local dev', indexedUrls: urls });
+    }
+
     if (indexNowKey && urls.length > 0) {
       for (const chunk of urlChunks) {
-        // Submit to IndexNow (Bing, Yandex, etc.)
-        const indexNowRes = await fetch('https://api.indexnow.org/indexnow', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            host: host,
-            key: indexNowKey,
-            keyLocation: `${protocol}://${host}/${indexNowKey}.txt`,
-            urlList: chunk
-          })
-        });
-        
-        if (!indexNowRes.ok) {
-          const errorMsg = await indexNowRes.text();
-          console.warn(`IndexNow submission failed (status ${indexNowRes.status}): ${errorMsg}`);
+        // Submit to IndexNow (Bing, Yandex, etc.) with 3-second hard timeout
+        const abortCtrl = new AbortController();
+        const timeoutId = setTimeout(() => abortCtrl.abort(), 3000);
+        try {
+          const indexNowRes = await fetch('https://api.indexnow.org/indexnow', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            signal: abortCtrl.signal,
+            body: JSON.stringify({
+              host: host,
+              key: indexNowKey,
+              keyLocation: `${protocol}://${host}/${indexNowKey}.txt`,
+              urlList: chunk
+            })
+          });
+          
+          if (!indexNowRes.ok) {
+            const errorMsg = await indexNowRes.text();
+            console.warn(`IndexNow submission failed (status ${indexNowRes.status}): ${errorMsg}`);
+          }
+        } catch (fetchErr: any) {
+          console.warn('IndexNow request timed out or failed:', fetchErr?.message);
+        } finally {
+          clearTimeout(timeoutId);
         }
       }
     }
