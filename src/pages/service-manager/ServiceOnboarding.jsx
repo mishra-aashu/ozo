@@ -98,7 +98,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
               <ArrowLeft size={16} />
             </button>
             <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-full">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full">
                 Partner Registration
               </span>
               <h1 className="text-xl font-black text-gray-900 dark:text-white mt-1">
@@ -108,11 +108,11 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
           </div>
 
           <div className="flex items-center gap-1.5 text-xs font-black text-gray-400">
-            <span className={step >= 1 ? 'text-sky-500 font-black' : ''}>1</span>
+            <span className={step >= 1 ? 'text-amber-500 font-black' : ''}>1</span>
             <span>•</span>
-            <span className={step >= 2 ? 'text-sky-500 font-black' : ''}>2</span>
+            <span className={step >= 2 ? 'text-amber-500 font-black' : ''}>2</span>
             <span>•</span>
-            <span className={step >= 3 ? 'text-sky-500 font-black' : ''}>3</span>
+            <span className={step >= 3 ? 'text-amber-500 font-black' : ''}>3</span>
           </div>
         </div>
 
@@ -129,7 +129,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                 placeholder="e.g. Apex Home Care Solutions"
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
@@ -143,7 +143,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                 placeholder="e.g. Rajesh Sharma"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
-                className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
@@ -158,13 +158,13 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                   placeholder="e.g. 9876543210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
               </div>
 
               <div>
                 <label className="text-[11px] font-black uppercase text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-                  <MapPin size={12} className="text-sky-500" />
+                  <MapPin size={12} className="text-amber-500" />
                   <span>Operating Hub City *</span>
                 </label>
                 <div className="relative mt-1.5">
@@ -175,7 +175,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                     placeholder="Type city name (e.g. Patna)"
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                   <datalist id="hub-cities-list">
                     <option value="Patna" />
@@ -204,8 +204,8 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                   onClick={() => setCity(c)}
                   className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border transition-all ${
                     city.toLowerCase() === c.toLowerCase()
-                      ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
-                      : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-sky-500/40'
+                      ? 'bg-amber-500 text-white border-amber-500 shadow-sm'
+                      : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-amber-500/40'
                   }`}
                 >
                   {c}
@@ -226,7 +226,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                 type="button"
                 disabled={!businessName.trim() || !phone.trim() || !city.trim()}
                 onClick={() => setStep(2)}
-                className="flex-1 py-3.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-sky-600/20 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
               >
                 <span>Next: Select Trade Services</span>
                 <ArrowRight size={14} />
@@ -253,14 +253,14 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                     onClick={() => toggleCategory(cat.id)}
                     className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       isSelected
-                        ? 'border-sky-500 bg-sky-50/70 dark:bg-sky-950/30'
+                        ? 'border-amber-500 bg-amber-50/70 dark:bg-amber-950/30'
                         : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${
                         isSelected
-                          ? 'bg-sky-500 text-white'
+                          ? 'bg-amber-500 text-white'
                           : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
                       }`}>
                         <IconComponent size={20} />
@@ -277,7 +277,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                       type="checkbox"
                       checked={isSelected}
                       onChange={() => toggleCategory(cat.id)}
-                      className="rounded text-sky-600 focus:ring-sky-500"
+                      className="rounded text-amber-600 focus:ring-amber-500"
                     />
                   </div>
                 )
@@ -296,7 +296,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
                 type="button"
                 disabled={selectedCategories.length === 0}
                 onClick={() => setStep(3)}
-                className="flex-1 py-3.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-sky-600/20 transition-all flex items-center justify-center gap-2"
+                className="flex-1 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2"
               >
                 <span>Next: Settlement Account</span>
                 <ArrowRight size={14} />

@@ -162,8 +162,8 @@ export default function ServiceManagerDashboard() {
           icon: Wrench,
           count: pendingRequests.length,
           countBadgeColor: 'bg-amber-500 text-black font-black animate-pulse',
-          color: 'text-sky-500 dark:text-sky-400',
-          bgColor: 'bg-sky-500/10',
+          color: 'text-amber-500 dark:text-amber-400',
+          bgColor: 'bg-amber-500/10',
           subtitle: 'Real-time doorstep dispatch & active job visits'
         },
         {
@@ -171,17 +171,17 @@ export default function ServiceManagerDashboard() {
           label: 'Field Technicians',
           icon: Users,
           count: technicians.length,
-          countBadgeColor: 'bg-blue-500/10 text-blue-500',
-          color: 'text-blue-500 dark:text-blue-400',
-          bgColor: 'bg-blue-500/10',
+          countBadgeColor: 'bg-amber-500/10 text-amber-500',
+          color: 'text-amber-500 dark:text-amber-400',
+          bgColor: 'bg-amber-500/10',
           subtitle: 'Manage duty status, contact & assignments'
         },
         {
           id: 'catalog',
           label: 'Service Catalog',
           icon: Layers,
-          color: 'text-indigo-500 dark:text-indigo-400',
-          bgColor: 'bg-indigo-500/10',
+          color: 'text-orange-500 dark:text-orange-400',
+          bgColor: 'bg-orange-500/10',
           subtitle: 'Rate card offerings & custom service proposals'
         }
       ]
