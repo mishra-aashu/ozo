@@ -179,28 +179,30 @@ const CaptainDashboard = () => {
   if (!hasProfile || captainStatus === 'rejected') {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white py-12 px-4 flex flex-col items-center justify-center overflow-y-auto transition-colors duration-300 gap-6 relative">
+        <CaptainPortalBackground />
+
         {/* Floating Back Button */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-20">
           <Link
             to="/"
-            className="p-2.5 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
             title="Back to Home"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </div>
         {/* Floating Theme Toggle */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 z-20">
           <button
             onClick={toggleTheme}
-            className="p-2.5 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
             aria-label="Toggle Theme"
           >
             {theme === 'light' ? <Moon className="w-4 h-4 text-gray-750" /> : <Sun className="w-4 h-4 text-yellow-400" />}
           </button>
         </div>
         {captainStatus === 'rejected' && (
-          <div className="w-full max-w-lg bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-[2rem] flex items-start gap-4 shadow-lg shadow-red-500/5">
+          <div className="w-full max-w-lg bg-red-500/10 border border-red-500/20 text-red-400 p-5 rounded-[2rem] flex items-start gap-4 shadow-lg shadow-red-500/5 relative z-10 backdrop-blur-md">
             <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
             <div>
               <h4 className="font-black text-sm uppercase tracking-wide">Rider Application Rejected</h4>
@@ -218,41 +220,43 @@ const CaptainDashboard = () => {
   // 4. PENDING VERIFICATION REVIEW STATE
   if (captainStatus === 'pending_verification') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 transition-colors duration-300 relative">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 transition-colors duration-300 relative overflow-hidden">
+        <CaptainPortalBackground />
+
         {/* Floating Back Button */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-20">
           <Link
             to="/"
-            className="p-2.5 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
             title="Back to Home"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </div>
         {/* Floating Theme Toggle */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 z-20">
           <button
             onClick={toggleTheme}
-            className="p-2.5 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
             aria-label="Toggle Theme"
           >
             {theme === 'light' ? <Moon className="w-4 h-4 text-gray-750" /> : <Sun className="w-4 h-4 text-yellow-400" />}
           </button>
         </div>
-        <div className="w-full max-w-md bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1b1b30] rounded-2xl p-6 shadow-2xl space-y-6 text-center">
+        <div className="w-full max-w-md bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b30] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center relative z-10">
           <div className="inline-flex bg-[#FFCC00]/10 border border-[#FFCC00]/15 p-4 rounded-full text-[#FFCC00] animate-pulse">
             <Clock className="w-8 h-8" />
           </div>
 
           <div className="space-y-2">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white">Verification Under Review</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-400 max-w-[300px] mx-auto leading-relaxed">
+            <h3 className="text-xl font-black text-gray-900 dark:text-white">Verification Under Review</h3>
+            <p className="text-sm text-gray-700 dark:text-gray-400 max-w-[300px] mx-auto leading-relaxed font-medium">
               Our operations team is reviewing your Aadhar, driving license, and vehicle registration card.
             </p>
           </div>
 
           {/* Process flow indicator */}
-          <div className="p-4 bg-gray-50 dark:bg-[#12121e] border border-gray-200 dark:border-[#1d1d33] rounded-xl text-left space-y-4">
+          <div className="p-4 bg-gray-50/80 dark:bg-[#12121e]/80 border border-gray-200 dark:border-[#1d1d33] rounded-2xl text-left space-y-4">
             <div className="flex items-center gap-3">
               <div className="w-5 h-5 rounded-full bg-[#00FF66] flex items-center justify-center text-black font-bold text-xs">✓</div>
               <span className="text-xs text-gray-700 dark:text-gray-300 font-semibold">Documents Submitted</span>
@@ -269,13 +273,13 @@ const CaptainDashboard = () => {
             </div>
           </div>
 
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 font-medium">
             Usually verified within 24 hours. Keep this tab open or return later.
           </p>
 
           <button
             onClick={() => fetchProfile()}
-            className="w-full bg-gray-100 dark:bg-[#161626] border border-gray-200 dark:border-[#232338] hover:bg-gray-200 dark:hover:bg-[#1a1a2f] text-gray-800 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            className="w-full bg-gray-100 dark:bg-[#161626] border border-gray-200 dark:border-[#232338] hover:bg-gray-200 dark:hover:bg-[#1a1a2f] text-gray-800 dark:text-gray-300 hover:text-gray-950 dark:hover:text-white py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98] shadow-sm"
           >
             <RefreshCw className="w-4 h-4" /> Check Status
           </button>
@@ -286,28 +290,30 @@ const CaptainDashboard = () => {
 
   if (notificationPermission !== 'granted') {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 transition-colors duration-300 relative">
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 transition-colors duration-300 relative overflow-hidden">
+        <CaptainPortalBackground />
+
         {/* Floating Back Button */}
-        <div className="absolute top-4 left-4">
+        <div className="absolute top-4 left-4 z-20">
           <Link
             to="/"
-            className="p-2.5 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
             title="Back to Home"
           >
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </div>
         {/* Floating Theme Toggle */}
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 z-20">
           <button
             onClick={toggleTheme}
-            className="p-2.5 bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
             aria-label="Toggle Theme"
           >
             {theme === 'light' ? <Moon className="w-4 h-4 text-gray-750" /> : <Sun className="w-4 h-4 text-yellow-400" />}
           </button>
         </div>
-        <div className="w-full max-w-md bg-white dark:bg-[#0c0c14] border border-gray-200 dark:border-[#1b1b30] rounded-3xl p-6 shadow-2xl space-y-6 text-center">
+        <div className="w-full max-w-md bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b30] rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6 text-center relative z-10">
           <div className="relative inline-flex mb-2">
             <span className="absolute inline-flex h-full w-full rounded-full bg-ozo-red/20 animate-ping opacity-75" />
             <div className="relative flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-ozo-red to-rose-500 text-white rounded-full shadow-lg">
@@ -317,7 +323,7 @@ const CaptainDashboard = () => {
 
           <div className="space-y-2">
             <h3 className="text-xl font-black text-gray-900 dark:text-white">Notification Access Required</h3>
-            <p className="text-sm text-gray-700 dark:text-gray-400 max-w-[320px] mx-auto leading-relaxed">
+            <p className="text-sm text-gray-700 dark:text-gray-400 max-w-[320px] mx-auto leading-relaxed font-medium">
               OZO Captain console requires push notifications to alert you of newly assigned delivery orders, customer messages, and live payouts.
             </p>
           </div>
@@ -337,7 +343,7 @@ const CaptainDashboard = () => {
                 const res = await promptOneSignalPush()
                 setNotificationPermission(res)
               }}
-              className="w-full py-3.5 px-4 text-white font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-teal-600 hover:to-emerald-500 active:scale-[0.98] transition-all rounded-xl shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className="w-full py-3.5 px-4 text-black font-black text-sm bg-gradient-to-r from-[#00FF66] to-[#00CC52] hover:brightness-105 active:scale-[0.98] transition-all rounded-xl shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-[#00FF66]/50"
             >
               Enable Push Notifications
             </button>
