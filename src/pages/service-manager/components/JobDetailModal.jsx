@@ -13,11 +13,14 @@ import {
   KeyRound,
   ExternalLink,
   ChevronDown,
-  Navigation
+  Navigation,
+  Printer
 } from 'lucide-react'
 import DynamicServiceFields from '../workflows/DynamicServiceFields'
 import BeforeAfterUploader from './BeforeAfterUploader'
 import CategoryIcon from '../../../utils/serviceIcons'
+import { printServiceInvoice } from '../../../utils/serviceInvoiceGenerator'
+import { useServiceManagerStore } from '../../../stores/serviceManagerStore'
 
 export default function JobDetailModal({
   isOpen,
@@ -29,6 +32,7 @@ export default function JobDetailModal({
   onOpenOtp,
   onUpdateBookingData
 }) {
+  const { provider } = useServiceManagerStore()
   if (!isOpen || !booking) return null
 
   const customerAddress = typeof booking.address_json === 'object'
@@ -152,6 +156,14 @@ export default function JobDetailModal({
                 <KeyRound size={13} /> Verify OTP & Close
               </button>
             )}
+
+            <button
+              onClick={() => printServiceInvoice(booking, provider)}
+              className="px-3 py-1.5 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-800 dark:text-white font-bold rounded-xl flex items-center gap-1.5 border border-gray-200 dark:border-white/10 transition-colors"
+              title="Print standard GST service invoice"
+            >
+              <Printer size={13} /> Print Tax Invoice
+            </button>
           </div>
 
           {/* Customer & Scheduling Overview */}
