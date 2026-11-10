@@ -172,6 +172,31 @@ export const useServiceManagerStore = create((set, get) => ({
     }
   },
 
+  // Update Visiting Fee Override for Provider in service_providers
+  updateVisitingFee: async (fee) => {
+    const { provider } = get()
+    if (!provider) return false
+
+    try {
+      const { data, error } = await supabase
+        .from('service_providers')
+        .update({ visiting_fee_override: Number(fee) || 0, updated_at: new Date().toISOString() })
+        .eq('id', provider.id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      set({ provider: data })
+      toast.success('Visiting fee updated successfully!')
+      return true
+    } catch (err) {
+      console.error('Update visiting fee error:', err)
+      toast.error('Failed to update visiting fee')
+      return false
+    }
+  },
+
   // 2. Fetch Live Bookings
   fetchBookings: async () => {
     const { provider } = get()
