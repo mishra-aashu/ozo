@@ -16,11 +16,14 @@ import {
   Star,
   RefreshCw,
   MessageSquare,
-  Camera
+  Camera,
+  KeyRound,
+  Copy
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
 import { useServicesStore } from '../../stores/servicesStore'
+import { printServiceInvoice } from '../../utils/serviceInvoiceGenerator'
 import toast from 'react-hot-toast'
 import SEO from '../../components/SEO'
 
@@ -347,6 +350,61 @@ export default function MyBookings() {
                     <div className="flex items-center gap-2 text-[11px] text-gray-500 dark:text-gray-400 mb-4 bg-gray-50 dark:bg-white/5 p-3 rounded-xl border border-gray-100 dark:border-white/5">
                       <ShieldCheck size={16} className="text-emerald-500 flex-shrink-0" />
                       <span>Technician assignment in progress. Contact details will appear here shortly.</span>
+                    </div>
+                  )}
+
+                  {/* Secure Completion OTP Card */}
+                  {b.completion_otp && b.status !== 'completed' && b.status !== 'cancelled' && (
+                    <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-amber-500/10 border-2 border-amber-500/30 rounded-2xl p-4 mb-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-600 dark:text-amber-400 flex items-center justify-center flex-shrink-0">
+                          <KeyRound size={20} />
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/15 px-2 py-0.5 rounded-full border border-amber-500/20">
+                              Doorstep Completion OTP
+                            </span>
+                            <span className="text-[10px] font-bold text-gray-400">Share after service is done</span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-300 font-medium mt-1">
+                            Share this OTP with your technician only after you are satisfied with the visit.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-center">
+                        <span className="font-mono text-xl sm:text-2xl font-black tracking-widest text-amber-600 dark:text-amber-400 bg-white dark:bg-[#222] px-3.5 py-1.5 rounded-xl border border-amber-500/30 shadow-inner">
+                          {b.completion_otp}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            navigator.clipboard.writeText(b.completion_otp)
+                            toast.success('Completion OTP copied!')
+                          }}
+                          className="p-2.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl border border-amber-500/20 transition-colors"
+                          title="Copy OTP"
+                        >
+                          <Copy size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Completed Verified Badge & Tax Invoice */}
+                  {b.status === 'completed' && (
+                    <div className="flex items-center justify-between bg-emerald-500/10 border border-emerald-500/20 px-4 py-2.5 rounded-2xl mb-4 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                      <span className="flex items-center gap-1.5 font-black">
+                        <CheckCircle2 size={16} /> Verified & Closed via OTP
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => printServiceInvoice(b)}
+                        className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black shadow-sm transition-transform active:scale-95"
+                      >
+                        Print Tax Invoice
+                      </button>
                     </div>
                   )}
 
