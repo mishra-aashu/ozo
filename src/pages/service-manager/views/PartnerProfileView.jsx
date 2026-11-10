@@ -41,10 +41,12 @@ export default function PartnerProfileView({ provider, onRefresh }) {
   const { uploadProviderLogo, removeProviderLogo } = useServiceManagerStore()
   const [logoUrl, setLogoUrl] = useState(provider?.logo_url || '')
   const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+  const [logoImgError, setLogoImgError] = useState(false)
 
   useEffect(() => {
     if (provider?.logo_url !== undefined) {
       setLogoUrl(provider.logo_url || '')
+      setLogoImgError(false)
     }
   }, [provider?.logo_url])
 
@@ -53,10 +55,12 @@ export default function PartnerProfileView({ provider, onRefresh }) {
     if (!file) return
 
     setIsUploadingLogo(true)
+    setLogoImgError(false)
     try {
       const newUrl = await uploadProviderLogo(file)
       if (newUrl) {
         setLogoUrl(newUrl)
+        setLogoImgError(false)
         if (onRefresh) onRefresh()
       }
     } finally {
@@ -135,11 +139,12 @@ export default function PartnerProfileView({ provider, onRefresh }) {
               className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden cursor-pointer relative shadow-xl shadow-amber-500/25 border-2 border-white/20 dark:border-white/10 transition-all hover:scale-105 active:scale-95 bg-white dark:bg-black/40 flex items-center justify-center group"
               title="Click to Upload / Change Agency Logo"
             >
-              {logoUrl ? (
+              {logoUrl && !logoImgError ? (
                 <img
                   src={logoUrl}
                   alt={businessName}
                   className="w-full h-full object-cover"
+                  onError={() => setLogoImgError(true)}
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white font-black text-4xl sm:text-5xl flex items-center justify-center">

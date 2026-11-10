@@ -197,7 +197,7 @@ export const useServiceManagerStore = create((set, get) => ({
     }
   },
 
-  // Upload and set Agency Logo
+  // Upload and set Agency Logo via ImgBB
   uploadProviderLogo: async (file) => {
     const { provider } = get()
     if (!provider) {
@@ -207,53 +207,49 @@ export const useServiceManagerStore = create((set, get) => ({
 
     if (!file) return null
 
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size must be less than 5MB')
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image size must be less than 10MB')
       return null
     }
 
     try {
-      const fileExt = file.name ? file.name.split('.').pop() : 'jpg'
-      const fileName = `${provider.id}/agency-logo-${Date.now()}.${fileExt}`
-      
       let publicUrl = null
 
-      // Try uploading to service-assets bucket
-      const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('service-assets')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: true
+      // Primary Channel: ImgBB API (Fast global CDN storage)
+      try {
+        const apiKey = import.meta.env.VITE_IMGBB_API_KEY || '42583b3b3c01cf66407867e6b1cb49db'
+        const formData = new FormData()
+        formData.append('image', file)
+        if (provider.business_name) {
+          formData.append('name', `ozo_partner_${provider.id}_${Date.now()}`)
+        }
+
+        const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+          method: 'POST',
+          body: formData
         })
 
-      if (!uploadError && uploadData) {
-        const { data: urlData } = supabase.storage
-          .from('service-assets')
-          .getPublicUrl(fileName)
-        publicUrl = urlData?.publicUrl
-      } else {
-        // Fallback: try mart-assets bucket
-        const { data: fallbackUpload, error: fallbackError } = await supabase.storage
-          .from('mart-assets')
-          .upload(`providers/${fileName}`, file, {
-            cacheControl: '3600',
-            upsert: true
-          })
-
-        if (!fallbackError && fallbackUpload) {
-          const { data: fallbackUrlData } = supabase.storage
-            .from('mart-assets')
-            .getPublicUrl(`providers/${fileName}`)
-          publicUrl = fallbackUrlData?.publicUrl
+        if (res.ok) {
+          const resData = await res.json()
+          if (resData?.data?.display_url || resData?.data?.url) {
+            publicUrl = resData.data.display_url || resData.data.url
+            console.log('[ServiceManager] ImgBB Logo Upload Succeeded:', publicUrl)
+          }
         } else {
-          // Fallback to base64 data-URL so upload is resilient
-          publicUrl = await new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = () => resolve(reader.result)
-            reader.onerror = reject
-            reader.readAsDataURL(file)
-          })
+          console.warn('[ServiceManager] ImgBB upload rejected:', await res.text())
         }
+      } catch (imgbbErr) {
+        console.warn('[ServiceManager] ImgBB network error:', imgbbErr)
+      }
+
+      // Fallback: Local Base64 Data URL if offline or API limit reached
+      if (!publicUrl) {
+        publicUrl = await new Promise((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onload = () => resolve(reader.result)
+          reader.onerror = reject
+          reader.readAsDataURL(file)
+        })
       }
 
       if (!publicUrl) throw new Error('Could not generate public logo URL')
@@ -271,7 +267,7 @@ export const useServiceManagerStore = create((set, get) => ({
       if (dbError) throw dbError
 
       set({ provider: updatedProvider })
-      toast.success('Agency Logo updated successfully!')
+      toast.success('Agency Logo uploaded to ImgBB successfully!')
       return publicUrl
     } catch (err) {
       console.error('Upload agency logo error:', err)
