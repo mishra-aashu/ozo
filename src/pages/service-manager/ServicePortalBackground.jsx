@@ -19,11 +19,11 @@ export default function ServicePortalBackground() {
         }`}
       />
 
-      {/* 2. Ambient Gradient Blobs (Dynamic CSS Mesh) */}
+      {/* 2. Ambient Gradient Blobs (Dynamic CSS Mesh - Industrial Amber & Gold Theme) */}
       <div className="absolute inset-0 opacity-40 dark:opacity-25 transition-opacity duration-700">
-        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-sky-400 to-blue-600 rounded-full blur-3xl" />
-        <div className="absolute top-1/3 -right-32 w-96 h-96 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full blur-3xl" />
-        <div className="absolute -bottom-32 left-1/4 w-96 h-96 bg-gradient-to-br from-teal-400 to-emerald-600 rounded-full blur-3xl" />
+        <div className="absolute -top-32 -left-32 w-96 h-96 bg-gradient-to-br from-amber-400 to-orange-600 rounded-full blur-3xl opacity-60" />
+        <div className="absolute top-1/3 -right-32 w-96 h-96 bg-gradient-to-br from-yellow-500 to-amber-600 rounded-full blur-3xl opacity-40" />
+        <div className="absolute -bottom-32 left-1/4 w-96 h-96 bg-gradient-to-br from-orange-400 to-amber-700 rounded-full blur-3xl opacity-50" />
       </div>
 
       {/* 3. Subtle Technical Grid Pattern */}
