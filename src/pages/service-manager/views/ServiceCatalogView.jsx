@@ -68,9 +68,9 @@ export default function ServiceCatalogView({
     <div className="space-y-6 text-left">
       
       {/* Visiting Fee Configuration Card */}
-      <div className="bg-gradient-to-r from-sky-500/10 via-blue-500/10 to-indigo-500/10 border border-sky-500/20 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
+      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 rounded-3xl p-6 sm:p-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-6 shadow-sm">
         <div>
-          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-sky-600 dark:text-sky-400 bg-sky-500/10 px-3.5 py-1 rounded-full">
+          <span className="text-xs sm:text-sm font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3.5 py-1 rounded-full">
             Visiting & Inspection Fee
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mt-2">
@@ -93,7 +93,7 @@ export default function ServiceCatalogView({
             <button
               onClick={handleSaveFee}
               disabled={isSavingFee}
-              className="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
+              className="px-5 py-2.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
             >
               {isSavingFee ? 'Saving...' : 'Save Fee'}
             </button>
@@ -101,7 +101,7 @@ export default function ServiceCatalogView({
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-6 py-3.5 bg-gradient-to-r from-indigo-600 to-sky-600 hover:from-indigo-500 hover:to-sky-500 text-white rounded-2xl text-sm font-black shadow-lg shadow-indigo-600/25 transition-all flex items-center gap-2.5 active:scale-95"
+            className="px-6 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-2xl text-sm font-black shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2.5 active:scale-95"
           >
             <PlusCircle size={19} />
             <span>Propose Custom Service</span>
