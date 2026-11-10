@@ -13,7 +13,8 @@ import {
   Snowflake,
   Droplets,
   Hammer,
-  Bug
+  Bug,
+  MapPin
 } from 'lucide-react'
 
 export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
@@ -162,20 +163,54 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
               </div>
 
               <div>
-                <label className="text-[11px] font-black uppercase text-gray-500 dark:text-gray-400">
-                  Operating Hub City *
+                <label className="text-[11px] font-black uppercase text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+                  <MapPin size={12} className="text-sky-500" />
+                  <span>Operating Hub City *</span>
                 </label>
-                <select
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
-                >
-                  <option value="Patna">Patna</option>
-                  <option value="Muzaffarpur">Muzaffarpur</option>
-                  <option value="Gaya">Gaya</option>
-                  <option value="Darbhanga">Darbhanga</option>
-                </select>
+                <div className="relative mt-1.5">
+                  <input
+                    type="text"
+                    required
+                    list="hub-cities-list"
+                    placeholder="Type city name (e.g. Patna)"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                  />
+                  <datalist id="hub-cities-list">
+                    <option value="Patna" />
+                    <option value="Muzaffarpur" />
+                    <option value="Gaya" />
+                    <option value="Darbhanga" />
+                    <option value="Bhagalpur" />
+                    <option value="Purnia" />
+                    <option value="Aurangabad" />
+                    <option value="Ranchi" />
+                    <option value="Varanasi" />
+                    <option value="Kolkata" />
+                    <option value="Delhi NCR" />
+                  </datalist>
+                </div>
               </div>
+            </div>
+
+            {/* Quick-Pick Popular City Suggestions */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1">
+              <span className="text-[10px] font-bold text-gray-400">Popular:</span>
+              {['Patna', 'Muzaffarpur', 'Gaya', 'Darbhanga', 'Bhagalpur', 'Aurangabad'].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCity(c)}
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded-xl border transition-all ${
+                    city.toLowerCase() === c.toLowerCase()
+                      ? 'bg-sky-500 text-white border-sky-500 shadow-sm'
+                      : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-sky-500/40'
+                  }`}
+                >
+                  {c}
+                </button>
+              ))}
             </div>
 
             <div className="flex items-center gap-3 mt-6">
@@ -189,7 +224,7 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
               </button>
               <button
                 type="button"
-                disabled={!businessName.trim() || !phone.trim()}
+                disabled={!businessName.trim() || !phone.trim() || !city.trim()}
                 onClick={() => setStep(2)}
                 className="flex-1 py-3.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-sky-600/20 transition-all flex items-center justify-center gap-2"
               >
