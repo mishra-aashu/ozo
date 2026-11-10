@@ -27,7 +27,7 @@ export default function BeforeAfterUploader({ booking, onUploadMedia, isReadOnly
     <div className="bg-white/80 dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-white/10 rounded-2xl p-4 text-left">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
-          <Camera className="w-4 h-4 text-sky-500" />
+          <Camera className="w-4 h-4 text-amber-500" />
           <h4 className="text-xs font-black uppercase tracking-wider text-gray-800 dark:text-gray-200">
             Work Verification & Photo Proof
           </h4>
@@ -49,7 +49,7 @@ export default function BeforeAfterUploader({ booking, onUploadMedia, isReadOnly
                 <button
                   type="button"
                   onClick={() => handleSimulatedUpload('before')}
-                  className="px-2.5 py-1 bg-gray-200 dark:bg-white/10 hover:bg-sky-500 hover:text-white rounded-lg text-[10px] font-black transition-all"
+                  className="px-2.5 py-1 bg-gray-200 dark:bg-white/10 hover:bg-amber-500 hover:text-white rounded-lg text-[10px] font-black transition-all"
                 >
                   Upload / Snap
                 </button>

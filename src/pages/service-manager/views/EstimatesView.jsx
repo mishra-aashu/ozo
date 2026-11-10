@@ -102,7 +102,7 @@ export default function EstimatesView({
 
                   {est.service_bookings?.customer_name && (
                     <div className="flex items-center gap-2 text-sm font-bold text-gray-500 dark:text-gray-400 mb-3.5">
-                      <User size={14} className="text-indigo-500" />
+                      <User size={14} className="text-amber-500" />
                       <span>{est.service_bookings.customer_name}</span>
                     </div>
                   )}

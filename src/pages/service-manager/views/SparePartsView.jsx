@@ -71,7 +71,7 @@ export default function SparePartsView({
     <div className="space-y-6 text-left">
       
       {/* Top Banner & Add Button */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-teal-500/10 via-emerald-500/10 to-sky-500/10 border border-teal-500/20 rounded-3xl p-6 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-teal-500/10 border border-amber-500/20 rounded-3xl p-6 sm:p-8">
         <div>
           <span className="text-xs font-black uppercase tracking-wider text-teal-600 dark:text-teal-400 bg-teal-500/10 px-3 py-1 rounded-full">
             Component Warehouse
