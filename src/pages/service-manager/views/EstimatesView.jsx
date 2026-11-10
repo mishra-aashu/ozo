@@ -9,13 +9,17 @@ import {
   User, 
   Phone,
   Layers,
-  ArrowRight
+  ArrowRight,
+  Printer
 } from 'lucide-react'
+import { printServiceEstimate } from '../../../utils/serviceInvoiceGenerator'
+import { useServiceManagerStore } from '../../../stores/serviceManagerStore'
 
 export default function EstimatesView({
   estimates = [],
   isLoading = false
 }) {
+  const { provider } = useServiceManagerStore()
   const [searchQuery, setSearchQuery] = useState('')
 
   const filteredEstimates = estimates.filter(est => {
@@ -124,9 +128,19 @@ export default function EstimatesView({
                     </span>
                   </div>
 
-                  <span className="text-[11px] font-bold text-gray-400">
-                    {new Date(est.created_at).toLocaleDateString()}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-gray-400">
+                      {new Date(est.created_at).toLocaleDateString()}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => printServiceEstimate(est, provider)}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/30 transition-colors"
+                      title="Print Quotation"
+                    >
+                      <Printer size={14} />
+                    </button>
+                  </div>
                 </div>
               </div>
             )

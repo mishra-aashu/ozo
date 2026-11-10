@@ -60,8 +60,9 @@ const Profile = () => {
   })))
   const isCaptain = profile?.role === 'captain' || isAdmin
   const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || isAdmin
+  const isServiceManager = profile?.role === 'service_manager' || profile?.role === 'service_technician' || isAdmin
   const isCityManager = profile?.isCityManager
-  const isCustomerOnly = !isCaptain && !isMartOperator && !isCityManager
+  const isCustomerOnly = !isCaptain && !isMartOperator && !isCityManager && !isServiceManager
   const navigate = useNavigate()
   const [isEditing, setIsEditing] = useState(false)
   const [formData, setFormData] = useState({
@@ -74,6 +75,7 @@ const Profile = () => {
   const [isRiderExpanded, setIsRiderExpanded] = useState(false)
   const [isMartExpanded, setIsMartExpanded] = useState(false)
   const [isCityExpanded, setIsCityExpanded] = useState(false)
+  const [isServiceExpanded, setIsServiceExpanded] = useState(false)
 
 
 
@@ -471,6 +473,53 @@ const Profile = () => {
                             </p>
                             <Link to="/mart" className="inline-flex items-center gap-2 text-indigo-500 font-bold text-sm bg-indigo-50 dark:bg-indigo-500/10 px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
                               Manage Supermarket <ChevronRight size={16} />
+                            </Link>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {isServiceManager && (
+                  <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] shadow-sm border border-gray-100 dark:border-white/5 overflow-hidden transition-all duration-300 hover:shadow-md">
+                    <button
+                      onClick={() => setIsServiceExpanded(!isServiceExpanded)}
+                      className="w-full p-6 flex items-center justify-between gap-4 text-left outline-none"
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="w-12 h-12 bg-sky-50 dark:bg-sky-500/10 rounded-2xl flex items-center justify-center text-sky-500 flex-shrink-0">
+                          <Wrench size={24} />
+                        </div>
+                        <div className="min-w-0">
+                          <h3 className="text-base font-black text-gray-900 dark:text-white truncate">Service Partner Portal</h3>
+                          <span className="inline-block mt-0.5 text-[9px] font-black uppercase tracking-wider bg-sky-500/10 border border-sky-500/20 px-2.5 py-0.5 rounded-full text-sky-500">Doorstep Hub</span>
+                        </div>
+                      </div>
+                      <motion.div
+                        animate={{ rotate: isServiceExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="text-gray-400"
+                      >
+                        <ChevronDown size={20} />
+                      </motion.div>
+                    </button>
+
+                    <AnimatePresence initial={false}>
+                      {isServiceExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="px-6 pb-6 pt-2 border-t border-gray-50 dark:border-white/5">
+                            <p className="text-sm text-ozo-gray dark:text-gray-400 font-medium mb-4 leading-relaxed">
+                              Dispatch field technicians, manage spare parts inventory, and handle OTP verification.
+                            </p>
+                            <Link to="/service-manager" className="inline-flex items-center gap-2 text-sky-500 font-bold text-sm bg-sky-50 dark:bg-sky-500/10 px-4 py-2 rounded-xl hover:opacity-90 transition-opacity">
+                              Open Service Manager Console <ChevronRight size={16} />
                             </Link>
                           </div>
                         </motion.div>
