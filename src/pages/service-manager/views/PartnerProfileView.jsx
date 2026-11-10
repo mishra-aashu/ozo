@@ -125,14 +125,14 @@ export default function PartnerProfileView({ provider, onRefresh }) {
     <div className="space-y-8 text-left max-w-6xl mx-auto pb-12">
       
       {/* Profile Header Banner */}
-      <div className="bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-500/20 rounded-3xl p-6 sm:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
+      <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/25 rounded-3xl p-6 sm:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           
           {/* Agency Logo Avatar & Interactive Upload system */}
           <div className="relative group shrink-0">
             <div
               onClick={() => !isUploadingLogo && fileInputRef.current?.click()}
-              className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden cursor-pointer relative shadow-xl shadow-sky-500/25 border-2 border-white/20 dark:border-white/10 transition-all hover:scale-105 active:scale-95 bg-white dark:bg-black/40 flex items-center justify-center group"
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden cursor-pointer relative shadow-xl shadow-amber-500/25 border-2 border-white/20 dark:border-white/10 transition-all hover:scale-105 active:scale-95 bg-white dark:bg-black/40 flex items-center justify-center group"
               title="Click to Upload / Change Agency Logo"
             >
               {logoUrl ? (
@@ -142,7 +142,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <div className="w-full h-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-black text-4xl sm:text-5xl flex items-center justify-center">
+                <div className="w-full h-full bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 text-white font-black text-4xl sm:text-5xl flex items-center justify-center">
                   {businessName.charAt(0) || 'O'}
                 </div>
               )}
@@ -155,12 +155,12 @@ export default function PartnerProfileView({ provider, onRefresh }) {
               >
                 {isUploadingLogo ? (
                   <div className="flex flex-col items-center gap-1.5">
-                    <Loader2 className="w-7 h-7 animate-spin text-sky-400" />
-                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-300">Uploading...</span>
+                    <Loader2 className="w-7 h-7 animate-spin text-amber-400" />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-amber-300">Uploading...</span>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center gap-1">
-                    <Camera className="w-7 h-7 text-sky-300" />
+                    <Camera className="w-7 h-7 text-amber-300" />
                     <span className="text-[10px] font-black uppercase tracking-wider">
                       {logoUrl ? 'Change' : 'Upload'}
                     </span>
@@ -174,7 +174,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploadingLogo}
-              className="absolute -bottom-2 -right-2 p-2.5 rounded-2xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white shadow-lg shadow-sky-500/40 transition-all border-2 border-white dark:border-[#18181b] active:scale-95 flex items-center justify-center"
+              className="absolute -bottom-2 -right-2 p-2.5 rounded-2xl bg-amber-500 hover:bg-amber-400 disabled:opacity-50 text-white shadow-lg shadow-amber-500/40 transition-all border-2 border-white dark:border-[#18181b] active:scale-95 flex items-center justify-center"
               title="Upload / Change Logo"
             >
               <Camera size={16} />
@@ -215,7 +215,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isUploadingLogo}
-                className="text-xs sm:text-sm font-bold text-sky-500 hover:text-sky-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="text-xs sm:text-sm font-bold text-amber-500 hover:text-amber-400 flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <UploadCloud size={16} />
                 <span>{logoUrl ? 'Change Agency Logo' : 'Upload Agency Logo'}</span>
@@ -250,7 +250,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
         {/* Business Credentials */}
         <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-7 sm:p-9 shadow-sm space-y-7">
           <h3 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-3 border-b border-gray-100 dark:border-white/5 pb-5">
-            <Building2 className="w-7 h-7 text-sky-500" />
+            <Building2 className="w-7 h-7 text-amber-500" />
             <span>Business Credentials & Hub</span>
           </h3>
 
@@ -264,7 +264,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-inner"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
               />
             </div>
 
@@ -276,7 +276,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 type="text"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-inner"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
               />
             </div>
 
@@ -289,7 +289,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-inner"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
               />
             </div>
 
