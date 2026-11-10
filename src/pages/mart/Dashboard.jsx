@@ -375,9 +375,9 @@ const MartDashboard = () => {
                 </div>
               )}
             </div>
-            <div className="text-[10px] sm:text-sm text-gray-550 dark:text-slate-400 mt-0.5 flex items-center gap-1 max-w-[180px] sm:max-w-none">
-              <span className="hidden sm:inline">Supermarket Counter:</span>
-              <span className="text-blue-600 dark:text-blue-400 font-semibold truncate max-w-[120px] sm:max-w-none" title={currentMart?.name || martApplication?.store_name || profile?.full_name || 'My Mart'}>
+            <div className="text-[10px] sm:text-sm text-gray-600 dark:text-slate-300 mt-0.5 flex items-center gap-1 max-w-[180px] sm:max-w-none">
+              <span className="hidden sm:inline font-medium text-gray-500 dark:text-gray-400">Supermarket Counter:</span>
+              <span className="text-blue-600 dark:text-sky-400 font-bold truncate max-w-[120px] sm:max-w-none" title={currentMart?.name || martApplication?.store_name || profile?.full_name || 'My Mart'}>
                 {currentMart?.name || martApplication?.store_name || profile?.full_name || 'My Mart'}
               </span>
             </div>
@@ -391,8 +391,8 @@ const MartDashboard = () => {
               onClick={() => setCurrentView('orders')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer ${
                 currentView === 'orders'
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md font-bold'
-                  : 'text-gray-700 dark:text-slate-300 hover:text-gray-950 dark:hover:text-white'
+                  ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-md font-bold'
+                  : 'text-gray-700 dark:text-slate-200 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Live Orders ({liveOrders.length})
@@ -401,8 +401,8 @@ const MartDashboard = () => {
               onClick={() => setCurrentView('inventory')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer ${
                 currentView === 'inventory'
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md font-bold'
-                  : 'text-gray-700 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
+                  ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-md font-bold'
+                  : 'text-gray-700 dark:text-slate-200 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Inventory Controller
@@ -411,8 +411,8 @@ const MartDashboard = () => {
               onClick={() => setCurrentView('earnings')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer ${
                 currentView === 'earnings'
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md font-bold'
-                  : 'text-gray-700 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
+                  ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-md font-bold'
+                  : 'text-gray-700 dark:text-slate-200 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Earnings & Stats
@@ -421,8 +421,8 @@ const MartDashboard = () => {
               onClick={() => setCurrentView('profile')}
               className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-300 cursor-pointer ${
                 currentView === 'profile'
-                  ? 'bg-blue-600 dark:bg-blue-500 text-white shadow-md font-bold'
-                  : 'text-gray-700 dark:text-slate-300 hover:text-gray-955 dark:hover:text-white'
+                  ? 'bg-blue-600 dark:bg-blue-600 text-white shadow-md font-bold'
+                  : 'text-gray-700 dark:text-slate-200 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               Store Profile
