@@ -63,6 +63,7 @@ export default function ServiceManagerDashboard() {
     acceptBooking,
     assignTechnician,
     updateBookingStatus,
+    updateVisitingFee,
     verifyCompletionOtp,
     fetchTechnicians,
     addTechnician,
@@ -319,8 +320,7 @@ export default function ServiceManagerDashboard() {
               provider={provider}
               isLoading={isLoading}
               onUpdateVisitingFee={async (fee) => {
-                await updateBookingStatus(provider.id, provider.status, { visiting_fee_override: fee })
-                fetchProviderProfile()
+                await updateVisitingFee(fee)
               }}
             />
           )}
