@@ -36,9 +36,9 @@ export default function TechniciansView({
     <div className="space-y-7 text-left">
       
       {/* Top Banner & Add Button */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 bg-gradient-to-r from-indigo-500/10 via-sky-500/10 to-teal-500/10 border border-indigo-500/20 rounded-3xl p-7 sm:p-8">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-yellow-500/10 border border-amber-500/20 rounded-3xl p-7 sm:p-8">
         <div>
-          <span className="text-xs font-black uppercase tracking-wider text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full">
+          <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full">
             Field Force Crew
           </span>
           <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mt-2">
@@ -51,7 +51,7 @@ export default function TechniciansView({
 
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="px-6 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black tracking-wide shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2.5 active:scale-95 flex-shrink-0"
+          className="px-6 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-2xl text-sm font-black tracking-wide shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2.5 active:scale-95 flex-shrink-0"
         >
           <UserPlus size={18} />
           <span>Add New Technician</span>
@@ -66,7 +66,7 @@ export default function TechniciansView({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search by technician name, phone, or skill..."
-          className="w-full bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm"
+          className="w-full bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3 text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
         />
       </div>
 
@@ -82,7 +82,7 @@ export default function TechniciansView({
           </p>
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white rounded-2xl text-sm font-black shadow-lg shadow-indigo-600/25 transition-all"
+            className="px-6 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-2xl text-sm font-black shadow-lg shadow-amber-500/25 transition-all"
           >
             Add First Technician
           </button>
@@ -98,7 +98,7 @@ export default function TechniciansView({
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-4">
                     <div className="flex items-center gap-3.5">
-                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white font-black text-xl flex items-center justify-center flex-shrink-0 shadow-sm">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black text-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                         {tech.full_name?.charAt(0) || 'T'}
                       </div>
                       <div>
@@ -107,7 +107,7 @@ export default function TechniciansView({
                         </h4>
                         <a 
                           href={`tel:${tech.phone}`} 
-                          className="text-sm font-mono font-bold text-gray-500 dark:text-gray-400 hover:text-indigo-500 flex items-center gap-1.5 mt-0.5"
+                          className="text-sm font-mono font-bold text-gray-500 dark:text-gray-400 hover:text-amber-500 flex items-center gap-1.5 mt-0.5"
                         >
                           <Phone size={13} className="text-emerald-500" />
                           <span>{tech.phone}</span>
@@ -142,7 +142,7 @@ export default function TechniciansView({
                     {(tech.skills || []).map((skill, idx) => (
                       <span
                         key={idx}
-                        className="text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-xl border border-indigo-200/40 dark:border-indigo-800/40"
+                        className="text-xs font-bold bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 px-2.5 py-1 rounded-xl border border-amber-200/40 dark:border-amber-800/40"
                       >
                         {skill}
                       </span>
