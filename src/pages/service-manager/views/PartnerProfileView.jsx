@@ -73,177 +73,198 @@ export default function PartnerProfileView({ provider, onRefresh }) {
   }
 
   return (
-    <div className="space-y-6 text-left max-w-4xl mx-auto">
+    <div className="space-y-8 text-left max-w-5xl mx-auto pb-10">
       
       {/* Profile Header Banner */}
-      <div className="bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-500/20 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-black text-2xl flex items-center justify-center shadow-md">
+      <div className="bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
+        <div className="flex items-center gap-5">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-black text-3xl flex items-center justify-center shadow-lg shadow-sky-500/25 shrink-0">
             {businessName.charAt(0) || 'O'}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-xl font-black text-gray-900 dark:text-white">
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
                 {businessName || 'Service Partner Agency'}
               </h2>
               {provider?.is_verified && (
-                <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                <ShieldCheck className="w-6 h-6 text-emerald-500 shrink-0" />
               )}
             </div>
-            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mt-1 font-bold">
-              <span className="flex items-center gap-1 text-amber-500">
-                <Star size={13} fill="currentColor" /> {provider?.rating || 5.0}
+            <div className="flex items-center gap-3 text-sm sm:text-base text-gray-500 dark:text-gray-300 mt-2 font-bold flex-wrap">
+              <span className="flex items-center gap-1.5 text-amber-500 font-extrabold">
+                <Star size={16} fill="currentColor" /> {provider?.rating || 5.0}
               </span>
-              <span>•</span>
+              <span className="text-gray-400">•</span>
               <span>{city} Operational Hub</span>
-              <span>•</span>
+              <span className="text-gray-400">•</span>
               <span className="text-emerald-500 font-black">{provider?.total_jobs_completed || 0} Jobs Done</span>
             </div>
           </div>
         </div>
 
-        <span className="text-xs font-black uppercase tracking-wider px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
-          ● Verified Partner
+        <span className="text-xs sm:text-sm font-black uppercase tracking-wider px-4 py-2 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5 shrink-0">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+          <span>Verified Partner</span>
         </span>
       </div>
 
-      <form onSubmit={handleSave} className="space-y-6">
+      <form onSubmit={handleSave} className="space-y-8">
         
         {/* Business Credentials */}
-        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-sky-500" />
+        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2.5 border-b border-gray-100 dark:border-white/5 pb-4">
+            <Building2 className="w-5 h-5 text-sky-500" />
             <span>Business Credentials & Hub</span>
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Agency / Business Name</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Agency / Business Name
+              </label>
               <input
                 type="text"
                 required
                 value={businessName}
                 onChange={(e) => setBusinessName(e.target.value)}
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Partner / Owner Name</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Partner / Owner Name
+              </label>
               <input
                 type="text"
                 value={ownerName}
                 onChange={(e) => setOwnerName(e.target.value)}
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Dispatch Contact Phone</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Dispatch Contact Phone
+              </label>
               <input
                 type="tel"
                 required
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white font-mono focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Official Email</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Official Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Primary Service City</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Primary Service City
+              </label>
               <input
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Covered Pincodes (Comma separated)</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Covered Pincodes (Comma separated)
+              </label>
               <input
                 type="text"
                 value={pincodesInput}
                 onChange={(e) => setPincodesInput(e.target.value)}
                 placeholder="e.g. 800001, 800020, 800014"
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white font-mono focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Bank & Payout Destination */}
-        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm space-y-4">
-          <h3 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-emerald-500" />
+        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+          <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white uppercase tracking-wider flex items-center gap-2.5 border-b border-gray-100 dark:border-white/5 pb-4">
+            <CreditCard className="w-5 h-5 text-emerald-500" />
             <span>Bank Account & Settlement Information</span>
           </h3>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Beneficiary / Account Holder Name</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Beneficiary / Account Holder Name
+              </label>
               <input
                 type="text"
                 value={beneficiary}
                 onChange={(e) => setBeneficiary(e.target.value)}
                 placeholder="As per bank passbook"
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Bank Account Number</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Bank Account Number
+              </label>
               <input
                 type="text"
                 value={accNumber}
                 onChange={(e) => setAccNumber(e.target.value)}
                 placeholder="e.g. 01234567890123"
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white font-mono focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">IFSC Code</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                IFSC Code
+              </label>
               <input
                 type="text"
                 value={ifsc}
                 onChange={(e) => setIfsc(e.target.value.toUpperCase())}
                 placeholder="e.g. SBIN0001234"
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white font-mono uppercase focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white font-mono uppercase focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-[11px] font-black uppercase text-gray-400">Instant UPI ID</label>
+              <label className="block text-xs sm:text-sm font-black uppercase text-gray-400 dark:text-gray-400 tracking-wider mb-2">
+                Instant UPI ID
+              </label>
               <input
                 type="text"
                 value={upiId}
                 onChange={(e) => setUpiId(e.target.value)}
                 placeholder="e.g. agency@okaxis"
-                className="w-full mt-1 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 font-bold text-gray-900 dark:text-white font-mono focus:outline-none"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all"
               />
             </div>
           </div>
         </div>
 
         {/* Save Button */}
-        <div className="flex justify-end">
+        <div className="flex justify-end pt-2">
           <button
             type="submit"
             disabled={isSaving}
-            className="px-6 py-3 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-sky-600/20 transition-all flex items-center gap-2"
+            className="px-8 py-4 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:opacity-50 text-white rounded-2xl text-sm sm:text-base font-black tracking-wide shadow-xl shadow-sky-500/25 transition-all flex items-center gap-2.5 active:scale-95"
           >
-            <Save size={16} />
+            <Save size={18} />
             <span>{isSaving ? 'Saving Changes...' : 'Save Partner Profile'}</span>
           </button>
         </div>
