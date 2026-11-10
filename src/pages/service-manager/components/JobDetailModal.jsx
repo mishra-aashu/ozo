@@ -93,7 +93,7 @@ export default function JobDetailModal({
                 <span className="text-xs font-mono font-black text-gray-400">
                   #{booking.booking_number || booking.id?.slice(0, 8)}
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-sky-500/10 text-sky-500 border border-sky-500/20">
+                <span className="text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30">
                   {booking.status?.replace('_', ' ')}
                 </span>
               </div>
@@ -129,14 +129,14 @@ export default function JobDetailModal({
               href={googleMapsUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 font-bold rounded-xl flex items-center gap-1.5 border border-blue-200/50"
+              className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 font-bold rounded-xl flex items-center gap-1.5 border border-amber-200/50"
             >
               <Navigation size={13} /> Google Maps
             </a>
 
             <button
               onClick={() => onOpenAssign(booking)}
-              className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 font-bold rounded-xl flex items-center gap-1.5 border border-indigo-200/50"
+              className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold rounded-xl flex items-center gap-1.5 border border-amber-500/30 transition-colors"
             >
               <Wrench size={13} /> {booking.technician_id ? 'Reassign Tech' : 'Assign Tech'}
             </button>
@@ -171,7 +171,7 @@ export default function JobDetailModal({
             <div className="space-y-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Customer Details</span>
               <div className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
-                <User size={14} className="text-indigo-500" />
+                <User size={14} className="text-amber-500" />
                 <span>{booking.customer_name || 'Valued Customer'}</span>
               </div>
               <div className="flex items-center gap-2 font-mono text-gray-600 dark:text-gray-300">
@@ -187,7 +187,7 @@ export default function JobDetailModal({
             <div className="space-y-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400">Appointment & Billing</span>
               <div className="flex items-center gap-2 font-bold text-gray-800 dark:text-gray-200">
-                <Calendar size={14} className="text-sky-500" />
+                <Calendar size={14} className="text-amber-500" />
                 <span>{booking.scheduled_at || `${booking.scheduled_date || 'Today'} • ${booking.scheduled_slot || '10:00 AM - 12:00 PM'}`}</span>
               </div>
               <div className="flex items-center justify-between text-gray-700 dark:text-gray-300 pt-1 border-t border-gray-200/50 dark:border-white/10 font-bold">
@@ -202,9 +202,9 @@ export default function JobDetailModal({
           </div>
 
           {/* Lifecycle Status Advance Selector */}
-          <div className="bg-sky-50/40 dark:bg-sky-950/20 border border-sky-100 dark:border-sky-900/30 p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/20 p-3.5 rounded-2xl flex flex-wrap items-center justify-between gap-3">
             <div>
-              <span className="text-[10px] font-black uppercase tracking-wider text-sky-600 dark:text-sky-400 block">
+              <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 block">
                 Job Progress Stage
               </span>
               <p className="text-xs font-bold text-gray-700 dark:text-gray-300 mt-0.5">
@@ -215,7 +215,7 @@ export default function JobDetailModal({
             <select
               value={booking.status}
               onChange={(e) => onUpdateStatus(booking.id, e.target.value)}
-              className="bg-white dark:bg-[#222] border border-gray-300 dark:border-white/20 rounded-xl px-3 py-1.5 font-black text-xs text-sky-700 dark:text-sky-300 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="bg-white dark:bg-[#222] border border-amber-300 dark:border-amber-500/30 rounded-xl px-3 py-1.5 font-black text-xs text-amber-700 dark:text-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
               {statusOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>

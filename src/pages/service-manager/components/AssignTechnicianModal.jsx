@@ -62,12 +62,12 @@ export default function AssignTechnicianModal({
                   onClick={() => setSelectedTechId(tech.id)}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                     isSelected
-                      ? 'border-indigo-500 bg-indigo-50/80 dark:bg-indigo-950/40 shadow-sm'
+                      ? 'border-amber-500 bg-amber-50/80 dark:bg-amber-950/40 shadow-sm'
                       : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
                   }`}
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white font-black flex items-center justify-center text-base flex-shrink-0 shadow-sm">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 text-white font-black flex items-center justify-center text-base flex-shrink-0 shadow-sm">
                       {tech.full_name?.charAt(0) || 'T'}
                     </div>
 
@@ -114,7 +114,7 @@ export default function AssignTechnicianModal({
                     name="techSelect"
                     checked={isSelected}
                     onChange={() => setSelectedTechId(tech.id)}
-                    className="w-5 h-5 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                    className="w-5 h-5 text-amber-600 focus:ring-amber-500 cursor-pointer"
                   />
                 </div>
               )
@@ -135,7 +135,7 @@ export default function AssignTechnicianModal({
             type="button"
             disabled={!selectedTechId || isSubmitting}
             onClick={handleConfirm}
-            className="px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-sm font-black tracking-wide shadow-lg shadow-indigo-600/30 transition-all flex items-center gap-2 active:scale-[0.98]"
+            className="px-7 py-3.5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 text-white rounded-2xl text-sm font-black tracking-wide shadow-lg shadow-amber-500/30 transition-all flex items-center gap-2 active:scale-[0.98]"
           >
             <UserCheck size={16} />
             <span>{isSubmitting ? 'Assigning...' : 'Confirm Assignment'}</span>
