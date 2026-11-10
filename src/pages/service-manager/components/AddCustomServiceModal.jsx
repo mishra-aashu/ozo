@@ -66,17 +66,17 @@ export default function AddCustomServiceModal({
         </div>
 
         {/* Notice Banner */}
-        <div className="my-4 p-4 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-start gap-3 text-sky-700 dark:text-sky-300 text-xs sm:text-sm">
-          <ShieldCheck size={18} className="shrink-0 mt-0.5 text-sky-500" />
-          <p className="leading-relaxed">
-            <strong>Admin Verification Process:</strong> To maintain high customer trust, new service offerings are verified by Admin for standard safety and pricing guidelines before appearing in the live customer app.
+        <div className="my-4 p-4.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 flex items-start gap-3.5 text-sky-700 dark:text-sky-300 text-sm sm:text-base">
+          <ShieldCheck size={22} className="shrink-0 mt-0.5 text-sky-500" />
+          <p className="leading-relaxed font-medium">
+            <strong className="font-black">Admin Verification Process:</strong> To maintain high customer trust, new service offerings are verified by Admin for standard safety and pricing guidelines before appearing in the live customer app.
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-6">
           {/* Title */}
           <div>
-            <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
+            <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
               Service Name / Title *
             </label>
             <input
@@ -85,20 +85,20 @@ export default function AddCustomServiceModal({
               placeholder="e.g. Commercial RO Membrane & Deep Chemical Cleaning"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+              className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner"
             />
           </div>
 
           {/* Category & Tag */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
+              <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
                 Service Trade Category *
               </label>
               <select
                 value={categorySlug}
                 onChange={(e) => setCategorySlug(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner"
               >
                 {categories.map((c) => (
                   <option key={c.id || c.slug} value={c.slug} className="bg-white dark:bg-[#1a1a1a] text-gray-900 dark:text-white">
@@ -109,7 +109,7 @@ export default function AddCustomServiceModal({
             </div>
 
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
+              <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
                 Highlight Tag
               </label>
               <input
@@ -117,15 +117,15 @@ export default function AddCustomServiceModal({
                 placeholder="e.g. 6-Month Warranty, Special"
                 value={tag}
                 onChange={(e) => setTag(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner"
               />
             </div>
           </div>
 
           {/* Pricing & Duration */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
+              <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
                 Customer Price (₹) *
               </label>
               <input
@@ -135,12 +135,12 @@ export default function AddCustomServiceModal({
                 placeholder="499"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
+              <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
                 MRP / Crossed Price (₹)
               </label>
               <input
@@ -149,13 +149,13 @@ export default function AddCustomServiceModal({
                 placeholder="699"
                 value={originalPrice}
                 onChange={(e) => setOriginalPrice(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner"
               />
             </div>
 
             <div>
-              <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
-                Estimated Duration (Mins)
+              <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
+                Duration (Mins)
               </label>
               <input
                 type="number"
@@ -165,14 +165,14 @@ export default function AddCustomServiceModal({
                 placeholder="45"
                 value={durationMins}
                 onChange={(e) => setDurationMins(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-5 py-4 text-base font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-inner"
               />
             </div>
           </div>
 
           {/* Description */}
           <div>
-            <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 block mb-1.5">
+            <label className="text-sm font-bold uppercase tracking-wide text-gray-700 dark:text-gray-200 block mb-2">
               Service Scope & Work Description *
             </label>
             <textarea
@@ -181,25 +181,25 @@ export default function AddCustomServiceModal({
               placeholder="Describe what is covered in this service (parts, labor, chemical inspection, warranty terms)..."
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl p-4 text-sm font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none"
+              className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl p-5 text-base font-medium text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 resize-none shadow-inner"
             />
           </div>
 
           {/* Actions */}
-          <div className="flex items-center justify-end gap-3 pt-5 border-t border-gray-100 dark:border-white/10">
+          <div className="flex items-center justify-end gap-4 pt-5 border-t border-gray-100 dark:border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-5 py-3 text-sm font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
+              className="px-6 py-3.5 text-base font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !title.trim() || !price || !description.trim()}
-              className="px-7 py-3.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-2xl text-sm font-black tracking-wide shadow-lg shadow-sky-600/30 transition-all flex items-center gap-2 active:scale-[0.98]"
+              className="px-8 py-4 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 disabled:opacity-50 text-white rounded-2xl text-base font-black tracking-wide shadow-lg shadow-sky-600/30 transition-all flex items-center gap-2.5 active:scale-[0.98]"
             >
-              <PlusCircle size={18} />
+              <PlusCircle size={20} />
               <span>{isSubmitting ? 'Submitting Proposal...' : 'Submit for Admin Approval'}</span>
             </button>
           </div>

@@ -93,23 +93,23 @@ export default function TechniciansView({
             return (
               <div
                 key={tech.id}
-                className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
+                className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-start justify-between gap-3 mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white font-black text-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                  <div className="flex items-start justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-3.5">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-sky-500 text-white font-black text-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                         {tech.full_name?.charAt(0) || 'T'}
                       </div>
                       <div>
-                        <h4 className="text-sm font-black text-gray-900 dark:text-white">
+                        <h4 className="text-base sm:text-lg font-black text-gray-900 dark:text-white">
                           {tech.full_name}
                         </h4>
                         <a 
                           href={`tel:${tech.phone}`} 
-                          className="text-xs font-mono font-bold text-gray-500 hover:text-indigo-500 flex items-center gap-1 mt-0.5"
+                          className="text-sm font-mono font-bold text-gray-500 dark:text-gray-400 hover:text-indigo-500 flex items-center gap-1.5 mt-0.5"
                         >
-                          <Phone size={11} className="text-emerald-500" />
+                          <Phone size={13} className="text-emerald-500" />
                           <span>{tech.phone}</span>
                         </a>
                       </div>
@@ -117,23 +117,23 @@ export default function TechniciansView({
 
                     <button
                       onClick={() => onDeleteTechnician(tech.id)}
-                      className="p-1.5 text-gray-300 hover:text-rose-500 rounded-lg transition-colors"
+                      className="p-2 text-gray-300 hover:text-rose-500 rounded-xl transition-colors"
                       title="Remove Technician"
                     >
-                      <Trash2 size={15} />
+                      <Trash2 size={17} />
                     </button>
                   </div>
 
                   {/* Rating & Completed Jobs */}
-                  <div className="flex items-center gap-4 py-2 px-3 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 text-xs font-bold text-gray-600 dark:text-gray-300 mb-3">
-                    <div className="flex items-center gap-1 text-amber-500">
-                      <Star size={13} fill="currentColor" />
+                  <div className="flex items-center gap-4 py-2.5 px-3.5 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300 mb-3.5">
+                    <div className="flex items-center gap-1.5 text-amber-500 font-extrabold">
+                      <Star size={15} fill="currentColor" />
                       <span>{tech.rating || 5.0}</span>
                     </div>
                     <span>•</span>
                     <div>
-                      <span className="text-gray-400">Jobs: </span>
-                      <span className="font-mono text-gray-800 dark:text-gray-200">{tech.total_jobs_completed || 0}</span>
+                      <span className="text-gray-400 font-medium">Jobs: </span>
+                      <span className="font-mono text-gray-900 dark:text-white font-black">{tech.total_jobs_completed || 0}</span>
                     </div>
                   </div>
 
@@ -142,7 +142,7 @@ export default function TechniciansView({
                     {(tech.skills || []).map((skill, idx) => (
                       <span
                         key={idx}
-                        className="text-[10px] font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded-lg border border-indigo-200/40 dark:border-indigo-800/40"
+                        className="text-xs font-bold bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 px-2.5 py-1 rounded-xl border border-indigo-200/40 dark:border-indigo-800/40"
                       >
                         {skill}
                       </span>
@@ -151,12 +151,12 @@ export default function TechniciansView({
                 </div>
 
                 {/* Duty Status Switcher */}
-                <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex items-center justify-between text-xs">
-                  <span className="text-[10px] font-black uppercase text-gray-400">Duty Status</span>
+                <div className="pt-3.5 border-t border-gray-100 dark:border-white/10 flex items-center justify-between">
+                  <span className="text-xs font-black uppercase tracking-wider text-gray-400">Duty Status</span>
                   <select
                     value={tech.duty_status || 'available'}
                     onChange={(e) => onUpdateStatus(tech.id, e.target.value)}
-                    className="bg-gray-100 dark:bg-[#222] border border-gray-200 dark:border-white/10 rounded-xl px-2.5 py-1 text-xs font-black text-gray-800 dark:text-gray-200 focus:outline-none"
+                    className="bg-gray-100 dark:bg-[#222] border border-gray-200 dark:border-white/10 rounded-xl px-3 py-1.5 text-xs sm:text-sm font-black text-gray-800 dark:text-gray-200 focus:outline-none"
                   >
                     <option value="available">🟢 Available</option>
                     <option value="assigned">🟡 Assigned</option>
