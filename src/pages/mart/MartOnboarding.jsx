@@ -62,7 +62,7 @@ const MartOnboarding = ({ onComplete }) => {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] transition-all duration-300 relative z-10">
+    <div className="w-full max-w-lg mx-auto bg-slate-950/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-6 sm:p-8 md:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.85)] transition-all duration-300 relative z-10 dark">
       <div className="text-center mb-8">
         <div className="inline-flex bg-blue-600/15 border border-blue-500/20 p-4 rounded-2xl mb-4 shadow-sm text-blue-400">
           <Store className="w-8 h-8" />
@@ -99,28 +99,32 @@ const MartOnboarding = ({ onComplete }) => {
             
             <div className="space-y-4">
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   name="ownerName"
+                  autoComplete="name"
                   placeholder="Owner's Full Name"
                   required
                   value={details.ownerName}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-900/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
                 />
               </div>
 
               <div className="relative group">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="tel"
                   name="phone"
+                  autoComplete="tel"
                   placeholder="Contact Mobile Number"
                   required
                   value={details.phone}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-900/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
                 />
               </div>
             </div>
@@ -145,40 +149,45 @@ const MartOnboarding = ({ onComplete }) => {
 
             <div className="space-y-4">
               <div className="relative group">
-                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   name="storeName"
+                  autoComplete="organization"
                   placeholder="Supermarket / Store Name"
                   required
                   value={details.storeName}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-900/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
                 />
               </div>
 
               <div className="relative group">
-                <MapPin className="absolute left-4 top-5 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <MapPin className="absolute left-4 top-5 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <textarea
                   name="address"
+                  autoComplete="street-address"
                   placeholder="Full Store Address"
                   required
                   rows="3"
                   value={details.address}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-900/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 resize-none backdrop-blur-md"
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 resize-none backdrop-blur-md"
                 />
               </div>
 
               <div className="relative group">
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors" />
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   name="licenseNumber"
                   placeholder="GSTIN or Trade License No. (Optional)"
                   value={details.licenseNumber}
                   onChange={handleInputChange}
-                  className="w-full bg-slate-900/80 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 uppercase backdrop-blur-md"
+                  style={{ colorScheme: 'dark' }}
+                  className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 uppercase backdrop-blur-md"
                 />
               </div>
             </div>
