@@ -294,7 +294,7 @@ export default function ServiceManagerDashboard() {
                 className="w-12 h-12 rounded-2xl object-cover border border-white/10 shrink-0 shadow-md bg-white"
               />
             ) : (
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 via-amber-600 to-orange-600 flex items-center justify-center text-white shadow-md shadow-amber-500/25 shrink-0">
                 <Wrench size={24} />
               </div>
             )}
@@ -302,7 +302,7 @@ export default function ServiceManagerDashboard() {
               <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white truncate leading-tight">
                 {provider?.business_name || 'Service Partner'}
               </h2>
-              <span className="text-xs font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-3 py-0.5 rounded-full inline-block mt-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-amber-500 bg-amber-500/10 border border-amber-500/20 px-3 py-0.5 rounded-full inline-block mt-0.5">
                 Partner Portal
               </span>
             </div>
@@ -372,7 +372,7 @@ export default function ServiceManagerDashboard() {
                       }}
                       className={`group w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl text-base font-bold transition-all text-left ${
                         isActive
-                          ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-600/25'
+                          ? 'bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 text-white shadow-lg shadow-amber-500/30'
                           : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300'
                       }`}
                     >
