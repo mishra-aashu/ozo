@@ -270,18 +270,30 @@ export default function ServicesManageAdmin() {
           </p>
         </div>
 
-        <button
-          onClick={() => {
-            fetchCategories(true)
-            fetchServices()
-            fetchBookings()
-            toast.success('Services data refreshed!')
-          }}
-          className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-xs flex items-center gap-2 transition-all border border-white/10 shrink-0"
-        >
-          <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
-          <span>Refresh Catalog</span>
-        </button>
+        <div className="flex items-center gap-2 shrink-0">
+          <Link
+            to="/service-manager"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-4 py-2.5 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white rounded-2xl font-bold text-xs flex items-center gap-2 transition-all shadow-md shadow-sky-500/20"
+          >
+            <ExternalLink size={14} />
+            <span>Open Service Manager Portal</span>
+          </Link>
+
+          <button
+            onClick={() => {
+              fetchCategories(true)
+              fetchServices()
+              fetchBookings()
+              toast.success('Services data refreshed!')
+            }}
+            className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-2xl font-bold text-xs flex items-center gap-2 transition-all border border-white/10"
+          >
+            <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            <span>Refresh Catalog</span>
+          </button>
+        </div>
       </div>
 
       {/* Hidden from sidebar alert banner */}

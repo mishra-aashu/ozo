@@ -148,6 +148,7 @@ const AdminAdPortal = lazyWithRetry(() => import('./pages/admin/AdPortal'))
 // Lazy loaded Mart & Captain Dashboards
 const MartDashboard = lazyWithRetry(() => import('./pages/mart/Dashboard'))
 const CaptainDashboard = lazyWithRetry(() => import('./pages/captain/Dashboard'))
+const ServiceManagerDashboard = lazyWithRetry(() => import('./pages/service-manager/Dashboard'))
 
 // Components
 import ScrollToTop from './components/ScrollToTop'
@@ -665,11 +666,13 @@ function App() {
             <Route path="ads" element={<AdminAdPortal />} />
           </Route>
 
-          {/* Mart & Captain Standalone Portals */}
+          {/* Mart, Captain & Service Manager Standalone Portals */}
           <Route element={<ProtectedRoute />}>
             <Route path="/mart" element={<MartDashboard />} />
             <Route path="/captain" element={<CaptainDashboard />} />
             <Route path="/rider-dashboard" element={<CaptainDashboard />} />
+            <Route path="/service-manager" element={<ServiceManagerDashboard />} />
+            <Route path="/service-partner" element={<ServiceManagerDashboard />} />
           </Route>
 
           <Route path="/capture/:sessionId" element={<PhoneCapture />} />

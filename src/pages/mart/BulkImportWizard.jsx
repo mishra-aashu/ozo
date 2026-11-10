@@ -1473,12 +1473,12 @@ export default function BulkImportWizard({
           <div className="flex-1 overflow-auto">
             <table className="w-full text-left border-collapse font-sans min-w-[800px] lg:min-w-0">
               <thead>
-                <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-50 dark:bg-slate-900">
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">#</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">CSV Product Details</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Matched Catalog Product & Score</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Stock & Price</th>
-                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400">Action / Status</th>
+                <tr className="border-b border-gray-200 dark:border-slate-800 bg-gray-100/80 dark:bg-slate-850/90">
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">#</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">CSV Product Details</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">Matched Catalog Product & Score</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">Stock & Price</th>
+                  <th className="p-4 text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300">Action / Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-slate-800">
