@@ -241,6 +241,13 @@ const AdminLayout = () => {
           bgColor: 'bg-sky-100 dark:bg-sky-950/30',
         },
         {
+          icon: Megaphone,
+          label: 'Press & Milestones',
+          path: '/admin/press',
+          color: 'text-rose-600 dark:text-rose-400',
+          bgColor: 'bg-rose-100 dark:bg-rose-950/30',
+        },
+        {
           icon: Globe,
           label: 'SEO Panel',
           path: '/admin/seo',
