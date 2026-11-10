@@ -1215,9 +1215,17 @@ export default function ServicesManageAdmin() {
                     <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-2xl p-4 mb-4">
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
-                            <Building2 size={18} />
-                          </div>
+                          {s.service_providers?.logo_url ? (
+                            <img
+                              src={s.service_providers.logo_url}
+                              alt={s.service_providers.business_name}
+                              className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-200 dark:border-white/10 shadow-sm bg-white"
+                            />
+                          ) : (
+                            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
+                              <Building2 size={18} />
+                            </div>
+                          )}
                           <div>
                             <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
                               Submitting Partner Agency
