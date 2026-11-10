@@ -197,6 +197,117 @@ export const useServiceManagerStore = create((set, get) => ({
     }
   },
 
+  // Upload and set Agency Logo
+  uploadProviderLogo: async (file) => {
+    const { provider } = get()
+    if (!provider) {
+      toast.error('Provider profile not loaded')
+      return null
+    }
+
+    if (!file) return null
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be less than 5MB')
+      return null
+    }
+
+    try {
+      const fileExt = file.name ? file.name.split('.').pop() : 'jpg'
+      const fileName = `${provider.id}/agency-logo-${Date.now()}.${fileExt}`
+      
+      let publicUrl = null
+
+      // Try uploading to service-assets bucket
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('service-assets')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: true
+        })
+
+      if (!uploadError && uploadData) {
+        const { data: urlData } = supabase.storage
+          .from('service-assets')
+          .getPublicUrl(fileName)
+        publicUrl = urlData?.publicUrl
+      } else {
+        // Fallback: try mart-assets bucket
+        const { data: fallbackUpload, error: fallbackError } = await supabase.storage
+          .from('mart-assets')
+          .upload(`providers/${fileName}`, file, {
+            cacheControl: '3600',
+            upsert: true
+          })
+
+        if (!fallbackError && fallbackUpload) {
+          const { data: fallbackUrlData } = supabase.storage
+            .from('mart-assets')
+            .getPublicUrl(`providers/${fileName}`)
+          publicUrl = fallbackUrlData?.publicUrl
+        } else {
+          // Fallback to base64 data-URL so upload is resilient
+          publicUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => resolve(reader.result)
+            reader.onerror = reject
+            reader.readAsDataURL(file)
+          })
+        }
+      }
+
+      if (!publicUrl) throw new Error('Could not generate public logo URL')
+
+      const { data: updatedProvider, error: dbError } = await supabase
+        .from('service_providers')
+        .update({
+          logo_url: publicUrl,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', provider.id)
+        .select()
+        .single()
+
+      if (dbError) throw dbError
+
+      set({ provider: updatedProvider })
+      toast.success('Agency Logo updated successfully!')
+      return publicUrl
+    } catch (err) {
+      console.error('Upload agency logo error:', err)
+      toast.error('Failed to upload logo: ' + (err.message || 'Unknown error'))
+      return null
+    }
+  },
+
+  // Remove Agency Logo
+  removeProviderLogo: async () => {
+    const { provider } = get()
+    if (!provider) return false
+
+    try {
+      const { data: updatedProvider, error } = await supabase
+        .from('service_providers')
+        .update({
+          logo_url: null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', provider.id)
+        .select()
+        .single()
+
+      if (error) throw error
+
+      set({ provider: updatedProvider })
+      toast.success('Logo removed')
+      return true
+    } catch (err) {
+      console.error('Remove logo error:', err)
+      toast.error('Failed to remove logo')
+      return false
+    }
+  },
+
   // 2. Fetch Live Bookings
   fetchBookings: async () => {
     const { provider } = get()
