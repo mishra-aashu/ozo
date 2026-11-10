@@ -142,8 +142,23 @@ export default function ServiceManagerDashboard() {
     window.scrollTo(0, 0)
   }, [currentTab])
 
+  // Loading state while verifying provider profile
+  if (!isProviderLoaded || isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#121212] relative flex items-center justify-center">
+        <ServicePortalBackground />
+        <div className="relative z-10 flex flex-col items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/25">
+            <Wrench size={24} className="animate-spin" />
+          </div>
+          <p className="text-xs font-bold text-gray-500 tracking-wider uppercase">Loading Service Partner Hub...</p>
+        </div>
+      </div>
+    )
+  }
+
   // If provider not registered yet, show onboarding wizard
-  if (isProviderLoaded && !provider) {
+  if (!provider) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-[#121212] relative overflow-hidden">
         <ServicePortalBackground />
