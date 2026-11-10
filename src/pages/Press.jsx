@@ -316,14 +316,8 @@ const Press = () => {
               </span>
             </div>
 
-            <div className="hidden md:flex items-center gap-2 text-center text-[10px] font-bold text-gray-500 tracking-[0.2em]">
+            <div className="flex items-center gap-2 text-center text-[10px] font-bold text-gray-500 tracking-[0.2em] ml-auto">
               ★ ★ ★ THE OZO CHRONICLE • SPECIAL COMMERCE GAZETTE ★ ★ ★
-            </div>
-
-            <div className="flex items-center gap-2 ml-auto sm:ml-0 font-semibold">
-              <span className="text-emerald-700 dark:text-emerald-400 font-bold">WEATHER: 15-MIN DELIVERIES</span>
-              <span className="text-gray-400 dark:text-gray-600">|</span>
-              <span className="font-bold">PRICE: ₹0 DELIVERY</span>
             </div>
           </div>
         </div>
