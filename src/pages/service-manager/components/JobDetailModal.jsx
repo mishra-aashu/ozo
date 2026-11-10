@@ -79,8 +79,8 @@ export default function JobDetailModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-md animate-fadeIn">
-      <div className="bg-white dark:bg-[#161616] border border-gray-200 dark:border-white/10 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col shadow-2xl text-left overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/70 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/15 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col shadow-2xl text-left overflow-hidden">
         
         {/* Header */}
         <div className="p-5 border-b border-gray-100 dark:border-white/10 flex items-center justify-between gap-3 bg-gray-50/70 dark:bg-black/30">

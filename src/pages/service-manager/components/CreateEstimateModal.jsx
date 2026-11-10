@@ -52,23 +52,23 @@ export default function CreateEstimateModal({ isOpen, onClose, booking, sparePar
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-lg shadow-2xl text-left">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/15 rounded-3xl p-7 sm:p-8 w-full max-w-2xl shadow-2xl text-left">
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/10">
           <div>
-            <h3 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <FileText className="w-5 h-5 text-orange-500" />
+            <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
+              <FileText className="w-6 h-6 text-orange-500" />
               <span>Create On-Site Quotation</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-sm text-gray-400 mt-1">
               Job #{booking.booking_number} • Customer: {booking.customer_name || 'Customer'}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
           >
-            <X size={16} />
+            <X size={20} />
           </button>
         </div>
 
