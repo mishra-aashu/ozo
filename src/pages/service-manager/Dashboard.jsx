@@ -344,8 +344,8 @@ export default function ServiceManagerDashboard() {
         {/* Scrollable Navigation Menu */}
         <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 scrollbar-thin">
           {navGroups.map((group, groupIdx) => (
-            <div key={groupIdx} className="space-y-1">
-              <div className="px-3 py-1 text-[10px] font-black tracking-widest uppercase text-gray-400 dark:text-gray-500 select-none">
+            <div key={groupIdx} className="space-y-1.5">
+              <div className="px-3.5 py-1 text-xs font-black tracking-widest uppercase text-gray-400 dark:text-gray-500 select-none">
                 {group.title}
               </div>
 
@@ -362,29 +362,29 @@ export default function ServiceManagerDashboard() {
                         setCurrentTab(tab.id)
                         setIsSidebarOpen(false)
                       }}
-                      className={`group w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${
+                      className={`group w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl text-sm sm:text-base font-bold transition-all text-left ${
                         isActive
                           ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-600/25'
                           : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300'
                       }`}
                     >
-                      <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0">
                         <div
-                          className={`p-1.5 rounded-xl transition-colors shrink-0 ${
+                          className={`p-2 rounded-xl transition-colors shrink-0 ${
                             isActive ? 'bg-white/20 text-white' : `${tab.bgColor} ${tab.color}`
                           }`}
                         >
-                          <Icon size={15} />
+                          <Icon size={18} />
                         </div>
                         <span className="truncate">{tab.label}</span>
                       </div>
 
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1.5 shrink-0">
                         {tab.count !== undefined && tab.count > 0 && (
                           <span
-                            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                            className={`text-xs px-2.5 py-0.5 rounded-full font-mono font-bold ${
                               isActive
-                                ? 'bg-white/20 text-white font-bold'
+                                ? 'bg-white/20 text-white font-black'
                                 : tab.countBadgeColor || 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400'
                             }`}
                           >
@@ -392,7 +392,7 @@ export default function ServiceManagerDashboard() {
                           </span>
                         )}
                         <ChevronRight
-                          size={13}
+                          size={15}
                           className={`opacity-0 group-hover:opacity-100 transition-opacity ${
                             isActive ? 'text-white' : 'text-gray-400'
                           }`}
@@ -407,12 +407,12 @@ export default function ServiceManagerDashboard() {
         </div>
 
         {/* Sidebar Footer */}
-        <div className="p-3 border-t border-gray-100 dark:border-white/5 space-y-1 shrink-0">
+        <div className="p-3.5 border-t border-gray-100 dark:border-white/5 space-y-2 shrink-0">
           <Link
             to="/"
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+            className="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm sm:text-base font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
           >
-            <Home size={15} className="text-emerald-500" />
+            <Home size={18} className="text-emerald-500 shrink-0" />
             <span>Return to Store</span>
           </Link>
 
@@ -420,24 +420,24 @@ export default function ServiceManagerDashboard() {
             <button
               type="button"
               onClick={() => setNotificationSoundEnabled(!notificationSoundEnabled)}
-              className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all ${
+              className={`p-2.5 rounded-xl border text-xs sm:text-sm font-bold flex items-center gap-2 transition-all ${
                 notificationSoundEnabled
                   ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                   : 'bg-gray-100 dark:bg-white/5 text-gray-400 border-gray-200 dark:border-white/10'
               }`}
               title={notificationSoundEnabled ? 'Audio alerts active' : 'Audio alerts muted'}
             >
-              {notificationSoundEnabled ? <Bell size={14} /> : <BellOff size={14} />}
-              <span className="text-[11px]">{notificationSoundEnabled ? 'Alerts ON' : 'Muted'}</span>
+              {notificationSoundEnabled ? <Bell size={16} /> : <BellOff size={16} />}
+              <span className="text-xs sm:text-sm">{notificationSoundEnabled ? 'Alerts ON' : 'Muted'}</span>
             </button>
 
             <button
               type="button"
               onClick={toggleTheme}
-              className="p-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all"
+              className="p-2.5 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all"
               title="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+              {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
             </button>
           </div>
         </div>
