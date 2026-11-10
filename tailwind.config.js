@@ -73,6 +73,10 @@ export default {
         },
         zinc: {
           850: '#202024',
+        },
+        slate: {
+          750: '#243042',
+          850: '#151e2e',
         }
       },
       fontFamily: {
