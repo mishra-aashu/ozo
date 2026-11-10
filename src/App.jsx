@@ -137,6 +137,7 @@ const AdminMarts = lazyWithRetry(() => import('./pages/admin/MartManageAdmin'))
 const AdminMartPayouts = lazyWithRetry(() => import('./pages/admin/MartPayoutsAdmin'))
 const AdminBackup = lazyWithRetry(() => import('./pages/admin/Backup'))
 const AdminBlog = lazyWithRetry(() => import('./pages/admin/Blog'))
+const AdminPress = lazyWithRetry(() => import('./pages/admin/Press'))
 const AdminPhoneCaptureSandbox = lazyWithRetry(() => import('./pages/admin/PhoneCaptureSandbox'))
 const AdminFestivals = lazyWithRetry(() => import('./pages/admin/Festivals'))
 const AdminErrorLogs = lazyWithRetry(() => import('./pages/admin/ErrorLogs'))
@@ -656,6 +657,7 @@ function App() {
             <Route path="marts/payouts" element={<AdminMartPayouts />} />
             <Route path="backup" element={<AdminBackup />} />
             <Route path="blog" element={<AdminBlog />} />
+            <Route path="press" element={<AdminPress />} />
             <Route path="phone-capture-sandbox" element={<AdminPhoneCaptureSandbox />} />
             <Route path="festivals" element={<AdminFestivals />} />
             <Route path="errors" element={<AdminErrorLogs />} />

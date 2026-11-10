@@ -31,7 +31,8 @@ import {
   Image,
   Palette,
   Wrench,
-  ExternalLink
+  ExternalLink,
+  Newspaper
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -2503,6 +2504,76 @@ const AdminSettings = () => {
                     </>
                   )}
                 </button>
+              </div>
+            </motion.div>
+
+            {/* Press Room & Milestones Coverage */}
+            <motion.div
+              variants={cardVariants}
+              className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] p-6 border border-gray-100 dark:border-white/5 shadow-premium flex flex-col justify-between"
+            >
+              <div>
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-rose-100 dark:bg-rose-950/30 text-rose-600 rounded-2xl">
+                      <Newspaper className="w-6 h-6 text-rose-600" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-black text-gray-800 dark:text-white flex items-center gap-2">
+                        Press Room & Milestones
+                        <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/40">
+                          Database Synced
+                        </span>
+                      </h2>
+                      <p className="text-xs text-gray-400">Public newsroom, Aurangabad/Bhagalpur launches, 20+ orders & press releases</p>
+                    </div>
+                  </div>
+
+                  <a
+                    href="/press"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-rose-50 dark:bg-rose-500/10 text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-500/20 transition-colors"
+                  >
+                    <span>View Public Page</span>
+                    <ExternalLink size={12} />
+                  </a>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-2xl border border-gray-100 dark:border-white/5 space-y-3">
+                    <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                      Press stories, release dates, publication sources, and milestone achievements are stored dynamically in <code className="bg-gray-200 dark:bg-white/10 px-1.5 py-0.5 rounded text-gray-800 dark:text-gray-200 font-mono text-[11px]">app_settings</code> table under <code className="bg-gray-200 dark:bg-white/10 px-1.5 py-0.5 rounded text-gray-800 dark:text-gray-200 font-mono text-[11px]">press_config</code>.
+                    </p>
+                    <div className="flex flex-wrap items-center gap-2 pt-2">
+                      <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 text-[11px] font-bold">
+                        ✓ Aurangabad Launch
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
+                        ✓ First Delivery Done
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
+                        ✓ 20+ Happy Deliveries
+                      </span>
+                      <span className="px-2.5 py-1 rounded-lg bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 text-[11px] font-bold">
+                        ✓ Bhagalpur Launch
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-3">
+                <span className="text-xs text-gray-400">
+                  Full visual form and direct raw JSON editor available
+                </span>
+                <a
+                  href="/admin/press"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-ozo text-white rounded-xl text-xs font-bold shadow-md hover:shadow-lg hover:scale-105 active:scale-95 transition-all"
+                >
+                  <Newspaper size={13} />
+                  <span>Open Press & Milestones Editor</span>
+                </a>
               </div>
             </motion.div>
 

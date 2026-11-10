@@ -177,6 +177,7 @@ export const useCartStore = create(
       launchConfig: { launch_mode_enabled: true, show_out_of_stock_btn: true, show_listing_soon_btn: true, show_mandi_section: true, show_budget_section: true },
       servicesConfig: { enabled: true, show_in_admin: true, show_in_app: true },
       paymentConfig: { cashfree_enabled: true, cod_enabled: true, razorpay_enabled: false },
+      pressConfig: null,
       serviceHoursConfig: {
         enabled: true,
         start_time: '06:00',
@@ -304,6 +305,7 @@ export const useCartStore = create(
               if (item.key === 'payment_config') updates.paymentConfig = { cashfree_enabled: true, cod_enabled: true, razorpay_enabled: false, ...item.value }
               if (item.key === 'service_hours_config') updates.serviceHoursConfig = item.value
               if (item.key === 'theme_config') updates.themeConfig = item.value
+              if (item.key === 'press_config') updates.pressConfig = item.value
             })
             set(updates)
             if (updates.themeConfig) {
