@@ -47,27 +47,27 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fadeIn">
-      <div className="bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-3xl p-6 w-full max-w-md shadow-2xl text-left">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-white/10">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-md animate-fadeIn">
+      <div className="bg-white dark:bg-[#18181b] border border-gray-200 dark:border-white/15 rounded-3xl p-7 sm:p-9 w-full max-w-xl shadow-2xl text-left">
+        <div className="flex items-center justify-between pb-4 border-b border-gray-100 dark:border-white/10">
           <div>
-            <h3 className="text-base font-black text-gray-900 dark:text-white flex items-center gap-2">
-              <UserPlus className="w-5 h-5 text-indigo-500" />
+            <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2.5">
+              <UserPlus className="w-6 h-6 text-indigo-500" />
               <span>Onboard New Field Technician</span>
             </h3>
-            <p className="text-xs text-gray-400 mt-0.5">Add a verified technician to your crew roster</p>
+            <p className="text-sm text-gray-400 mt-1">Add a verified technician to your doorstep crew roster</p>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg transition-colors"
+            className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
           >
-            <X size={16} />
+            <X size={20} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="py-4 space-y-4">
+        <form onSubmit={handleSubmit} className="py-6 space-y-6">
           <div>
-            <label className="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300">
               Technician Full Name *
             </label>
             <input
@@ -76,12 +76,12 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
               placeholder="e.g. Ramesh Kumar"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full mt-2 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400">
+            <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300">
               Contact Phone Number *
             </label>
             <input
@@ -90,15 +90,15 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
               placeholder="e.g. 9876543210"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
-              className="w-full mt-1.5 bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full mt-2 bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/15 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
             />
           </div>
 
           <div>
-            <label className="text-[11px] font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 block">
+            <label className="text-xs font-black uppercase tracking-wider text-gray-600 dark:text-gray-300 mb-2.5 block">
               Trade Specializations & Skills
             </label>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-2">
               {availableSkills.map((skill) => {
                 const isSelected = selectedSkills.includes(skill)
                 return (
@@ -106,10 +106,10 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
                     key={skill}
                     type="button"
                     onClick={() => toggleSkill(skill)}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold border transition-all ${
                       isSelected
-                        ? 'bg-indigo-600 text-white border-indigo-600'
-                        : 'bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gray-300'
+                        ? 'bg-indigo-600 text-white border-indigo-600 shadow-md shadow-indigo-600/30'
+                        : 'bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gray-400 dark:hover:border-white/20'
                     }`}
                   >
                     {skill}
@@ -119,18 +119,18 @@ export default function AddTechnicianModal({ isOpen, onClose, onAddTechnician })
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-gray-100 dark:border-white/10">
+          <div className="flex items-center justify-end gap-3 pt-5 border-t border-gray-100 dark:border-white/10">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-xs font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white"
+              className="px-5 py-3 text-sm font-bold text-gray-500 hover:text-gray-800 dark:hover:text-white transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSubmitting || !fullName.trim() || !phone.trim()}
-              className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-xl text-xs font-black tracking-wide shadow-md transition-all"
+              className="px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white rounded-2xl text-sm font-black tracking-wide shadow-lg shadow-indigo-600/30 transition-all active:scale-[0.98]"
             >
               {isSubmitting ? 'Adding...' : 'Add Technician'}
             </button>
