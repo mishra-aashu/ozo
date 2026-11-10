@@ -286,14 +286,6 @@ export default function ServiceCatalogView({
             )
           })}
         </div>
-                    <Clock size={12} className="text-sky-500" />
-                    <span>{service.estimated_duration_mins || 45} mins</span>
-                  </div>
-                </div>
-              </div>
-            )
-          })}
-        </div>
       )}
 
       {/* Add Custom Service Modal */}

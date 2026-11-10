@@ -48,15 +48,15 @@ export default function EarningsView({
     <div className="space-y-6 text-left">
       
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 border border-emerald-500/20 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 border border-emerald-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <div>
-          <span className="text-[10px] font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-full">
+          <span className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
             Financial Ledger & Settlements
           </span>
-          <h2 className="text-xl font-black text-gray-900 dark:text-white mt-1">
+          <h2 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mt-2">
             Partner Revenue & Payouts
           </h2>
-          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 max-w-md">
+          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1 max-w-lg">
             Direct doorstep service settlements deposited to your registered bank account or UPI.
           </p>
         </div>
@@ -67,96 +67,96 @@ export default function EarningsView({
             setIsWithdrawModalOpen(true)
           }}
           disabled={pendingPayout <= 0}
-          className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2"
+          className="px-6 py-3.5 bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white rounded-2xl text-sm sm:text-base font-black tracking-wide shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2.5 shrink-0 active:scale-95"
         >
-          <ArrowUpRight size={16} />
+          <ArrowUpRight size={18} />
           <span>Request Payout (₹{Math.round(pendingPayout)})</span>
         </button>
       </div>
 
       {/* 4 Revenue Metric Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-sm">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-1">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-400 block mb-1.5">
             Total Revenue Billed
           </span>
-          <div className="text-2xl font-black text-gray-900 dark:text-white">
+          <div className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white">
             ₹{Math.round(totalRevenue)}
           </div>
-          <span className="text-[10px] text-gray-400 mt-1 block">
+          <span className="text-xs sm:text-sm text-gray-400 mt-1.5 block font-semibold">
             From {completedJobsCount} completed jobs
           </span>
         </div>
 
-        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-sm">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-1">
+        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-400 block mb-1.5">
             Platform Cut ({provider?.commission_percentage || 15}%)
           </span>
-          <div className="text-2xl font-black text-amber-500">
+          <div className="text-3xl sm:text-4xl font-black text-amber-500">
             ₹{Math.round(platformCommission)}
           </div>
-          <span className="text-[10px] text-gray-400 mt-1 block">
+          <span className="text-xs sm:text-sm text-gray-400 mt-1.5 block font-semibold">
             Ozo Operations & Tech Fee
           </span>
         </div>
 
-        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-sm">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-1">
+        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-400 block mb-1.5">
             Net Partner Share
           </span>
-          <div className="text-2xl font-black text-sky-600 dark:text-sky-400">
+          <div className="text-3xl sm:text-4xl font-black text-sky-600 dark:text-sky-400">
             ₹{Math.round(netEarnings)}
           </div>
-          <span className="text-[10px] text-gray-400 mt-1 block">
+          <span className="text-xs sm:text-sm text-gray-400 mt-1.5 block font-semibold">
             Labor + Parts Margin
           </span>
         </div>
 
-        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-sm">
-          <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 block mb-1">
+        <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
+          <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-400 block mb-1.5">
             Available For Withdrawal
           </span>
-          <div className="text-2xl font-black text-emerald-600 dark:text-emerald-400">
+          <div className="text-3xl sm:text-4xl font-black text-emerald-600 dark:text-emerald-400">
             ₹{Math.round(pendingPayout)}
           </div>
-          <span className="text-[10px] text-emerald-500 font-bold mt-1 block">
+          <span className="text-xs sm:text-sm text-emerald-500 font-bold mt-1.5 block">
             Ready to transfer
           </span>
         </div>
       </div>
 
       {/* Payout History Ledger */}
-      <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm">
-        <h3 className="text-base font-black text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-          <FileCheck className="w-5 h-5 text-emerald-500" />
+      <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-7 shadow-sm">
+        <h3 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white mb-5 flex items-center gap-2.5">
+          <FileCheck className="w-6 h-6 text-emerald-500" />
           <span>Settlement & Payout Transactions</span>
         </h3>
 
         {payoutHistory.length === 0 ? (
-          <div className="text-center py-8 text-gray-400 text-xs">
-            <Clock className="w-8 h-8 text-gray-300 dark:text-white/20 mx-auto mb-2" />
-            <p className="font-bold">No previous payout settlements</p>
-            <p className="text-[11px] mt-1">Payout requests and bank transfers will appear here.</p>
+          <div className="text-center py-12 text-gray-400 text-sm">
+            <Clock className="w-10 h-10 text-gray-300 dark:text-white/20 mx-auto mb-3" />
+            <p className="font-bold text-base">No previous payout settlements</p>
+            <p className="text-xs sm:text-sm mt-1">Payout requests and bank transfers will appear here.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-xs text-left">
+            <table className="w-full text-sm text-left">
               <thead>
-                <tr className="border-b border-gray-100 dark:border-white/10 text-[10px] font-black uppercase tracking-wider text-gray-400">
-                  <th className="pb-3">Transfer Ref / UTR</th>
-                  <th className="pb-3">Period</th>
-                  <th className="pb-3">Gross</th>
-                  <th className="pb-3">Net Deposited</th>
-                  <th className="pb-3">Status</th>
+                <tr className="border-b border-gray-100 dark:border-white/10 text-xs font-black uppercase tracking-wider text-gray-400">
+                  <th className="pb-3.5">Transfer Ref / UTR</th>
+                  <th className="pb-3.5">Period</th>
+                  <th className="pb-3.5">Gross</th>
+                  <th className="pb-3.5">Net Deposited</th>
+                  <th className="pb-3.5">Status</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-white/5 font-semibold">
                 {payoutHistory.map((payout) => (
                   <tr key={payout.id} className="text-gray-700 dark:text-gray-300">
-                    <td className="py-3 font-mono font-bold">
+                    <td className="py-3.5 font-mono font-bold">
                       {payout.utr_reference || `REQ-${payout.id?.slice(0, 8)}`}
                     </td>
-                    <td className="py-3 text-gray-400">
+                    <td className="py-3.5 text-gray-400">
                       {payout.period_start} to {payout.period_end}
                     </td>
                     <td className="py-3 font-mono">₹{payout.gross_earnings}</td>
