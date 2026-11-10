@@ -231,7 +231,10 @@ export const useServicesStore = create((set, get) => ({
   fetchServices: async (categorySlug = null) => {
     set({ isLoading: true })
     try {
-      let query = supabase.from('services_catalog').select('*').order('created_at', { ascending: false })
+      let query = supabase
+        .from('services_catalog')
+        .select('*, service_providers(id, business_name, owner_name, city, phone)')
+        .order('created_at', { ascending: false })
       
       if (categorySlug) {
         query = query.eq('category_slug', categorySlug)
@@ -256,6 +259,54 @@ export const useServicesStore = create((set, get) => ({
         : DEFAULT_SERVICES_CATALOG
       set({ services: filtered, isLoading: false })
       return filtered
+    }
+  },
+
+  // Approve Partner Custom Service Proposal
+  approveServiceProposal: async (serviceId) => {
+    try {
+      const { data, error } = await supabase
+        .from('services_catalog')
+        .update({ approval_status: 'approved', is_active: true })
+        .eq('id', serviceId)
+        .select('*, service_providers(id, business_name, owner_name, city, phone)')
+        .single()
+
+      if (error) throw error
+
+      set(state => ({
+        services: state.services.map(s => s.id === serviceId ? { ...s, ...data } : s)
+      }))
+      toast.success('Partner service approved & published to customer app!')
+      return true
+    } catch (err) {
+      console.error('Approve service error:', err)
+      toast.error('Failed to approve service: ' + err.message)
+      return false
+    }
+  },
+
+  // Reject Partner Custom Service Proposal
+  rejectServiceProposal: async (serviceId) => {
+    try {
+      const { data, error } = await supabase
+        .from('services_catalog')
+        .update({ approval_status: 'rejected', is_active: false })
+        .eq('id', serviceId)
+        .select('*, service_providers(id, business_name, owner_name, city, phone)')
+        .single()
+
+      if (error) throw error
+
+      set(state => ({
+        services: state.services.map(s => s.id === serviceId ? { ...s, ...data } : s)
+      }))
+      toast.success('Partner service proposal rejected.')
+      return true
+    } catch (err) {
+      console.error('Reject service error:', err)
+      toast.error('Failed to reject service: ' + err.message)
+      return false
     }
   },
 

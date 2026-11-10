@@ -35,6 +35,7 @@ export default function ServiceCategory() {
           .from('services_catalog')
           .select('*, service_categories!inner(slug)')
           .eq('service_categories.slug', slug)
+          .eq('is_active', true)
 
         if (!error && data && data.length > 0) {
           setServices(data)
