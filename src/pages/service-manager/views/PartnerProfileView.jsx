@@ -13,7 +13,8 @@ import {
   Camera,
   UploadCloud,
   Trash2,
-  Loader2
+  Loader2,
+  Lock
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../../lib/supabase'
@@ -293,15 +294,25 @@ export default function PartnerProfileView({ provider, onRefresh }) {
             </div>
 
             <div>
-              <label className="block text-sm sm:text-base font-bold text-gray-700 dark:text-gray-200 tracking-wide uppercase mb-2.5">
-                Official Email
-              </label>
+              <div className="flex items-center justify-between mb-2.5">
+                <label className="block text-sm sm:text-base font-bold text-gray-700 dark:text-gray-200 tracking-wide uppercase">
+                  Official Email
+                </label>
+                <span className="text-xs font-bold text-gray-400 flex items-center gap-1">
+                  <Lock size={12} className="text-gray-400" />
+                  <span>Read Only</span>
+                </span>
+              </div>
               <input
                 type="email"
+                readOnly
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-inner"
+                className="w-full bg-gray-100/80 dark:bg-white/[0.04] border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-500 dark:text-gray-400 cursor-not-allowed select-all focus:outline-none shadow-inner"
+                title="Official account email is permanent and cannot be changed"
               />
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1.5 font-medium">
+                Linked to your Ozomart partner login account.
+              </p>
             </div>
 
             <div>
