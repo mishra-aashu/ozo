@@ -126,10 +126,12 @@ export default function LocationPromptModal() {
         return
       }
 
-      // Don't pop up on admin, mart, captain, or select-location pages
+      // Don't pop up on admin, mart, captain, service-manager, or select-location pages
       const isSpecialRoute = window.location.pathname.startsWith('/admin') || 
                              window.location.pathname.startsWith('/mart') || 
                              window.location.pathname.startsWith('/captain') ||
+                             window.location.pathname.startsWith('/service-manager') ||
+                             window.location.pathname.startsWith('/service-partner') ||
                              window.location.pathname.includes('/select-location')
 
       if (isSpecialRoute) {

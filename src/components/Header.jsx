@@ -156,6 +156,7 @@ const Header = () => {
   const hasAdminPermission = isAdmin || isSuperAdmin || isCityManager
   const isCaptain = profile?.role === 'captain' || profile?.role === 'rider' || profile?.isRider || hasAdminPermission
   const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || hasAdminPermission
+  const isServiceManager = profile?.role === 'service_manager' || profile?.role === 'service_technician' || hasAdminPermission
   const { totalItems, deliveryConfig, serviceHoursConfig } = useCartStore(useShallow(state => ({
     totalItems: state.totalItems,
     deliveryConfig: state.deliveryConfig,
@@ -764,6 +765,7 @@ const Header = () => {
                             { to: '/referral', icon: Gift, label: 'Refer & Earn' },
                             ...(isCaptain ? [{ to: '/captain', icon: Bike, label: 'Rider Portal' }] : []),
                             ...(isMartOperator ? [{ to: '/mart', icon: Store, label: 'Mart Portal' }] : []),
+                            ...(isServiceManager ? [{ to: '/service-manager', icon: Wrench, label: 'Service Partner Portal' }] : []),
                             { to: '/wishlist', icon: Heart, label: 'Wishlist' },
                             { to: '/notifications', icon: Bell, label: 'Notifications' },
                             { to: '/settings', icon: Settings, label: 'Settings' },
@@ -1092,6 +1094,7 @@ const Header = () => {
                       { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount },
                       ...(isCaptain ? [{ to: '/captain', icon: Bike, label: 'Rider Portal' }] : []),
                       ...(isMartOperator ? [{ to: '/mart', icon: Store, label: 'Mart Portal' }] : []),
+                      ...(isServiceManager ? [{ to: '/service-manager', icon: Wrench, label: 'Service Partner Portal' }] : []),
                     ] : []),
                   ].map((item) => (
                     <Link

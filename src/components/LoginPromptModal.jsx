@@ -23,6 +23,8 @@ export default function LoginPromptModal() {
     location.pathname.startsWith('/mart') ||
     location.pathname.startsWith('/captain') ||
     location.pathname.startsWith('/rider-dashboard') ||
+    location.pathname.startsWith('/service-manager') ||
+    location.pathname.startsWith('/service-partner') ||
     location.pathname.startsWith('/capture')
 
   useEffect(() => {
