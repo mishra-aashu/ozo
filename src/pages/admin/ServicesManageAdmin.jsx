@@ -30,7 +30,9 @@ import {
   ExternalLink,
   Eye,
   Image as ImageIcon,
-  Save
+  Save,
+  Building2,
+  Check
 } from 'lucide-react'
 import { useServicesStore } from '../../stores/servicesStore'
 import { useCartStore } from '../../stores/cartStore'
@@ -61,12 +63,18 @@ export default function ServicesManageAdmin() {
     updateService,
     deleteService,
     updateBookingStatus,
+    approveServiceProposal,
+    rejectServiceProposal,
     isLoading
   } = useServicesStore()
 
-  const [activeTab, setActiveTab] = useState('services') // 'services' | 'categories' | 'bookings' | 'inquiries'
+  const [activeTab, setActiveTab] = useState('services') // 'services' | 'categories' | 'bookings' | 'inquiries' | 'partner_proposals'
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState('all')
+
+  // Partner Proposals State
+  const [partnerFilter, setPartnerFilter] = useState('pending') // 'pending' | 'approved' | 'rejected' | 'all'
+  const [partnerSearch, setPartnerSearch] = useState('')
 
   // Visiting Fees Local Admin Edit State
   const [adminDefaultFee, setAdminDefaultFee] = useState(visitingFeeDefault || 99)
@@ -132,6 +140,35 @@ export default function ServicesManageAdmin() {
     return matchesSearch && matchesCat
   })
 
+  // Partner Proposals Computation
+  const partnerProposals = services.filter(s => !!s.provider_id || s.approval_status === 'pending' || s.approval_status === 'rejected')
+  const pendingPartnerCount = services.filter(s => s.approval_status === 'pending' || (s.provider_id && !s.is_active && s.approval_status !== 'rejected')).length
+  const approvedPartnerCount = partnerProposals.filter(s => s.approval_status === 'approved' || (s.provider_id && s.is_active && s.approval_status !== 'rejected')).length
+  const rejectedPartnerCount = partnerProposals.filter(s => s.approval_status === 'rejected').length
+
+  const filteredPartnerProposals = partnerProposals.filter(s => {
+    const isPending = s.approval_status === 'pending' || (s.provider_id && !s.is_active && s.approval_status !== 'rejected')
+    const isApproved = s.approval_status === 'approved' || (s.provider_id && s.is_active && s.approval_status !== 'rejected')
+    const isRejected = s.approval_status === 'rejected'
+
+    if (partnerFilter === 'pending' && !isPending) return false
+    if (partnerFilter === 'approved' && !isApproved) return false
+    if (partnerFilter === 'rejected' && !isRejected) return false
+
+    if (partnerSearch.trim()) {
+      const q = partnerSearch.toLowerCase()
+      const titleMatch = s.title?.toLowerCase().includes(q)
+      const catMatch = (s.category || s.category_slug)?.toLowerCase().includes(q)
+      const descMatch = s.description?.toLowerCase().includes(q)
+      const businessMatch = s.service_providers?.business_name?.toLowerCase().includes(q)
+      const ownerMatch = s.service_providers?.owner_name?.toLowerCase().includes(q)
+      const cityMatch = s.service_providers?.city?.toLowerCase().includes(q)
+      const phoneMatch = s.service_providers?.phone?.includes(q)
+      return titleMatch || catMatch || descMatch || businessMatch || ownerMatch || cityMatch || phoneMatch
+    }
+    return true
+  })
+
   // Open Add/Edit Service Modal
   const handleOpenServiceModal = (service = null) => {
     if (service) {
@@ -147,7 +184,9 @@ export default function ServicesManageAdmin() {
         tag: service.tag || 'Verified',
         badge: service.badge || '',
         image_url: service.image_url || '',
-        is_active: service.is_active !== undefined ? service.is_active : true
+        is_active: service.is_active !== undefined ? service.is_active : true,
+        provider_id: service.provider_id || null,
+        approval_status: service.approval_status || 'approved'
       })
     } else {
       setEditingService(null)
@@ -162,7 +201,9 @@ export default function ServicesManageAdmin() {
         tag: 'Verified',
         badge: '',
         image_url: '',
-        is_active: true
+        is_active: true,
+        provider_id: null,
+        approval_status: 'approved'
       })
     }
     setIsServiceModalOpen(true)
@@ -317,7 +358,7 @@ export default function ServicesManageAdmin() {
       )}
 
       {/* Overview Stats Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mb-8">
         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-4 border border-gray-200 dark:border-white/10 shadow-sm flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-500 flex items-center justify-center font-bold">
             <Layers size={20} />
@@ -350,13 +391,30 @@ export default function ServicesManageAdmin() {
           </div>
         </div>
 
+        <button
+          type="button"
+          onClick={() => setActiveTab('partner_proposals')}
+          className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-4 border border-gray-200 dark:border-white/10 hover:border-amber-500/50 shadow-sm flex items-center gap-3 text-left transition-all group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 group-hover:scale-110 transition-transform flex items-center justify-center font-bold shrink-0">
+            <ShieldCheck size={20} />
+          </div>
+          <div>
+            <p className="text-[10px] font-black uppercase text-gray-400">Partner Requests</p>
+            <div className="flex items-center gap-1.5">
+              <span className="text-xl font-black text-amber-600 dark:text-amber-400">{pendingPartnerCount}</span>
+              <span className="text-[10px] font-semibold text-gray-400">pending</span>
+            </div>
+          </div>
+        </button>
+
         <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl p-4 border border-gray-200 dark:border-white/10 shadow-sm flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+          <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-500 flex items-center justify-center font-bold">
             <Calendar size={20} />
           </div>
           <div>
             <p className="text-[10px] font-black uppercase text-gray-400">Doorstep Visits</p>
-            <p className="text-xl font-black text-amber-600 dark:text-amber-400">{bookings.length}</p>
+            <p className="text-xl font-black text-purple-600 dark:text-purple-400">{bookings.length}</p>
           </div>
         </div>
       </div>
@@ -409,6 +467,25 @@ export default function ServicesManageAdmin() {
         >
           <MessageSquare size={16} />
           <span>Inquiries & Visiting Fees ({inquiries.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('partner_proposals')}
+          className={`pb-3 px-4 font-black text-sm flex items-center gap-2 border-b-2 transition-all shrink-0 ${
+            activeTab === 'partner_proposals'
+              ? 'border-amber-500 text-amber-500'
+              : 'border-transparent text-gray-500 hover:text-gray-900 dark:hover:text-white'
+          }`}
+        >
+          <ShieldCheck size={16} />
+          <span>Partner Proposals</span>
+          {pendingPartnerCount > 0 ? (
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black animate-pulse">
+              {pendingPartnerCount} New
+            </span>
+          ) : (
+            <span className="text-xs text-gray-400">({partnerProposals.length})</span>
+          )}
         </button>
       </div>
 
@@ -474,7 +551,17 @@ export default function ServicesManageAdmin() {
                       {item.category || item.category_slug}
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                      {item.provider_id && (
+                        <span className="text-[9px] font-black text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-full border border-indigo-500/20">
+                          Partner: {item.service_providers?.business_name || 'Agency'}
+                        </span>
+                      )}
+                      {item.approval_status === 'pending' && (
+                        <span className="text-[9px] font-black text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/30 animate-pulse">
+                          Pending Review
+                        </span>
+                      )}
                       {item.badge && (
                         <span className="text-[9px] font-black text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
                           {item.badge}
@@ -943,6 +1030,379 @@ export default function ServicesManageAdmin() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* TAB 5: PARTNER PROPOSALS & REQUESTS */}
+      {activeTab === 'partner_proposals' && (
+        <div className="space-y-6">
+          {/* Hero Banner with instructions */}
+          <div className="bg-gradient-to-r from-amber-500/10 via-orange-500/10 to-transparent border border-amber-500/30 rounded-3xl p-6 relative overflow-hidden">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-amber-500 text-black">
+                    Quality Gate & Verification
+                  </span>
+                  <span className="text-xs text-amber-600 dark:text-amber-400 font-bold">
+                    {pendingPartnerCount} Proposal{pendingPartnerCount === 1 ? '' : 's'} Awaiting Decision
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-gray-900 dark:text-white">
+                  Partner Custom Service Proposals
+                </h2>
+                <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1 max-w-2xl leading-relaxed">
+                  Service Managers can propose specialized trade services for their city. Admin approval is strictly required before any service goes live for customer bookings.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 self-start md:self-auto shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    fetchServices()
+                    toast.success('Partner proposals refreshed!')
+                  }}
+                  className="px-4 py-2 bg-white dark:bg-white/10 hover:bg-gray-100 dark:hover:bg-white/20 text-gray-900 dark:text-white border border-gray-200 dark:border-white/10 rounded-2xl text-xs font-bold flex items-center gap-2 transition-all shadow-sm"
+                >
+                  <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+                  <span>Refresh Proposals</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter Pills and Search */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+            {/* Filter Pills */}
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+              <button
+                type="button"
+                onClick={() => setPartnerFilter('pending')}
+                className={`px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+                  partnerFilter === 'pending'
+                    ? 'bg-amber-500 text-black shadow-md shadow-amber-500/20'
+                    : 'bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/10'
+                }`}
+              >
+                <Clock size={13} />
+                <span>Awaiting Review</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  partnerFilter === 'pending' ? 'bg-black/20 text-black' : 'bg-amber-500/10 text-amber-500 font-bold'
+                }`}>
+                  {pendingPartnerCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPartnerFilter('approved')}
+                className={`px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+                  partnerFilter === 'approved'
+                    ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/20'
+                    : 'bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/10'
+                }`}
+              >
+                <CheckCircle2 size={13} />
+                <span>Approved & Live</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  partnerFilter === 'approved' ? 'bg-white/20 text-white' : 'bg-emerald-500/10 text-emerald-500 font-bold'
+                }`}>
+                  {approvedPartnerCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPartnerFilter('rejected')}
+                className={`px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+                  partnerFilter === 'rejected'
+                    ? 'bg-red-600 text-white shadow-md shadow-red-600/20'
+                    : 'bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/10'
+                }`}
+              >
+                <XCircle size={13} />
+                <span>Declined</span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] ${
+                  partnerFilter === 'rejected' ? 'bg-white/20 text-white' : 'bg-red-500/10 text-red-500 font-bold'
+                }`}>
+                  {rejectedPartnerCount}
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPartnerFilter('all')}
+                className={`px-3.5 py-2 rounded-2xl text-xs font-black flex items-center gap-2 transition-all shrink-0 ${
+                  partnerFilter === 'all'
+                    ? 'bg-gray-900 dark:bg-white text-white dark:text-black shadow-md'
+                    : 'bg-white dark:bg-[#1a1a1a] text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white border border-gray-200 dark:border-white/10'
+                }`}
+              >
+                <span>All ({partnerProposals.length})</span>
+              </button>
+            </div>
+
+            {/* Search proposals */}
+            <div className="relative max-w-xs w-full">
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+              <input
+                type="text"
+                placeholder="Search partner, service, city..."
+                value={partnerSearch}
+                onChange={(e) => setPartnerSearch(e.target.value)}
+                className="w-full pl-9 pr-4 py-2 bg-white dark:bg-[#1a1a1a] border border-gray-200 dark:border-white/10 rounded-2xl text-xs font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+          </div>
+
+          {/* Proposals Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 lg:gap-6">
+            {filteredPartnerProposals.map((s) => {
+              const isPending = s.approval_status === 'pending' || (s.provider_id && !s.is_active && s.approval_status !== 'rejected')
+              const isApproved = s.approval_status === 'approved' || (s.provider_id && s.is_active && s.approval_status !== 'rejected')
+              const isRejected = s.approval_status === 'rejected'
+
+              return (
+                <div
+                  key={s.id}
+                  className={`bg-white dark:bg-[#1a1a1a] rounded-3xl p-6 border transition-all flex flex-col justify-between shadow-sm relative ${
+                    isPending
+                      ? 'border-amber-500/40 hover:border-amber-500/70 shadow-amber-500/5'
+                      : isApproved
+                      ? 'border-emerald-500/30 hover:border-emerald-500/60'
+                      : 'border-red-500/30 opacity-75'
+                  }`}
+                >
+                  <div>
+                    {/* Header badge row */}
+                    <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-lg">
+                          {s.category || s.category_slug}
+                        </span>
+                        {s.tag && (
+                          <span className="text-[10px] font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md">
+                            {s.tag}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Status indicator */}
+                      <div>
+                        {isPending && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">
+                            <Clock size={12} />
+                            <span>Awaiting Admin Approval</span>
+                          </span>
+                        )}
+                        {isApproved && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30">
+                            <CheckCircle2 size={12} />
+                            <span>Approved & Live on App</span>
+                          </span>
+                        )}
+                        {isRejected && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-black bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30">
+                            <XCircle size={12} />
+                            <span>Proposal Declined</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Partner Agency Meta Card */}
+                    <div className="bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5 rounded-2xl p-4 mb-4">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
+                            <Building2 size={18} />
+                          </div>
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-wider text-gray-400">
+                              Submitting Partner Agency
+                            </p>
+                            <h4 className="text-sm font-extrabold text-gray-900 dark:text-white leading-tight">
+                              {s.service_providers?.business_name || 'Independent Partner'}
+                            </h4>
+                            <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 dark:text-gray-400 font-medium flex-wrap">
+                              {s.service_providers?.owner_name && (
+                                <span className="flex items-center gap-1">
+                                  <User size={12} /> {s.service_providers.owner_name}
+                                </span>
+                              )}
+                              {s.service_providers?.city && (
+                                <span className="flex items-center gap-1">
+                                  <MapPin size={12} /> {s.service_providers.city}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        {s.service_providers?.phone && (
+                          <div className="flex items-center gap-1 shrink-0">
+                            <a
+                              href={`tel:${s.service_providers.phone}`}
+                              className="p-2 bg-sky-500 hover:bg-sky-600 text-white rounded-xl shadow-sm transition-all"
+                              title={`Call ${s.service_providers.phone}`}
+                            >
+                              <Phone size={13} />
+                            </a>
+                            <a
+                              href={`https://wa.me/${s.service_providers.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(`Hi ${s.service_providers.owner_name || ''}, regarding your custom service proposal "${s.title}" on OZO...`)}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-sm transition-all"
+                              title="Chat on WhatsApp"
+                            >
+                              <MessageSquare size={13} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Service Content */}
+                    <h3 className="text-lg font-black text-gray-900 dark:text-white leading-snug">
+                      {s.title}
+                    </h3>
+                    <p className="text-xs text-gray-600 dark:text-gray-300 mt-2 leading-relaxed">
+                      {s.description || 'No detailed scope of work provided.'}
+                    </p>
+
+                    {/* Specs / Pricing Box */}
+                    <div className="mt-4 p-3 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-2xl flex items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-baseline gap-2">
+                          <span className="text-xl font-black text-gray-900 dark:text-white">₹{s.price}</span>
+                          {s.original_price && (
+                            <span className="text-xs font-semibold text-gray-400 line-through">₹{s.original_price}</span>
+                          )}
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-medium">Customer Doorstep Rate</span>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-xs font-bold text-gray-500 dark:text-gray-400">
+                        <span className="flex items-center gap-1.5">
+                          <Clock size={14} className="text-sky-500" />
+                          <span>{s.estimated_duration_mins || 45} mins visit</span>
+                        </span>
+                        {s.created_at && (
+                          <span className="flex items-center gap-1 text-[11px] text-gray-400">
+                            <Calendar size={12} />
+                            <span>{new Date(s.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Actions Bar */}
+                  <div className="mt-5 pt-4 border-t border-gray-100 dark:border-white/10 flex items-center justify-between gap-2 flex-wrap">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenServiceModal(s)}
+                        className="px-3 py-2 bg-gray-100 dark:bg-white/10 hover:bg-gray-200 dark:hover:bg-white/20 text-gray-700 dark:text-gray-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all"
+                        title="Edit title, pricing, or duration before approving"
+                      >
+                        <Edit2 size={13} />
+                        <span>Edit Rate Card</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (confirm(`Delete proposal "${s.title}" permanently?`)) {
+                            deleteService(s.id)
+                          }
+                        }}
+                        className="p-2 bg-gray-100 dark:bg-white/10 hover:bg-red-500 hover:text-white text-gray-500 rounded-xl transition-all"
+                        title="Delete Proposal"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {isPending && (
+                        <>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (confirm(`Reject proposal "${s.title}"? Partner will be notified.`)) {
+                                await rejectServiceProposal(s.id)
+                              }
+                            }}
+                            className="px-4 py-2 bg-red-500/10 hover:bg-red-500 text-red-600 hover:text-white border border-red-500/30 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all active:scale-95"
+                          >
+                            <XCircle size={14} />
+                            <span>Reject</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              await approveServiceProposal(s.id)
+                            }}
+                            className="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95"
+                          >
+                            <Check size={14} />
+                            <span>Approve & Make Live</span>
+                          </button>
+                        </>
+                      )}
+
+                      {isApproved && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (confirm(`Take "${s.title}" offline and revoke approval?`)) {
+                              await rejectServiceProposal(s.id)
+                            }
+                          }}
+                          className="px-4 py-2 bg-amber-500/10 hover:bg-amber-500 text-amber-600 hover:text-black border border-amber-500/30 rounded-xl text-xs font-black flex items-center gap-1.5 transition-all active:scale-95"
+                        >
+                          <AlertCircle size={14} />
+                          <span>Revoke Approval (Take Offline)</span>
+                        </button>
+                      )}
+
+                      {isRejected && (
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            await approveServiceProposal(s.id)
+                          }}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-black flex items-center gap-1.5 transition-all active:scale-95"
+                        >
+                          <Check size={14} />
+                          <span>Re-approve & Make Live</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {filteredPartnerProposals.length === 0 && (
+            <div className="text-center py-16 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-200 dark:border-white/10 p-6">
+              <div className="w-16 h-16 rounded-full bg-amber-500/10 text-amber-500 flex items-center justify-center mx-auto mb-3">
+                <ShieldCheck size={32} />
+              </div>
+              <h3 className="text-base font-black text-gray-900 dark:text-white">
+                No Partner Proposals Found
+              </h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-md mx-auto">
+                {partnerFilter === 'pending'
+                  ? 'All partner service proposals have been reviewed! When any Service Manager submits a new custom service, it will appear here.'
+                  : 'No partner service proposals match the selected filters.'}
+              </p>
+            </div>
+          )}
         </div>
       )}
 

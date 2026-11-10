@@ -212,7 +212,7 @@ export default function ServicesHome() {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-          {services.filter(s => s.is_active !== false).map((item) => (
+          {services.filter(s => s.is_active !== false && s.approval_status !== 'pending' && s.approval_status !== 'rejected').map((item) => (
             <div 
               key={item.id}
               className="bg-white dark:bg-[#1a1a1a] rounded-2xl lg:rounded-3xl p-4 lg:p-5 border border-gray-100 dark:border-white/5 shadow-sm hover:shadow-xl hover:border-sky-500/30 transition-all duration-300 flex flex-col justify-between group"
