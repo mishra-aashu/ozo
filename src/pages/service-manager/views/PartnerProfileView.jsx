@@ -323,7 +323,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 type="text"
                 value={city}
                 onChange={(e) => setCity(e.target.value)}
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-inner"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
               />
             </div>
 
@@ -336,7 +336,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 value={pincodesInput}
                 onChange={(e) => setPincodesInput(e.target.value)}
                 placeholder="e.g. 800001, 800020, 800014"
-                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all shadow-inner"
+                className="w-full bg-gray-50 dark:bg-black/40 border border-gray-200 dark:border-white/10 rounded-2xl px-5 py-4 text-base sm:text-lg font-bold text-gray-900 dark:text-white font-mono focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all shadow-inner"
               />
             </div>
           </div>
@@ -409,7 +409,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
           <button
             type="submit"
             disabled={isSaving}
-            className="px-10 py-5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:opacity-50 text-white rounded-2xl text-base sm:text-lg font-black tracking-wide shadow-xl shadow-sky-500/25 transition-all flex items-center gap-3 active:scale-95"
+            className="px-10 py-5 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:opacity-50 text-white rounded-2xl text-base sm:text-lg font-black tracking-wide shadow-xl shadow-amber-500/30 transition-all flex items-center gap-3 active:scale-95"
           >
             <Save size={22} />
             <span>{isSaving ? 'Saving Changes...' : 'Save Partner Profile'}</span>
