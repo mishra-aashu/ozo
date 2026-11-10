@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { useMartStore } from '../../stores/martStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useThemeStore } from '../../stores/themeStore'
 import MartOnboarding from './MartOnboarding'
 import MartPortalBackground from './MartPortalBackground'
 import LiveOrdersView from './LiveOrdersView'
@@ -15,7 +16,9 @@ import {
   Store, 
   Clock, 
   AlertTriangle,
-  ArrowLeft
+  ArrowLeft,
+  Sun,
+  Moon
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import BarcodeEnrichmentModal from '../../components/mart/BarcodeEnrichmentModal'
@@ -23,6 +26,7 @@ import toast from 'react-hot-toast'
 
 const MartDashboard = () => {
   const { profile } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
   const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner
 
   const {
