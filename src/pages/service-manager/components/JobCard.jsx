@@ -82,7 +82,7 @@ export default function JobCard({
       {/* Main Title & Category Illustration */}
       <div className="flex items-start justify-between gap-3 mb-3.5">
         <div>
-          <h3 className="text-lg font-black text-gray-900 dark:text-white leading-snug group-hover:text-sky-500 transition-colors">
+          <h3 className="text-lg font-black text-gray-900 dark:text-white leading-snug group-hover:text-amber-500 transition-colors">
             {booking.service_title || 'Doorstep Service Visit'}
           </h3>
           <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-1">
@@ -101,7 +101,7 @@ export default function JobCard({
       {/* Scheduled Time & Address */}
       <div className="space-y-2 mb-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
         <div className="flex items-center gap-2.5">
-          <Calendar size={15} className="text-sky-500 flex-shrink-0" />
+          <Calendar size={15} className="text-amber-500 flex-shrink-0" />
           <span className="truncate">
             {booking.scheduled_at || `${booking.scheduled_date || 'Today'} • ${booking.scheduled_slot || '10:00 AM - 12:00 PM'}`}
           </span>
@@ -136,7 +136,7 @@ export default function JobCard({
         <button
           type="button"
           onClick={() => onSelect(booking)}
-          className="text-sm font-black text-gray-700 dark:text-gray-300 hover:text-sky-500 flex items-center gap-1 transition-colors"
+          className="text-sm font-black text-gray-700 dark:text-gray-300 hover:text-amber-500 flex items-center gap-1 transition-colors"
         >
           <span>Details & Inspect</span>
           <ChevronRight size={15} />
@@ -147,7 +147,7 @@ export default function JobCard({
             <button
               type="button"
               onClick={() => onAccept(booking.id)}
-              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-md shadow-amber-500/25 transition-all"
             >
               Accept Job
             </button>
