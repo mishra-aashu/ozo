@@ -99,7 +99,6 @@ const MartOnboarding = ({ onComplete }) => {
             
             <div className="space-y-4">
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   name="ownerName"
@@ -111,10 +110,10 @@ const MartOnboarding = ({ onComplete }) => {
                   style={{ colorScheme: 'dark' }}
                   className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
                 />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none z-10" />
               </div>
 
               <div className="relative group">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="tel"
                   name="phone"
@@ -126,6 +125,7 @@ const MartOnboarding = ({ onComplete }) => {
                   style={{ colorScheme: 'dark' }}
                   className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
                 />
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none z-10" />
               </div>
             </div>
 
@@ -149,7 +149,6 @@ const MartOnboarding = ({ onComplete }) => {
 
             <div className="space-y-4">
               <div className="relative group">
-                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   name="storeName"
@@ -161,10 +160,10 @@ const MartOnboarding = ({ onComplete }) => {
                   style={{ colorScheme: 'dark' }}
                   className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 backdrop-blur-md"
                 />
+                <Store className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none z-10" />
               </div>
 
               <div className="relative group">
-                <MapPin className="absolute left-4 top-5 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <textarea
                   name="address"
                   autoComplete="street-address"
@@ -176,10 +175,10 @@ const MartOnboarding = ({ onComplete }) => {
                   style={{ colorScheme: 'dark' }}
                   className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 resize-none backdrop-blur-md"
                 />
+                <MapPin className="absolute left-4 top-5 w-5 h-5 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none z-10" />
               </div>
 
               <div className="relative group">
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none" />
                 <input
                   type="text"
                   name="licenseNumber"
@@ -189,6 +188,7 @@ const MartOnboarding = ({ onComplete }) => {
                   style={{ colorScheme: 'dark' }}
                   className="w-full dark-input bg-slate-900/90 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 transition-all font-bold placeholder:text-slate-400 uppercase backdrop-blur-md"
                 />
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-blue-400 transition-colors pointer-events-none z-10" />
               </div>
             </div>
 
