@@ -63,91 +63,91 @@ export default function JobCard({
       className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-5 shadow-sm hover:shadow-md transition-all text-left relative overflow-hidden group"
     >
       {/* Top Bar: Booking Number & Status Badge */}
-      <div className="flex items-center justify-between gap-2 mb-3">
+      <div className="flex items-center justify-between gap-2 mb-3.5">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-black tracking-wider text-gray-500 dark:text-gray-400">
+          <span className="text-xs font-black tracking-wider text-gray-500 dark:text-gray-400">
             #{booking.booking_number || booking.id?.slice(0, 8)}
           </span>
           <span className="text-gray-300 dark:text-white/20">|</span>
-          <span className="text-[11px] font-bold text-gray-400 capitalize">
+          <span className="text-xs font-bold text-gray-400 capitalize">
             {booking.category_slug || 'Home Service'}
           </span>
         </div>
 
-        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border ${statusClass}`}>
+        <span className={`text-xs font-black uppercase tracking-wider px-3 py-1 rounded-full border ${statusClass}`}>
           {statusLabel}
         </span>
       </div>
 
       {/* Main Title & Category Illustration */}
-      <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="flex items-start justify-between gap-3 mb-3.5">
         <div>
-          <h3 className="text-base font-black text-gray-900 dark:text-white leading-snug group-hover:text-sky-500 transition-colors">
+          <h3 className="text-lg font-black text-gray-900 dark:text-white leading-snug group-hover:text-sky-500 transition-colors">
             {booking.service_title || 'Doorstep Service Visit'}
           </h3>
-          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+          <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-1">
             ₹{booking.total_amount || 0}
-            <span className="text-[10px] text-gray-400 font-normal ml-1">
+            <span className="text-xs text-gray-400 font-semibold ml-1.5">
               ({booking.payment_mode?.toUpperCase() || 'COD'} • {booking.payment_status || 'Pending'})
             </span>
           </p>
         </div>
 
-        <div className="w-12 h-12 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center p-1.5 flex-shrink-0 border border-gray-100 dark:border-white/10">
-          <CategoryIcon category={booking.category_slug || 'plumbing'} size={28} />
+        <div className="w-13 h-13 rounded-2xl bg-gray-50 dark:bg-white/5 flex items-center justify-center p-2 flex-shrink-0 border border-gray-100 dark:border-white/10">
+          <CategoryIcon category={booking.category_slug || 'plumbing'} size={32} />
         </div>
       </div>
 
       {/* Scheduled Time & Address */}
-      <div className="space-y-1.5 mb-4 text-xs font-semibold text-gray-600 dark:text-gray-300">
-        <div className="flex items-center gap-2">
-          <Calendar size={13} className="text-sky-500 flex-shrink-0" />
+      <div className="space-y-2 mb-4 text-sm font-semibold text-gray-600 dark:text-gray-300">
+        <div className="flex items-center gap-2.5">
+          <Calendar size={15} className="text-sky-500 flex-shrink-0" />
           <span className="truncate">
             {booking.scheduled_at || `${booking.scheduled_date || 'Today'} • ${booking.scheduled_slot || '10:00 AM - 12:00 PM'}`}
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
-          <MapPin size={13} className="text-rose-500 flex-shrink-0" />
+        <div className="flex items-center gap-2.5">
+          <MapPin size={15} className="text-rose-500 flex-shrink-0" />
           <span className="truncate text-gray-500 dark:text-gray-400">{customerAddress}</span>
         </div>
 
         {booking.customer_name && (
-          <div className="flex items-center gap-2">
-            <User size={13} className="text-indigo-500 flex-shrink-0" />
+          <div className="flex items-center gap-2.5">
+            <User size={15} className="text-indigo-500 flex-shrink-0" />
             <span className="font-bold text-gray-800 dark:text-gray-200">{booking.customer_name}</span>
             {booking.customer_phone && (
-              <span className="text-[11px] text-gray-400 font-mono">({booking.customer_phone})</span>
+              <span className="text-xs text-gray-400 font-mono font-bold">({booking.customer_phone})</span>
             )}
           </div>
         )}
 
         {/* Assigned Tech Pill */}
         {booking.service_technicians && (
-          <div className="flex items-center gap-2 pt-1 border-t border-gray-100 dark:border-white/5 text-[11px] text-indigo-600 dark:text-indigo-400 font-bold">
-            <Wrench size={12} />
+          <div className="flex items-center gap-2 pt-1.5 border-t border-gray-100 dark:border-white/5 text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 font-black">
+            <Wrench size={14} />
             <span>Assigned: {booking.service_technicians.full_name}</span>
           </div>
         )}
       </div>
 
       {/* Actions Bar */}
-      <div className="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 dark:border-white/10">
+      <div className="flex items-center justify-between gap-2 pt-3.5 border-t border-gray-100 dark:border-white/10">
         <button
           type="button"
           onClick={() => onSelect(booking)}
-          className="text-xs font-black text-gray-700 dark:text-gray-300 hover:text-sky-500 flex items-center gap-1 transition-colors"
+          className="text-sm font-black text-gray-700 dark:text-gray-300 hover:text-sky-500 flex items-center gap-1 transition-colors"
         >
           <span>Details & Inspect</span>
-          <ChevronRight size={14} />
+          <ChevronRight size={15} />
         </button>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-2">
           {booking.status === 'pending' && onAccept && (
             <button
               type="button"
               onClick={() => onAccept(booking.id)}
-              className="px-3 py-1.5 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-xs font-black tracking-wide shadow-sm transition-all"
+              className="px-4 py-2 bg-sky-500 hover:bg-sky-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
             >
               Accept Job
             </button>
@@ -157,7 +157,7 @@ export default function JobCard({
             <button
               type="button"
               onClick={() => onOpenAssign(booking)}
-              className="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs font-black tracking-wide shadow-sm transition-all"
+              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
             >
               {booking.technician_id ? 'Reassign Tech' : 'Assign Crew'}
             </button>
@@ -167,7 +167,7 @@ export default function JobCard({
             <button
               type="button"
               onClick={() => onOpenOtp(booking)}
-              className="px-3 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-xs font-black tracking-wide shadow-sm transition-all animate-bounce"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all animate-bounce"
             >
               Verify OTP
             </button>
