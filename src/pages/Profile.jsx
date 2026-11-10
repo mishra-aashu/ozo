@@ -60,7 +60,7 @@ const Profile = () => {
   })))
   const isCaptain = profile?.role === 'captain' || isAdmin
   const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || isAdmin
-  const isServiceManager = profile?.role === 'service_manager' || profile?.role === 'service_technician' || isAdmin
+  const isServiceManager = profile?.role === 'service_manager' || isAdmin
   const isCityManager = profile?.isCityManager
   const isCustomerOnly = !isCaptain && !isMartOperator && !isCityManager && !isServiceManager
   const navigate = useNavigate()
