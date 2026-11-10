@@ -1220,6 +1220,7 @@ export default function ServicesManageAdmin() {
                               src={s.service_providers.logo_url}
                               alt={s.service_providers.business_name}
                               className="w-10 h-10 rounded-xl object-cover shrink-0 border border-gray-200 dark:border-white/10 shadow-sm bg-white"
+                              onError={(e) => { e.currentTarget.style.display = 'none' }}
                             />
                           ) : (
                             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white font-black text-sm flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
