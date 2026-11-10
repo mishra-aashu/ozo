@@ -243,7 +243,7 @@ export default function ServiceManagerDashboard() {
       <div className="min-h-screen bg-gray-50 dark:bg-[#121212] relative flex items-center justify-center">
         <ServicePortalBackground />
         <div className="relative z-10 flex flex-col items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-sky-500/25">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/25">
             <Wrench size={24} className="animate-spin" />
           </div>
           <p className="text-xs font-bold text-gray-500 tracking-wider uppercase">Loading Service Partner Hub...</p>
@@ -516,7 +516,7 @@ export default function ServiceManagerDashboard() {
 
             {/* Hub Pill */}
             <div className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300">
-              <MapPin size={14} className="text-sky-500" />
+              <MapPin size={14} className="text-amber-500" />
               <span>{provider?.city || 'Patna'} Hub</span>
             </div>
           </div>

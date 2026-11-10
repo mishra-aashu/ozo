@@ -83,14 +83,14 @@ export default function CreateEstimateModal({ isOpen, onClose, booking, sparePar
                 <button
                   type="button"
                   onClick={() => handleAddItem('part')}
-                  className="px-2 py-1 bg-sky-50 dark:bg-sky-950/40 text-sky-600 dark:text-sky-400 rounded-lg text-[10px] font-bold flex items-center gap-1 hover:bg-sky-100"
+                  className="px-2 py-1 bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 rounded-lg text-[10px] font-bold flex items-center gap-1 hover:bg-amber-100 dark:hover:bg-amber-900/40"
                 >
                   <Plus size={12} /> Add Part
                 </button>
                 <button
                   type="button"
                   onClick={() => handleAddItem('labor')}
-                  className="px-2 py-1 bg-indigo-50 dark:bg-indigo-950/40 text-indigo-600 dark:text-indigo-400 rounded-lg text-[10px] font-bold flex items-center gap-1 hover:bg-indigo-100"
+                  className="px-2 py-1 bg-orange-50 dark:bg-orange-950/40 text-orange-600 dark:text-orange-400 rounded-lg text-[10px] font-bold flex items-center gap-1 hover:bg-orange-100 dark:hover:bg-orange-900/40"
                 >
                   <Plus size={12} /> Add Labor
                 </button>

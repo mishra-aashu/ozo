@@ -185,7 +185,7 @@ export default function HVACWorkflowCard({ booking, onUpdateData, isReadOnly = f
           <button
             type="button"
             onClick={handleSave}
-            className="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-black tracking-wide shadow-sm transition-all"
+            className="px-3.5 py-1.5 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl text-xs font-black tracking-wide shadow-sm transition-all"
           >
             Save Diagnostic Specs
           </button>
