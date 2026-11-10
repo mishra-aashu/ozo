@@ -875,19 +875,19 @@ const InventoryView = () => {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4 mb-4 sm:mb-6">
           <div>
             <h2 className="text-lg sm:text-xl font-bold text-gray-900 dark:text-white font-sans">Mart Inventory Controls</h2>
-            <p className="hidden sm:block text-sm text-gray-550 dark:text-gray-400 mt-0.5 font-sans">Directly toggle item stock status or edit prices instantly.</p>
+            <p className="hidden sm:block text-sm text-gray-600 dark:text-gray-300 mt-0.5 font-sans">Directly toggle item stock status or edit prices instantly.</p>
           </div>
 
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full lg:w-auto">
             {/* Search Bar (First on mobile for easy access) */}
             <div className="relative w-full lg:w-80 order-first sm:order-last">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-555 w-4 h-4" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-400 w-4 h-4" />
               <input
                 type="text"
                 placeholder="Search products by name/brand..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-10 pr-4 text-xs sm:text-sm text-gray-900 dark:text-white focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans shadow-sm"
+                className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-10 pr-4 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans shadow-sm"
               />
             </div>
 
@@ -901,11 +901,11 @@ const InventoryView = () => {
                 }}
                 className={`flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold transition-all px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border cursor-pointer font-sans whitespace-nowrap flex-1 sm:flex-none ${
                   showLowStockOnly
-                    ? 'bg-amber-500/10 border-amber-500 text-amber-600 dark:text-amber-400 font-extrabold shadow-sm shadow-amber-500/5'
-                    : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-slate-850'
+                    ? 'bg-amber-500/15 border-amber-500 text-amber-600 dark:text-amber-400 font-extrabold shadow-sm'
+                    : 'bg-white dark:bg-slate-900 border-gray-200 dark:border-slate-700 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-slate-800'
                 }`}
               >
-                <AlertTriangle className={`w-3.5 h-3.5 ${showLowStockOnly ? 'text-amber-500 animate-bounce' : 'text-gray-400 dark:text-gray-550'}`} />
+                <AlertTriangle className={`w-3.5 h-3.5 ${showLowStockOnly ? 'text-amber-500 animate-bounce' : 'text-gray-400 dark:text-gray-400'}`} />
                 <span>Low Stock</span>
               </button>
 
@@ -914,7 +914,7 @@ const InventoryView = () => {
                 onClick={() => {
                   setShowSingleProductModal(true)
                 }}
-                className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 dark:text-black transition-colors px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-transparent cursor-pointer font-sans whitespace-nowrap flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-700 transition-colors px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-transparent cursor-pointer font-sans whitespace-nowrap flex-1 sm:flex-none shadow-sm"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Product</span>
@@ -926,7 +926,7 @@ const InventoryView = () => {
                   setShowUploader(true)
                   setHasClosedUploader(false)
                 }}
-                className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold text-blue-600 dark:text-blue-500 hover:text-blue-700 dark:hover:text-blue-600 transition-colors bg-blue-50 dark:bg-blue-600/10 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-blue-100 dark:border-blue-500/20 cursor-pointer font-sans whitespace-nowrap flex-1 sm:flex-none"
+                className="flex items-center justify-center gap-1.5 text-[11px] sm:text-xs font-bold text-blue-600 dark:text-sky-400 hover:text-blue-700 dark:hover:text-sky-300 transition-colors bg-blue-50 dark:bg-blue-500/15 px-3 py-2 sm:px-4 sm:py-2.5 rounded-xl border border-blue-200 dark:border-blue-500/30 cursor-pointer font-sans whitespace-nowrap flex-1 sm:flex-none"
               >
                 <Upload className="w-3.5 h-3.5" />
                 <span>Import CSV</span>
@@ -951,13 +951,13 @@ const InventoryView = () => {
         /* Inventory Table Container */
         <div className="flex-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-800 rounded-2xl overflow-hidden flex flex-col">
           {/* Tab Selector */}
-          <div className="flex border-b border-gray-200 dark:border-slate-800 bg-gray-50/20 dark:bg-slate-900/10">
+          <div className="flex border-b border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/50">
             <button
               onClick={() => setInventorySubView('active')}
               className={`flex-1 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 ${
                 inventorySubView === 'active'
-                  ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-500 bg-blue-600/[0.02]'
-                  : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50/50 dark:hover:bg-slate-850/50'
+                  ? 'border-blue-600 dark:border-sky-400 text-blue-600 dark:text-sky-400 bg-blue-500/10'
+                  : 'border-transparent text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50/50 dark:hover:bg-slate-800/50'
               }`}
             >
               <Package className="w-4 h-4" />
@@ -970,8 +970,8 @@ const InventoryView = () => {
               }}
               className={`flex-1 py-3.5 text-xs sm:text-sm font-bold uppercase tracking-wider border-b-2 transition-all cursor-pointer flex items-center justify-center gap-2 relative ${
                 inventorySubView === 'pending'
-                  ? 'border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-500 bg-blue-600/[0.02]'
-                  : 'border-transparent text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50/50 dark:hover:bg-slate-850/50'
+                  ? 'border-blue-600 dark:border-sky-400 text-blue-600 dark:text-sky-400 bg-blue-500/10'
+                  : 'border-transparent text-gray-500 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50/50 dark:hover:bg-slate-800/50'
               }`}
             >
               <Sparkles className="w-4 h-4 text-amber-500" />
@@ -987,9 +987,9 @@ const InventoryView = () => {
           {inventorySubView === 'active' ? (
             <>
               {/* Filters Bar */}
-              <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-gray-200 dark:border-slate-800 bg-gray-50/50 dark:bg-slate-900/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <div className="px-4 py-3 sm:px-6 sm:py-3.5 border-b border-gray-200 dark:border-slate-800 bg-gray-50/70 dark:bg-slate-900/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-550 dark:text-gray-400 font-sans">Filters</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-700 dark:text-gray-300 font-sans">Filters</span>
                   {(selectedCategoryId || availabilityFilter !== 'all') && (
                     <button
                       onClick={() => {
@@ -1009,7 +1009,7 @@ const InventoryView = () => {
                     <button
                       type="button"
                       onClick={() => setIsFilterCategoryDropdownOpen(!isFilterCategoryDropdownOpen)}
-                      className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 pr-9 text-xs font-semibold text-gray-700 dark:text-gray-300 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans cursor-pointer flex items-center justify-between"
+                      className="w-full bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl py-2 pl-3 pr-9 text-xs font-semibold text-gray-800 dark:text-gray-200 focus:outline-none focus:border-blue-500 dark:focus:border-blue-500 transition-colors font-sans cursor-pointer flex items-center justify-between"
                     >
                       <span className="truncate">
                         {selectedFilterCategoryName || "All Categories"}
@@ -1020,13 +1020,13 @@ const InventoryView = () => {
                     {isFilterCategoryDropdownOpen && (
                       <div className="absolute left-0 sm:left-auto right-0 z-50 w-full mt-1 bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl shadow-2xl p-2.5 space-y-2.5 max-h-64 overflow-hidden flex flex-col animate-fadeIn">
                         <div className="relative">
-                          <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-550 absolute left-3 top-1/2 -translate-y-1/2" />
+                          <Search className="w-3.5 h-3.5 text-gray-400 dark:text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                           <input
                             type="text"
                             placeholder="Search category..."
                             value={filterCategorySearchQuery}
                             onChange={(e) => setFilterCategorySearchQuery(e.target.value)}
-                            className="w-full bg-gray-55 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-lg pl-9 pr-8 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 focus:outline-none"
+                            className="w-full bg-gray-100 dark:bg-slate-800 border border-gray-200 dark:border-slate-700 focus:border-blue-500 dark:focus:border-blue-500 rounded-lg pl-9 pr-8 py-1.5 text-xs text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none"
                             autoFocus
                           />
                           {filterCategorySearchQuery && (
