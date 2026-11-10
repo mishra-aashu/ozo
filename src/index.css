@@ -77,6 +77,61 @@
     color: #f3f4f6;
   }
 
+  /* =============================================
+     CROSS-BROWSER AUTOFILL FIX FOR DARK & LIGHT MODES
+     Prevents Chrome/WebKit/Safari from turning inputs into
+     ugly white/light-blue (#e8f0fe) backgrounds when filled/autofilled.
+     ============================================= */
+  .dark input,
+  .dark textarea,
+  .dark select,
+  .dark-input {
+    color-scheme: dark;
+  }
+
+  /* Universal Dark Mode Autofill */
+  .dark input:-webkit-autofill,
+  .dark input:-webkit-autofill:hover, 
+  .dark input:-webkit-autofill:focus, 
+  .dark input:-webkit-autofill:active,
+  .dark textarea:-webkit-autofill,
+  .dark textarea:-webkit-autofill:hover,
+  .dark textarea:-webkit-autofill:focus,
+  .dark textarea:-webkit-autofill:active,
+  .dark select:-webkit-autofill,
+  .dark select:-webkit-autofill:hover,
+  .dark select:-webkit-autofill:focus,
+  .dark select:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #181920 inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
+    transition: background-color 50000s ease-in-out 0s;
+  }
+
+  /* Dark Slate / Standalone Dark Portals (Mart & Captain Portals) */
+  .bg-slate-950 input:-webkit-autofill,
+  .bg-slate-950 input:-webkit-autofill:hover,
+  .bg-slate-950 input:-webkit-autofill:focus,
+  .bg-slate-950 textarea:-webkit-autofill,
+  .bg-slate-900 input:-webkit-autofill,
+  .bg-slate-900 input:-webkit-autofill:hover,
+  .bg-slate-900 input:-webkit-autofill:focus,
+  .bg-slate-900 textarea:-webkit-autofill,
+  [class*="bg-slate-9"] input:-webkit-autofill,
+  [class*="bg-slate-9"] input:-webkit-autofill:hover,
+  [class*="bg-slate-9"] input:-webkit-autofill:focus,
+  [class*="bg-slate-9"] textarea:-webkit-autofill,
+  .dark-input:-webkit-autofill,
+  .dark-input:-webkit-autofill:hover,
+  .dark-input:-webkit-autofill:focus,
+  .dark-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #0f172a inset !important;
+    -webkit-text-fill-color: #ffffff !important;
+    caret-color: #ffffff !important;
+    color: #ffffff !important;
+    transition: background-color 50000s ease-in-out 0s;
+  }
+
 
   /* Global Premium Scrollbar Styles */
   ::-webkit-scrollbar {
