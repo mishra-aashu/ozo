@@ -33,7 +33,8 @@ import {
   ExternalLink,
   Image as ImageIcon,
   Terminal,
-  Play
+  Play,
+  Wrench
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -63,6 +64,7 @@ const Users = () => {
     captain: 0,
     mart_operator: 0,
     city_manager: 0,
+    service_manager: 0,
     admin: 0
   })
 
@@ -165,6 +167,7 @@ WHERE id = '${selectedUser.id}';`
         { count: captain },
         { count: mart_operator },
         { count: city_manager },
+        { count: service_manager },
         { count: admin }
       ] = await Promise.all([
         supabase.from('users').select('*', { count: 'exact', head: true }),
@@ -172,6 +175,7 @@ WHERE id = '${selectedUser.id}';`
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'captain'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'mart_operator'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'city_manager'),
+        supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'service_manager'),
         supabase.from('users').select('*', { count: 'exact', head: true }).eq('role', 'admin')
       ])
 
@@ -181,6 +185,7 @@ WHERE id = '${selectedUser.id}';`
         captain: captain || 0,
         mart_operator: mart_operator || 0,
         city_manager: city_manager || 0,
+        service_manager: service_manager || 0,
         admin: admin || 0
       })
     } catch (err) {
@@ -419,7 +424,34 @@ WHERE id = '${selectedUser.id}';`
         }
       }
 
-      // 2. Update user profile in public.users
+      // 2. If role is changing to service_manager, ensure a default service_providers profile exists
+      if (selectedUser.role === 'service_manager') {
+        const { data: provCheck } = await supabase
+          .from('service_providers')
+          .select('id')
+          .eq('user_id', selectedUser.id)
+          .maybeSingle()
+
+        if (!provCheck) {
+          await supabase
+            .from('service_providers')
+            .insert({
+              user_id: selectedUser.id,
+              business_name: `${selectedUser.full_name || 'Ozo'} Services`,
+              owner_name: selectedUser.full_name || 'Service Partner',
+              phone: selectedUser.phone || '',
+              city: 'Patna',
+              serviceable_cities: ['Patna'],
+              operating_categories: ['ac-appliance', 'plumbing', 'electrician'],
+              status: 'active',
+              is_online: true,
+              rating: 5.0,
+              commission_percentage: 15.0
+            })
+        }
+      }
+
+      // 3. Update user profile in public.users
       const { error: updateErr } = await supabase
         .from('users')
         .update({
@@ -681,6 +713,13 @@ WHERE id = '${selectedUser.id}';`
       icon: UserCheck,
       color: 'text-purple-600 dark:text-purple-400',
       bgColor: 'bg-purple-50 dark:bg-purple-950/20'
+    },
+    {
+      title: 'Service Managers',
+      value: stats.service_manager,
+      icon: Wrench,
+      color: 'text-sky-600 dark:text-sky-400',
+      bgColor: 'bg-sky-50 dark:bg-sky-950/20'
     }
   ]
 
@@ -698,6 +737,18 @@ WHERE id = '${selectedUser.id}';`
         return (
           <span className={`${defaultStyle} bg-purple-100 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 border border-purple-200 dark:border-purple-900/30`}>
             <UserCheck className="w-3.5 h-3.5" /> City Manager
+          </span>
+        )
+      case 'service_manager':
+        return (
+          <span className={`${defaultStyle} bg-sky-100 dark:bg-sky-950/30 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-900/30`}>
+            <Wrench className="w-3.5 h-3.5" /> Service Manager
+          </span>
+        )
+      case 'service_technician':
+        return (
+          <span className={`${defaultStyle} bg-indigo-100 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/30`}>
+            <Wrench className="w-3.5 h-3.5" /> Technician
           </span>
         )
       case 'mart_operator':
@@ -838,6 +889,8 @@ WHERE id = '${selectedUser.id}';`
               <option value="captain" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Captains</option>
               <option value="mart_operator" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Mart Operators</option>
               <option value="city_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">City Managers</option>
+              <option value="service_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Managers</option>
+              <option value="service_technician" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Technicians</option>
               <option value="admin" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Admins</option>
             </select>
           </div>
@@ -1132,6 +1185,8 @@ WHERE id = '${selectedUser.id}';`
                               <option value="captain" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Captain (Rider Portal)</option>
                               <option value="mart_operator" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Mart Operator (Store Portal)</option>
                               <option value="city_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">City Manager (Assigned City Portal)</option>
+                              <option value="service_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Manager (Partner Portal)</option>
+                              <option value="service_technician" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Technician (Field Crew)</option>
                               <option value="admin" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Administrator (Full Control)</option>
                             </select>
                           </div>
@@ -1159,6 +1214,23 @@ WHERE id = '${selectedUser.id}';`
                             <Bike className="w-4 h-4 flex-shrink-0" />
                             <span>
                               <strong>Notice:</strong> This user will automatically be created in the verified Captain database upon saving.
+                            </span>
+                          </div>
+                        )}
+
+                        {selectedUser.role === 'service_manager' && (
+                          <div className="p-3 bg-sky-50 dark:bg-sky-950/20 border border-sky-200 dark:border-sky-900/30 rounded-xl flex gap-2 text-xs text-sky-600 dark:text-sky-400 font-medium">
+                            <Wrench className="w-4 h-4 flex-shrink-0" />
+                            <span>
+                              <strong>Service Manager:</strong> Grants access to the Service Partner Portal (/service-manager) to manage technicians, dispatch visits, stock spare parts, and verify OTPs.
+                            </span>
+                          </div>
+                        )}
+                        {selectedUser.role === 'service_technician' && (
+                          <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/30 rounded-xl flex gap-2 text-xs text-indigo-600 dark:text-indigo-400 font-medium">
+                            <Wrench className="w-4 h-4 flex-shrink-0" />
+                            <span>
+                              <strong>Service Technician:</strong> Designates this user as on-duty field crew for doorstep service dispatch and diagnostics.
                             </span>
                           </div>
                         )}
