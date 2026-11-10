@@ -156,7 +156,7 @@ const Header = () => {
   const hasAdminPermission = isAdmin || isSuperAdmin || isCityManager
   const isCaptain = profile?.role === 'captain' || profile?.role === 'rider' || profile?.isRider || hasAdminPermission
   const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || hasAdminPermission
-  const isServiceManager = profile?.role === 'service_manager' || hasAdminPermission
+  const isServiceManager = profile?.isServiceManager || profile?.role === 'service_manager' || hasAdminPermission
   const { totalItems, deliveryConfig, serviceHoursConfig } = useCartStore(useShallow(state => ({
     totalItems: state.totalItems,
     deliveryConfig: state.deliveryConfig,
