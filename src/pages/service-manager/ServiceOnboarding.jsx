@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { 
   Building2, 
   Wrench, 
   CreditCard, 
   CheckCircle2, 
   ArrowRight, 
+  ArrowLeft,
   ShieldCheck, 
   Sparkles,
   Zap,
@@ -15,6 +17,7 @@ import {
 } from 'lucide-react'
 
 export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
+  const navigate = useNavigate()
   const [step, setStep] = useState(1)
 
   // Step 1: Business Profile
@@ -82,23 +85,33 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
     <div className="min-h-screen py-12 px-4 flex items-center justify-center relative text-left">
       <div className="w-full max-w-xl bg-white/95 dark:bg-[#181818]/95 backdrop-blur-xl border border-gray-200 dark:border-white/10 rounded-3xl p-6 sm:p-8 shadow-2xl relative z-10">
         
-        {/* Progress Tracker */}
+        {/* Progress Tracker & Back Navigation */}
         <div className="flex items-center justify-between mb-8 pb-4 border-b border-gray-100 dark:border-white/10">
-          <div>
-            <span className="text-[10px] font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-full">
-              Partner Registration
-            </span>
-            <h1 className="text-xl font-black text-gray-900 dark:text-white mt-1">
-              Join Ozo Service Force
-            </h1>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => step > 1 ? setStep(step - 1) : navigate(-1)}
+              className="p-2 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-all border border-gray-200/80 dark:border-white/10 flex-shrink-0"
+              title={step > 1 ? 'Previous Step' : 'Back to App'}
+            >
+              <ArrowLeft size={16} />
+            </button>
+            <div>
+              <span className="text-[10px] font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-full">
+                Partner Registration
+              </span>
+              <h1 className="text-xl font-black text-gray-900 dark:text-white mt-1">
+                Join Ozo Service Force
+              </h1>
+            </div>
           </div>
 
           <div className="flex items-center gap-1.5 text-xs font-black text-gray-400">
-            <span className={step >= 1 ? 'text-sky-500' : ''}>1</span>
+            <span className={step >= 1 ? 'text-sky-500 font-black' : ''}>1</span>
             <span>•</span>
-            <span className={step >= 2 ? 'text-sky-500' : ''}>2</span>
+            <span className={step >= 2 ? 'text-sky-500 font-black' : ''}>2</span>
             <span>•</span>
-            <span className={step >= 3 ? 'text-sky-500' : ''}>3</span>
+            <span className={step >= 3 ? 'text-sky-500 font-black' : ''}>3</span>
           </div>
         </div>
 
@@ -165,15 +178,25 @@ export default function ServiceOnboarding({ onCompleteOnboarding, user }) {
               </div>
             </div>
 
-            <button
-              type="button"
-              disabled={!businessName.trim() || !phone.trim()}
-              onClick={() => setStep(2)}
-              className="w-full mt-6 py-3.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-sky-600/20 transition-all flex items-center justify-center gap-2"
-            >
-              <span>Next: Select Trade Services</span>
-              <ArrowRight size={14} />
-            </button>
+            <div className="flex items-center gap-3 mt-6">
+              <button
+                type="button"
+                onClick={() => navigate(-1)}
+                className="py-3.5 px-5 rounded-2xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-500 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-all flex items-center gap-1.5 flex-shrink-0"
+              >
+                <ArrowLeft size={14} />
+                <span>Back</span>
+              </button>
+              <button
+                type="button"
+                disabled={!businessName.trim() || !phone.trim()}
+                onClick={() => setStep(2)}
+                className="flex-1 py-3.5 bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white rounded-2xl text-xs font-black tracking-wide shadow-lg shadow-sky-600/20 transition-all flex items-center justify-center gap-2"
+              >
+                <span>Next: Select Trade Services</span>
+                <ArrowRight size={14} />
+              </button>
+            </div>
           </div>
         )}
 
