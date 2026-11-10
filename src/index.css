@@ -108,19 +108,35 @@
     transition: background-color 50000s ease-in-out 0s;
   }
 
-  /* Dark Slate / Standalone Dark Portals (Mart & Captain Portals) */
-  .bg-slate-950 input:-webkit-autofill,
-  .bg-slate-950 input:-webkit-autofill:hover,
-  .bg-slate-950 input:-webkit-autofill:focus,
-  .bg-slate-950 textarea:-webkit-autofill,
-  .bg-slate-900 input:-webkit-autofill,
-  .bg-slate-900 input:-webkit-autofill:hover,
-  .bg-slate-900 input:-webkit-autofill:focus,
-  .bg-slate-900 textarea:-webkit-autofill,
-  [class*="bg-slate-9"] input:-webkit-autofill,
-  [class*="bg-slate-9"] input:-webkit-autofill:hover,
-  [class*="bg-slate-9"] input:-webkit-autofill:focus,
-  [class*="bg-slate-9"] textarea:-webkit-autofill,
+  /* Light Mode Portal Input Autofill */
+  .portal-input:-webkit-autofill,
+  .portal-input:-webkit-autofill:hover,
+  .portal-input:-webkit-autofill:focus,
+  .portal-input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px #f8fafc inset !important;
+    -webkit-text-fill-color: #0f172a !important;
+    caret-color: #0f172a !important;
+    color: #0f172a !important;
+    transition: background-color 50000s ease-in-out 0s;
+  }
+
+  /* Dark Mode Portal & Slate Inputs Autofill */
+  .dark .portal-input:-webkit-autofill,
+  .dark .portal-input:-webkit-autofill:hover,
+  .dark .portal-input:-webkit-autofill:focus,
+  .dark .portal-input:-webkit-autofill:active,
+  .dark .bg-slate-950 input:-webkit-autofill,
+  .dark .bg-slate-950 input:-webkit-autofill:hover,
+  .dark .bg-slate-950 input:-webkit-autofill:focus,
+  .dark .bg-slate-950 textarea:-webkit-autofill,
+  .dark .bg-slate-900 input:-webkit-autofill,
+  .dark .bg-slate-900 input:-webkit-autofill:hover,
+  .dark .bg-slate-900 input:-webkit-autofill:focus,
+  .dark .bg-slate-900 textarea:-webkit-autofill,
+  .dark [class*="bg-slate-9"] input:-webkit-autofill,
+  .dark [class*="bg-slate-9"] input:-webkit-autofill:hover,
+  .dark [class*="bg-slate-9"] input:-webkit-autofill:focus,
+  .dark [class*="bg-slate-9"] textarea:-webkit-autofill,
   .dark-input:-webkit-autofill,
   .dark-input:-webkit-autofill:hover,
   .dark-input:-webkit-autofill:focus,
