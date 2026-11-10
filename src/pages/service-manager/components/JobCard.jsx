@@ -23,14 +23,14 @@ export default function JobCard({
 }) {
   const statusColorMap = {
     pending: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
-    accepted: 'bg-sky-500/10 text-sky-500 border-sky-500/20',
-    assigned: 'bg-indigo-500/10 text-indigo-500 border-indigo-500/20',
+    accepted: 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30',
+    assigned: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
     en_route: 'bg-purple-500/10 text-purple-500 border-purple-500/20',
-    arrived: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    arrived: 'bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 border-yellow-500/20',
     inspection: 'bg-teal-500/10 text-teal-500 border-teal-500/20',
     quote_shared: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
     quote_approved: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-    in_progress: 'bg-blue-600/15 text-blue-600 border-blue-600/30 animate-pulse',
+    in_progress: 'bg-amber-500/20 text-amber-600 dark:text-amber-400 border-amber-500/30 animate-pulse',
     work_completed: 'bg-amber-500/15 text-amber-600 border-amber-500/30',
     completed: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
     cancelled: 'bg-rose-500/10 text-rose-500 border-rose-500/20'
@@ -114,7 +114,7 @@ export default function JobCard({
 
         {booking.customer_name && (
           <div className="flex items-center gap-2.5">
-            <User size={15} className="text-indigo-500 flex-shrink-0" />
+            <User size={15} className="text-amber-500 flex-shrink-0" />
             <span className="font-bold text-gray-800 dark:text-gray-200">{booking.customer_name}</span>
             {booking.customer_phone && (
               <span className="text-xs text-gray-400 font-mono font-bold">({booking.customer_phone})</span>
@@ -124,7 +124,7 @@ export default function JobCard({
 
         {/* Assigned Tech Pill */}
         {booking.service_technicians && (
-          <div className="flex items-center gap-2 pt-1.5 border-t border-gray-100 dark:border-white/5 text-xs sm:text-sm text-indigo-600 dark:text-indigo-400 font-black">
+          <div className="flex items-center gap-2 pt-1.5 border-t border-gray-100 dark:border-white/5 text-xs sm:text-sm text-amber-600 dark:text-amber-400 font-black">
             <Wrench size={14} />
             <span>Assigned: {booking.service_technicians.full_name}</span>
           </div>
@@ -157,7 +157,7 @@ export default function JobCard({
             <button
               type="button"
               onClick={() => onOpenAssign(booking)}
-              className="px-4 py-2 bg-indigo-500 hover:bg-indigo-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
+              className="px-4 py-2 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white rounded-xl text-xs sm:text-sm font-black tracking-wide shadow-sm transition-all"
             >
               {booking.technician_id ? 'Reassign Tech' : 'Assign Crew'}
             </button>

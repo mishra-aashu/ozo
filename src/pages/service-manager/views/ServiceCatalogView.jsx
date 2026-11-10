@@ -137,13 +137,13 @@ export default function ServiceCatalogView({
             onClick={() => setOwnershipFilter('my_custom')}
             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all flex items-center gap-2 ${
               ownershipFilter === 'my_custom'
-                ? 'bg-white dark:bg-[#1f1f23] text-sky-600 dark:text-sky-400 shadow-sm font-black'
+                ? 'bg-white dark:bg-[#1f1f23] text-amber-600 dark:text-amber-400 shadow-sm font-black'
                 : 'text-gray-500 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             <span>My Custom Services</span>
             {myCustomServicesCount > 0 && (
-              <span className="bg-sky-500 text-white text-xs px-2 py-0.5 rounded-full font-mono font-bold">
+              <span className="bg-amber-500 text-white text-xs px-2 py-0.5 rounded-full font-mono font-bold">
                 {myCustomServicesCount}
               </span>
             )}
@@ -159,7 +159,7 @@ export default function ServiceCatalogView({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search services..."
-              className="w-full bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm"
+              className="w-full bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl pl-11 pr-4 py-3 text-sm font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-sm"
             />
           </div>
 
@@ -193,7 +193,7 @@ export default function ServiceCatalogView({
           {ownershipFilter === 'my_custom' && (
             <button
               onClick={() => setIsAddModalOpen(true)}
-              className="px-6 py-3 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl text-sm font-black shadow-md"
+              className="px-6 py-3 bg-gradient-to-r from-amber-500 via-amber-600 to-orange-600 hover:from-amber-400 hover:to-orange-500 text-white rounded-2xl text-sm font-black shadow-md"
             >
               Propose First Custom Service
             </button>
@@ -209,14 +209,14 @@ export default function ServiceCatalogView({
                 key={service.id}
                 className={`bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border rounded-3xl p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between ${
                   isMyCustomService 
-                    ? 'border-sky-500/40 ring-1 ring-sky-500/20' 
+                    ? 'border-amber-500/40 ring-1 ring-amber-500/20' 
                     : 'border-gray-200 dark:border-white/10'
                 }`}
               >
                 <div>
                   <div className="flex items-start justify-between gap-3 mb-3">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="text-xs font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-1 rounded-full">
+                      <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">
                         {service.category_slug}
                       </span>
                       {service.tag && (
@@ -225,7 +225,7 @@ export default function ServiceCatalogView({
                         </span>
                       )}
                       {isMyCustomService && (
-                        <span className="text-xs font-black bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
+                        <span className="text-xs font-black bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2.5 py-1 rounded-full flex items-center gap-1">
                           <Building2 size={12} /> Agency Custom
                         </span>
                       )}
@@ -278,7 +278,7 @@ export default function ServiceCatalogView({
                   </div>
 
                   <div className="flex items-center gap-2 text-gray-400 text-xs sm:text-sm font-bold">
-                    <Clock size={14} className="text-sky-500" />
+                    <Clock size={14} className="text-amber-500" />
                     <span>{service.estimated_duration_mins || 45} mins</span>
                   </div>
                 </div>
