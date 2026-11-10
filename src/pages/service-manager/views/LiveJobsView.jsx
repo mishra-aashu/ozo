@@ -85,25 +85,25 @@ export default function LiveJobsView({
     <div className="space-y-6">
       
       {/* Top Controls: Search, Filter, Refresh */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         {/* Search Input */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+        <div className="relative flex-1 max-w-lg">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by #booking, phone, service or street..."
-            className="w-full bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm"
+            placeholder="Search by #booking, phone, customer or street..."
+            className="w-full bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-2xl pl-12 pr-4 py-3.5 text-sm sm:text-base font-bold text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-sky-500 shadow-sm transition-all"
           />
         </div>
 
         {/* Category & Refresh */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <select
             value={selectedCategoryFilter}
             onChange={(e) => setSelectedCategoryFilter(e.target.value)}
-            className="bg-white/90 dark:bg-[#1a1a1a]/90 border border-gray-200 dark:border-white/10 rounded-2xl px-3 py-2.5 text-xs font-bold text-gray-800 dark:text-gray-200 focus:outline-none shadow-sm"
+            className="bg-white/90 dark:bg-[#1a1a1a]/90 border border-gray-200 dark:border-white/10 rounded-2xl px-4 py-3.5 text-sm font-bold text-gray-800 dark:text-gray-200 focus:outline-none shadow-sm cursor-pointer"
           >
             <option value="all">All Categories</option>
             <option value="ac-appliance">AC & Appliances</option>
@@ -117,37 +117,37 @@ export default function LiveJobsView({
           <button
             onClick={onRefresh}
             disabled={isLoading}
-            className="p-2.5 bg-white/90 dark:bg-[#1a1a1a]/90 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-2xl text-gray-600 dark:text-gray-300 shadow-sm transition-all"
+            className="p-3.5 bg-white/90 dark:bg-[#1a1a1a]/90 hover:bg-gray-100 dark:hover:bg-white/10 border border-gray-200 dark:border-white/10 rounded-2xl text-gray-600 dark:text-gray-300 shadow-sm transition-all"
             title="Refresh Bookings"
           >
-            <RefreshCw size={16} className={isLoading ? 'animate-spin text-sky-500' : ''} />
+            <RefreshCw size={18} className={isLoading ? 'animate-spin text-sky-500' : ''} />
           </button>
         </div>
       </div>
 
       {/* Status Filter Tabs */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+      <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none">
         {statusTabs.map((tab) => {
           const isActive = selectedStatusTab === tab.id
           return (
             <button
               key={tab.id}
               onClick={() => setSelectedStatusTab(tab.id)}
-              className={`px-3.5 py-2 rounded-2xl text-xs font-black whitespace-nowrap transition-all flex items-center gap-2 border ${
+              className={`px-4 py-2.5 rounded-2xl text-sm font-black whitespace-nowrap transition-all flex items-center gap-2.5 border ${
                 isActive
                   ? 'bg-sky-500 text-white border-sky-500 shadow-md shadow-sky-500/20'
-                  : 'bg-white/80 dark:bg-[#1a1a1a]/80 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
+                  : 'bg-white/80 dark:bg-[#1a1a1a]/80 text-gray-700 dark:text-gray-200 border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
               }`}
             >
               <span>{tab.label}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${
+              <span className={`text-xs px-2 py-0.5 rounded-full font-mono font-bold ${
                 isActive
                   ? 'bg-white/25 text-white'
                   : tab.highlight
                     ? 'bg-amber-500 text-white animate-pulse'
                     : tab.alert
                       ? 'bg-emerald-500 text-white'
-                      : 'bg-gray-100 dark:bg-white/10 text-gray-500 dark:text-gray-400'
+                      : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400'
               }`}>
                 {tab.count}
               </span>
@@ -158,12 +158,12 @@ export default function LiveJobsView({
 
       {/* Bookings Grid */}
       {filteredBookings.length === 0 ? (
-        <div className="bg-white/60 dark:bg-[#1a1a1a]/60 backdrop-blur-md border border-dashed border-gray-200 dark:border-white/10 rounded-3xl p-12 text-center">
-          <Inbox className="w-12 h-12 text-gray-300 dark:text-white/20 mx-auto mb-3" />
-          <h3 className="text-base font-black text-gray-800 dark:text-gray-200">
+        <div className="bg-white/60 dark:bg-[#1a1a1a]/60 backdrop-blur-md border border-dashed border-gray-200 dark:border-white/10 rounded-3xl p-16 text-center">
+          <Inbox className="w-16 h-16 text-gray-300 dark:text-white/20 mx-auto mb-4" />
+          <h3 className="text-xl sm:text-2xl font-black text-gray-800 dark:text-gray-100">
             No Service Bookings Found
           </h3>
-          <p className="text-xs text-gray-400 mt-1 max-w-sm mx-auto">
+          <p className="text-sm sm:text-base text-gray-400 mt-2 max-w-md mx-auto">
             {searchQuery
               ? `No results match "${searchQuery}". Try clearing filters or searching another keyword.`
               : `There are currently no active bookings under the "${selectedStatusTab}" tab.`}

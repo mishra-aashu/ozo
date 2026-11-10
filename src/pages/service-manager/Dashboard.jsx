@@ -448,45 +448,45 @@ export default function ServiceManagerDashboard() {
         <ServicePortalBackground />
 
         {/* Top Header Bar */}
-        <header className="relative z-10 h-16 px-4 sm:px-6 lg:px-8 border-b border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl flex items-center justify-between gap-4 shrink-0 transition-colors">
-          <div className="flex items-center gap-3 min-w-0">
+        <header className="relative z-10 h-20 px-4 sm:px-6 lg:px-8 border-b border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl flex items-center justify-between gap-4 shrink-0 transition-colors">
+          <div className="flex items-center gap-3.5 min-w-0">
             <button
               type="button"
               onClick={() => setIsSidebarOpen(true)}
-              className="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 lg:hidden shrink-0"
+              className="p-2.5 rounded-2xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 lg:hidden shrink-0"
               title="Open Navigation"
             >
-              <Menu size={18} />
+              <Menu size={22} />
             </button>
 
             <div className="min-w-0">
-              <h1 className="text-base sm:text-lg font-black tracking-tight text-gray-900 dark:text-white truncate flex items-center gap-2">
+              <h1 className="text-lg sm:text-2xl font-black tracking-tight text-gray-900 dark:text-white truncate flex items-center gap-2.5">
                 <span>{currentTabObj.label}</span>
                 {currentTab === 'jobs' && pendingRequests.length > 0 && (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black animate-pulse">
+                  <span className="px-2.5 py-0.5 rounded-full text-xs font-black bg-amber-500 text-black animate-pulse">
                     {pendingRequests.length} Incoming
                   </span>
                 )}
               </h1>
-              <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium truncate hidden sm:block">
+              <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 font-semibold truncate hidden sm:block mt-0.5">
                 {currentTabObj.subtitle}
               </p>
             </div>
           </div>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3.5 shrink-0">
             {/* Duty toggle */}
             <button
               type="button"
               onClick={toggleOnlineStatus}
-              className={`flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-black transition-all border ${
+              className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all border ${
                 isOnline
-                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
-                  : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                  : 'bg-rose-500/15 text-rose-500 border-rose-500/30'
               }`}
             >
-              <Power size={13} className={isOnline ? 'animate-pulse' : ''} />
+              <Power size={14} className={isOnline ? 'animate-pulse' : ''} />
               <span className="hidden sm:inline">{isOnline ? 'Receiving Jobs' : 'Offline'}</span>
             </button>
 
@@ -500,15 +500,15 @@ export default function ServiceManagerDashboard() {
                 fetchEstimates()
                 fetchEarnings()
               }}
-              className="p-2 sm:p-2.5 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all shadow-xs"
+              className="p-2.5 sm:p-3 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-2xl border border-gray-200 dark:border-white/10 transition-all shadow-xs"
               title="Refresh Data"
             >
-              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={isLoading ? 'animate-spin' : ''} />
             </button>
 
             {/* Hub Pill */}
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300">
-              <MapPin size={12} className="text-sky-500" />
+            <div className="hidden md:flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300">
+              <MapPin size={14} className="text-sky-500" />
               <span>{provider?.city || 'Patna'} Hub</span>
             </div>
           </div>
