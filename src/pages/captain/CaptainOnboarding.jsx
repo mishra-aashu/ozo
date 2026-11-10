@@ -81,24 +81,24 @@ const CaptainOnboarding = ({ onComplete }) => {
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto bg-white dark:bg-[#0c0c14] border border-gray-200/80 dark:border-[#1b1b2d] rounded-[1.75rem] p-8 shadow-2xl transition-all duration-300">
+    <div className="w-full max-w-lg mx-auto bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b2d] rounded-[2rem] p-6 sm:p-8 md:p-10 shadow-2xl transition-all duration-300 relative z-10">
       <div className="text-center mb-6">
-        <div className="inline-flex bg-gradient-to-tr from-[#00FF66] to-[#00CC52] p-3 rounded-2xl mb-3 shadow-md shadow-[#00FF66]/10">
+        <div className="inline-flex bg-gradient-to-tr from-[#00FF66] to-[#00CC52] p-3 rounded-2xl mb-3 shadow-md shadow-[#00FF66]/20">
           <Bike className="w-6 h-6 text-black" />
         </div>
-        <h2 className="text-xl font-bold text-gray-900 dark:text-white">Captain Verification</h2>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Submit your details to start delivering with OZO</p>
+        <h2 className="text-xl font-black text-gray-900 dark:text-white">Captain Verification</h2>
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 font-medium">Submit your details to start delivering with OZO</p>
       </div>
 
       {/* Steps Indicator */}
       <div className="flex items-center justify-between px-8 mb-10 relative">
-        <div className="absolute left-12 right-12 top-1/2 h-[2px] bg-gray-150 dark:bg-[#1d1d33] -translate-y-1/2 -z-10"></div>
+        <div className="absolute left-12 right-12 top-1/2 h-[2px] bg-gray-200 dark:bg-[#1d1d33] -translate-y-1/2 -z-10"></div>
         {[1, 2, 3].map((num) => (
           <div 
             key={num}
             className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-sm border-2 transition-all duration-300 ${
               step >= num 
-                ? 'bg-white dark:bg-black border-emerald-500 dark:border-[#00FF66] text-emerald-650 dark:text-[#00FF66] shadow-emerald-500/5 dark:shadow-[#00FF66]/10 shadow-md' 
+                ? 'bg-[#00FF66] dark:bg-[#00FF66] border-[#00FF66] text-black shadow-lg shadow-[#00FF66]/25' 
                 : 'bg-white dark:bg-[#0c0c14] border-gray-200 dark:border-[#1d1d33] text-gray-400 dark:text-gray-500'
             }`}
           >
@@ -111,11 +111,11 @@ const CaptainOnboarding = ({ onComplete }) => {
         {step === 1 && (
           /* STEP 1: Personal Details */
           <div className="space-y-4 animate-fadeIn">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">1. Personal Information</h3>
+            <h3 className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">1. Personal Information</h3>
             
             <div className="space-y-4">
               <div className="relative group">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="text"
                   name="fullName"
@@ -123,12 +123,12 @@ const CaptainOnboarding = ({ onComplete }) => {
                   required
                   value={details.fullName}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 transition-colors"
                 />
               </div>
 
               <div className="relative group">
-                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="tel"
                   name="phone"
@@ -136,24 +136,24 @@ const CaptainOnboarding = ({ onComplete }) => {
                   required
                   value={details.phone}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 transition-colors"
                 />
               </div>
 
               <div className="relative group">
-                <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Smartphone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="tel"
                   name="whatsapp"
                   placeholder="WhatsApp Number (Optional)"
                   value={details.whatsapp}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 transition-colors"
                 />
               </div>
 
               <div className="relative group">
-                <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <AlertCircle className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="tel"
                   name="emergencyContact"
@@ -161,7 +161,7 @@ const CaptainOnboarding = ({ onComplete }) => {
                   required
                   value={details.emergencyContact}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 transition-colors"
                 />
               </div>
             </div>
@@ -169,7 +169,7 @@ const CaptainOnboarding = ({ onComplete }) => {
             <button
               type="button"
               onClick={nextStep}
-              className="w-full bg-gradient-to-r from-[#00FF66] to-[#00CC52] text-black font-bold py-3.5 rounded-xl text-sm hover:shadow-lg hover:shadow-[#00FF66]/10 flex items-center justify-center gap-1 mt-4 transition-all"
+              className="w-full bg-gradient-to-r from-[#00FF66] to-[#00CC52] hover:brightness-105 active:scale-[0.98] text-black font-black py-3.5 rounded-xl text-sm shadow-md hover:shadow-lg shadow-[#00FF66]/20 flex items-center justify-center gap-1.5 mt-4 transition-all"
             >
               Continue <ChevronRight className="w-4 h-4" />
             </button>
@@ -179,11 +179,11 @@ const CaptainOnboarding = ({ onComplete }) => {
         {step === 2 && (
           /* STEP 2: Document numbers */
           <div className="space-y-4 animate-fadeIn">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">2. Verification Details</h3>
+            <h3 className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">2. Verification Details</h3>
 
             <div className="space-y-4">
               <div className="relative group">
-                <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <CreditCard className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="text"
                   name="aadharNumber"
@@ -192,12 +192,12 @@ const CaptainOnboarding = ({ onComplete }) => {
                   maxLength="12"
                   value={details.aadharNumber}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] font-mono transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 font-mono transition-colors"
                 />
               </div>
 
               <div className="relative group">
-                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <FileText className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="text"
                   name="drivingLicenseNumber"
@@ -205,12 +205,12 @@ const CaptainOnboarding = ({ onComplete }) => {
                   required
                   value={details.drivingLicenseNumber}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] uppercase transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 uppercase transition-colors"
                 />
               </div>
 
               <div className="relative group">
-                <Bike className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                <Bike className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
                 <input
                   type="text"
                   name="bikeNumber"
@@ -218,7 +218,7 @@ const CaptainOnboarding = ({ onComplete }) => {
                   required
                   value={details.bikeNumber}
                   onChange={handleInputChange}
-                  className="w-full bg-gray-50 dark:bg-[#121220] border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] uppercase font-mono transition-colors"
+                  className="portal-input w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-[#00FF66] focus:ring-2 focus:ring-[#00FF66]/20 uppercase font-mono transition-colors"
                 />
               </div>
             </div>
@@ -227,14 +227,14 @@ const CaptainOnboarding = ({ onComplete }) => {
               <button
                 type="button"
                 onClick={prevStep}
-                className="w-1/3 border border-gray-200 dark:border-[#1e1e35] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-1 transition-all"
+                className="w-1/3 border border-gray-200 dark:border-[#1e1e35] bg-gray-50/50 dark:bg-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-1.5 transition-all"
               >
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
               <button
                 type="button"
                 onClick={nextStep}
-                className="w-2/3 bg-gradient-to-r from-[#00FF66] to-[#00CC52] text-black font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-1 transition-all"
+                className="w-2/3 bg-gradient-to-r from-[#00FF66] to-[#00CC52] hover:brightness-105 active:scale-[0.98] text-black font-black py-3.5 rounded-xl text-sm shadow-md hover:shadow-lg shadow-[#00FF66]/20 flex items-center justify-center gap-1.5 transition-all"
               >
                 Continue <ChevronRight className="w-4 h-4" />
               </button>
@@ -245,7 +245,7 @@ const CaptainOnboarding = ({ onComplete }) => {
         {step === 3 && (
           /* STEP 3: Photo Uploads */
           <div className="space-y-4 animate-fadeIn">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-gray-400 mb-2">3. Upload Documents</h3>
+            <h3 className="text-xs font-black uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">3. Upload Documents</h3>
             
             <div className="space-y-4">
               {/* Aadhar Card upload */}
@@ -290,14 +290,14 @@ const CaptainOnboarding = ({ onComplete }) => {
                 type="button"
                 onClick={prevStep}
                 disabled={onboardingInProgress}
-                className="w-1/3 border border-gray-200 dark:border-[#1e1e35] text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                className="w-1/3 border border-gray-200 dark:border-[#1e1e35] bg-gray-50/50 dark:bg-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white font-bold py-3.5 rounded-xl text-sm flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
               >
                 <ArrowLeft className="w-4 h-4" /> Back
               </button>
               <button
                 type="submit"
                 disabled={onboardingInProgress}
-                className="w-2/3 bg-gradient-to-r from-[#00FF66] to-[#00CC52] text-black font-black py-3.5 rounded-xl text-sm flex items-center justify-center gap-1 transition-all disabled:opacity-50"
+                className="w-2/3 bg-gradient-to-r from-[#00FF66] to-[#00CC52] hover:brightness-105 active:scale-[0.98] text-black font-black py-3.5 rounded-xl text-sm shadow-md hover:shadow-lg shadow-[#00FF66]/20 flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
               >
                 {onboardingInProgress ? (
                   <span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin"></span>
