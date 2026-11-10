@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import { 
   Building2, 
   User, 
@@ -9,10 +9,15 @@ import {
   CreditCard, 
   Save, 
   Star,
-  CheckCircle2
+  CheckCircle2,
+  Camera,
+  UploadCloud,
+  Trash2,
+  Loader2
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { supabase } from '../../../lib/supabase'
+import { useServiceManagerStore } from '../../../stores/serviceManagerStore'
 
 export default function PartnerProfileView({ provider, onRefresh }) {
   const [businessName, setBusinessName] = useState(provider?.business_name || '')
@@ -29,6 +34,49 @@ export default function PartnerProfileView({ provider, onRefresh }) {
   const [upiId, setUpiId] = useState(provider?.bank_details?.upi_id || '')
 
   const [isSaving, setIsSaving] = useState(false)
+
+  // Logo upload system
+  const fileInputRef = useRef(null)
+  const { uploadProviderLogo, removeProviderLogo } = useServiceManagerStore()
+  const [logoUrl, setLogoUrl] = useState(provider?.logo_url || '')
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false)
+
+  useEffect(() => {
+    if (provider?.logo_url !== undefined) {
+      setLogoUrl(provider.logo_url || '')
+    }
+  }, [provider?.logo_url])
+
+  const handleLogoFileChange = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setIsUploadingLogo(true)
+    try {
+      const newUrl = await uploadProviderLogo(file)
+      if (newUrl) {
+        setLogoUrl(newUrl)
+        if (onRefresh) onRefresh()
+      }
+    } finally {
+      setIsUploadingLogo(false)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
+  }
+
+  const handleRemoveLogo = async () => {
+    if (!confirm('Are you sure you want to remove your agency logo?')) return
+    setIsUploadingLogo(true)
+    try {
+      const ok = await removeProviderLogo()
+      if (ok) {
+        setLogoUrl('')
+        if (onRefresh) onRefresh()
+      }
+    } finally {
+      setIsUploadingLogo(false)
+    }
+  }
 
   const handleSave = async (e) => {
     e.preventDefault()
@@ -77,10 +125,69 @@ export default function PartnerProfileView({ provider, onRefresh }) {
       
       {/* Profile Header Banner */}
       <div className="bg-gradient-to-r from-sky-500/10 via-indigo-500/10 to-purple-500/10 border border-sky-500/20 rounded-3xl p-6 sm:p-9 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
-        <div className="flex items-center gap-6">
-          <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-black text-4xl flex items-center justify-center shadow-xl shadow-sky-500/25 shrink-0">
-            {businessName.charAt(0) || 'O'}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+          
+          {/* Agency Logo Avatar & Interactive Upload system */}
+          <div className="relative group shrink-0">
+            <div
+              onClick={() => !isUploadingLogo && fileInputRef.current?.click()}
+              className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl overflow-hidden cursor-pointer relative shadow-xl shadow-sky-500/25 border-2 border-white/20 dark:border-white/10 transition-all hover:scale-105 active:scale-95 bg-white dark:bg-black/40 flex items-center justify-center group"
+              title="Click to Upload / Change Agency Logo"
+            >
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={businessName}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-gradient-to-br from-sky-500 to-indigo-600 text-white font-black text-4xl sm:text-5xl flex items-center justify-center">
+                  {businessName.charAt(0) || 'O'}
+                </div>
+              )}
+
+              {/* Hover / Uploading Overlay */}
+              <div
+                className={`absolute inset-0 bg-black/65 backdrop-blur-xs flex flex-col items-center justify-center text-white transition-opacity duration-200 ${
+                  isUploadingLogo ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                }`}
+              >
+                {isUploadingLogo ? (
+                  <div className="flex flex-col items-center gap-1.5">
+                    <Loader2 className="w-7 h-7 animate-spin text-sky-400" />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-sky-300">Uploading...</span>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1">
+                    <Camera className="w-7 h-7 text-sky-300" />
+                    <span className="text-[10px] font-black uppercase tracking-wider">
+                      {logoUrl ? 'Change' : 'Upload'}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Floating Camera Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploadingLogo}
+              className="absolute -bottom-2 -right-2 p-2.5 rounded-2xl bg-sky-500 hover:bg-sky-400 disabled:opacity-50 text-white shadow-lg shadow-sky-500/40 transition-all border-2 border-white dark:border-[#18181b] active:scale-95 flex items-center justify-center"
+              title="Upload / Change Logo"
+            >
+              <Camera size={16} />
+            </button>
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleLogoFileChange}
+              className="hidden"
+            />
           </div>
+
           <div>
             <div className="flex items-center gap-3.5">
               <h2 className="text-3xl sm:text-4xl font-black text-gray-900 dark:text-white tracking-tight">
@@ -90,6 +197,7 @@ export default function PartnerProfileView({ provider, onRefresh }) {
                 <ShieldCheck className="w-8 h-8 text-emerald-500 shrink-0" />
               )}
             </div>
+            
             <div className="flex items-center gap-3.5 text-base sm:text-lg text-gray-500 dark:text-gray-300 mt-2.5 font-bold flex-wrap">
               <span className="flex items-center gap-2 text-amber-500 font-extrabold">
                 <Star size={20} fill="currentColor" /> {provider?.rating || 5.0}
@@ -98,6 +206,34 @@ export default function PartnerProfileView({ provider, onRefresh }) {
               <span>{city} Operational Hub</span>
               <span className="text-gray-400">•</span>
               <span className="text-emerald-500 font-black">{provider?.total_jobs_completed || 0} Jobs Done</span>
+            </div>
+
+            {/* Logo Actions / Hint */}
+            <div className="flex items-center gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploadingLogo}
+                className="text-xs sm:text-sm font-bold text-sky-500 hover:text-sky-400 flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <UploadCloud size={16} />
+                <span>{logoUrl ? 'Change Agency Logo' : 'Upload Agency Logo'}</span>
+              </button>
+
+              {logoUrl && (
+                <>
+                  <span className="text-gray-400">•</span>
+                  <button
+                    type="button"
+                    onClick={handleRemoveLogo}
+                    disabled={isUploadingLogo}
+                    className="text-xs sm:text-sm font-bold text-rose-500 hover:text-rose-400 flex items-center gap-1 transition-colors cursor-pointer"
+                  >
+                    <Trash2 size={14} />
+                    <span>Remove Logo</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
