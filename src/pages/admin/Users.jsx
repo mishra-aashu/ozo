@@ -745,12 +745,6 @@ WHERE id = '${selectedUser.id}';`
             <Wrench className="w-3.5 h-3.5" /> Service Manager
           </span>
         )
-      case 'service_technician':
-        return (
-          <span className={`${defaultStyle} bg-indigo-100 dark:bg-indigo-950/30 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-900/30`}>
-            <Wrench className="w-3.5 h-3.5" /> Technician
-          </span>
-        )
       case 'mart_operator':
         return (
           <span className={`${defaultStyle} bg-amber-100 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30`}>
@@ -890,7 +884,6 @@ WHERE id = '${selectedUser.id}';`
               <option value="mart_operator" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Mart Operators</option>
               <option value="city_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">City Managers</option>
               <option value="service_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Managers</option>
-              <option value="service_technician" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Technicians</option>
               <option value="admin" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Admins</option>
             </select>
           </div>
@@ -1186,7 +1179,6 @@ WHERE id = '${selectedUser.id}';`
                               <option value="mart_operator" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Mart Operator (Store Portal)</option>
                               <option value="city_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">City Manager (Assigned City Portal)</option>
                               <option value="service_manager" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Manager (Partner Portal)</option>
-                              <option value="service_technician" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Service Technician (Field Crew)</option>
                               <option value="admin" className="bg-white dark:bg-[#1c1c24] text-gray-900 dark:text-white">Administrator (Full Control)</option>
                             </select>
                           </div>
@@ -1223,14 +1215,6 @@ WHERE id = '${selectedUser.id}';`
                             <Wrench className="w-4 h-4 flex-shrink-0" />
                             <span>
                               <strong>Service Manager:</strong> Grants access to the Service Partner Portal (/service-manager) to manage technicians, dispatch visits, stock spare parts, and verify OTPs.
-                            </span>
-                          </div>
-                        )}
-                        {selectedUser.role === 'service_technician' && (
-                          <div className="p-3 bg-indigo-50 dark:bg-indigo-950/20 border border-indigo-200 dark:border-indigo-900/30 rounded-xl flex gap-2 text-xs text-indigo-600 dark:text-indigo-400 font-medium">
-                            <Wrench className="w-4 h-4 flex-shrink-0" />
-                            <span>
-                              <strong>Service Technician:</strong> Designates this user as on-duty field crew for doorstep service dispatch and diagnostics.
                             </span>
                           </div>
                         )}
