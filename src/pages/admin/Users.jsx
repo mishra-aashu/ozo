@@ -463,6 +463,44 @@ WHERE id = '${selectedUser.id}';`
 
       if (updateErr) throw updateErr
 
+      // 4. Also keep user_roles table in sync so permissions and RPCs stay aligned
+      try {
+        const mappedRole = selectedUser.role === 'admin' 
+          ? 'super_admin' 
+          : (selectedUser.role === 'mart_operator' 
+              ? 'mart_owner' 
+              : (selectedUser.role === 'captain' 
+                  ? 'rider' 
+                  : selectedUser.role))
+
+        const { data: existingRole } = await supabase
+          .from('user_roles')
+          .select('id')
+          .eq('user_id', selectedUser.id)
+          .maybeSingle()
+
+        if (existingRole) {
+          await supabase
+            .from('user_roles')
+            .update({ role: mappedRole })
+            .eq('id', existingRole.id)
+        } else {
+          await supabase
+            .from('user_roles')
+            .insert({ user_id: selectedUser.id, role: mappedRole })
+        }
+      } catch (roleSyncErr) {
+        console.warn('Could not sync user_roles table:', roleSyncErr)
+      }
+
+      // 5. If this is currently logged in user, refresh local auth store
+      try {
+        const authStore = useAuthStore.getState()
+        if (authStore?.user?.id === selectedUser.id && authStore.refreshProfile) {
+          await authStore.refreshProfile()
+        }
+      } catch (_) {}
+
       toast.success('User updated successfully!', { id: toastId })
       setOriginalUserRole(selectedUser.role)
       loadStats()

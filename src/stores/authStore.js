@@ -98,6 +98,7 @@ const enrichProfileRoles = (profile) => {
       roles: [],
       isSuperAdmin: false,
       isCityManager: false,
+      isServiceManager: false,
       isMartOwner: false,
       isRider: false,
       isCustomer: true,
@@ -112,17 +113,19 @@ const enrichProfileRoles = (profile) => {
 
   const hasSuperAdmin = rolesList.some(r => r?.role === 'super_admin') || profile.role === 'admin' || profile.role === 'super_admin'
   const hasCityManager = rolesList.some(r => r?.role === 'city_manager') || profile.role === 'city_manager'
+  const hasServiceManager = rolesList.some(r => r?.role === 'service_manager') || profile.role === 'service_manager'
   const hasMartOwner = rolesList.some(r => r?.role === 'mart_owner') || profile.role === 'mart_owner' || profile.role === 'mart_operator'
   const hasRider = rolesList.some(r => r?.role === 'rider') || profile.role === 'rider' || profile.role === 'captain'
   const hasCustomer = rolesList.some(r => r?.role === 'customer') || profile.role === 'customer'
 
   // Set top-level role for backward compatibility
-  let primaryRole = profile.role
+  let primaryRole = profile.role || 'customer'
   if (hasSuperAdmin) primaryRole = 'super_admin'
   else if (hasCityManager) primaryRole = 'city_manager'
+  else if (hasServiceManager) primaryRole = 'service_manager'
   else if (hasMartOwner) primaryRole = 'mart_owner'
   else if (hasRider) primaryRole = 'rider'
-  else if (hasCustomer) primaryRole = 'customer'
+  else if (hasCustomer && !['service_manager', 'mart_operator', 'mart_owner', 'captain', 'rider', 'city_manager', 'super_admin', 'admin'].includes(profile.role)) primaryRole = 'customer'
 
   return {
     ...profile,
@@ -130,6 +133,7 @@ const enrichProfileRoles = (profile) => {
     roles: rolesList,
     isSuperAdmin: !!hasSuperAdmin,
     isCityManager: !!hasCityManager,
+    isServiceManager: !!hasServiceManager,
     isMartOwner: !!hasMartOwner,
     isRider: !!hasRider,
     isCustomer: !!hasCustomer,
