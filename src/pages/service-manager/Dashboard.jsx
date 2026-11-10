@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { 
   Bell, 
   BellOff, 
@@ -16,7 +17,12 @@ import {
   FileText,
   DollarSign,
   Building2,
-  Power
+  Power,
+  Menu,
+  X,
+  ChevronRight,
+  Home,
+  MapPin
 } from 'lucide-react'
 import { useServiceManagerStore } from '../../stores/serviceManagerStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -84,6 +90,7 @@ export default function ServiceManagerDashboard() {
 
   // Navigation tabs: 'jobs' | 'technicians' | 'catalog' | 'spare_parts' | 'estimates' | 'earnings' | 'profile'
   const [currentTab, setCurrentTab] = useState('jobs')
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
 
   // Modals state
   const [selectedBookingForDetail, setSelectedBookingForDetail] = useState(null)
@@ -144,6 +151,92 @@ export default function ServiceManagerDashboard() {
     window.scrollTo(0, 0)
   }, [currentTab])
 
+  // Nav Groups definition with styling and subtitles
+  const navGroups = [
+    {
+      title: 'Operations',
+      items: [
+        {
+          id: 'jobs',
+          label: 'Live Jobs',
+          icon: Wrench,
+          count: pendingRequests.length,
+          countBadgeColor: 'bg-amber-500 text-black font-black animate-pulse',
+          color: 'text-sky-500 dark:text-sky-400',
+          bgColor: 'bg-sky-500/10',
+          subtitle: 'Real-time doorstep dispatch & active job visits'
+        },
+        {
+          id: 'technicians',
+          label: 'Field Technicians',
+          icon: Users,
+          count: technicians.length,
+          countBadgeColor: 'bg-blue-500/10 text-blue-500',
+          color: 'text-blue-500 dark:text-blue-400',
+          bgColor: 'bg-blue-500/10',
+          subtitle: 'Manage duty status, contact & assignments'
+        },
+        {
+          id: 'catalog',
+          label: 'Service Catalog',
+          icon: Layers,
+          color: 'text-indigo-500 dark:text-indigo-400',
+          bgColor: 'bg-indigo-500/10',
+          subtitle: 'Rate card offerings & custom service proposals'
+        }
+      ]
+    },
+    {
+      title: 'Supplies & Quotations',
+      items: [
+        {
+          id: 'spare_parts',
+          label: 'Spare Parts',
+          icon: Package,
+          count: spareParts.length,
+          countBadgeColor: 'bg-amber-500/10 text-amber-500',
+          color: 'text-amber-500 dark:text-amber-400',
+          bgColor: 'bg-amber-500/10',
+          subtitle: 'Materials inventory, stock count & unit costs'
+        },
+        {
+          id: 'estimates',
+          label: 'Quotations',
+          icon: FileText,
+          count: estimates.length,
+          countBadgeColor: 'bg-purple-500/10 text-purple-500',
+          color: 'text-purple-500 dark:text-purple-400',
+          bgColor: 'bg-purple-500/10',
+          subtitle: 'Customer billing quotes & approval records'
+        }
+      ]
+    },
+    {
+      title: 'Financials & Account',
+      items: [
+        {
+          id: 'earnings',
+          label: 'Settlements & Revenue',
+          icon: DollarSign,
+          color: 'text-emerald-500 dark:text-emerald-400',
+          bgColor: 'bg-emerald-500/10',
+          subtitle: 'Completed visits revenue, bank account & payout transfers'
+        },
+        {
+          id: 'profile',
+          label: 'Agency Profile',
+          icon: Building2,
+          color: 'text-rose-500 dark:text-rose-400',
+          bgColor: 'bg-rose-500/10',
+          subtitle: 'Business KYC, phone, address & operating hub'
+        }
+      ]
+    }
+  ]
+
+  const allNavItems = navGroups.flatMap(g => g.items)
+  const currentTabObj = allNavItems.find(item => item.id === currentTab) || allNavItems[0]
+
   // Loading state while verifying provider profile
   if (!isProviderLoaded || isLoading) {
     return (
@@ -170,241 +263,373 @@ export default function ServiceManagerDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-[#121212] relative text-gray-900 dark:text-white transition-colors duration-300">
-      <ServicePortalBackground />
+    <div className="h-screen w-screen bg-gray-50 dark:bg-[#0c0c0c] text-gray-900 dark:text-white flex overflow-hidden font-sans transition-colors duration-300 relative">
+      
+      {/* Mobile Drawer Backdrop Overlay */}
+      <AnimatePresence>
+        {isSidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsSidebarOpen(false)}
+            className="fixed inset-0 bg-black/60 z-40 lg:hidden backdrop-blur-xs"
+          />
+        )}
+      </AnimatePresence>
 
-      <div className="relative z-10 max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
-        {/* Top Navbar */}
-        <header className="bg-white/80 dark:bg-[#1a1a1a]/80 backdrop-blur-xl border border-gray-200/80 dark:border-white/10 rounded-3xl p-5 sm:p-6 shadow-sm mb-7 flex flex-col md:flex-row items-center justify-between gap-4">
-          
-          {/* Left: Branding & Back to Main */}
-          <div className="flex items-center gap-3.5 w-full md:w-auto justify-between md:justify-start">
-            <Link
-              to="/"
-              className="p-2.5 text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
-              title="Return to Main Customer App"
-            >
-              <ArrowLeft size={20} />
-            </Link>
-
-            <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20 flex-shrink-0">
-                <Wrench size={24} />
-              </div>
-              <div className="text-left">
-                <div className="flex items-center gap-2.5">
-                  <h1 className="text-lg font-black tracking-tight text-gray-900 dark:text-white">
-                    {provider?.business_name || 'OZO Service Manager'}
-                  </h1>
-                  <span className="text-[11px] font-black uppercase tracking-wider bg-sky-500/10 text-sky-500 border border-sky-500/20 px-2.5 py-0.5 rounded-full">
-                    Partner Portal
-                  </span>
-                </div>
-                <p className="text-xs text-gray-400 font-bold mt-0.5">
-                  {provider?.city || 'Patna'} Hub • Doorstep Operations
-                </p>
-              </div>
+      {/* LEFT SIDEBAR (Sticky on desktop, slide-in drawer on mobile) */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-64 xl:w-72 h-full bg-white dark:bg-[#121212] border-r border-gray-200 dark:border-white/10 shadow-2xl lg:shadow-none flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
+        {/* Brand Header */}
+        <div className="p-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
+              <Wrench size={20} />
+            </div>
+            <div className="text-left min-w-0">
+              <h2 className="text-sm font-black text-gray-900 dark:text-white truncate leading-tight">
+                {provider?.business_name || 'Service Partner'}
+              </h2>
+              <span className="text-[10px] font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2 py-0.5 rounded-full inline-block mt-0.5">
+                Partner Portal
+              </span>
             </div>
           </div>
 
-          {/* Right: Controls & Toggles */}
-          <div className="flex items-center gap-3 w-full md:w-auto justify-end">
-            
-            {/* Online / Duty Toggle */}
+          <button
+            type="button"
+            onClick={() => setIsSidebarOpen(false)}
+            className="p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 lg:hidden"
+            title="Close Menu"
+          >
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Agency Mini Status Card */}
+        <div className="p-3.5 m-3 rounded-2xl bg-gray-50 dark:bg-white/[0.03] border border-gray-100 dark:border-white/5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className={`w-2.5 h-2.5 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+              <div className="min-w-0">
+                <p className="text-[11px] font-black text-gray-900 dark:text-white truncate">
+                  {provider?.city || 'Patna'} Hub
+                </p>
+                <p className="text-[10px] text-gray-400 font-semibold truncate">
+                  Doorstep Operations
+                </p>
+              </div>
+            </div>
+
             <button
+              type="button"
               onClick={toggleOnlineStatus}
-              className={`flex items-center gap-2.5 px-4 py-2.5 rounded-2xl text-xs sm:text-sm font-black transition-all border ${
+              className={`px-2.5 py-1 rounded-xl text-[10px] font-black tracking-wider uppercase border transition-all flex items-center gap-1 shrink-0 ${
                 isOnline
                   ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                   : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
               }`}
+              title="Click to toggle Duty Status"
             >
-              <Power size={15} className={isOnline ? 'animate-pulse' : ''} />
-              <span>{isOnline ? 'Receiving Jobs' : 'Offline'}</span>
+              <Power size={11} className={isOnline ? 'animate-pulse' : ''} />
+              <span>{isOnline ? 'Online' : 'Offline'}</span>
             </button>
+          </div>
+        </div>
 
-            {/* Sound Chime Toggle */}
+        {/* Scrollable Navigation Menu */}
+        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 scrollbar-thin">
+          {navGroups.map((group, groupIdx) => (
+            <div key={groupIdx} className="space-y-1">
+              <div className="px-3 py-1 text-[10px] font-black tracking-widest uppercase text-gray-400 dark:text-gray-500 select-none">
+                {group.title}
+              </div>
+
+              <div className="space-y-1">
+                {group.items.map((tab) => {
+                  const isActive = currentTab === tab.id
+                  const Icon = tab.icon
+
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => {
+                        setCurrentTab(tab.id)
+                        setIsSidebarOpen(false)
+                      }}
+                      className={`group w-full flex items-center justify-between gap-2.5 px-3 py-2.5 rounded-2xl text-xs font-bold transition-all text-left ${
+                        isActive
+                          ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-600/25'
+                          : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div
+                          className={`p-1.5 rounded-xl transition-colors shrink-0 ${
+                            isActive ? 'bg-white/20 text-white' : `${tab.bgColor} ${tab.color}`
+                          }`}
+                        >
+                          <Icon size={15} />
+                        </div>
+                        <span className="truncate">{tab.label}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        {tab.count !== undefined && tab.count > 0 && (
+                          <span
+                            className={`text-[10px] px-2 py-0.5 rounded-full font-mono ${
+                              isActive
+                                ? 'bg-white/20 text-white font-bold'
+                                : tab.countBadgeColor || 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400'
+                            }`}
+                          >
+                            {tab.count}
+                          </span>
+                        )}
+                        <ChevronRight
+                          size={13}
+                          className={`opacity-0 group-hover:opacity-100 transition-opacity ${
+                            isActive ? 'text-white' : 'text-gray-400'
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Sidebar Footer */}
+        <div className="p-3 border-t border-gray-100 dark:border-white/5 space-y-1 shrink-0">
+          <Link
+            to="/"
+            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+          >
+            <Home size={15} className="text-emerald-500" />
+            <span>Return to Store</span>
+          </Link>
+
+          <div className="flex items-center justify-between pt-1">
             <button
+              type="button"
               onClick={() => setNotificationSoundEnabled(!notificationSoundEnabled)}
-              className={`p-3 rounded-2xl border transition-all ${
+              className={`p-2 rounded-xl border text-xs font-bold flex items-center gap-1.5 transition-all ${
                 notificationSoundEnabled
                   ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                   : 'bg-gray-100 dark:bg-white/5 text-gray-400 border-gray-200 dark:border-white/10'
               }`}
               title={notificationSoundEnabled ? 'Audio alerts active' : 'Audio alerts muted'}
             >
-              {notificationSoundEnabled ? <Bell size={18} /> : <BellOff size={18} />}
+              {notificationSoundEnabled ? <Bell size={14} /> : <BellOff size={14} />}
+              <span className="text-[11px]">{notificationSoundEnabled ? 'Alerts ON' : 'Muted'}</span>
             </button>
 
-            {/* Dark/Light Mode */}
             <button
+              type="button"
               onClick={toggleTheme}
-              className="p-3 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-2xl border border-gray-200 dark:border-white/10 transition-all"
+              className="p-2 bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all"
+              title="Toggle Theme"
             >
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+              {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      {/* RIGHT MAIN AREA */}
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden bg-gray-50/80 dark:bg-[#0c0c0c] relative">
+        <ServicePortalBackground />
+
+        {/* Top Header Bar */}
+        <header className="relative z-10 h-16 px-4 sm:px-6 lg:px-8 border-b border-gray-200/80 dark:border-white/10 bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl flex items-center justify-between gap-4 shrink-0 transition-colors">
+          <div className="flex items-center gap-3 min-w-0">
+            <button
+              type="button"
+              onClick={() => setIsSidebarOpen(true)}
+              className="p-2 rounded-xl border border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 lg:hidden shrink-0"
+              title="Open Navigation"
+            >
+              <Menu size={18} />
             </button>
 
+            <div className="min-w-0">
+              <h1 className="text-base sm:text-lg font-black tracking-tight text-gray-900 dark:text-white truncate flex items-center gap-2">
+                <span>{currentTabObj.label}</span>
+                {currentTab === 'jobs' && pendingRequests.length > 0 && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-black animate-pulse">
+                    {pendingRequests.length} Incoming
+                  </span>
+                )}
+              </h1>
+              <p className="text-[11px] text-gray-500 dark:text-gray-400 font-medium truncate hidden sm:block">
+                {currentTabObj.subtitle}
+              </p>
+            </div>
+          </div>
+
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* Duty toggle */}
+            <button
+              type="button"
+              onClick={toggleOnlineStatus}
+              className={`flex items-center gap-2 px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-xl text-xs font-black transition-all border ${
+                isOnline
+                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                  : 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+              }`}
+            >
+              <Power size={13} className={isOnline ? 'animate-pulse' : ''} />
+              <span className="hidden sm:inline">{isOnline ? 'Receiving Jobs' : 'Offline'}</span>
+            </button>
+
+            {/* Quick Refresh */}
+            <button
+              type="button"
+              onClick={() => {
+                fetchBookings()
+                fetchTechnicians()
+                fetchSpareParts()
+                fetchEstimates()
+                fetchEarnings()
+              }}
+              className="p-2 sm:p-2.5 bg-white dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 text-gray-600 dark:text-gray-300 rounded-xl border border-gray-200 dark:border-white/10 transition-all shadow-xs"
+              title="Refresh Data"
+            >
+              <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
+            </button>
+
+            {/* Hub Pill */}
+            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300">
+              <MapPin size={12} className="text-sky-500" />
+              <span>{provider?.city || 'Patna'} Hub</span>
+            </div>
           </div>
         </header>
 
-        {/* Navigation Tabs Bar */}
-        <nav className="flex items-center gap-2.5 overflow-x-auto pb-3 mb-8 scrollbar-none">
-          {[
-            { id: 'jobs', label: 'Live Jobs', icon: Wrench, count: pendingRequests.length },
-            { id: 'technicians', label: 'Field Technicians', icon: Users, count: technicians.length },
-            { id: 'catalog', label: 'Service Catalog', icon: Layers },
-            { id: 'spare_parts', label: 'Spare Parts', icon: Package, count: spareParts.length },
-            { id: 'estimates', label: 'Quotations', icon: FileText, count: estimates.length },
-            { id: 'earnings', label: 'Settlements & Revenue', icon: DollarSign },
-            { id: 'profile', label: 'Agency Profile', icon: Building2 }
-          ].map((tab) => {
-            const isActive = currentTab === tab.id
-            const IconComponent = tab.icon
+        {/* Scrollable Main Content */}
+        <main className="relative z-10 flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 scrollbar-thin">
+          <div className="max-w-[1600px] mx-auto w-full space-y-6">
+            {currentTab === 'jobs' && (
+              <LiveJobsView
+                bookings={bookings}
+                isLoading={isLoading}
+                onRefresh={fetchBookings}
+                onSelectBooking={(b) => setSelectedBookingForDetail(b)}
+                onAcceptBooking={acceptBooking}
+                onOpenAssign={(b) => setSelectedBookingForAssign(b)}
+                onOpenOtp={(b) => setSelectedBookingForOtp(b)}
+              />
+            )}
 
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setCurrentTab(tab.id)}
-                className={`px-5 py-3 rounded-2xl text-xs sm:text-sm font-black whitespace-nowrap transition-all flex items-center gap-2.5 border ${
-                  isActive
-                    ? 'bg-sky-600 text-white border-sky-600 shadow-md shadow-sky-600/25'
-                    : 'bg-white/80 dark:bg-[#1a1a1a]/80 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20'
-                }`}
-              >
-                <IconComponent size={16} />
-                <span>{tab.label}</span>
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`text-xs font-mono px-2 py-0.5 rounded-full ${
-                    isActive
-                      ? 'bg-white/20 text-white'
-                      : tab.id === 'jobs'
-                        ? 'bg-amber-500 text-white animate-pulse'
-                        : 'bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400'
-                  }`}>
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </nav>
+            {currentTab === 'technicians' && (
+              <TechniciansView
+                technicians={technicians}
+                isLoading={isLoading}
+                onAddTechnician={addTechnician}
+                onUpdateStatus={updateTechnicianStatus}
+                onDeleteTechnician={deleteTechnician}
+              />
+            )}
 
-        {/* Tab Content Router */}
-        <main className="transition-all animate-fadeIn">
-          {currentTab === 'jobs' && (
-            <LiveJobsView
-              bookings={bookings}
-              isLoading={isLoading}
-              onRefresh={fetchBookings}
-              onSelectBooking={(b) => setSelectedBookingForDetail(b)}
-              onAcceptBooking={acceptBooking}
-              onOpenAssign={(b) => setSelectedBookingForAssign(b)}
-              onOpenOtp={(b) => setSelectedBookingForOtp(b)}
-            />
-          )}
+            {currentTab === 'catalog' && (
+              <ServiceCatalogView
+                catalog={catalog}
+                categories={categories}
+                provider={provider}
+                isLoading={isLoading}
+                onUpdateVisitingFee={async (fee) => {
+                  await updateVisitingFee(fee)
+                }}
+                onAddCustomService={addCustomService}
+              />
+            )}
 
-          {currentTab === 'technicians' && (
-            <TechniciansView
-              technicians={technicians}
-              isLoading={isLoading}
-              onAddTechnician={addTechnician}
-              onUpdateStatus={updateTechnicianStatus}
-              onDeleteTechnician={deleteTechnician}
-            />
-          )}
+            {currentTab === 'spare_parts' && (
+              <SparePartsView
+                spareParts={spareParts}
+                isLoading={isLoading}
+                onAddPart={addSparePart}
+                onUpdateStock={updatePartStock}
+              />
+            )}
 
-          {currentTab === 'catalog' && (
-            <ServiceCatalogView
-              catalog={catalog}
-              categories={categories}
-              provider={provider}
-              isLoading={isLoading}
-              onUpdateVisitingFee={async (fee) => {
-                await updateVisitingFee(fee)
-              }}
-              onAddCustomService={addCustomService}
-            />
-          )}
+            {currentTab === 'estimates' && (
+              <EstimatesView
+                estimates={estimates}
+                isLoading={isLoading}
+              />
+            )}
 
-          {currentTab === 'spare_parts' && (
-            <SparePartsView
-              spareParts={spareParts}
-              isLoading={isLoading}
-              onAddPart={addSparePart}
-              onUpdateStock={updatePartStock}
-            />
-          )}
+            {currentTab === 'earnings' && (
+              <EarningsView
+                earnings={earnings}
+                provider={provider}
+                isLoading={isLoading}
+                onRequestPayout={requestPayout}
+              />
+            )}
 
-          {currentTab === 'estimates' && (
-            <EstimatesView
-              estimates={estimates}
-              isLoading={isLoading}
-            />
-          )}
-
-          {currentTab === 'earnings' && (
-            <EarningsView
-              earnings={earnings}
-              provider={provider}
-              isLoading={isLoading}
-              onRequestPayout={requestPayout}
-            />
-          )}
-
-          {currentTab === 'profile' && (
-            <PartnerProfileView
-              provider={provider}
-              onRefresh={fetchProviderProfile}
-            />
-          )}
+            {currentTab === 'profile' && (
+              <PartnerProfileView
+                provider={provider}
+                onRefresh={fetchProviderProfile}
+              />
+            )}
+          </div>
         </main>
-
-        {/* Modals */}
-        <JobDetailModal
-          isOpen={!!selectedBookingForDetail}
-          onClose={() => setSelectedBookingForDetail(null)}
-          booking={selectedBookingForDetail}
-          onUpdateStatus={updateBookingStatus}
-          onOpenAssign={(b) => {
-            setSelectedBookingForDetail(null)
-            setSelectedBookingForAssign(b)
-          }}
-          onOpenEstimate={(b) => {
-            setSelectedBookingForDetail(null)
-            setSelectedBookingForEstimate(b)
-          }}
-          onOpenOtp={(b) => {
-            setSelectedBookingForDetail(null)
-            setSelectedBookingForOtp(b)
-          }}
-          onUpdateBookingData={updateBookingStatus}
-        />
-
-        <AssignTechnicianModal
-          isOpen={!!selectedBookingForAssign}
-          onClose={() => setSelectedBookingForAssign(null)}
-          booking={selectedBookingForAssign}
-          technicians={technicians}
-          onAssign={assignTechnician}
-        />
-
-        <VerifyJobOtpModal
-          isOpen={!!selectedBookingForOtp}
-          onClose={() => setSelectedBookingForOtp(null)}
-          booking={selectedBookingForOtp}
-          onVerify={verifyCompletionOtp}
-        />
-
-        <CreateEstimateModal
-          isOpen={!!selectedBookingForEstimate}
-          onClose={() => setSelectedBookingForEstimate(null)}
-          booking={selectedBookingForEstimate}
-          spareParts={spareParts}
-          onSubmitEstimate={createEstimate}
-        />
-
       </div>
+
+      {/* Modals placed outside main container so they overlay properly */}
+      <JobDetailModal
+        isOpen={!!selectedBookingForDetail}
+        onClose={() => setSelectedBookingForDetail(null)}
+        booking={selectedBookingForDetail}
+        onUpdateStatus={updateBookingStatus}
+        onOpenAssign={(b) => {
+          setSelectedBookingForDetail(null)
+          setSelectedBookingForAssign(b)
+        }}
+        onOpenEstimate={(b) => {
+          setSelectedBookingForDetail(null)
+          setSelectedBookingForEstimate(b)
+        }}
+        onOpenOtp={(b) => {
+          setSelectedBookingForDetail(null)
+          setSelectedBookingForOtp(b)
+        }}
+        onUpdateBookingData={updateBookingStatus}
+      />
+
+      <AssignTechnicianModal
+        isOpen={!!selectedBookingForAssign}
+        onClose={() => setSelectedBookingForAssign(null)}
+        booking={selectedBookingForAssign}
+        technicians={technicians}
+        onAssign={assignTechnician}
+      />
+
+      <VerifyJobOtpModal
+        isOpen={!!selectedBookingForOtp}
+        onClose={() => setSelectedBookingForOtp(null)}
+        booking={selectedBookingForOtp}
+        onVerify={verifyCompletionOtp}
+      />
+
+      <CreateEstimateModal
+        isOpen={!!selectedBookingForEstimate}
+        onClose={() => setSelectedBookingForEstimate(null)}
+        booking={selectedBookingForEstimate}
+        spareParts={spareParts}
+        onSubmitEstimate={createEstimate}
+      />
     </div>
   )
 }
