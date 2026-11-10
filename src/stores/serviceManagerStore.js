@@ -215,31 +215,33 @@ export const useServiceManagerStore = create((set, get) => ({
     try {
       let publicUrl = null
 
-      // Primary Channel: ImgBB API (Fast global CDN storage)
-      try {
-        const apiKey = import.meta.env.VITE_IMGBB_API_KEY || '42583b3b3c01cf66407867e6b1cb49db'
-        const formData = new FormData()
-        formData.append('image', file)
-        if (provider.business_name) {
-          formData.append('name', `ozo_partner_${provider.id}_${Date.now()}`)
-        }
-
-        const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-          method: 'POST',
-          body: formData
-        })
-
-        if (res.ok) {
-          const resData = await res.json()
-          if (resData?.data?.display_url || resData?.data?.url) {
-            publicUrl = resData.data.display_url || resData.data.url
-            console.log('[ServiceManager] ImgBB Logo Upload Succeeded:', publicUrl)
+      // Primary Channel: ImgBB API (Fast global CDN storage from env)
+      const apiKey = import.meta.env.VITE_IMGBB_API_KEY
+      if (apiKey) {
+        try {
+          const formData = new FormData()
+          formData.append('image', file)
+          if (provider.business_name) {
+            formData.append('name', `ozo_partner_${provider.id}_${Date.now()}`)
           }
-        } else {
-          console.warn('[ServiceManager] ImgBB upload rejected:', await res.text())
+
+          const res = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+            method: 'POST',
+            body: formData
+          })
+
+          if (res.ok) {
+            const resData = await res.json()
+            if (resData?.data?.display_url || resData?.data?.url) {
+              publicUrl = resData.data.display_url || resData.data.url
+              console.log('[ServiceManager] ImgBB Logo Upload Succeeded:', publicUrl)
+            }
+          } else {
+            console.warn('[ServiceManager] ImgBB upload rejected:', await res.text())
+          }
+        } catch (imgbbErr) {
+          console.warn('[ServiceManager] ImgBB network error:', imgbbErr)
         }
-      } catch (imgbbErr) {
-        console.warn('[ServiceManager] ImgBB network error:', imgbbErr)
       }
 
       // Fallback: Local Base64 Data URL if offline or API limit reached
