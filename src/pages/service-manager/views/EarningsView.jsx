@@ -48,7 +48,7 @@ export default function EarningsView({
     <div className="space-y-6 text-left">
       
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 border border-emerald-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+      <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-amber-500/10 border border-emerald-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <div>
           <span className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
             Financial Ledger & Settlements
@@ -104,7 +104,7 @@ export default function EarningsView({
           <span className="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-400 block mb-1.5">
             Net Partner Share
           </span>
-          <div className="text-3xl sm:text-4xl font-black text-sky-600 dark:text-sky-400">
+          <div className="text-3xl sm:text-4xl font-black text-amber-600 dark:text-amber-400">
             ₹{Math.round(netEarnings)}
           </div>
           <span className="text-xs sm:text-sm text-gray-400 mt-1.5 block font-semibold">
