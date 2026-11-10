@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { useThemeStore } from '../../stores/themeStore'
 import { useShallow } from 'zustand/react/shallow'
 import CaptainOnboarding from './CaptainOnboarding'
+import CaptainPortalBackground from './CaptainPortalBackground'
 import { promptOneSignalPush, syncSubscriptionWithDatabase, oneSignalLogin } from '../../utils/onesignal'
 import CaptainRadar from './CaptainRadar'
 import CaptainProfile from './CaptainProfile'
@@ -121,9 +122,12 @@ const CaptainDashboard = () => {
   // 1. LOADING PROFILE STATE
   if (isLoadingProfile) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 transition-colors duration-300">
-        <div className="w-9 h-9 border-4 border-t-[#00FF66] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
-        <p className="text-gray-500 dark:text-gray-400 text-sm mt-4 font-semibold">Retrieving Rider Duty File...</p>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 transition-colors duration-300 relative overflow-hidden">
+        <CaptainPortalBackground />
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-10 h-10 border-4 border-t-[#00FF66] border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-700 dark:text-gray-300 text-sm mt-4 font-bold tracking-wide">Retrieving Rider Duty File...</p>
+        </div>
       </div>
     )
   }
@@ -131,17 +135,42 @@ const CaptainDashboard = () => {
   // 2. USER NOT LOGGED IN STATE
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 text-center transition-colors duration-300">
-        <div className="bg-white dark:bg-[#1c1c28] border border-gray-200 dark:border-transparent p-4 rounded-2xl text-gray-500 mb-4">
-          <ShieldAlert className="w-10 h-10" />
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white flex flex-col items-center justify-center p-6 text-center transition-colors duration-300 relative overflow-hidden">
+        <CaptainPortalBackground />
+
+        {/* Floating Back Button */}
+        <div className="absolute top-4 left-4 z-20">
+          <Link
+            to="/"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
+            title="Back to Home"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
         </div>
-        <h3 className="text-lg font-bold">Rider Account Required</h3>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 max-w-[280px] leading-relaxed">
-          Please login to your OZO customer account to register as a Captain.
-        </p>
-        <Link to="/" className="mt-4 px-6 py-2.5 bg-white dark:bg-[#12121a] hover:bg-gray-50 dark:hover:bg-[#1a1a26] text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white rounded-2xl text-xs font-black uppercase tracking-wider border border-gray-200 dark:border-white/5 transition-all">
-          Back to Home
-        </Link>
+        {/* Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm"
+            aria-label="Toggle Theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-gray-750" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          </button>
+        </div>
+
+        <div className="w-full max-w-sm bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b30] rounded-3xl p-8 shadow-2xl relative z-10 flex flex-col items-center text-center">
+          <div className="bg-[#00FF66]/10 border border-[#00FF66]/20 p-4 rounded-2xl text-emerald-600 dark:text-[#00FF66] mb-4">
+            <ShieldAlert className="w-10 h-10" />
+          </div>
+          <h3 className="text-lg font-black text-gray-900 dark:text-white">Rider Account Required</h3>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 max-w-[280px] leading-relaxed">
+            Please login to your OZO customer account to register as a Captain.
+          </p>
+          <Link to="/" className="mt-6 px-6 py-2.5 bg-gradient-to-r from-[#00FF66] to-[#00CC52] hover:brightness-105 text-black font-black rounded-xl text-xs uppercase tracking-wider shadow-md hover:shadow-lg transition-all">
+            Back to Home
+          </Link>
+        </div>
       </div>
     )
   }
