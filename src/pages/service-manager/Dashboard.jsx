@@ -280,21 +280,21 @@ export default function ServiceManagerDashboard() {
 
       {/* LEFT SIDEBAR (Sticky on desktop, slide-in drawer on mobile) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-64 xl:w-72 h-full bg-white dark:bg-[#121212] border-r border-gray-200 dark:border-white/10 shadow-2xl lg:shadow-none flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 lg:w-72 xl:w-80 h-full bg-white dark:bg-[#121212] border-r border-gray-200 dark:border-white/10 shadow-2xl lg:shadow-none flex flex-col transition-transform duration-300 ease-in-out lg:static lg:translate-x-0 ${
           isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <div className="p-4 sm:p-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
+        <div className="p-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
-              <Wrench size={22} />
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
+              <Wrench size={24} />
             </div>
             <div className="text-left min-w-0">
-              <h2 className="text-base sm:text-lg font-black text-gray-900 dark:text-white truncate leading-tight">
+              <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white truncate leading-tight">
                 {provider?.business_name || 'Service Partner'}
               </h2>
-              <span className="text-xs font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-2.5 py-0.5 rounded-full inline-block mt-0.5">
+              <span className="text-xs font-black uppercase tracking-wider text-sky-500 bg-sky-500/10 px-3 py-0.5 rounded-full inline-block mt-0.5">
                 Partner Portal
               </span>
             </div>
@@ -306,20 +306,20 @@ export default function ServiceManagerDashboard() {
             className="p-1.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 text-gray-400 lg:hidden"
             title="Close Menu"
           >
-            <X size={20} />
+            <X size={22} />
           </button>
         </div>
 
         {/* Agency Mini Status Card */}
         <div className="p-4 m-3.5 rounded-2xl bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/5">
           <div className="flex items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className={`w-3 h-3 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
+            <div className="flex items-center gap-3 min-w-0">
+              <div className={`w-3.5 h-3.5 rounded-full shrink-0 ${isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
               <div className="min-w-0">
-                <p className="text-xs sm:text-sm font-black text-gray-900 dark:text-white truncate">
+                <p className="text-sm sm:text-base font-black text-gray-900 dark:text-white truncate">
                   {provider?.city || 'Patna'} Hub
                 </p>
-                <p className="text-xs text-gray-400 font-semibold truncate">
+                <p className="text-xs sm:text-sm text-gray-400 font-semibold truncate">
                   Doorstep Operations
                 </p>
               </div>
@@ -328,24 +328,24 @@ export default function ServiceManagerDashboard() {
             <button
               type="button"
               onClick={toggleOnlineStatus}
-              className={`px-3 py-1.5 rounded-xl text-xs font-black tracking-wider uppercase border transition-all flex items-center gap-1.5 shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-black tracking-wider uppercase border transition-all flex items-center gap-1.5 shrink-0 ${
                 isOnline
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
                   : 'bg-rose-500/15 text-rose-500 border-rose-500/30'
               }`}
               title="Click to toggle Duty Status"
             >
-              <Power size={12} className={isOnline ? 'animate-pulse' : ''} />
+              <Power size={13} className={isOnline ? 'animate-pulse' : ''} />
               <span>{isOnline ? 'Online' : 'Offline'}</span>
             </button>
           </div>
         </div>
 
         {/* Scrollable Navigation Menu */}
-        <div className="flex-1 overflow-y-auto px-3 py-2 space-y-4 scrollbar-thin">
+        <div className="flex-1 overflow-y-auto px-3.5 py-2 space-y-5 scrollbar-thin">
           {navGroups.map((group, groupIdx) => (
-            <div key={groupIdx} className="space-y-1.5">
-              <div className="px-3.5 py-1 text-xs font-black tracking-widest uppercase text-gray-400 dark:text-gray-500 select-none">
+            <div key={groupIdx} className="space-y-2">
+              <div className="px-3.5 py-1 text-xs font-black tracking-widest uppercase text-gray-400 dark:text-gray-400 select-none">
                 {group.title}
               </div>
 
@@ -362,7 +362,7 @@ export default function ServiceManagerDashboard() {
                         setCurrentTab(tab.id)
                         setIsSidebarOpen(false)
                       }}
-                      className={`group w-full flex items-center justify-between gap-3 px-3.5 py-3 rounded-2xl text-sm sm:text-base font-bold transition-all text-left ${
+                      className={`group w-full flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl text-base font-bold transition-all text-left ${
                         isActive
                           ? 'bg-gradient-to-r from-sky-600 to-blue-600 text-white shadow-md shadow-sky-600/25'
                           : 'hover:bg-gray-100 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300'
