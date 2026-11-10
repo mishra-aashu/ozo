@@ -597,20 +597,22 @@ export const useServicesStore = create((set, get) => ({
     if (!file) return null
 
     // Attempt 1: ImgBB API Key from .env
-    try {
-      const apiKey = import.meta.env.VITE_IMGBB_API_KEY || '42583b3b3c01cf66407867e6b1cb49db'
-      const formData = new FormData()
-      formData.append('image', file)
-      const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
-        method: 'POST',
-        body: formData
-      })
-      const resData = await response.json()
-      if (resData && resData.data && resData.data.url) {
-        return resData.data.url
+    const apiKey = import.meta.env.VITE_IMGBB_API_KEY
+    if (apiKey) {
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+        const response = await fetch(`https://api.imgbb.com/1/upload?key=${apiKey}`, {
+          method: 'POST',
+          body: formData
+        })
+        const resData = await response.json()
+        if (resData && resData.data && resData.data.url) {
+          return resData.data.url
+        }
+      } catch (err) {
+        console.warn('ImgBB upload error, falling back to Supabase:', err)
       }
-    } catch (err) {
-      console.warn('ImgBB upload error, falling back to Supabase:', err)
     }
 
     // Attempt 2: Supabase Storage bucket
