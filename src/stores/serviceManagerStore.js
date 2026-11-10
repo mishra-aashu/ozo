@@ -669,6 +669,45 @@ export const useServiceManagerStore = create((set, get) => ({
     }
   },
 
+  // Propose / Add Custom Service for Admin Approval
+  addCustomService: async (serviceData) => {
+    const { provider, catalog } = get()
+    if (!provider) throw new Error('Provider not loaded')
+
+    try {
+      const payload = {
+        provider_id: provider.id,
+        title: serviceData.title,
+        description: serviceData.description || '',
+        price: Number(serviceData.price) || 199,
+        original_price: Number(serviceData.original_price) || Math.round((Number(serviceData.price) || 199) * 1.3),
+        estimated_duration_mins: Number(serviceData.estimated_duration_mins) || 45,
+        category_slug: serviceData.category_slug,
+        category_id: serviceData.category_id || null,
+        tag: serviceData.tag || 'Partner Offering',
+        badge: 'Custom',
+        approval_status: 'pending',
+        is_active: false
+      }
+
+      const { data, error } = await supabase
+        .from('services_catalog')
+        .insert([payload])
+        .select()
+        .single()
+
+      if (error) throw error
+
+      set({ catalog: [data, ...catalog] })
+      toast.success('Service proposed! Sent to Admin for verification.')
+      return data
+    } catch (err) {
+      console.error('Error adding custom service:', err)
+      toast.error('Failed to submit service: ' + err.message)
+      throw err
+    }
+  },
+
   // 7. Earnings & Payout Ledger
   fetchEarnings: async () => {
     const { provider } = get()
