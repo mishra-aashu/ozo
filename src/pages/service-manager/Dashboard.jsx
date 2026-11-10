@@ -287,9 +287,17 @@ export default function ServiceManagerDashboard() {
         {/* Brand Header */}
         <div className="p-5 border-b border-gray-100 dark:border-white/5 flex items-center justify-between">
           <div className="flex items-center gap-3.5 min-w-0">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
-              <Wrench size={24} />
-            </div>
+            {provider?.logo_url ? (
+              <img
+                src={provider.logo_url}
+                alt={provider.business_name || 'Agency Logo'}
+                className="w-12 h-12 rounded-2xl object-cover border border-white/10 shrink-0 shadow-md bg-white"
+              />
+            ) : (
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/25 shrink-0">
+                <Wrench size={24} />
+              </div>
+            )}
             <div className="text-left min-w-0">
               <h2 className="text-lg sm:text-xl font-black text-gray-900 dark:text-white truncate leading-tight">
                 {provider?.business_name || 'Service Partner'}
