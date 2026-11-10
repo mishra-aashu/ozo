@@ -563,27 +563,39 @@ const Cities = () => {
 
         if (error) throw error
         toast.success('City updated successfully!', { id: toastId })
+
+        // 1. Optimistic update: reflect changes instantly in the UI table
+        setCities(prev => prev.map(c => c.id === editingCity.id ? { ...c, ...payload } : c))
       } else {
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('operating_cities')
           .insert([payload])
+          .select()
 
         if (error) throw error
         toast.success('City registered successfully!', { id: toastId })
+        if (data && data[0]) {
+          setCities(prev => [...prev, data[0]])
+        }
       }
 
-      // Trigger sitemap ping and metadata update asynchronously
-      try {
-        fetch('/api/index-product', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productSlug: 'all', cities: [payload.slug] })
-        }).catch(err => console.warn('Async IndexNow ping failed:', err))
-      } catch (e) {}
-
+      // 2. Immediately close drawer and reset form so UI never hangs
       setIsDrawerOpen(false)
       resetForm()
+
+      // 3. Background non-blocking sync
       fetchCities()
+
+      // 4. Trigger sitemap ping ONLY on production (skips localhost to avoid connection stalls)
+      if (typeof window !== 'undefined' && !window.location.hostname.includes('localhost') && !window.location.hostname.includes('127.0.0.1')) {
+        try {
+          fetch('/api/index-product', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ productSlug: 'all', cities: [payload.slug] })
+          }).catch(() => {})
+        } catch (e) {}
+      }
     } catch (error) {
       console.error('Submit city error:', error)
       toast.error(error.message || 'Saving failed. Check if slug is unique.', { id: toastId })
