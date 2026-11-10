@@ -64,6 +64,7 @@ export default function ServiceManagerDashboard() {
     assignTechnician,
     updateBookingStatus,
     updateVisitingFee,
+    addCustomService,
     verifyCompletionOtp,
     fetchTechnicians,
     addTechnician,
@@ -322,6 +323,7 @@ export default function ServiceManagerDashboard() {
               onUpdateVisitingFee={async (fee) => {
                 await updateVisitingFee(fee)
               }}
+              onAddCustomService={addCustomService}
             />
           )}
 
