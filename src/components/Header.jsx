@@ -131,6 +131,7 @@ const Header = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const servicesConfig = useCartStore(state => state.servicesConfig)
+  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
   const isServicesMode = isServicesEnabled && (currentMode === 'services' || location.pathname.startsWith('/services'))
   const isCareMode = currentMode === 'care' || location.pathname.startsWith('/care')
   const activeVerticalMode = isCareMode ? 'care' : isServicesMode ? 'services' : 'mart'
