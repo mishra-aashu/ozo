@@ -19,6 +19,7 @@ import {
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import SpecialtyIcon, { CARE_SPECIALTIES } from '../../utils/careIcons'
+import DoctorCardHome from '../../components/care/DoctorCardHome'
 
 export default function CareHome() {
   const navigate = useNavigate()
@@ -231,81 +232,9 @@ export default function CareHome() {
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {doctors.map((doc) => (
-              <div
-                key={doc.id}
-                className="bg-white/90 dark:bg-[#161e27]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group"
-              >
-                <div>
-                  <div className="flex items-start justify-between gap-3 mb-4">
-                    <div className="flex items-center gap-3.5">
-                      <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-500/30 shrink-0 bg-slate-800">
-                        <img
-                          src={doc.profile_image || doc.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.full_name)}&background=059669&color=fff&size=200`}
-                          alt={doc.full_name}
-                          onError={(e) => {
-                            e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(doc.full_name)}&background=059669&color=fff&size=200`
-                          }}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <h3 className="text-base sm:text-lg font-display font-black text-gray-900 dark:text-white leading-tight">
-                            {doc.full_name}
-                          </h3>
-                          <CheckCircle2 size={16} className="text-emerald-500 shrink-0" title="Verified Medical License" />
-                        </div>
-                        <p className="text-xs font-sans font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                          {doc.qualification}
-                        </p>
-                        <p className="text-[11px] font-sans text-gray-400 mt-0.5 font-medium">
-                          {doc.experience_years}+ Years Clinical Practice
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1 px-2.5 py-1 rounded-xl bg-amber-500/10 text-amber-500 text-xs font-display font-black">
-                      <Star size={13} fill="currentColor" />
-                      <span>{doc.rating || 4.9}</span>
-                    </div>
-                  </div>
-
-                  <div className="p-3 bg-gray-50 dark:bg-black/30 rounded-2xl border border-gray-100 dark:border-white/5 space-y-1.5 text-xs text-gray-600 dark:text-gray-300 mb-4 font-sans">
-                    <div className="flex items-center gap-2">
-                      <Building2 size={13} className="text-gray-400 shrink-0" />
-                      <span className="font-bold truncate">{doc.clinic_name}</span>
-                    </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin size={13} className="text-rose-500 shrink-0 mt-0.5" />
-                      <span className="leading-snug truncate">{doc.clinic_address}, {doc.city}</span>
-                    </div>
-                    <div className="flex items-center justify-between pt-1 border-t border-gray-200/50 dark:border-white/5 text-[11px] text-gray-400">
-                      <span className="font-mono">Council Reg: {doc.registration_number || doc.council_registration_number || 'NMC-BR-Verified'}</span>
-                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">🟢 Available</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex items-center justify-between">
-                  <div>
-                    <span className="text-[10px] font-display font-bold text-gray-400 block uppercase tracking-wider">Consultation Fee</span>
-                    <span className="text-lg sm:text-xl font-display font-black text-gray-900 dark:text-white">
-                      ₹{doc.consultation_fee}
-                    </span>
-                  </div>
-
-                  <Link
-                    to={`/care/doctor/${doc.id}`}
-                    style={{ backgroundColor: themeConfig?.primary || '#059669' }}
-                    className="px-5 py-2.5 rounded-2xl text-white text-xs sm:text-sm font-display font-black shadow-md hover:brightness-110 transition-all flex items-center gap-1.5 active:scale-95"
-                  >
-                    <span>Book Token</span>
-                    <ArrowRight size={14} />
-                  </Link>
-                </div>
-              </div>
+              <DoctorCardHome key={doc.id} doctor={doc} />
             ))}
           </div>
         )}
