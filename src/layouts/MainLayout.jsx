@@ -2,6 +2,7 @@ import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
+import CareFooter from '../components/care/CareFooter'
 import BottomNav from '../components/BottomNav'
 import NetworkStatusBanner from '../components/NetworkStatusBanner'
 import { useAuthStore } from '../stores/authStore'
@@ -81,6 +82,10 @@ const MainLayout = () => {
   const isCategoryPage = location.pathname.startsWith('/category/')
   const isProductsPage = location.pathname === '/products'
   const isSearchPage = location.pathname === '/search'
+  const isCareMode = location.pathname.startsWith('/care') ||
+    location.pathname.startsWith('/doctor') ||
+    location.pathname.startsWith('/pharmacy') ||
+    location.pathname.startsWith('/patient')
   
   const hideHeader = isSelectLocation || isAuthPage || isCategoryPage || (isSearchPage && isMobile)
   const hideHeaderFooter = isSelectLocation || isAuthPage
@@ -119,7 +124,7 @@ const MainLayout = () => {
       </main>
       
       {/* Footer (Desktop/Tablet) */}
-      {!hideFooter && <Footer />}
+      {!hideFooter && (isCareMode ? <CareFooter /> : <Footer />)}
 
       {/* Bottom Navigation (Mobile Only) */}
       {!hideHeaderFooter && <BottomNav />}
