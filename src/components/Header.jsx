@@ -26,7 +26,8 @@ import {
   History,
   Home as HomeIcon,
   Gift,
-  Wrench
+  Wrench,
+  Stethoscope
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
@@ -766,6 +767,9 @@ const Header = () => {
                             ...(isCaptain ? [{ to: '/captain', icon: Bike, label: 'Rider Portal' }] : []),
                             ...(isMartOperator ? [{ to: '/mart', icon: Store, label: 'Mart Portal' }] : []),
                             ...(isServiceManager ? [{ to: '/service-manager', icon: Wrench, label: 'Service Partner Portal' }] : []),
+                            { to: '/care', icon: Stethoscope, label: 'OzoCare (Doctors & Meds)' },
+                            { to: '/doctor', icon: Stethoscope, label: 'Doctor Workstation' },
+                            { to: '/pharmacy', icon: Store, label: 'Chemist Portal' },
                             { to: '/wishlist', icon: Heart, label: 'Wishlist' },
                             { to: '/notifications', icon: Bell, label: 'Notifications' },
                             { to: '/settings', icon: Settings, label: 'Settings' },
@@ -1083,6 +1087,7 @@ const Header = () => {
                   {[
                     ...(hasAdminPermission ? [{ to: '/admin', icon: Shield, label: isSuperAdmin ? 'Admin Panel' : 'City Manager Portal' }] : []),
                     { to: '/', icon: HomeIcon, label: 'Home' },
+                    { to: '/care', icon: Stethoscope, label: 'OzoCare (Healthcare)' },
                     ...(isAuthenticated ? [
                       { to: '/orders', icon: Package, label: 'My Orders' },
                       { to: '/referral', icon: Gift, label: 'Refer & Earn' }
@@ -1095,6 +1100,8 @@ const Header = () => {
                       ...(isCaptain ? [{ to: '/captain', icon: Bike, label: 'Rider Portal' }] : []),
                       ...(isMartOperator ? [{ to: '/mart', icon: Store, label: 'Mart Portal' }] : []),
                       ...(isServiceManager ? [{ to: '/service-manager', icon: Wrench, label: 'Service Partner Portal' }] : []),
+                      { to: '/doctor', icon: Stethoscope, label: 'Doctor Portal' },
+                      { to: '/pharmacy', icon: Store, label: 'Chemist Portal' },
                     ] : []),
                   ].map((item) => (
                     <Link
