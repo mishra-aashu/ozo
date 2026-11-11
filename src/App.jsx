@@ -116,6 +116,17 @@ const ServiceBooking = lazyWithRetry(() => import('./pages/services/ServiceBooki
 const ServiceInquiry = lazyWithRetry(() => import('./pages/services/ServiceInquiry'))
 const MyBookings = lazyWithRetry(() => import('./pages/services/MyBookings'))
 
+// OZO Care Healthcare & Telemedicine Pages
+const CareHome = lazyWithRetry(() => import('./pages/care/CareHome'))
+const DoctorDetail = lazyWithRetry(() => import('./pages/care/DoctorDetail'))
+const MyAppointments = lazyWithRetry(() => import('./pages/care/MyAppointments'))
+const OrderMedicines = lazyWithRetry(() => import('./pages/care/OrderMedicines'))
+
+// OZO Care Admin & Partner Portals
+const AdminCareManage = lazyWithRetry(() => import('./pages/admin/CareManageAdmin'))
+const DoctorDashboard = lazyWithRetry(() => import('./pages/doctor-portal/DoctorDashboard'))
+const PharmacyDashboard = lazyWithRetry(() => import('./pages/pharmacy-portal/PharmacyDashboard'))
+
 
 // Lazy loaded Admin Pages
 const AdminDashboard = lazyWithRetry(() => import('./pages/admin/Dashboard'))
@@ -161,6 +172,7 @@ import LoginPromptModal from './components/LoginPromptModal'
 // Hooks
 import { useAuthStore } from './stores/authStore'
 import { useCartStore, applyDynamicTheme } from './stores/cartStore'
+import { useCareStore } from './stores/careStore'
 import { useThemeStore } from './stores/themeStore'
 import { useNotificationStore } from './stores/notificationStore'
 import { useLanguageStore } from './stores/languageStore'
@@ -445,6 +457,11 @@ function App() {
       } catch (err) {
         console.error('Failed to fetch system settings on app init:', err)
       }
+      try {
+        useCareStore.getState().fetchThemeConfig().catch(() => {})
+      } catch (err) {
+        console.error('Failed to fetch care theme on app init:', err)
+      }
     }
     init()
     initTheme()
@@ -471,6 +488,10 @@ function App() {
             }
             if (key === 'services_config') {
               useCartStore.setState({ servicesConfig: { enabled: true, show_in_admin: true, show_in_app: true, ...val } })
+            }
+            if (key === 'care_theme_config') {
+              useCareStore.setState({ themeConfig: val })
+              useCareStore.getState().applyThemeVariables(val)
             }
           }
           // Fetch settings to update stores in sync, bypassing cache
@@ -581,6 +602,12 @@ function App() {
             <Route path="services/inquiry" element={<ServicesRouteGuard><ServiceInquiry /></ServicesRouteGuard>} />
             <Route path="services/my-bookings" element={<ServicesRouteGuard><MyBookings /></ServicesRouteGuard>} />
 
+            {/* OZO Care Healthcare Routes */}
+            <Route path="care" element={<CareHome />} />
+            <Route path="care/doctor/:id" element={<DoctorDetail />} />
+            <Route path="care/my-appointments" element={<MyAppointments />} />
+            <Route path="care/order-medicines" element={<OrderMedicines />} />
+
             {/* Auth Route */}
             <Route
               path="auth"
@@ -664,6 +691,7 @@ function App() {
             <Route path="errors" element={<AdminErrorLogs />} />
             <Route path="services" element={<AdminServicesManage />} />
             <Route path="ads" element={<AdminAdPortal />} />
+            <Route path="care" element={<AdminCareManage />} />
           </Route>
 
           {/* Mart, Captain & Service Manager Standalone Portals */}
@@ -673,6 +701,10 @@ function App() {
             <Route path="/rider-dashboard" element={<CaptainDashboard />} />
             <Route path="/service-manager" element={<ServiceManagerDashboard />} />
             <Route path="/service-partner" element={<ServiceManagerDashboard />} />
+            <Route path="/doctor" element={<DoctorDashboard />} />
+            <Route path="/doctor-portal" element={<DoctorDashboard />} />
+            <Route path="/pharmacy" element={<PharmacyDashboard />} />
+            <Route path="/pharmacy-portal" element={<PharmacyDashboard />} />
           </Route>
 
           <Route path="/capture/:sessionId" element={<PhoneCapture />} />

@@ -37,7 +37,8 @@ import {
   Smartphone,
   AlertOctagon,
   Wrench,
-  Megaphone
+  Megaphone,
+  Activity
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useThemeStore } from '../stores/themeStore'
@@ -150,6 +151,13 @@ const AdminLayout = () => {
             bgColor: 'bg-sky-100 dark:bg-sky-950/30',
           }
         ] : []),
+        {
+          icon: Activity,
+          label: 'OzoCare Hub',
+          path: '/admin/care',
+          color: 'text-emerald-500 dark:text-emerald-400',
+          bgColor: 'bg-emerald-100 dark:bg-emerald-950/30',
+        },
       ]
     },
     {
