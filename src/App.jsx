@@ -118,6 +118,7 @@ const MyBookings = lazyWithRetry(() => import('./pages/services/MyBookings'))
 
 // OZO Care Healthcare & Telemedicine Pages
 const CareHome = lazyWithRetry(() => import('./pages/care/CareHome'))
+const DoctorProfilePage = lazyWithRetry(() => import('./pages/care/DoctorProfilePage'))
 const DoctorDetail = lazyWithRetry(() => import('./pages/care/DoctorDetail'))
 const MyAppointments = lazyWithRetry(() => import('./pages/care/MyAppointments'))
 const OrderMedicines = lazyWithRetry(() => import('./pages/care/OrderMedicines'))
@@ -604,7 +605,8 @@ function App() {
 
             {/* OZO Care Healthcare Routes */}
             <Route path="care" element={<CareHome />} />
-            <Route path="care/doctor/:id" element={<DoctorDetail />} />
+            <Route path="care/doctor/:id" element={<DoctorProfilePage />} />
+            <Route path="care/doctor-profile/:id" element={<DoctorProfilePage />} />
             <Route path="care/my-appointments" element={<MyAppointments />} />
             <Route path="care/order-medicines" element={<OrderMedicines />} />
 

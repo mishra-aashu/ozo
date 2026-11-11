@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { 
   CheckCircle2, 
   Star, 
@@ -14,10 +14,15 @@ import {
 import { useCareStore } from '../../stores/careStore'
 
 export default function DoctorCardHome({ doctor }) {
+  const navigate = useNavigate()
   const { themeConfig } = useCareStore()
   const [imgError, setImgError] = useState(false)
 
   if (!doctor) return null
+
+  const handleCardClick = () => {
+    navigate(`/care/doctor/${doctor.id}`)
+  }
 
   // Clean initials for fallback
   const initials = doctor.full_name
@@ -37,13 +42,24 @@ export default function DoctorCardHome({ doctor }) {
   const avatarSrc = doctor.profile_image || doctor.avatar_url
 
   return (
-    <div className="group relative bg-white dark:bg-[#121820] rounded-[1.75rem] border border-slate-200/90 dark:border-white/10 p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-emerald-950/20 dark:hover:border-emerald-500/30 flex flex-col justify-between">
+    <div
+      onClick={handleCardClick}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleCardClick()
+        }
+      }}
+      className="group relative bg-white dark:bg-[#121820] rounded-[1.75rem] border border-slate-200/90 dark:border-white/10 p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-950/20 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 flex flex-col justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 select-none"
+    >
       {/* Top Section: Avatar + Doctor Info + Rating */}
       <div>
         <div className="flex items-start gap-4">
           {/* Avatar Container with Verification Badge */}
           <div className="relative shrink-0">
-            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-emerald-500/20 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 p-0.5 shadow-sm">
+            <div className="w-18 h-18 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border-2 border-emerald-500/20 dark:border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 p-0.5 shadow-sm group-hover:scale-105 transition-transform duration-300">
               {!imgError && avatarSrc ? (
                 <img
                   src={avatarSrc}
@@ -87,7 +103,7 @@ export default function DoctorCardHome({ doctor }) {
               </div>
             </div>
 
-            <h3 className="text-base sm:text-lg font-display font-black text-slate-900 dark:text-white mt-1 leading-snug truncate flex items-center gap-1.5">
+            <h3 className="text-base sm:text-lg font-display font-black text-slate-900 dark:text-white mt-1 leading-snug truncate flex items-center gap-1.5 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
               <span>{doctor.full_name.startsWith('Dr.') ? doctor.full_name : `Dr. ${doctor.full_name}`}</span>
               <CheckCircle2 size={16} className="text-emerald-500 shrink-0 inline" title="NMC / State Council Verified" />
             </h3>
@@ -143,8 +159,12 @@ export default function DoctorCardHome({ doctor }) {
           </div>
         </div>
 
-        <Link
-          to={`/care/doctor/${doctor.id}`}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            navigate(`/care/doctor/${doctor.id}`)
+          }}
           style={{ 
             backgroundColor: themeConfig?.primary || '#059669',
             boxShadow: `0 4px 14px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.3)'}`
@@ -152,8 +172,8 @@ export default function DoctorCardHome({ doctor }) {
           className="px-5 py-2.5 rounded-xl font-display font-black text-xs sm:text-sm text-white flex items-center gap-1.5 transition-all duration-200 hover:brightness-110 active:scale-95 shrink-0"
         >
           <span>Book Token</span>
-          <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-        </Link>
+          <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+        </button>
       </div>
     </div>
   )
