@@ -14,26 +14,11 @@ export default function DoctorProfilePage() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { getDoctorById, bookAppointment, themeConfig, applyThemeVariables } = useCareStore()
+  const { getDoctorById, themeConfig, applyThemeVariables } = useCareStore()
 
   const [doctor, setDoctor] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('about') // 'about' | 'clinic' | 'pricing' | 'reviews'
-
-  // Booking Form State
-  const [selectedDate, setSelectedDate] = useState(() => {
-    const today = new Date()
-    return today.toISOString().split('T')[0]
-  })
-  const [selectedSlot, setSelectedSlot] = useState('10:00 AM - 10:30 AM')
-  const [consultationType, setConsultationType] = useState('clinic_visit') // 'clinic_visit' | 'teleconsult'
-  const [patientName, setPatientName] = useState(user?.user_metadata?.full_name || '')
-  const [patientAge, setPatientAge] = useState('')
-  const [patientGender, setPatientGender] = useState('Male')
-  const [patientPhone, setPatientPhone] = useState(user?.phone || user?.user_metadata?.phone || '')
-  const [symptoms, setSymptoms] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [confirmedBooking, setConfirmedBooking] = useState(null)
 
   useEffect(() => {
     applyThemeVariables()
@@ -46,61 +31,16 @@ export default function DoctorProfilePage() {
     if (id) loadDoctor()
   }, [id])
 
-  const timeSlots = [
-    '09:30 AM - 10:00 AM',
-    '10:00 AM - 10:30 AM',
-    '10:30 AM - 11:00 AM',
-    '11:30 AM - 12:00 PM',
-    '05:00 PM - 05:30 PM',
-    '05:30 PM - 06:00 PM',
-    '06:30 PM - 07:00 PM',
-    '07:30 PM - 08:00 PM'
-  ]
-
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
-        title: `Dr. ${doctor?.full_name} on OzoCare`,
-        text: `Book verified consultation token with Dr. ${doctor?.full_name} (${doctor?.qualification})`,
+        title: `${doctor?.full_name?.startsWith('Dr.') ? doctor?.full_name : `Dr. ${doctor?.full_name}`} on OzoCare`,
+        text: `Book verified consultation token with ${doctor?.full_name?.startsWith('Dr.') ? doctor?.full_name : `Dr. ${doctor?.full_name}`} (${doctor?.qualification})`,
         url: window.location.href
       }).catch(() => {})
     } else {
       navigator.clipboard.writeText(window.location.href)
       toast.success('Doctor profile link copied to clipboard!')
-    }
-  }
-
-  const handleBooking = async (e) => {
-    e.preventDefault()
-    if (!patientName.trim()) {
-      toast.error('Please enter patient name')
-      return
-    }
-    if (!patientPhone.trim() || patientPhone.trim().length < 10) {
-      toast.error('Please enter a valid 10-digit mobile number')
-      return
-    }
-
-    setIsSubmitting(true)
-    const bookingPayload = {
-      doctor_id: doctor.id,
-      patient_name: patientName.trim(),
-      patient_phone: patientPhone.trim(),
-      patient_age: patientAge ? parseInt(patientAge, 10) : null,
-      patient_gender: patientGender,
-      consultation_type: consultationType,
-      appointment_date: selectedDate,
-      time_slot: selectedSlot,
-      symptoms: symptoms.trim() || 'General health consultation',
-      consultation_fee: doctor.consultation_fee || 500,
-      payment_status: 'pay_at_clinic'
-    }
-
-    const res = await bookAppointment(bookingPayload)
-    setIsSubmitting(false)
-
-    if (res) {
-      setConfirmedBooking(res)
     }
   }
 
@@ -130,6 +70,10 @@ export default function DoctorProfilePage() {
       </div>
     )
   }
+
+  const doctorDisplayName = doctor.full_name?.startsWith('Dr.')
+    ? doctor.full_name
+    : `Dr. ${doctor.full_name}`
 
   const avatarSrc = doctor.profile_image || doctor.avatar_url
   const initials = doctor.full_name
@@ -224,7 +168,7 @@ export default function DoctorProfilePage() {
                 </div>
 
                 <h1 className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>Dr. {doctor.full_name}</span>
+                  <span>{doctorDisplayName}</span>
                   <CheckCircle2 size={20} className="text-emerald-500 shrink-0" title="State Council Verified Doctor" />
                 </h1>
 
@@ -238,17 +182,30 @@ export default function DoctorProfilePage() {
               </div>
             </div>
 
-            {/* Quick Fee Token Pill */}
-            <div className="bg-slate-50 dark:bg-slate-900/80 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 text-right w-full md:w-auto shrink-0 flex md:flex-col justify-between items-center md:items-end">
+            {/* Quick Fee Token Pill & Direct CTA */}
+            <div className="bg-slate-50 dark:bg-slate-900/80 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 text-right w-full md:w-auto shrink-0 flex md:flex-col justify-between items-center md:items-end gap-3">
               <div>
                 <span className="text-[11px] font-display font-bold text-slate-400 uppercase tracking-wider block">Consultation Fee</span>
                 <span className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white">
                   ₹{doctor.consultation_fee || 500}
                 </span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-bold">
+                  Pay at Clinic / Zero Advance
+                </span>
               </div>
-              <span className="text-xs font-display font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg">
-                Pay at Clinic / OPD
-              </span>
+
+              <button
+                type="button"
+                onClick={() => navigate(`/care/book-appointment/${doctor.id}`)}
+                style={{
+                  backgroundColor: themeConfig?.primary || '#059669',
+                  boxShadow: `0 4px 14px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.3)'}`
+                }}
+                className="px-5 py-2.5 rounded-xl font-display font-black text-xs sm:text-sm text-white flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all shadow-md shrink-0"
+              >
+                <span>Book Token Now</span>
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
 
@@ -302,17 +259,17 @@ export default function DoctorProfilePage() {
 
         {/* MAIN BODY: 2-COLUMN LAYOUT */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column (Details by Active Tab) */}
+          {/* Left Column (Details by Active Tab) - 7 cols */}
           <div className="lg:col-span-7 space-y-6">
             {/* TAB 1: ABOUT & BIO */}
             {activeTab === 'about' && (
               <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 sm:p-8 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-6">
                 <div>
                   <h3 className="text-lg font-display font-black text-slate-900 dark:text-white">
-                    About Dr. {doctor.full_name}
+                    About {doctorDisplayName}
                   </h3>
                   <p className="text-sm font-sans text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">
-                    {doctor.bio || `Dr. ${doctor.full_name} is a highly accomplished specialist in ${doctor.specialty_slug?.replace(/[-_]/g, ' ')} with over ${doctor.experience_years} years of dedicated clinical practice. Renowned for ethical medical consultations, evidence-based treatments, and thorough patient counseling.`}
+                    {doctor.bio || `${doctorDisplayName} is a highly accomplished specialist in ${doctor.specialty_slug?.replace(/[-_]/g, ' ')} with over ${doctor.experience_years} years of dedicated clinical practice. Renowned for ethical medical consultations, evidence-based treatments, and thorough patient counseling.`}
                   </p>
                 </div>
 
@@ -374,7 +331,7 @@ export default function DoctorProfilePage() {
                   <h3 className="text-xl font-display font-black text-slate-900 dark:text-white mt-1">
                     Clinic Details & Directions
                   </h3>
-                  <p className="text-xs text-slate-400 mt-0.5">Where Dr. {doctor.full_name} consults patients in-person</p>
+                  <p className="text-xs text-slate-400 mt-0.5">Where {doctorDisplayName} consults patients in-person</p>
                 </div>
 
                 {/* Primary Clinic Card */}
@@ -430,7 +387,7 @@ export default function DoctorProfilePage() {
                       </a>
 
                       <a
-                        href={`https://wa.me/91${doctor.phone || '9835012345'}?text=${encodeURIComponent(`Hi Dr. ${doctor.full_name}, I am reaching out through OzoCare regarding OPD consultation timings and queue position.`)}`}
+                        href={`https://wa.me/91${doctor.phone || '9835012345'}?text=${encodeURIComponent(`Hi ${doctorDisplayName}, I am reaching out through OzoCare regarding OPD consultation timings and queue position.`)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="px-4 py-2.5 rounded-xl bg-teal-600/10 hover:bg-teal-600/20 text-teal-700 dark:text-teal-300 font-display font-bold text-xs flex items-center gap-2 transition-all border border-teal-500/20 active:scale-95"
@@ -453,8 +410,8 @@ export default function DoctorProfilePage() {
                 </div>
 
                 <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/70 dark:border-amber-900/40 text-xs text-amber-900 dark:text-amber-300">
-                  <span className="font-bold block mb-1">💡 Live Token Queue Reminder:</span>
-                  Booking a token here guarantees your slot in the doctor's daily OPD registry. When you reach the clinic, present your digital token #{confirmedBooking?.token_number || 'ID'} at the front reception desk.
+                  <span className="font-bold block mb-1">💡 Live Token Queue:</span>
+                  Booking a token gives you a confirmed queue position. You can track your live queue token from your OzoCare account to avoid clinic waiting.
                 </div>
               </div>
             )}
@@ -578,7 +535,7 @@ export default function DoctorProfilePage() {
                       </a>
 
                       <a
-                        href={`https://wa.me/91${doctor.phone || '9835012345'}?text=${encodeURIComponent(`Hi Dr. ${doctor.full_name}, I want to check appointment availability and fee details.`)}`}
+                        href={`https://wa.me/91${doctor.phone || '9835012345'}?text=${encodeURIComponent(`Hi ${doctorDisplayName}, I want to check appointment availability and fee details.`)}`}
                         target="_blank"
                         rel="noreferrer"
                         className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-display font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
@@ -595,7 +552,7 @@ export default function DoctorProfilePage() {
             {/* TAB 4: REVIEWS COMPONENT */}
             {activeTab === 'reviews' && (
               <DoctorReviewsComponent 
-                doctorName={doctor.full_name} 
+                doctorName={doctorDisplayName} 
                 rating={doctor.rating || 4.9} 
                 totalConsults={doctor.total_patients_consulted || 150} 
               />
@@ -610,240 +567,126 @@ export default function DoctorProfilePage() {
             </div>
           </div>
 
-          {/* Right Column: Appointment Booking Engine */}
+          {/* Right Column: Instant Token & Clinic Summary Action Card - 5 cols */}
           <div className="lg:col-span-5 sticky top-24">
-            <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 border border-slate-200/90 dark:border-white/10 shadow-xl space-y-5">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
+            <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 sm:p-7 border border-slate-200/90 dark:border-white/10 shadow-xl space-y-6">
+              
+              {/* Header */}
+              <div className="pb-4 border-b border-slate-100 dark:border-white/5 flex items-start justify-between">
                 <div>
-                  <h2 className="text-lg font-display font-black text-slate-900 dark:text-white">Book Consultation</h2>
-                  <p className="text-xs text-slate-400 font-sans">Instant OPD Token Confirmation</p>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-xs font-display font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+                      Available Today
+                    </span>
+                  </div>
+                  <h3 className="text-lg font-display font-black text-slate-900 dark:text-white mt-1">
+                    Book Consultation
+                  </h3>
+                  <p className="text-xs text-slate-400 font-sans">
+                    Guaranteed OPD Token • Live Queue
+                  </p>
                 </div>
+
                 <div className="text-right">
-                  <div className="text-2xl font-display font-black text-slate-900 dark:text-white">₹{doctor.consultation_fee || 500}</div>
-                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-display font-bold">Pay at Clinic</span>
+                  <span className="text-[10px] font-display font-bold text-slate-400 uppercase tracking-wider block">OPD Fee</span>
+                  <div className="text-2xl font-display font-black text-slate-900 dark:text-white">
+                    ₹{doctor.consultation_fee || 500}
+                  </div>
                 </div>
               </div>
 
-              {/* Consultation Type Selector */}
-              <div>
-                <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-2">
-                  Consultation Mode
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setConsultationType('clinic_visit')}
-                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-display font-bold border transition-all ${
-                      consultationType === 'clinic_visit'
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
-                        : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <Building2 className="w-4 h-4" /> In-Clinic Visit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setConsultationType('teleconsult')}
-                    className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-display font-bold border transition-all ${
-                      consultationType === 'teleconsult'
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
-                        : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    <Video className="w-4 h-4" /> Video Call
-                  </button>
+              {/* Consultation Modes Quick Toggle Preview */}
+              <div className="grid grid-cols-2 gap-2 text-xs font-sans">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-emerald-500/30 space-y-1">
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block flex items-center gap-1">
+                    <Building2 size={13} /> In-Clinic OPD
+                  </span>
+                  <p className="font-display font-bold text-slate-900 dark:text-white text-sm">
+                    ₹{doctor.consultation_fee || 500}
+                  </p>
+                  <p className="text-[10px] text-slate-400 truncate">At {doctor.clinic_name}</p>
+                </div>
+
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-white/10 space-y-1">
+                  <span className="text-[10px] text-sky-600 dark:text-sky-400 font-bold block flex items-center gap-1">
+                    <Video size={13} /> Video Call
+                  </span>
+                  <p className="font-display font-bold text-slate-900 dark:text-white text-sm">
+                    ₹{doctor.teleconsult_fee || doctor.consultation_fee || 450}
+                  </p>
+                  <p className="text-[10px] text-slate-400">Online 15-min call</p>
                 </div>
               </div>
 
-              {/* Form */}
-              <form onSubmit={handleBooking} className="space-y-4 font-sans text-xs">
-                {/* Date Picker */}
-                <div>
-                  <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                    Select Appointment Date
-                  </label>
-                  <input 
-                    type="date"
-                    value={selectedDate}
-                    min={new Date().toISOString().split('T')[0]}
-                    onChange={(e) => setSelectedDate(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    required
-                  />
+              {/* Feature Checklist */}
+              <div className="space-y-2.5 text-xs text-slate-600 dark:text-slate-300 font-sans pt-1">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  <span><strong>Zero Advance</strong> — Pay fee at clinic counter</span>
                 </div>
-
-                {/* Time Slots */}
-                <div>
-                  <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1.5">
-                    Available Slots
-                  </label>
-                  <div className="grid grid-cols-2 gap-2 max-h-32 overflow-y-auto pr-1">
-                    {timeSlots.map((slot) => (
-                      <button
-                        key={slot}
-                        type="button"
-                        onClick={() => setSelectedSlot(slot)}
-                        className={`text-[11px] font-semibold py-2 px-2.5 rounded-lg border text-center transition-all ${
-                          selectedSlot === slot
-                            ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold shadow-sm'
-                            : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                        }`}
-                      >
-                        {slot}
-                      </button>
-                    ))}
-                  </div>
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  <span><strong>1 Free Follow-Up</strong> consultation within 5 days</span>
                 </div>
-
-                {/* Patient Information */}
-                <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
-                  <div>
-                    <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                      Patient Full Name *
-                    </label>
-                    <input 
-                      type="text"
-                      placeholder="e.g. Ramesh Kumar"
-                      value={patientName}
-                      onChange={(e) => setPatientName(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      required
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                        Age
-                      </label>
-                      <input 
-                        type="number"
-                        placeholder="Age (yrs)"
-                        value={patientAge}
-                        onChange={(e) => setPatientAge(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                        Gender
-                      </label>
-                      <select
-                        value={patientGender}
-                        onChange={(e) => setPatientGender(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      >
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                      Mobile Number (for Token SMS) *
-                    </label>
-                    <input 
-                      type="tel"
-                      placeholder="10-digit mobile number"
-                      value={patientPhone}
-                      onChange={(e) => setPatientPhone(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-xs font-display font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                      Chief Symptoms / Health Concern
-                    </label>
-                    <textarea 
-                      rows={2}
-                      placeholder="Describe briefly (e.g. skin allergy, fever since 2 days)"
-                      value={symptoms}
-                      onChange={(e) => setSymptoms(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </div>
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  <span><strong>Instant Token SMS</strong> with live queue status</span>
                 </div>
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 size={15} className="text-emerald-500 shrink-0" />
+                  <span>Official digital e-Prescription (Rx) generated</span>
+                </div>
+              </div>
 
+              {/* MAIN CTA BUTTON -> NAVIGATES TO DEDICATED BOOKING PAGE */}
+              <div className="pt-2">
                 <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 rounded-xl text-white font-display font-black text-sm shadow-lg transition-all transform active:scale-95 disabled:opacity-50"
+                  type="button"
+                  onClick={() => navigate(`/care/book-appointment/${doctor.id}`)}
+                  className="w-full py-4 px-6 rounded-2xl text-white font-display font-black text-sm shadow-xl transition-all transform active:scale-95 flex items-center justify-center gap-2 hover:brightness-110"
                   style={{
                     backgroundColor: themeConfig?.primary || '#059669',
-                    boxShadow: `0 8px 20px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.35)'}`
+                    boxShadow: `0 8px 24px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.35)'}`
                   }}
                 >
-                  {isSubmitting ? 'Generating Consultation Token...' : `Confirm Token Booking (₹${doctor.consultation_fee || 500})`}
+                  <span>Book Appointment / Token</span>
+                  <ChevronRight size={18} />
                 </button>
-              </form>
+                <p className="text-center text-[11px] text-slate-400 mt-2">
+                  Select your date, slot & patient details on the next page
+                </p>
+              </div>
+
+              {/* Direct Help / Reception Desk */}
+              <div className="pt-4 border-t border-slate-100 dark:border-white/5 space-y-2">
+                <span className="text-[11px] font-display font-bold text-slate-400 uppercase tracking-wider block">
+                  Clinic Reception Desk
+                </span>
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href={`tel:${doctor.phone || '9835012345'}`}
+                    className="py-2.5 px-3 rounded-xl border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-slate-300 text-xs font-display font-bold flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <Phone size={13} className="text-emerald-500" />
+                    <span>Call Clinic</span>
+                  </a>
+
+                  <a
+                    href={`https://wa.me/91${doctor.phone || '9835012345'}?text=${encodeURIComponent(`Hi ${doctorDisplayName}, I want to check OPD consultation token availability.`)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="py-2.5 px-3 rounded-xl border border-teal-500/20 bg-teal-500/5 hover:bg-teal-500/10 text-teal-700 dark:text-teal-300 text-xs font-display font-bold flex items-center justify-center gap-1.5 transition-colors"
+                  >
+                    <MessageSquare size={13} className="text-teal-500" />
+                    <span>WhatsApp</span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      {/* Booking Confirmation Modal */}
-      {confirmedBooking && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200 font-sans">
-            <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center mb-4">
-              <CheckCircle2 className="w-9 h-9" />
-            </div>
-
-            <span className="px-3 py-1 rounded-full text-xs font-display font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-              Appointment Token Confirmed
-            </span>
-
-            <h3 className="text-2xl font-display font-black text-slate-900 dark:text-white mt-2">
-              Token #{confirmedBooking.token_number}
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 font-mono">
-              Ref ID: {confirmedBooking.appointment_number}
-            </p>
-
-            <div className="mt-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 text-left text-xs space-y-2">
-              <div className="flex justify-between">
-                <span className="text-slate-400">Doctor:</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">Dr. {doctor.full_name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Clinic:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">{doctor.clinic_name}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Date & Slot:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">{confirmedBooking.appointment_date} ({confirmedBooking.time_slot})</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">Patient:</span>
-                <span className="font-semibold text-slate-700 dark:text-slate-300">{confirmedBooking.patient_name}</span>
-              </div>
-              <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
-                <span className="text-slate-400">Fee Payable at Clinic:</span>
-                <span className="font-bold text-emerald-600 dark:text-emerald-400 text-sm">₹{confirmedBooking.consultation_fee}</span>
-              </div>
-            </div>
-
-            <div className="mt-6 flex flex-col gap-2 font-display">
-              <button
-                onClick={() => navigate('/care/my-appointments')}
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md"
-              >
-                View My Appointments & Live Token
-              </button>
-              <button
-                onClick={() => setConfirmedBooking(null)}
-                className="w-full py-2.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 text-xs font-semibold hover:bg-slate-50 dark:hover:bg-slate-800"
-              >
-                Book Another Appointment
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   )
 }
