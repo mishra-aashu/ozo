@@ -123,7 +123,7 @@ export default function PharmacyDashboard() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       {/* Header */}
       <header className="bg-slate-950 border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -133,8 +133,8 @@ export default function PharmacyDashboard() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-white text-base tracking-tight">OzoCare</span>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800">
+                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
+                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800">
                   Chemist Station
                 </span>
               </div>

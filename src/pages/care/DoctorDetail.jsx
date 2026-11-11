@@ -116,18 +116,18 @@ export default function DoctorDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 font-sans">
       {/* Top Navbar */}
       <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <button 
             onClick={() => navigate('/care')} 
-            className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+            className="flex items-center gap-2 text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Care
           </button>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <ShieldCheck className="w-3.5 h-3.5" /> NMC / State Council Verified
             </span>
           </div>
@@ -160,7 +160,7 @@ export default function DoctorDetail() {
                 <div className="flex-1">
                   <div className="flex flex-wrap items-center gap-2 mb-1">
                     <span 
-                      className="px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wide"
+                      className="px-2.5 py-0.5 rounded-full text-xs font-display font-bold uppercase tracking-wide"
                       style={{ 
                         backgroundColor: themeConfig?.badge_bg || 'rgba(5,150,105,0.12)',
                         color: themeConfig?.badge_text || '#059669'
@@ -168,13 +168,13 @@ export default function DoctorDetail() {
                     >
                       {doctor.specialty_slug?.replace('_', ' ')}
                     </span>
-                    <span className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center gap-1 text-xs font-display font-bold text-amber-500 bg-amber-50 dark:bg-amber-950/40 px-2 py-0.5 rounded-full">
                       <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                       {doctor.rating || '4.9'} ({doctor.total_patients_consulted || '150'}+ Patients)
                     </span>
                   </div>
 
-                  <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                  <h1 className="text-2xl font-display font-black text-slate-900 dark:text-white">
                     Dr. {doctor.full_name}
                   </h1>
                   <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">
@@ -410,7 +410,7 @@ export default function DoctorDetail() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full py-3.5 px-4 rounded-xl text-white font-bold text-sm shadow-lg transition-all transform active:scale-95 disabled:opacity-50"
+                  className="w-full py-3.5 px-4 rounded-xl text-white font-display font-black text-sm shadow-lg transition-all transform active:scale-95 disabled:opacity-50"
                   style={{
                     backgroundColor: themeConfig?.primary || '#059669',
                     boxShadow: `0 8px 20px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.35)'}`
@@ -432,11 +432,11 @@ export default function DoctorDetail() {
               <CheckCircle className="w-9 h-9" />
             </div>
 
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
+            <span className="px-3 py-1 rounded-full text-xs font-display font-bold bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
               Appointment Token Confirmed
             </span>
 
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white mt-2">
+            <h3 className="text-2xl font-display font-black text-slate-900 dark:text-white mt-2">
               Token #{confirmedBooking.token_number}
             </h3>
             <p className="text-xs text-slate-500 mt-1 font-mono">

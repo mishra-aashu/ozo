@@ -147,7 +147,7 @@ export default function DoctorDashboard() {
   })
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col">
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
       {/* Top Professional Doctor Header */}
       <header className="bg-slate-950 border-b border-slate-800 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
@@ -157,12 +157,12 @@ export default function DoctorDashboard() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <span className="font-black text-white text-base tracking-tight">OzoCare</span>
-                <span className="text-[10px] uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
+                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
                   Doctor Workstation
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] font-sans text-slate-400">
                 Dr. {doctor?.full_name || 'Medical Practitioner'} • {doctor?.qualification || 'MBBS, MD'}
               </p>
             </div>

@@ -82,20 +82,20 @@ export default function MyAppointments() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 font-sans">
       {/* Top Navbar */}
       <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link 
             to="/care"
-            className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+            className="flex items-center gap-2 text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" /> Back to OzoCare
           </Link>
           <div className="flex items-center gap-3">
             <Link
               to="/care/order-medicines"
-              className="text-xs font-bold px-3 py-1.5 rounded-xl text-white shadow-sm flex items-center gap-1.5"
+              className="text-xs font-display font-bold px-3 py-1.5 rounded-xl text-white shadow-sm flex items-center gap-1.5"
               style={{ backgroundColor: themeConfig?.primary || '#059669' }}
             >
               <ShoppingBag className="w-3.5 h-3.5" /> Order Medicines
@@ -108,7 +108,7 @@ export default function MyAppointments() {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <h1 className="text-2xl font-display font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
               <Stethoscope className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
               My Appointments & Consultation Tokens
             </h1>
