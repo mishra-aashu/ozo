@@ -79,7 +79,7 @@ export default function CareHome() {
                     backgroundImage: `linear-gradient(to right, ${themeConfig?.primary || '#059669'}, ${themeConfig?.secondary || '#06b6d4'})`
                   }}
                 >
-                  Consult Doctors & Order Meds
+                  Consult Doctors & Order Medicines
                 </span>
               </h1>
 
