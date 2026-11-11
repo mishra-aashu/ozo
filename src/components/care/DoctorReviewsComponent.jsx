@@ -51,6 +51,10 @@ export default function DoctorReviewsComponent({ doctorName, rating = 4.9, total
   const [showReviewModal, setShowReviewModal] = useState(false)
   const [helpfulGiven, setHelpfulGiven] = useState({})
 
+  const cleanDocName = doctorName 
+    ? (doctorName.startsWith('Dr.') ? doctorName : `Dr. ${doctorName}`)
+    : 'the Doctor'
+
   // Review Form State
   const [reviewerName, setReviewerName] = useState('')
   const [reviewerRating, setReviewerRating] = useState(5)
@@ -127,7 +131,7 @@ export default function DoctorReviewsComponent({ doctorName, rating = 4.9, total
             Patient Stories & Ratings
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            Real feedback from patients who booked and consulted with Dr. {doctorName || 'Doctor'}
+            Real feedback from patients who booked and consulted with {cleanDocName}
           </p>
         </div>
 
@@ -267,7 +271,7 @@ export default function DoctorReviewsComponent({ doctorName, rating = 4.9, total
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div>
                 <h3 className="font-display font-black text-lg text-slate-900 dark:text-white">
-                  Review Dr. {doctorName || 'Doctor'}
+                  Review {cleanDocName}
                 </h3>
                 <p className="text-xs text-slate-400">Share your consultation experience</p>
               </div>

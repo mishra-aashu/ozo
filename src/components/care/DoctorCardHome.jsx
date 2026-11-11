@@ -163,7 +163,7 @@ export default function DoctorCardHome({ doctor }) {
           type="button"
           onClick={(e) => {
             e.stopPropagation()
-            navigate(`/care/doctor/${doctor.id}`)
+            navigate(`/care/book-appointment/${doctor.id}`)
           }}
           style={{ 
             backgroundColor: themeConfig?.primary || '#059669',
