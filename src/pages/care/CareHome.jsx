@@ -318,18 +318,6 @@ export default function CareHome() {
           </div>
         </div>
       </section>
-
-      {/* 5. PATIENT SAFETY & TELEMEDICINE INTERMEDIARY COMPLIANCE */}
-      <footer className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 text-center text-xs text-gray-400 font-sans">
-        <div className="p-4 rounded-2xl bg-gray-100/60 dark:bg-[#161e27]/40 border border-gray-200/50 dark:border-white/5 space-y-1">
-          <p className="font-semibold text-gray-600 dark:text-gray-300">
-            ⚖️ Regulatory Technology Intermediary (IT Act 2000 Section 79 & Telemedicine Practice Guidelines 2020)
-          </p>
-          <p className="text-[11px] leading-relaxed max-w-4xl mx-auto">
-            Ozo acts purely as a digital facilitator connecting verified patients with autonomous registered medical practitioners and certified retail pharmacies. We do not provide direct healthcare advice or emergency triage. For life-threatening emergencies, please call 108 or proceed to the nearest hospital immediately.
-          </p>
-        </div>
-      </footer>
     </div>
   )
 }
