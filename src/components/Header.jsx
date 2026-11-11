@@ -131,8 +131,9 @@ const Header = () => {
   const location = useLocation()
   const navigate = useNavigate()
   const servicesConfig = useCartStore(state => state.servicesConfig)
-  const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
   const isServicesMode = isServicesEnabled && (currentMode === 'services' || location.pathname.startsWith('/services'))
+  const isCareMode = currentMode === 'care' || location.pathname.startsWith('/care')
+  const activeVerticalMode = isCareMode ? 'care' : isServicesMode ? 'services' : 'mart'
 
   // Sync search query in header with URL parameter 'q' when on the search page
   useEffect(() => {
@@ -492,7 +493,7 @@ const Header = () => {
               </div>
               <div className="lg:hidden">
                 <Link to="/" className="flex items-center gap-2">
-                  <OzoLogo size="sm" verticalMode={isServicesMode ? 'services' : 'mart'} />
+                  <OzoLogo size="sm" verticalMode={activeVerticalMode} />
                 </Link>
               </div>
 
@@ -555,7 +556,13 @@ const Header = () => {
                 </button>
                 <input
                   type="text"
-                  placeholder={isServicesMode ? "Search plumber, electrician, AC repair, cleaning..." : "Search for 'fresh mango' or 'thekua'..."}
+                  placeholder={
+                    isCareMode 
+                      ? "Search doctors, clinics, medicines..." 
+                      : isServicesMode 
+                        ? "Search plumber, electrician, AC repair, cleaning..." 
+                        : "Search for 'fresh mango' or 'thekua'..."
+                  }
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => setShowSearch(true)}
@@ -951,12 +958,10 @@ const Header = () => {
 
           {/* Toggle Switch & Location Selector (Mobile / Tablet - Second & Third Rows) */}
           <div className="mt-2.5 lg:hidden space-y-2">
-            {/* Row 2: Mart vs Services Segmented Toggle Switch */}
-            {isServicesEnabled && (
-              <div className="w-full">
-                <VerticalDropdownHeader fullWidth showLogo={false} />
-              </div>
-            )}
+            {/* Row 2: Mart vs Services vs Care Segmented Toggle Switch */}
+            <div className="w-full">
+              <VerticalDropdownHeader fullWidth showLogo={false} />
+            </div>
 
             {/* Row 3: Delivery Location Selector */}
             <button 
