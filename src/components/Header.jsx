@@ -780,7 +780,7 @@ const Header = () => {
                             ...(isCaptain ? [{ to: '/captain', icon: Bike, label: 'Rider Portal' }] : []),
                             ...(isMartOperator ? [{ to: '/mart', icon: Store, label: 'Mart Portal' }] : []),
                             ...(isServiceManager ? [{ to: '/service-manager', icon: Wrench, label: 'Service Partner Portal' }] : []),
-                            { to: '/care', icon: Stethoscope, label: 'OzoCare (Doctors & Meds)' },
+                            { to: '/care', icon: Stethoscope, label: 'OzoCare (Doctors & Medicines)' },
                             { to: '/doctor', icon: Stethoscope, label: 'Doctor Workstation' },
                             { to: '/pharmacy', icon: Store, label: 'Chemist Portal' },
                             { to: '/wishlist', icon: Heart, label: 'Wishlist' },
