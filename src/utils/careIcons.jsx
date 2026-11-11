@@ -22,82 +22,82 @@ export const CARE_SPECIALTIES = [
   {
     slug: 'general-physician',
     title: 'General Physician',
-    hindiTitle: 'सामान्य चिकित्सक',
+    subtitle: 'Fever & Common Care',
     description: 'Fever, cough, infections, diabetes & chronic care',
     icon: Stethoscope,
     gradient: 'from-emerald-500 to-teal-600',
     accentColor: '#059669',
-    badge: 'Most Consulted'
+    badge: 'Primary Care'
   },
   {
     slug: 'pediatrics',
-    title: 'Pediatrics & Child Care',
-    hindiTitle: 'शिशु एवं बाल रोग',
+    title: 'Pediatrics',
+    subtitle: 'Child & Infant Care',
     description: 'Infant growth, newborn vaccines, child fever & flu',
     icon: Baby,
     gradient: 'from-cyan-500 to-blue-600',
     accentColor: '#06b6d4',
-    badge: 'Kid Friendly'
+    badge: 'Child Care'
   },
   {
     slug: 'gynecology',
-    title: 'Women Health & Gynecologist',
-    hindiTitle: 'स्त्री एवं प्रसूति रोग',
+    title: 'Women Health',
+    subtitle: 'Obstetrics & Gynae',
     description: 'Pregnancy, period pain, PCOS, fertility & hormonal care',
     icon: Heart,
     gradient: 'from-rose-500 to-pink-600',
     accentColor: '#e11d48',
-    badge: '100% Confidential'
+    badge: 'Women Health'
   },
   {
     slug: 'orthopedic',
-    title: 'Orthopedic & Bone Care',
-    hindiTitle: 'हड्डी एवं जोड़ रोग',
+    title: 'Orthopedic',
+    subtitle: 'Bone & Joint Specialist',
     description: 'Joint pain, arthritis, fractures, spine & knee issues',
     icon: Bone,
     gradient: 'from-amber-500 to-orange-600',
     accentColor: '#d97706',
-    badge: 'Expert Surgeons'
+    badge: 'Joints & Bones'
   },
   {
     slug: 'dermatology',
-    title: 'Dermatology & Skin Care',
-    hindiTitle: 'त्वचा एवं सौंदर्य रोग',
+    title: 'Dermatology',
+    subtitle: 'Skin & Hair Expert',
     description: 'Acne, eczema, fungal infections, hairfall & allergies',
     icon: Sparkles,
     gradient: 'from-purple-500 to-indigo-600',
     accentColor: '#7c3aed',
-    badge: 'Top Rated'
+    badge: 'Skin & Hair'
   },
   {
     slug: 'cardiology',
-    title: 'Cardiology & Heart',
-    hindiTitle: 'हृदय रोग विशेषज्ञ',
+    title: 'Cardiology',
+    subtitle: 'Heart Specialist',
     description: 'Blood pressure, chest tightness, ECG review & heart health',
     icon: Activity,
     gradient: 'from-red-500 to-rose-600',
     accentColor: '#dc2626',
-    badge: 'Critical Care'
+    badge: 'Heart Care'
   },
   {
     slug: 'ent',
-    title: 'ENT (Ear, Nose, Throat)',
-    hindiTitle: 'कान, नाक एवं गला',
+    title: 'ENT Care',
+    subtitle: 'Ear, Nose & Throat',
     description: 'Tonsils, ear discharge, sinusitis, hearing & voice issues',
     icon: Ear,
     gradient: 'from-teal-500 to-emerald-600',
     accentColor: '#0d9488',
-    badge: 'Specialist'
+    badge: 'ENT Specialist'
   },
   {
     slug: 'dental',
-    title: 'Dental & Oral Care',
-    hindiTitle: 'दांत एवं मुख रोग',
+    title: 'Dental Care',
+    subtitle: 'Teeth & Oral Health',
     description: 'Toothache, cavity filling, root canal & scaling',
     icon: Smile,
     gradient: 'from-blue-500 to-cyan-600',
     accentColor: '#2563eb',
-    badge: 'Painless Care'
+    badge: 'Dental & Oral'
   }
 ]
 

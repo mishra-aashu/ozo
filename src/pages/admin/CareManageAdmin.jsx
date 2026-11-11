@@ -167,21 +167,21 @@ export default function CareManageAdmin() {
   }
 
   return (
-    <div className="p-4 sm:p-6 lg:p-8 space-y-6 text-left max-w-7xl mx-auto">
+    <div className="p-4 sm:p-6 lg:p-8 space-y-6 text-left max-w-7xl mx-auto font-sans">
       
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-cyan-500/10 border border-emerald-500/20 rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 shadow-sm">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xs font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
+            <span className="text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
               OzoCare Healthcare Control Tower
             </span>
-            <span className="text-xs font-bold text-gray-400">Database & Live Engine</span>
+            <span className="text-xs font-sans font-bold text-gray-400">Database & Live Engine</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white mt-2">
+          <h1 className="text-2xl sm:text-3xl font-display font-black text-gray-900 dark:text-white mt-2 tracking-tight">
             OzoCare Management & Theme Engine
           </h1>
-          <p className="text-sm sm:text-base text-gray-500 dark:text-gray-400 mt-1 max-w-2xl">
+          <p className="text-sm sm:text-base font-sans text-gray-500 dark:text-gray-400 mt-1 max-w-2xl">
             Live database control: Customize OzoCare theme colors globally, verify Medical Council licenses, and monitor doctor-patient appointments.
           </p>
         </div>

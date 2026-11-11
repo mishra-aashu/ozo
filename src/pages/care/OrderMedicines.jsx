@@ -146,18 +146,18 @@ export default function OrderMedicines() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 font-sans">
       {/* Top Navbar */}
       <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <Link 
             to="/care"
-            className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+            className="flex items-center gap-2 text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Care
           </Link>
           <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-display font-semibold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
               <ShieldCheck className="w-3.5 h-3.5" /> Licensed Chemists Form 20/21
             </span>
           </div>
@@ -168,13 +168,13 @@ export default function OrderMedicines() {
         {/* Banner */}
         <div className="mb-8 rounded-3xl p-6 sm:p-8 bg-gradient-to-r from-emerald-600 to-teal-700 text-white relative overflow-hidden shadow-lg">
           <div className="relative z-10 max-w-2xl">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-white/20 uppercase tracking-wider backdrop-blur-sm">
+            <span className="px-3 py-1 rounded-full text-xs font-display font-bold bg-white/20 uppercase tracking-wider backdrop-blur-sm">
               ⚡ 30-Min Local Chemist Delivery
             </span>
-            <h1 className="text-2xl sm:text-3xl font-black mt-3">
+            <h1 className="text-2xl sm:text-3xl font-display font-black mt-3 tracking-tight">
               Order Medicines with Verified Prescription
             </h1>
-            <p className="text-xs sm:text-sm text-emerald-100 mt-2 leading-relaxed">
+            <p className="text-xs sm:text-sm font-sans text-emerald-100 mt-2 leading-relaxed">
               Upload your doctor's prescription or attach your OzoCare e-Rx. Dispensed exclusively by certified retail pharmacies with authentic batch bills.
             </p>
           </div>
