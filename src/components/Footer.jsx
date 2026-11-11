@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import OzoLogo from './OzoLogo'
+import CareFooter from './care/CareFooter'
 import { 
   ShoppingCart, 
   Mail, 
@@ -22,6 +23,16 @@ import { useServiceModeStore } from '../stores/serviceModeStore'
 import toast from 'react-hot-toast'
 
 const Footer = () => {
+  const location = useLocation()
+  const isCareMode = location.pathname.startsWith('/care') ||
+    location.pathname.startsWith('/doctor') ||
+    location.pathname.startsWith('/pharmacy') ||
+    location.pathname.startsWith('/patient')
+
+  if (isCareMode) {
+    return <CareFooter />
+  }
+
   const currentYear = new Date().getFullYear()
   const deliveryConfig = useCartStore(state => state.deliveryConfig)
   const freeAbove = deliveryConfig?.free_above ?? 99
