@@ -4,7 +4,7 @@ import { persist } from 'zustand/middleware'
 export const useServiceModeStore = create(
   persist(
     (set, get) => ({
-      currentMode: 'mart', // 'mart' | 'services'
+      currentMode: 'mart', // 'mart' | 'services' | 'care'
       hasSeenOnboarding: false,
 
       setMode: (mode) => {
@@ -16,8 +16,9 @@ export const useServiceModeStore = create(
       },
 
       toggleMode: () => {
-        const nextMode = get().currentMode === 'mart' ? 'services' : 'mart'
-        set({ currentMode: nextMode })
+        const modes = ['mart', 'services', 'care']
+        const nextIdx = (modes.indexOf(get().currentMode) + 1) % modes.length
+        set({ currentMode: modes[nextIdx] })
       },
     }),
     {
