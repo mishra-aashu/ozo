@@ -63,6 +63,13 @@ export default function OzoLogo({
           >
             services
           </span>
+        ) : verticalMode === 'care' ? (
+          <span 
+            style={{ fontFamily: "'Dancing Script', cursive" }} 
+            className="text-emerald-500 dark:text-emerald-400 font-bold text-[0.95em] tracking-wide normal-case translate-y-[-1px] select-none"
+          >
+            care
+          </span>
         ) : (
           <span 
             style={{ fontFamily: "'Dancing Script', cursive" }} 
