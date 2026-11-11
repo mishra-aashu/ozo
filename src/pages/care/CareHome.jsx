@@ -22,6 +22,7 @@ import {
 import { useCareStore } from '../../stores/careStore'
 import SpecialtyIcon, { CARE_SPECIALTIES } from '../../utils/careIcons'
 import DoctorCardHome from '../../components/care/DoctorCardHome'
+import CareHeroSlider from '../../components/care/CareHeroSlider'
 
 export default function CareHome() {
   const navigate = useNavigate()
@@ -110,113 +111,9 @@ export default function CareHome() {
               </div>
             </div>
 
-            {/* Right: Premium Visual Healthcare Hero Showcase */}
-            <div className="w-full lg:w-[420px] bg-white/90 dark:bg-[#121820]/90 backdrop-blur-xl border border-gray-200/90 dark:border-white/10 rounded-3xl p-6 shadow-2xl space-y-5 relative overflow-hidden shrink-0">
-              {/* Subtle background glow */}
-              <div 
-                className="absolute -top-16 -right-16 w-40 h-40 rounded-full blur-2xl opacity-20 pointer-events-none"
-                style={{ backgroundColor: themeConfig?.primary || '#059669' }}
-              />
-
-              {/* Top Banner Header */}
-              <div className="flex items-center justify-between relative z-10">
-                <div className="flex items-center gap-2">
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="text-xs font-display font-black text-emerald-600 dark:text-emerald-400 uppercase tracking-wider">
-                    Live OPD Queue Active
-                  </span>
-                </div>
-                <span className="text-[10px] font-display font-bold px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-white/10 text-slate-600 dark:text-slate-300">
-                  Patna Central
-                </span>
-              </div>
-
-              {/* Interactive Mock OPD Live Token Ticket */}
-              <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-cyan-500/10 border border-emerald-500/25 space-y-3 shadow-sm relative z-10">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <span className="text-[10px] font-display font-bold uppercase tracking-wider text-emerald-600 dark:text-emerald-400 block">
-                      Confirmed Consultation
-                    </span>
-                    <h4 className="font-display font-black text-base text-slate-900 dark:text-white mt-0.5">
-                      Token #07 • OPD Queue
-                    </h4>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                      Dr. Priya Verma (Gynecology, AIIMS)
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-display font-black text-sm shadow-md">
-                    #07
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between text-[11px] pt-2 border-t border-emerald-500/15">
-                  <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1">
-                    <Clock size={12} className="text-emerald-500" />
-                    Est. Wait: &lt; 10 mins
-                  </span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                    Pay at Clinic (₹0 Advance)
-                  </span>
-                </div>
-              </div>
-
-              {/* 3 Metric Pills */}
-              <div className="grid grid-cols-3 gap-2.5 text-center relative z-10">
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 space-y-0.5">
-                  <span className="text-base sm:text-lg font-display font-black text-slate-900 dark:text-white block">
-                    150+
-                  </span>
-                  <span className="text-[10px] font-sans font-medium text-slate-400 block">
-                    Verified Doctors
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 space-y-0.5">
-                  <span className="text-base sm:text-lg font-display font-black text-teal-600 dark:text-teal-400 block">
-                    30 Min
-                  </span>
-                  <span className="text-[10px] font-sans font-medium text-slate-400 block">
-                    Meds Delivery
-                  </span>
-                </div>
-
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-white/5 border border-slate-100 dark:border-white/5 space-y-0.5">
-                  <span className="text-base sm:text-lg font-display font-black text-emerald-600 dark:text-emerald-400 block">
-                    ₹0 Fee
-                  </span>
-                  <span className="text-[10px] font-sans font-medium text-slate-400 block">
-                    Token Booking
-                  </span>
-                </div>
-              </div>
-
-              {/* Doctor Availability Bar */}
-              <div className="pt-1 flex items-center justify-between text-xs text-slate-600 dark:text-slate-300 relative z-10">
-                <div className="flex items-center gap-2">
-                  <div className="flex -space-x-2">
-                    {['Priya', 'Sneha', 'Rajiv'].map((name, i) => (
-                      <div 
-                        key={i} 
-                        className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-600 to-teal-700 text-white text-[10px] font-bold flex items-center justify-center border-2 border-white dark:border-[#121820]"
-                      >
-                        {name[0]}
-                      </div>
-                    ))}
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                    5 Doctors accepting tokens now
-                  </span>
-                </div>
-
-                <Link 
-                  to="/care/order-medicines"
-                  className="text-xs font-display font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1"
-                >
-                  <span>Upload Rx</span>
-                  <ArrowRight size={12} />
-                </Link>
-              </div>
+            {/* Right: Visual Care Hero Carousel (4 Slides with High-Res Images & Auto-Slide) */}
+            <div className="w-full lg:w-[480px] xl:w-[540px] shrink-0">
+              <CareHeroSlider />
             </div>
           </div>
         </div>
