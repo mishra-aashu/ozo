@@ -115,9 +115,8 @@ export default function CareHeroSlider() {
               alt={currentSlide.title}
               className="w-full h-full object-cover object-center"
             />
-            {/* Cinematic Gradient Overlays */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0c1015] via-[#0c1015]/60 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-r from-[#0c1015]/80 via-[#0c1015]/30 to-transparent" />
+            {/* Soft minimal gradient at bottom only — keeping images crisp, bright and clear */}
+            <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#0c1015]/85 via-[#0c1015]/35 to-transparent pointer-events-none" />
           </motion.div>
         </AnimatePresence>
 
