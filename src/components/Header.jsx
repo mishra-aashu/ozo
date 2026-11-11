@@ -41,6 +41,7 @@ import LocationPicker from './LocationPicker'
 import BrowsingBanner from './BrowsingBanner'
 import OzoLogo from './OzoLogo'
 import VerticalDropdownHeader from './VerticalDropdownHeader'
+import CareHeader from './care/CareHeader'
 import toast from 'react-hot-toast'
 import UserAvatar from './UserAvatar'
 import OptimizedImage from './OptimizedImage'
@@ -424,6 +425,10 @@ const Header = () => {
       navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}${modeParam}`)
     }
   }, [searchQuery, navigate, isServicesMode])
+
+  if (isCareMode) {
+    return <CareHeader />
+  }
 
   return (
     <>
