@@ -109,34 +109,40 @@ export default function CareHome() {
                 </div>
               </motion.div>
 
-              {/* 2 Sleek Interactive Action Cards (Side-by-Side on Mobile!) */}
+              {/* 2 Harmonized Action Cards (Side-by-Side on Mobile!) */}
               <motion.div 
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: 0.18 }}
+                transition={{ duration: 0.35, delay: 0.15 }}
                 className="grid grid-cols-2 gap-2.5 sm:gap-3.5 pt-1 w-full"
               >
-                {/* Action Card 1: Doctors & OPD Tokens */}
+                {/* Action Card 1: My Appointments & Tokens */}
                 <Link
                   to="/care/my-appointments"
-                  className="group relative p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#121820] border border-slate-200/90 dark:border-white/10 hover:border-emerald-500/50 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden active:scale-95"
+                  className="group relative p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#121820] border border-slate-200/90 dark:border-white/10 hover:border-emerald-500/50 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden active:scale-95"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Calendar size={17} />
                     </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 leading-none">
-                      Live Queue
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                      <span className="relative flex h-1.5 w-1.5 shrink-0">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
+                      </span>
+                      <span className="whitespace-nowrap">Live Queue</span>
                     </span>
                   </div>
 
-                  <div className="mt-2 text-left">
-                    <h3 className="font-display font-black text-xs sm:text-sm text-slate-900 dark:text-white leading-tight flex items-center gap-1 group-hover:text-emerald-500 transition-colors">
-                      <span>Book OPD Token</span>
-                      <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform shrink-0" />
-                    </h3>
+                  <div className="mt-2.5 text-left">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight group-hover:text-emerald-500 transition-colors">
+                        My Appointments
+                      </h3>
+                      <ArrowRight size={13} className="text-slate-400 group-hover:text-emerald-500 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+                    </div>
                     <p className="text-[10px] text-slate-400 font-sans mt-0.5 truncate">
-                      Skip Clinic Waiting
+                      Tokens & Queue Status
                     </p>
                   </div>
                 </Link>
@@ -144,24 +150,27 @@ export default function CareHome() {
                 {/* Action Card 2: 30-Min Medicine Delivery */}
                 <Link
                   to="/care/order-medicines"
-                  className="group relative p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-md hover:shadow-xl hover:shadow-emerald-950/30 transition-all duration-300 flex flex-col justify-between overflow-hidden active:scale-95"
+                  className="group relative p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#121820] border border-slate-200/90 dark:border-white/10 hover:border-teal-500/50 shadow-xs hover:shadow-md transition-all duration-200 flex flex-col justify-between overflow-hidden active:scale-95"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-teal-500/10 text-teal-600 dark:text-teal-400 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
                       <Pill size={17} />
                     </div>
-                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/20 text-white leading-none">
-                      ⚡ 30m Express
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-teal-500/10 text-teal-600 dark:text-teal-400 shrink-0">
+                      <Zap size={10} className="fill-teal-500 text-teal-500 shrink-0" />
+                      <span className="whitespace-nowrap">30m Express</span>
                     </span>
                   </div>
 
-                  <div className="mt-2 text-left">
-                    <h3 className="font-display font-black text-xs sm:text-sm text-white leading-tight flex items-center gap-1">
-                      <span>Order Medicines</span>
-                      <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform shrink-0" />
-                    </h3>
-                    <p className="text-[10px] text-emerald-100/90 font-sans mt-0.5 truncate">
-                      Upload Rx Chemist Bill
+                  <div className="mt-2.5 text-left">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-display font-bold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight group-hover:text-teal-500 transition-colors">
+                        Order Medicines
+                      </h3>
+                      <ArrowRight size={13} className="text-slate-400 group-hover:text-teal-500 group-hover:translate-x-0.5 transition-all shrink-0 ml-1" />
+                    </div>
+                    <p className="text-[10px] text-slate-400 font-sans mt-0.5 truncate">
+                      Upload Prescription
                     </p>
                   </div>
                 </Link>
