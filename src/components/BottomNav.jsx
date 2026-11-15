@@ -12,14 +12,11 @@ import {
   Clock,
   Wrench,
   Calendar,
-  Stethoscope,
-  Pill,
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
 import { useOrderStore } from '../stores/orderStore'
 import { useServiceModeStore } from '../stores/serviceModeStore'
-import { useCareStore } from '../stores/careStore'
 import { prefetchRoute } from '../utils/routePrefetch'
 
 const getStatusText = (status) => {
@@ -45,9 +42,7 @@ const BottomNav = () => {
   const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
 
   const isCare = location.pathname.startsWith('/care') || currentMode === 'care'
-  const isServices = !isCare && isServicesEnabled && currentMode === 'services'
-  const myAppointments = useCareStore(state => state.myAppointments)
-  const activeTokensCount = myAppointments?.filter(a => a.status === 'booked' || a.status === 'in_consultation').length || 0
+  const isServices = isServicesEnabled && currentMode === 'services' && !isCare
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -59,44 +54,15 @@ const BottomNav = () => {
     }
   }, [isAuthenticated, fetchActiveOrder])
 
-  const shouldShowActiveOrder = activeOrder && !location.pathname.startsWith('/order/') && !isServices && !isCare
-  const shouldShowCartBanner = totalItems > 0 && !activeOrder && !['/cart', '/checkout'].includes(location.pathname) && !isServices && !isCare
+  // If in care mode, Care uses dedicated BottomNavCare
+  if (isCare) {
+    return null
+  }
 
-  const navItems = isCare
-    ? [
-        {
-          icon: Stethoscope,
-          label: 'Doctors',
-          path: '/care',
-          color: 'text-emerald-500',
-        },
-        {
-          icon: Pill,
-          label: 'Medicines',
-          path: '/care/order-medicines',
-          color: 'text-teal-500',
-        },
-        {
-          icon: Calendar,
-          label: 'Tokens',
-          path: '/care/my-appointments',
-          color: 'text-emerald-500',
-          badge: activeTokensCount,
-        },
-        {
-          icon: Search,
-          label: 'Search',
-          path: '/care',
-          color: 'text-emerald-500',
-        },
-        {
-          icon: User,
-          label: isAuthenticated ? 'Profile' : 'Login',
-          path: isAuthenticated ? '/profile' : '/auth',
-          color: 'text-emerald-500',
-        },
-      ]
-    : isServices
+  const shouldShowActiveOrder = activeOrder && !location.pathname.startsWith('/order/') && !isServices
+  const shouldShowCartBanner = totalItems > 0 && !activeOrder && !['/cart', '/checkout'].includes(location.pathname) && !isServices
+
+  const navItems = isServices
     ? [
         {
           icon: Home,
@@ -165,22 +131,6 @@ const BottomNav = () => {
 
   const checkIsActive = (path) => {
     const current = location.pathname
-
-    if (isCare) {
-      if (path === '/care') {
-        return current === '/care' || current.startsWith('/care/doctor') || current.startsWith('/care/book')
-      }
-      if (path === '/care/order-medicines') {
-        return current.startsWith('/care/order-medicines')
-      }
-      if (path === '/care/my-appointments') {
-        return current.startsWith('/care/my-appointments')
-      }
-      if (path === '/profile' || path === '/auth') {
-        return current.startsWith('/profile') || current.startsWith('/auth')
-      }
-      return current === path
-    }
 
     if (isServices) {
       if (path === '/services') {
