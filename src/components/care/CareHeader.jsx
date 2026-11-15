@@ -259,18 +259,6 @@ export default function CareHeader() {
           {/* RIGHT: HEALTHCARE NAVIGATION & ACTIONS */}
           <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0">
             
-            {/* 24x7 Emergency Help Pill (Mobile & Tablet) */}
-            <button
-              type="button"
-              onClick={() => setShowEmergencyModal(true)}
-              className="lg:hidden flex items-center gap-1 px-2 xs:px-2.5 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold active:scale-95 transition-all"
-              title="24x7 Emergency Help"
-              aria-label="24x7 Emergency Help"
-            >
-              <Activity size={13} className="text-rose-500 animate-pulse shrink-0" />
-              <span className="text-[10px] xs:text-[11px] font-black uppercase tracking-wider">24x7</span>
-            </button>
-
             {/* Quick Nav Links (Desktop) */}
             <div className="hidden lg:flex items-center gap-1">
               <Link
