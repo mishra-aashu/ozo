@@ -69,15 +69,15 @@ export default function OzoLogo({
     if (verticalMode === 'care') {
       return (
         <div className={`flex flex-col ${centered ? 'items-center' : 'items-start'} leading-none text-left`}>
-          <div className="flex items-center gap-1.5 leading-none">
-            <span className="font-display font-black text-xl xs:text-2xl tracking-tight text-slate-900 dark:text-white">
+          <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
+            <span className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white">
               Ozo
             </span>
-            <span className="font-display font-black text-xl xs:text-2xl tracking-tight text-emerald-600 dark:text-emerald-400">
+            <span className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-tight text-emerald-600 dark:text-emerald-400">
               Care
             </span>
           </div>
-          <span className="text-[8px] xs:text-[9px] font-sans font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest leading-none mt-1 select-none whitespace-nowrap">
+          <span className="text-[7px] xs:text-[8px] sm:text-[9px] font-sans font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider xs:tracking-widest leading-none mt-1 select-none whitespace-nowrap">
             {subText || 'HEALTHCARE & PHARMACY NETWORK'}
           </span>
         </div>

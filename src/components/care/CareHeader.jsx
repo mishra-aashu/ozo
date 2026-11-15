@@ -22,7 +22,8 @@ import {
   AlertCircle,
   Sparkles,
   ClipboardList,
-  Building2
+  Building2,
+  ShoppingBag
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCareStore } from '../../stores/careStore'
@@ -30,6 +31,7 @@ import { useThemeStore } from '../../stores/themeStore'
 import { useLocationStore } from '../../stores/locationStore'
 import { useServiceModeStore } from '../../stores/serviceModeStore'
 import VerticalDropdownHeader from '../VerticalDropdownHeader'
+import OzoLogo from '../OzoLogo'
 import toast from 'react-hot-toast'
 
 export default function CareHeader() {
@@ -162,11 +164,18 @@ export default function CareHeader() {
         </div>
 
         {/* Main Navbar */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between gap-3 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 h-15 sm:h-20 flex items-center justify-between gap-1.5 xs:gap-3 sm:gap-4">
           
           {/* LEFT: VERTICAL SWITCHER & LOGO */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="hidden lg:flex items-center gap-3 shrink-0">
             <VerticalDropdownHeader />
+          </div>
+
+          {/* MOBILE LOGO (Left) */}
+          <div className="lg:hidden flex items-center gap-1.5 min-w-0">
+            <Link to="/care" className="flex items-center gap-1.5 min-w-0 focus:outline-none" aria-label="Ozo Care">
+              <OzoLogo size="sm" verticalMode="care" />
+            </Link>
           </div>
 
           {/* MIDDLE-LEFT: CLINIC & PHARMACY DELIVERY LOCATION (Desktop only) */}
@@ -248,8 +257,23 @@ export default function CareHeader() {
           </div>
 
           {/* RIGHT: HEALTHCARE NAVIGATION & ACTIONS */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0">
             
+            {/* Quick Switch to Mart Pill (Mobile & Tablet) */}
+            <button
+              type="button"
+              onClick={() => navigate('/')}
+              className="lg:hidden flex items-center gap-1 px-2 xs:px-2.5 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-[11px] font-black transition-all active:scale-95 shrink-0"
+              title="Switch to OZO Mart"
+              aria-label="Switch to OZO Mart"
+            >
+              <ShoppingBag size={12} className="text-orange-500 shrink-0" />
+              <span className="notranslate flex items-baseline gap-0.5 leading-none" translate="no">
+                <span className="text-[10px] xs:text-[11px]">OZO</span>
+                <span style={{ fontFamily: "'Dancing Script', cursive" }} className="text-[11px] xs:text-[12px] font-bold">mart</span>
+              </span>
+            </button>
+
             {/* Quick Nav Links (Desktop) */}
             <div className="hidden lg:flex items-center gap-1">
               <Link
@@ -282,15 +306,15 @@ export default function CareHeader() {
             {/* My Tokens & Appointments Button (Replaces Shopping Cart!) */}
             <Link
               to="/care/my-appointments"
-              className="relative p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-500/50 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all flex items-center gap-2"
+              className="relative p-2 xs:p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-500/50 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all flex items-center gap-1.5 shrink-0"
               title="My Appointments & Active Tokens"
             >
-              <Calendar size={18} className="text-emerald-500" />
+              <Calendar size={17} className="text-emerald-500 shrink-0" />
               <span className="hidden sm:inline text-xs font-display font-bold">
                 My Tokens
               </span>
               {activeTokensCount > 0 && (
-                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-display font-black text-[10px] flex items-center justify-center animate-pulse">
+                <span className="w-4 h-4 xs:w-5 xs:h-5 rounded-full bg-emerald-600 text-white font-display font-black text-[9px] xs:text-[10px] flex items-center justify-center animate-pulse">
                   {activeTokensCount}
                 </span>
               )}
@@ -300,17 +324,18 @@ export default function CareHeader() {
             <button
               onClick={toggleTheme}
               aria-label="Toggle Theme"
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 transition-colors"
+              className="p-2 xs:p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 transition-colors hidden sm:flex shrink-0"
             >
               {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
             </button>
 
             {/* User Profile / Login Dropdown */}
-            <div ref={profileRef} className="relative">
+            <div ref={profileRef} className="relative shrink-0">
               {isAuthenticated ? (
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="flex items-center gap-2 p-1.5 sm:px-3 sm:py-2 rounded-xl border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50 dark:bg-slate-900/60 transition-all"
+                  className="flex items-center gap-1.5 p-1 xs:p-1.5 sm:px-3 sm:py-2 rounded-xl border border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20 bg-slate-50 dark:bg-slate-900/60 transition-all"
+                  aria-label="User Profile"
                 >
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-emerald-600 text-white font-display font-bold text-xs flex items-center justify-center">
                     {user?.user_metadata?.full_name?.charAt(0) || user?.email?.charAt(0)?.toUpperCase() || 'P'}
@@ -327,9 +352,9 @@ export default function CareHeader() {
                     backgroundColor: themeConfig?.primary || '#059669',
                     boxShadow: `0 4px 14px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.3)'}`
                   }}
-                  className="px-4 py-2 rounded-xl text-white font-display font-bold text-xs flex items-center gap-1.5 transition-all hover:brightness-110 active:scale-95 shadow-md"
+                  className="px-2.5 xs:px-3.5 py-1.5 xs:py-2 rounded-xl text-white font-display font-bold text-xs flex items-center gap-1 transition-all hover:brightness-110 active:scale-95 shadow-md"
                 >
-                  <User size={14} />
+                  <User size={13} />
                   <span>Login</span>
                 </Link>
               )}
@@ -433,9 +458,18 @@ export default function CareHeader() {
               exit={{ height: 0, opacity: 0 }}
               className="md:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#121820] px-4 py-4 space-y-3 font-sans text-xs overflow-hidden"
             >
+              {/* Vertical Mode Switcher in Drawer */}
+              <div className="pb-2 border-b border-slate-100 dark:border-white/5">
+                <span className="text-[10px] font-display font-black uppercase tracking-wider text-slate-400 block mb-2">
+                  Switch OZO Experience
+                </span>
+                <VerticalDropdownHeader fullWidth showLogo={false} />
+              </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <Link
                   to="/care"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 font-display font-bold flex items-center gap-2"
                 >
                   <Stethoscope size={16} />
@@ -444,6 +478,7 @@ export default function CareHeader() {
 
                 <Link
                   to="/care/order-medicines"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="p-3 rounded-xl bg-teal-50 dark:bg-teal-950/40 text-teal-700 dark:text-teal-300 font-display font-bold flex items-center gap-2"
                 >
                   <Pill size={16} />
@@ -454,6 +489,7 @@ export default function CareHeader() {
               <div className="space-y-1 pt-2 border-t border-slate-100 dark:border-white/5">
                 <Link
                   to="/care/my-appointments"
+                  onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-white/5 font-semibold text-slate-700 dark:text-slate-300"
                 >
                   <span className="flex items-center gap-2">
@@ -477,6 +513,16 @@ export default function CareHeader() {
                   <Activity size={15} className="animate-pulse" />
                   <span>24x7 Emergency Assistance</span>
                 </button>
+
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between px-2.5 py-1">
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">Dark / Light Mode</span>
+                  <button
+                    onClick={toggleTheme}
+                    className="p-2 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300"
+                  >
+                    {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                  </button>
+                </div>
               </div>
             </motion.div>
           )}
