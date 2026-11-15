@@ -58,17 +58,17 @@ export default function CareHome() {
           <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 sm:gap-8">
             
             {/* Left: Headline & Trust Actions */}
-            <div className="max-w-2xl space-y-3 sm:space-y-4">
+            <div className="w-full max-w-2xl space-y-3 sm:space-y-4 min-w-0">
               <div 
-                className="inline-flex items-center gap-1.5 xs:gap-2 px-2.5 xs:px-3.5 py-1 xs:py-1.5 rounded-full text-[10px] xs:text-xs font-display font-black uppercase tracking-wider border shadow-xs max-w-full"
+                className="inline-flex items-center gap-1.5 xs:gap-2 px-2.5 xs:px-3 py-1 xs:py-1.5 rounded-full text-[10px] xs:text-xs font-display font-black uppercase tracking-wider border shadow-xs max-w-full overflow-hidden"
                 style={{
                   backgroundColor: themeConfig?.badge_bg || 'rgba(5, 150, 105, 0.12)',
                   borderColor: themeConfig?.primary || '#059669',
                   color: themeConfig?.badge_text || '#10b981'
                 }}
               >
-                <ShieldCheck size={14} className="shrink-0 text-emerald-500" />
-                <span className="truncate">NMC Certified Doctors • 100% Licensed Chemists</span>
+                <ShieldCheck size={13} className="shrink-0 text-emerald-500" />
+                <span className="truncate min-w-0">NMC Verified Doctors • 100% Licensed Chemists</span>
               </div>
 
               <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-display font-black text-gray-900 dark:text-white tracking-tight leading-tight">
@@ -88,31 +88,31 @@ export default function CareHome() {
               </p>
 
               {/* Quick Action Buttons */}
-              <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2 w-full max-w-full">
                 <Link
                   to="/care/my-appointments"
-                  className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white dark:bg-[#161e27] border border-gray-200 dark:border-white/10 hover:border-emerald-500 text-xs sm:text-sm font-display font-bold text-gray-800 dark:text-gray-200 transition-all flex items-center justify-center gap-2 shadow-xs hover:-translate-y-0.5 active:scale-95 text-center"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white dark:bg-[#161e27] border border-gray-200 dark:border-white/10 hover:border-emerald-500 text-xs sm:text-sm font-display font-bold text-gray-800 dark:text-gray-200 transition-all flex items-center justify-center gap-2 shadow-xs hover:-translate-y-0.5 active:scale-95 text-center min-w-0"
                 >
                   <Calendar size={16} className="text-emerald-500 shrink-0" />
-                  <span>My Appointments & Tokens</span>
+                  <span className="truncate">My Appointments & Tokens</span>
                 </Link>
 
                 <Link
                   to="/care/order-medicines"
-                  className="px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-white text-xs sm:text-sm font-display font-black transition-all flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 text-center"
+                  className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-white text-xs sm:text-sm font-display font-black transition-all flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 text-center min-w-0"
                   style={{ 
                     backgroundColor: themeConfig?.primary || '#059669',
                     boxShadow: `0 8px 20px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.35)'}`
                   }}
                 >
                   <Upload size={16} className="shrink-0" />
-                  <span>Order Medicines from Local Chemist</span>
+                  <span className="truncate">Order Medicines from Local Chemist</span>
                 </Link>
               </div>
             </div>
 
             {/* Right: Visual Care Hero Carousel (4 Slides with High-Res Images & Auto-Slide) */}
-            <div className="w-full lg:w-[480px] xl:w-[540px] shrink-0">
+            <div className="w-full max-w-full lg:w-[480px] xl:w-[540px] lg:shrink-0 overflow-hidden">
               <CareHeroSlider />
             </div>
           </div>
@@ -120,7 +120,7 @@ export default function CareHome() {
       </section>
 
       {/* 2. MEDICAL SPECIALTIES GRID */}
-      <section className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+      <section className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-6 sm:py-10 overflow-hidden">
         <div className="flex items-end justify-between mb-4 sm:mb-6">
           <div>
             <span className="text-[10px] xs:text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
@@ -141,29 +141,29 @@ export default function CareHome() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 xs:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3.5">
           {CARE_SPECIALTIES.map((spec) => {
             const isSelected = selectedSpecialty === spec.slug
             return (
               <button
                 key={spec.slug}
                 onClick={() => setSelectedSpecialty(isSelected ? 'all' : spec.slug)}
-                className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border transition-all text-center flex flex-col items-center justify-between group active:scale-95 ${
+                className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border transition-all text-center flex flex-col items-center justify-between group active:scale-95 min-w-0 overflow-hidden ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/20 shadow-md scale-[1.02]'
                     : 'bg-white/90 dark:bg-[#161e27]/90 border-gray-200 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 hover:shadow-md'
                 }`}
               >
                 <div 
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-white mb-2 shadow-md bg-gradient-to-br ${spec.gradient} group-hover:scale-110 transition-transform`}
+                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-white mb-2 shadow-md bg-gradient-to-br ${spec.gradient} group-hover:scale-110 transition-transform shrink-0`}
                 >
                   <SpecialtyIcon slug={spec.slug} size={20} />
                 </div>
-                <div>
-                  <h4 className="text-[11px] sm:text-xs font-display font-black text-gray-900 dark:text-white leading-tight">
+                <div className="w-full min-w-0">
+                  <h4 className="text-[11px] sm:text-xs font-display font-black text-gray-900 dark:text-white leading-tight truncate">
                     {spec.title}
                   </h4>
-                  <p className="text-[9px] sm:text-[10px] font-sans font-medium text-gray-400 mt-0.5 line-clamp-1">
+                  <p className="text-[9px] sm:text-[10px] font-sans font-medium text-gray-400 mt-0.5 truncate">
                     {spec.subtitle || spec.badge}
                   </p>
                 </div>
@@ -172,6 +172,7 @@ export default function CareHome() {
           })}
         </div>
       </section>
+
 
       {/* 3. VERIFIED DOCTORS LIST & DEDICATED SEARCH TOOLBAR */}
       <section className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6">
