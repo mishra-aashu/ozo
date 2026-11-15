@@ -41,8 +41,11 @@ const BottomNav = () => {
   const servicesConfig = useCartStore(state => state.servicesConfig)
   const isServicesEnabled = servicesConfig?.enabled !== false && servicesConfig?.show_in_app !== false
 
-  const isCare = location.pathname.startsWith('/care') || currentMode === 'care'
-  const isServices = isServicesEnabled && currentMode === 'services' && !isCare
+  const isCareRoute = location.pathname.startsWith('/care') ||
+    location.pathname.startsWith('/doctor') ||
+    location.pathname.startsWith('/pharmacy') ||
+    location.pathname.startsWith('/patient')
+  const isServices = isServicesEnabled && currentMode === 'services' && !isCareRoute
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -54,8 +57,8 @@ const BottomNav = () => {
     }
   }, [isAuthenticated, fetchActiveOrder])
 
-  // If in care mode, Care uses dedicated BottomNavCare
-  if (isCare) {
+  // If on a care route, Care uses dedicated BottomNavCare
+  if (isCareRoute) {
     return null
   }
 

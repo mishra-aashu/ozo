@@ -12,6 +12,7 @@ import { useCartStore } from '../stores/cartStore'
 import { useWishlistStore } from '../stores/wishlistStore'
 import { useProductStore } from '../stores/productStore'
 import { useLocationStore } from '../stores/locationStore'
+import { useServiceModeStore } from '../stores/serviceModeStore'
 
 const MainLayout = () => {
   const { user } = useAuthStore()
@@ -84,10 +85,22 @@ const MainLayout = () => {
   const isCategoryPage = location.pathname.startsWith('/category/')
   const isProductsPage = location.pathname === '/products'
   const isSearchPage = location.pathname === '/search'
-  const isCareMode = location.pathname.startsWith('/care') ||
+  
+  const currentMode = useServiceModeStore(state => state.currentMode)
+
+  const isCarePath = location.pathname.startsWith('/care') ||
     location.pathname.startsWith('/doctor') ||
     location.pathname.startsWith('/pharmacy') ||
     location.pathname.startsWith('/patient')
+
+  const isMartExplicitPath = location.pathname === '/' ||
+    location.pathname.startsWith('/product') ||
+    location.pathname.startsWith('/category') ||
+    location.pathname.startsWith('/cart') ||
+    location.pathname.startsWith('/checkout') ||
+    location.pathname.startsWith('/services')
+
+  const isCareMode = isCarePath || (currentMode === 'care' && !isMartExplicitPath)
   
   const hideHeader = isSelectLocation || isAuthPage || isCategoryPage || (isSearchPage && isMobile)
   const hideHeaderFooter = isSelectLocation || isAuthPage
