@@ -85,32 +85,34 @@ export default function MyAppointments() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 font-sans">
       {/* Top Navbar */}
       <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-3 xs:px-4 h-14 flex items-center justify-between gap-2">
           <Link 
             to="/care"
-            className="flex items-center gap-2 text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+            className="flex items-center gap-1.5 xs:gap-2 text-xs xs:text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white shrink-0"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to OzoCare
+            <ArrowLeft className="w-4 h-4 shrink-0" /> <span>Back to OzoCare</span>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <Link
               to="/care/order-medicines"
-              className="text-xs font-display font-bold px-3 py-1.5 rounded-xl text-white shadow-sm flex items-center gap-1.5"
+              className="text-xs font-display font-bold px-2.5 xs:px-3 py-1.5 rounded-xl text-white shadow-sm flex items-center gap-1.5"
               style={{ backgroundColor: themeConfig?.primary || '#059669' }}
             >
-              <ShoppingBag className="w-3.5 h-3.5" /> Order Medicines
+              <ShoppingBag className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xs:inline">Order Medicines</span>
+              <span className="xs:hidden">Medicines</span>
             </Link>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-3 xs:px-4 sm:px-6 py-5 sm:py-8">
         {/* Page Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-display font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
-              <Stethoscope className="w-7 h-7 text-emerald-600 dark:text-emerald-400" />
-              My Appointments & Consultation Tokens
+            <h1 className="text-xl xs:text-2xl font-display font-black text-slate-900 dark:text-white flex items-center gap-2 tracking-tight">
+              <Stethoscope className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>My Appointments & Tokens</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Track live queue tokens, OPD status, and access digital prescriptions (Rx).
