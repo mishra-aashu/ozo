@@ -59,6 +59,8 @@ export const useCaptainStore = create((set, get) => {
   let activeOrderSubscription = null
   let profileSubscription = null
   let assignedOrdersSubscription = null
+  let locationBroadcastChannel = null
+  let lastRiderDbCheckpoint = 0
 
   return {
     // State
@@ -554,19 +556,44 @@ export const useCaptainStore = create((set, get) => {
       }
     },
 
-    // Location Simulation
+    // Location Simulation & Live Broadcast
     updateRiderLocation: async (lat, lng) => {
       const { captainProfile } = get()
-      if (!captainProfile) return
+      if (!captainProfile || !lat || !lng) return
 
       try {
-        await supabase
-          .from('captains')
-          .update({
+        const channelName = `rider-location-realtime-${captainProfile.id}`
+        if (!locationBroadcastChannel || locationBroadcastChannel.topic !== `realtime:${channelName}`) {
+          if (locationBroadcastChannel) {
+            supabase.removeChannel(locationBroadcastChannel)
+          }
+          locationBroadcastChannel = supabase.channel(channelName)
+          locationBroadcastChannel.subscribe()
+        }
+
+        // 1. Instant WebSocket broadcast directly to customer (zero DB write, zero WAL)
+        locationBroadcastChannel.send({
+          type: 'broadcast',
+          event: 'location_update',
+          payload: {
             current_lat: lat,
-            current_long: lng
-          })
-          .eq('id', captainProfile.id)
+            current_long: lng,
+            timestamp: Date.now()
+          }
+        })
+
+        // 2. Throttled Database checkpoint (only once every 45 seconds to keep DB calm)
+        const now = Date.now()
+        if (now - lastRiderDbCheckpoint > 45000) {
+          lastRiderDbCheckpoint = now
+          await supabase
+            .from('captains')
+            .update({
+              current_lat: lat,
+              current_long: lng
+            })
+            .eq('id', captainProfile.id)
+        }
       } catch (e) {
         console.error('Update coordinates failed', e)
       }
