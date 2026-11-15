@@ -27,7 +27,8 @@ import {
   Home as HomeIcon,
   Gift,
   Wrench,
-  Stethoscope
+  Stethoscope,
+  Pill
 } from 'lucide-react'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
@@ -752,54 +753,190 @@ const Header = () => {
                         exit={{ opacity: 0, y: 12, scale: 0.95 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 350 }}
                         style={{ willChange: 'transform, opacity' }}
-                        className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#1a1a1a] rounded-2xl shadow-2xl border border-ozo-gray-lighter dark:border-white/10 overflow-hidden z-50 p-2 transform-gpu"
+                        className="absolute right-0 top-full mt-3 w-[520px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#15171c] rounded-2xl shadow-2xl border border-gray-200/80 dark:border-white/10 overflow-hidden z-50 transform-gpu"
                       >
-                        <div className="flex items-center gap-3.5 p-3.5 bg-gray-50 dark:bg-white/5 rounded-xl mb-2 border border-gray-100/50 dark:border-white/5">
-                          <UserAvatar 
-                            profile={profile} 
-                            user={user} 
-                            className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-green text-white font-bold shadow-sm flex items-center justify-center text-sm uppercase flex-shrink-0"
-                            imgClassName="w-full h-full object-cover"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="font-black text-gray-900 dark:text-white leading-tight truncate">{profile?.full_name}</p>
-                            <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium truncate mt-0.5">{user?.email}</p>
+                        {/* User Header */}
+                        <div className="flex items-center justify-between p-3.5 bg-gradient-to-r from-gray-50 via-slate-50 to-gray-100/70 dark:from-white/[0.04] dark:to-white/[0.02] border-b border-gray-100 dark:border-white/5">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <UserAvatar 
+                              profile={profile} 
+                              user={user} 
+                              className="w-10 h-10 rounded-xl overflow-hidden bg-gradient-green text-white font-bold shadow-sm flex items-center justify-center text-sm uppercase flex-shrink-0"
+                              imgClassName="w-full h-full object-cover"
+                            />
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <p className="font-black text-gray-900 dark:text-white leading-tight truncate text-sm">
+                                  {profile?.full_name || 'My Account'}
+                                </p>
+                                {isSuperAdmin ? (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black text-[9px] tracking-wide">
+                                    SUPER ADMIN
+                                  </span>
+                                ) : hasAdminPermission ? (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black text-[9px] tracking-wide">
+                                    ADMIN
+                                  </span>
+                                ) : null}
+                              </div>
+                              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate mt-0.5">
+                                {user?.email || user?.phone}
+                              </p>
+                            </div>
+                          </div>
+                          <Link
+                            to="/profile"
+                            onClick={() => setIsProfileOpen(false)}
+                            className="text-xs font-bold text-ozo-red dark:text-red-400 hover:underline px-2.5 py-1 rounded-lg hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors flex-shrink-0"
+                          >
+                            Profile
+                          </Link>
+                        </div>
+
+                        {/* Two Columns Grid */}
+                        <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-white/5 p-2.5 gap-x-2 max-h-[calc(100vh-170px)] overflow-y-auto">
+                          {/* Column 1: Personal / Account */}
+                          <div className="space-y-0.5 pr-1">
+                            <div className="px-2.5 pt-1 pb-1.5 flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                My Account
+                              </span>
+                              <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">
+                                Personal
+                              </span>
+                            </div>
+
+                            {[
+                              { to: '/profile', icon: User, label: 'My Profile' },
+                              { to: '/orders', icon: Package, label: 'My Orders' },
+                              { to: '/wishlist', icon: Heart, label: 'Wishlist', badge: wishlistItems?.length > 0 ? wishlistItems.length : null },
+                              { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount > 0 ? unreadCount : null },
+                              { to: '/referral', icon: Gift, label: 'Refer & Earn', tag: 'Earn ₹' },
+                              { to: '/settings', icon: Settings, label: 'Settings' },
+                            ].map((item) => (
+                              <Link
+                                key={item.to}
+                                to={item.to}
+                                onClick={() => setIsProfileOpen(false)}
+                                className="group flex items-center justify-between px-2.5 py-2 hover:bg-red-50/70 dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-white rounded-xl transition-all duration-150 font-semibold text-xs"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-red-100/60 dark:group-hover:bg-red-500/20 group-hover:text-ozo-red transition-colors flex-shrink-0">
+                                    <item.icon size={15} />
+                                  </div>
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                                {item.badge != null && (
+                                  <span className="px-1.5 py-0.2 rounded-full bg-ozo-red text-white text-[10px] font-black flex-shrink-0">
+                                    {item.badge}
+                                  </span>
+                                )}
+                                {item.tag && (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black flex-shrink-0">
+                                    {item.tag}
+                                  </span>
+                                )}
+                              </Link>
+                            ))}
+                          </div>
+
+                          {/* Column 2: Portals & Workspaces */}
+                          <div className="space-y-0.5 pl-1">
+                            <div className="px-2.5 pt-1 pb-1.5 flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                Portals & Workspaces
+                              </span>
+                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                Ecosystem
+                              </span>
+                            </div>
+
+                            {[
+                              ...(hasAdminPermission ? [{ 
+                                to: '/admin', 
+                                icon: Shield, 
+                                label: isSuperAdmin ? 'Admin Panel' : 'City Manager',
+                                badge: 'Admin'
+                              }] : []),
+                              ...(isMartOperator ? [{ 
+                                to: '/mart', 
+                                icon: Store, 
+                                label: 'Mart Portal',
+                                badge: 'Mart'
+                              }] : []),
+                              ...(isCaptain ? [{ 
+                                to: '/captain', 
+                                icon: Bike, 
+                                label: 'Rider Portal',
+                                badge: 'Rider'
+                              }] : []),
+                              ...(isServiceManager ? [{ 
+                                to: '/service-manager', 
+                                icon: Wrench, 
+                                label: 'Service Partner',
+                                badge: 'Services'
+                              }] : []),
+                              { 
+                                to: '/care', 
+                                icon: Stethoscope, 
+                                label: 'OzoCare Health',
+                                badge: 'Care'
+                              },
+                              { 
+                                to: '/doctor', 
+                                icon: Stethoscope, 
+                                label: 'Doctor Workstation',
+                                badge: 'OPD'
+                              },
+                              { 
+                                to: '/pharmacy', 
+                                icon: Pill, 
+                                label: 'Chemist Portal',
+                                badge: 'Pharmacy'
+                              },
+                            ].map((item) => (
+                              <Link
+                                key={item.to}
+                                to={item.to}
+                                onClick={() => setIsProfileOpen(false)}
+                                className="group flex items-center justify-between px-2.5 py-2 hover:bg-emerald-50/70 dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:text-emerald-700 dark:hover:text-white rounded-xl transition-all duration-150 font-semibold text-xs"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-emerald-100/60 dark:group-hover:bg-emerald-500/20 group-hover:text-emerald-600 transition-colors flex-shrink-0">
+                                    <item.icon size={15} />
+                                  </div>
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                                {item.badge && (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 text-[10px] font-bold flex-shrink-0">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            ))}
                           </div>
                         </div>
-                        <div className="space-y-1">
-                          {[
-                            ...(hasAdminPermission ? [{ to: '/admin', icon: Shield, label: isSuperAdmin ? 'Admin Panel' : 'City Manager Portal' }] : []),
-                            { to: '/profile', icon: User, label: 'My Profile' },
-                            { to: '/orders', icon: Package, label: 'My Orders' },
-                            { to: '/referral', icon: Gift, label: 'Refer & Earn' },
-                            ...(isCaptain ? [{ to: '/captain', icon: Bike, label: 'Rider Portal' }] : []),
-                            ...(isMartOperator ? [{ to: '/mart', icon: Store, label: 'Mart Portal' }] : []),
-                            ...(isServiceManager ? [{ to: '/service-manager', icon: Wrench, label: 'Service Partner Portal' }] : []),
-                            { to: '/care', icon: Stethoscope, label: 'OzoCare (Doctors & Medicines)' },
-                            { to: '/doctor', icon: Stethoscope, label: 'Doctor Workstation' },
-                            { to: '/pharmacy', icon: Store, label: 'Chemist Portal' },
-                            { to: '/wishlist', icon: Heart, label: 'Wishlist' },
-                            { to: '/notifications', icon: Bell, label: 'Notifications' },
-                            { to: '/settings', icon: Settings, label: 'Settings' },
-                          ].map((item) => (
-                            <Link
-                              key={item.to}
-                              to={item.to}
-                              className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 hover:text-ozo-red dark:hover:text-ozo-red-light rounded-xl transition-all duration-200 font-semibold text-sm"
+
+                        {/* Bottom Footer Actions */}
+                        <div className="px-4 py-2.5 border-t border-gray-100 dark:border-white/5 bg-gray-50/60 dark:bg-white/[0.02] flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 text-[11px] text-gray-400 font-medium">
+                            <span>Need help?</span>
+                            <Link 
+                              to="/help" 
+                              onClick={() => setIsProfileOpen(false)}
+                              className="text-gray-600 dark:text-gray-300 font-bold hover:text-ozo-red dark:hover:text-white transition-colors"
                             >
-                              <item.icon size={18} />
-                              <span>{item.label}</span>
+                              Support Center
                             </Link>
-                          ))}
-                          <div className="h-px bg-gray-100 dark:bg-white/10 my-2 mx-2" />
+                          </div>
                           <button
                             onClick={() => {
                               setIsProfileOpen(false)
                               setShowLogoutConfirm(true)
                             }}
-                            className="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 dark:hover:bg-white/5 text-ozo-red rounded-xl transition-all duration-200 w-full text-left font-bold text-sm"
+                            className="flex items-center gap-2 px-3 py-1.5 hover:bg-red-50 dark:hover:bg-rose-950/40 text-ozo-red rounded-xl transition-all duration-150 font-bold text-xs"
                           >
-                            <LogOut size={18} />
+                            <LogOut size={14} />
                             <span>Logout</span>
                           </button>
                         </div>
