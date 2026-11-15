@@ -1,6 +1,7 @@
 import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import Header from '../components/Header'
+import CareHeader from '../components/care/CareHeader'
 import Footer from '../components/Footer'
 import CareFooter from '../components/care/CareFooter'
 import BottomNav from '../components/BottomNav'
@@ -116,7 +117,7 @@ const MainLayout = () => {
       <NetworkStatusBanner />
 
       {/* Header - Hidden on select location, auth, and category to avoid double headers or distraction */}
-      {!hideHeader && <Header />}
+      {!hideHeader && (isCareMode ? <CareHeader /> : <Header />)}
 
       {/* Main Content */}
       <main className={`flex-1 ${hideHeaderFooter || isCategoryPage ? '' : 'pb-28 md:pb-8'} w-full max-w-full overflow-x-clip relative`}>

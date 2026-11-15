@@ -78,7 +78,7 @@ export default function VerticalDropdownHeader({ fullWidth = false, showLogo = t
       {showLogo && (
         <button 
           type="button"
-          onClick={() => handleSelect('mart')}
+          onClick={() => handleSelect(activeMode)}
           className="flex items-center focus:outline-none hover:scale-105 transition-transform cursor-pointer flex-shrink-0"
           aria-label="Go to Home"
         >
