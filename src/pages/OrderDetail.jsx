@@ -607,14 +607,38 @@ const OrderDetail = () => {
     }
   }, [id, fetchOrderById])
 
-  // Realtime subscription for rider live location updates
+  // Realtime subscription for rider live location updates (Broadcast + DB Checkpoint Fallback)
   useEffect(() => {
     const riderId = currentOrder?.rider_id
     if (!riderId) return
 
+    const updateCoords = (lat, lng) => {
+      if (!lat || !lng) return
+      useOrderStore.setState((state) => {
+        if (!state.currentOrder) return state
+        return {
+          currentOrder: {
+            ...state.currentOrder,
+            rider: {
+              ...state.currentOrder.rider,
+              current_lat: parseFloat(lat),
+              current_long: parseFloat(lng)
+            }
+          }
+        }
+      })
+    }
+
     const channelName = `rider-location-realtime-${riderId}`
     const channel = supabase
       .channel(channelName)
+      // 1. Instant WebSocket broadcast listener (0 DB reads/writes)
+      .on('broadcast', { event: 'location_update' }, ({ payload }) => {
+        if (payload?.current_lat && payload?.current_long) {
+          updateCoords(payload.current_lat, payload.current_long)
+        }
+      })
+      // 2. Database changes fallback (for 45s checkpoints or initial load)
       .on(
         'postgres_changes',
         {
@@ -624,23 +648,8 @@ const OrderDetail = () => {
           filter: `id=eq.${riderId}`
         },
         (payload) => {
-          console.log('Rider location update received:', payload.new)
-          const { current_lat, current_long } = payload.new
-          
-          // Safe Zustand state functional update to bypass subscription recreation
-          useOrderStore.setState((state) => {
-            if (!state.currentOrder) return state
-            return {
-              currentOrder: {
-                ...state.currentOrder,
-                rider: {
-                  ...state.currentOrder.rider,
-                  current_lat: current_lat ? parseFloat(current_lat) : null,
-                  current_long: current_long ? parseFloat(current_long) : null
-                }
-              }
-            }
-          })
+          const { current_lat, current_long } = payload.new || {}
+          updateCoords(current_lat, current_long)
         }
       )
       .subscribe()
