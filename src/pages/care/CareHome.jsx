@@ -18,7 +18,8 @@ import {
   FileText,
   Upload,
   X,
-  Activity
+  Activity,
+  Zap
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import SpecialtyIcon, { CARE_SPECIALTIES } from '../../utils/careIcons'
