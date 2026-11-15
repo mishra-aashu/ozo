@@ -93,12 +93,12 @@ export default function CareHeroSlider() {
 
   return (
     <div 
-      className="relative w-full rounded-3xl overflow-hidden shadow-2xl border border-gray-200/90 dark:border-white/10 bg-slate-900 group select-none"
+      className="relative w-full rounded-2xl sm:rounded-3xl overflow-hidden shadow-2xl border border-gray-200/90 dark:border-white/10 bg-slate-900 group select-none"
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      {/* 16:9 Aspect Ratio Container */}
-      <div className="relative aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
+      {/* Responsive Aspect Ratio Container */}
+      <div className="relative aspect-[16/11] xs:aspect-[16/10] sm:aspect-[16/9] w-full overflow-hidden">
         
         {/* Animated Background Slides */}
         <AnimatePresence mode="wait">
@@ -116,26 +116,26 @@ export default function CareHeroSlider() {
               className="w-full h-full object-cover object-center"
             />
             {/* Soft minimal gradient at bottom only — keeping images crisp, bright and clear */}
-            <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#0c1015]/85 via-[#0c1015]/35 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-3/5 bg-gradient-to-t from-[#0c1015]/90 via-[#0c1015]/40 to-transparent pointer-events-none" />
           </motion.div>
         </AnimatePresence>
 
         {/* Top Tag Pill */}
-        <div className="absolute top-4 left-4 z-20 flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] sm:text-xs font-display font-black uppercase tracking-wider backdrop-blur-md border ${currentSlide.tagColor}`}>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-2">
+          <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[9px] xs:text-[10px] sm:text-xs font-display font-black uppercase tracking-wider backdrop-blur-md border ${currentSlide.tagColor}`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
             <BadgeIcon size={12} />
             <span>{currentSlide.tag}</span>
           </span>
         </div>
 
         {/* Slide Counter on Top Right */}
-        <div className="absolute top-4 right-4 z-20 px-2.5 py-1 rounded-full bg-black/50 backdrop-blur-md text-[10px] font-mono text-white/80 border border-white/10">
+        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-black/50 backdrop-blur-md text-[9px] xs:text-[10px] font-mono text-white/80 border border-white/10">
           0{currentIndex + 1} / 0{SLIDES.length}
         </div>
 
         {/* Overlay Content at Bottom of Slide */}
-        <div className="absolute inset-x-0 bottom-0 z-20 p-5 sm:p-6 space-y-2.5 text-left">
+        <div className="absolute inset-x-0 bottom-0 z-20 p-3.5 xs:p-4 sm:p-6 space-y-1 sm:space-y-2 text-left">
           <AnimatePresence mode="wait">
             <motion.div
               key={currentSlide.id}
@@ -143,28 +143,28 @@ export default function CareHeroSlider() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.35 }}
-              className="space-y-1.5"
+              className="space-y-1"
             >
-              <h3 className="text-xl sm:text-2xl font-display font-black text-white leading-tight drop-shadow-md">
+              <h3 className="text-base xs:text-lg sm:text-2xl font-display font-black text-white leading-tight drop-shadow-md">
                 {currentSlide.title}
               </h3>
               
-              <p className="text-xs sm:text-sm text-slate-200 font-sans font-medium line-clamp-1 drop-shadow">
+              <p className="text-[11px] sm:text-sm text-slate-200 font-sans font-medium line-clamp-1 drop-shadow">
                 {currentSlide.subtitle}
               </p>
 
-              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-                <span className="text-[11px] font-sans font-bold text-emerald-400 flex items-center gap-1.5">
-                  <CheckCircle2 size={13} className="text-emerald-400" />
-                  <span>{currentSlide.highlight}</span>
+              <div className="flex items-center justify-between gap-2 pt-1 sm:pt-2">
+                <span className="text-[10px] sm:text-[11px] font-sans font-bold text-emerald-400 flex items-center gap-1 min-w-0">
+                  <CheckCircle2 size={12} className="text-emerald-400 shrink-0" />
+                  <span className="truncate">{currentSlide.highlight}</span>
                 </span>
 
                 <button
                   onClick={() => navigate(currentSlide.ctaLink)}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-black text-xs flex items-center gap-1.5 shadow-lg shadow-emerald-950/40 transition-all active:scale-95 shrink-0"
+                  className="px-3 py-1.5 sm:px-4 sm:py-2 rounded-lg sm:rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-display font-black text-[11px] sm:text-xs flex items-center gap-1 shadow-lg shadow-emerald-950/40 transition-all active:scale-95 shrink-0"
                 >
                   <span>{currentSlide.ctaText}</span>
-                  <ArrowRight size={13} />
+                  <ArrowRight size={12} />
                 </button>
               </div>
             </motion.div>
