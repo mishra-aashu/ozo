@@ -190,47 +190,49 @@ export default function OrderMedicines() {
           <div className="lg:col-span-7 space-y-6">
             <form onSubmit={handleOrderSubmit} className="space-y-6">
               {/* Step 1: Prescription Selection */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-                  <FileText className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  Step 1: Attach Valid Prescription
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 sm:mb-4">
+                  <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="truncate">Step 1: Attach Prescription</span>
                 </h2>
 
-                <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-4">
                   <button
                     type="button"
                     onClick={() => setOrderMode('upload')}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                    className={`py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 min-w-0 ${
                       orderMode === 'upload'
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
                         : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
-                    <Upload className="w-4 h-4" /> Upload Rx Photo
+                    <Upload className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Upload Rx</span>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => setOrderMode('digital_rx')}
-                    className={`py-2.5 px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 ${
+                    className={`py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 min-w-0 ${
                       orderMode === 'digital_rx'
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
                         : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
                     }`}
                   >
-                    <FileText className="w-4 h-4" /> Use OzoCare e-Rx
+                    <FileText className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Saved e-Rx</span>
                   </button>
                 </div>
 
                 {orderMode === 'upload' ? (
                   <div>
                     {!rxImageUrl ? (
-                      <label className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-800/40">
-                        <Upload className="w-10 h-10 text-slate-400 mb-2" />
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <label className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-800/40">
+                        <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400 mb-1.5" />
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate max-w-full">
                           {isUploadingRx ? 'Uploading to secure cloud...' : 'Click to Upload Prescription Photo / Slip'}
                         </span>
-                        <span className="text-[11px] text-slate-400 mt-1">
+                        <span className="text-[11px] text-slate-400 mt-0.5 truncate max-w-full">
                           PNG, JPG up to 10MB • Clear doctor signature & date
                         </span>
                         <input 
@@ -300,17 +302,17 @@ export default function OrderMedicines() {
               </div>
 
               {/* Step 2: Select Local Chemist */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
-                  <Building2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  Step 2: Choose Verified Retail Chemist
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 sm:mb-4">
+                  <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="truncate">Step 2: Choose Local Chemist</span>
                 </h2>
 
-                <div className="space-y-3">
+                <div className="space-y-2.5 sm:space-y-3">
                   {pharmacies.map((store) => (
                     <label 
                       key={store.id}
-                      className={`p-4 rounded-xl border flex items-start gap-4 cursor-pointer transition-all ${
+                      className={`p-3 sm:p-3.5 rounded-xl border flex items-center gap-3 cursor-pointer transition-all ${
                         selectedPharmacyId === store.id
                           ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-1 ring-emerald-500'
                           : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
@@ -321,24 +323,22 @@ export default function OrderMedicines() {
                         name="pharmacy"
                         checked={selectedPharmacyId === store.id}
                         onChange={() => setSelectedPharmacyId(store.id)}
-                        className="mt-1 text-emerald-600 focus:ring-emerald-500"
+                        className="text-emerald-600 focus:ring-emerald-500 shrink-0"
                       />
-                      <div className="flex-1 text-xs">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-slate-900 dark:text-white text-sm">
+                      <div className="flex-1 min-w-0 text-xs">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm truncate">
                             {store.store_name}
                           </span>
-                          <span className="text-[11px] font-bold text-emerald-600 flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5" /> 30-45 Mins
+                          <span className="text-[10px] sm:text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 shrink-0 whitespace-nowrap">
+                            <Clock className="w-3 h-3 shrink-0" /> 30-45m
                           </span>
                         </div>
-                        <p className="text-slate-500 mt-0.5">{store.address}</p>
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px]">
-                          <span className="bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded font-mono text-slate-600 dark:text-slate-300">
-                            Drug Lic: {store.drug_license_number || 'Form 20/21'}
-                          </span>
-                          <span className="text-slate-400">
-                            Pharmacist: {store.registered_pharmacist_name || 'Verified Chemist'}
+                        <div className="flex items-center gap-1.5 mt-0.5 text-[11px] text-slate-500 dark:text-slate-400">
+                          <span className="truncate">{store.address || 'Verified Chemist'}</span>
+                          <span className="shrink-0">•</span>
+                          <span className="shrink-0 font-mono text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded text-slate-600 dark:text-slate-300">
+                            Lic: {store.drug_license_number || 'Form 20/21'}
                           </span>
                         </div>
                       </div>
@@ -348,10 +348,10 @@ export default function OrderMedicines() {
               </div>
 
               {/* Step 3: Delivery Address & Details */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
-                <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
-                  <MapPin className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  Step 3: Delivery Details
+              <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+                <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="truncate">Step 3: Delivery Details</span>
                 </h2>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -428,7 +428,7 @@ export default function OrderMedicines() {
                     boxShadow: `0 8px 20px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.35)'}`
                   }}
                 >
-                  {isSubmitting ? 'Routing to Licensed Chemist...' : 'Send Prescription to Chemist (Free 30-Min Delivery)'}
+                  {isSubmitting ? 'Routing to Licensed Chemist...' : 'Send Prescription to Chemist • 30m Express'}
                 </button>
               </div>
             </form>
