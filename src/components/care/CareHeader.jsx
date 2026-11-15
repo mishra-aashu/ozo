@@ -259,19 +259,16 @@ export default function CareHeader() {
           {/* RIGHT: HEALTHCARE NAVIGATION & ACTIONS */}
           <div className="flex items-center gap-1.5 xs:gap-2 sm:gap-3 shrink-0">
             
-            {/* Quick Switch to Mart Pill (Mobile & Tablet) */}
+            {/* 24x7 Emergency Help Pill (Mobile & Tablet) */}
             <button
               type="button"
-              onClick={() => navigate('/')}
-              className="lg:hidden flex items-center gap-1 px-2 xs:px-2.5 py-1.5 rounded-full border border-orange-500/30 bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 text-[11px] font-black transition-all active:scale-95 shrink-0"
-              title="Switch to OZO Mart"
-              aria-label="Switch to OZO Mart"
+              onClick={() => setShowEmergencyModal(true)}
+              className="lg:hidden flex items-center gap-1 px-2 xs:px-2.5 py-1.5 rounded-full bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/20 text-[11px] font-bold active:scale-95 transition-all"
+              title="24x7 Emergency Help"
+              aria-label="24x7 Emergency Help"
             >
-              <ShoppingBag size={12} className="text-orange-500 shrink-0" />
-              <span className="notranslate flex items-baseline gap-0.5 leading-none" translate="no">
-                <span className="text-[10px] xs:text-[11px]">OZO</span>
-                <span style={{ fontFamily: "'Dancing Script', cursive" }} className="text-[11px] xs:text-[12px] font-bold">mart</span>
-              </span>
+              <Activity size={13} className="text-rose-500 animate-pulse shrink-0" />
+              <span className="text-[10px] xs:text-[11px] font-black uppercase tracking-wider">24x7</span>
             </button>
 
             {/* Quick Nav Links (Desktop) */}
@@ -324,7 +321,7 @@ export default function CareHeader() {
             <button
               onClick={toggleTheme}
               aria-label="Toggle Theme"
-              className="p-2 xs:p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 transition-colors hidden sm:flex shrink-0"
+              className="p-1.5 xs:p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300 transition-colors active:scale-95 shrink-0"
             >
               {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
             </button>
@@ -428,20 +425,56 @@ export default function CareHeader() {
             {/* Mobile Menu Toggle Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-xl border border-slate-200 dark:border-white/10 md:hidden text-slate-700 dark:text-slate-300"
+              aria-label={isMobileMenuOpen ? "Close menu" : "Open menu"}
+              className="p-1.5 xs:p-2 rounded-xl border border-slate-200 dark:border-white/10 md:hidden text-slate-700 dark:text-slate-300 active:scale-95 transition-all"
             >
-              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+              {isMobileMenuOpen ? <X size={20} className="text-emerald-500" /> : <Menu size={20} />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Search Row (Mobile Only) */}
-        <div className="md:hidden px-4 pb-3 pt-1">
+        {/* Toggle Switch & Location Selector (Mobile / Tablet - Second & Third Rows, Permanent) */}
+        <div className="mt-2 px-3 xs:px-4 sm:px-6 lg:hidden space-y-2">
+          {/* Row 2: Mart vs Services vs Care Segmented Toggle Switch Capsule */}
+          <div className="w-full">
+            <VerticalDropdownHeader fullWidth showLogo={false} />
+          </div>
+
+          {/* Row 3: Healthcare Location Selector */}
+          <button 
+            onClick={() => {
+              navigate('/select-location', { state: { from: location.pathname + location.search } })
+            }}
+            aria-label="Select Delivery & Clinic Location"
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 rounded-2xl transition-all duration-300 border shadow-sm hover:shadow-md group bg-slate-50 dark:bg-white/5 hover:bg-white dark:hover:bg-white/10 border-slate-200/80 dark:border-white/10 hover:border-emerald-500/30 text-left"
+          >
+            <div className="w-7 h-7 rounded-xl flex items-center justify-center group-hover:scale-110 transition-all flex-shrink-0 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400">
+              <MapPin className="w-3.5 h-3.5" />
+            </div>
+            <div className="text-left min-w-0 flex-1">
+              <div className="flex items-center gap-1.5">
+                <p className="text-[8px] uppercase tracking-widest text-slate-400 font-black leading-none mb-0.5">
+                  Consult & Deliver in
+                </p>
+                <span className="text-[7px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/40 px-1 py-0.5 rounded leading-none uppercase tracking-wider">
+                  Serviceable
+                </span>
+              </div>
+              <p className="text-xs font-black flex items-center gap-1 truncate text-slate-900 dark:text-white">
+                <span className="truncate">{address || `${activeCityName}, BIHAR`}</span>
+                <ChevronDown className="w-3.5 h-3.5 flex-shrink-0 text-emerald-500" />
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {/* Row 4: Mobile Search Row (Mobile Only) */}
+        <div className="md:hidden px-3 xs:px-4 sm:px-6 pb-3 pt-2">
           <form onSubmit={handleSearchSubmit} className="relative">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
             <input
               type="text"
-              placeholder="Search doctors, clinics, medicines..."
+              placeholder="Search doctors, specialties, clinics, medicines..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-3 py-2 bg-slate-50 dark:bg-[#121820] border border-slate-200 dark:border-white/10 rounded-xl text-xs text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/40"
