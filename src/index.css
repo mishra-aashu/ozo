@@ -402,7 +402,7 @@ body {
   }
 
   .product-card-body {
-    @apply flex flex-col flex-1 p-4;
+    @apply flex flex-col flex-1;
   }
 
   .product-badge {
