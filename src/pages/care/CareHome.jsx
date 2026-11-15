@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Stethoscope,
   Search,
@@ -46,69 +47,124 @@ export default function CareHome() {
   return (
     <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] text-left pb-28 md:pb-20 font-sans overflow-x-clip">
       
-      {/* 1. HERO BANNER WITH VISUAL HEALTHCARE SHOWCASE */}
-      <section className="relative overflow-hidden pt-5 sm:pt-8 pb-8 sm:pb-12 px-3 xs:px-4 sm:px-6 lg:px-8 border-b border-gray-200/80 dark:border-white/5">
+      {/* 1. HERO BANNER WITH CRISP PUNCHY VALUE PROP & 2 ACTION CARDS */}
+      <section className="relative overflow-hidden pt-4 sm:pt-7 pb-6 sm:pb-10 px-3 xs:px-4 sm:px-6 lg:px-8 border-b border-gray-200/80 dark:border-white/5">
         {/* Dynamic mesh glow background based on theme */}
         <div 
-          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full blur-3xl opacity-35 pointer-events-none"
+          className="absolute -top-32 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full blur-3xl opacity-30 pointer-events-none"
           style={{ backgroundColor: themeConfig?.primary || '#059669' }}
         />
 
         <div className="max-w-7xl mx-auto relative z-10">
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 sm:gap-8">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 sm:gap-8">
             
-            {/* Left: Headline & Trust Actions */}
+            {/* Left: Punchy Headline, Live Beacon & 2 Interactive Action Cards */}
             <div className="w-full max-w-2xl space-y-3 sm:space-y-4 min-w-0">
-              <div 
-                className="inline-flex items-center gap-1.5 xs:gap-2 px-2.5 xs:px-3 py-1 xs:py-1.5 rounded-full text-[10px] xs:text-xs font-display font-black uppercase tracking-wider border shadow-xs max-w-full overflow-hidden"
-                style={{
-                  backgroundColor: themeConfig?.badge_bg || 'rgba(5, 150, 105, 0.12)',
-                  borderColor: themeConfig?.primary || '#059669',
-                  color: themeConfig?.badge_text || '#10b981'
-                }}
+              
+              {/* Live Status Pill with pulsing beacon */}
+              <motion.div 
+                initial={{ opacity: 0, y: -6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="inline-flex items-center gap-2 px-2.5 xs:px-3 py-1 rounded-full text-[10px] xs:text-[11px] font-sans font-bold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 backdrop-blur-md select-none max-w-full overflow-hidden"
               >
-                <ShieldCheck size={13} className="shrink-0 text-emerald-500" />
-                <span className="truncate min-w-0">NMC Verified Doctors • 100% Licensed Chemists</span>
-              </div>
-
-              <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-display font-black text-gray-900 dark:text-white tracking-tight leading-tight">
-                Healthcare with Trust. <br className="hidden xs:inline" />
-                <span 
-                  className="bg-clip-text text-transparent bg-gradient-to-r"
-                  style={{
-                    backgroundImage: `linear-gradient(to right, ${themeConfig?.primary || '#059669'}, ${themeConfig?.secondary || '#06b6d4'})`
-                  }}
-                >
-                  Consult Doctors & Order Medicines
+                <span className="relative flex h-2 w-2 shrink-0">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                 </span>
-              </h1>
+                <span className="truncate">Verified Doctors & 30m Chemist Network</span>
+              </motion.div>
 
-              <p className="text-xs xs:text-sm sm:text-base text-gray-600 dark:text-gray-300 font-sans font-medium leading-relaxed">
-                Book verified clinic visits or teleconsultations with top specialists in Patna. Get digital prescriptions fulfilled in 30 minutes by your trusted neighborhood chemist.
-              </p>
+              {/* Punchy Animated Headline */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.1 }}
+                className="space-y-1.5"
+              >
+                <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-display font-black text-slate-900 dark:text-white tracking-tight leading-[1.12]">
+                  Instant Doctor OPD & <br className="hidden xs:inline" />
+                  <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500">
+                    Medicines in 30 Mins.
+                  </span>
+                </h1>
+                
+                {/* Micro Trust Points (3 clean points, zero long AI paragraphs) */}
+                <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[11px] xs:text-xs text-slate-500 dark:text-slate-400 font-sans font-medium pt-0.5">
+                  <span className="flex items-center gap-1 shrink-0">
+                    <ShieldCheck size={13} className="text-emerald-500 shrink-0" />
+                    <span>NMC Verified Doctors</span>
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 shrink-0">
+                    <Clock size={13} className="text-teal-500 shrink-0" />
+                    <span>Zero Advance Fee</span>
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1 shrink-0">
+                    <Sparkles size={13} className="text-amber-500 shrink-0" />
+                    <span>Pay at Clinic Counter</span>
+                  </span>
+                </div>
+              </motion.div>
 
-              {/* Quick Action Buttons */}
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 pt-1 sm:pt-2 w-full max-w-full">
+              {/* 2 Sleek Interactive Action Cards (Side-by-Side on Mobile!) */}
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: 0.18 }}
+                className="grid grid-cols-2 gap-2.5 sm:gap-3.5 pt-1 w-full"
+              >
+                {/* Action Card 1: Doctors & OPD Tokens */}
                 <Link
                   to="/care/my-appointments"
-                  className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl bg-white dark:bg-[#161e27] border border-gray-200 dark:border-white/10 hover:border-emerald-500 text-xs sm:text-sm font-display font-bold text-gray-800 dark:text-gray-200 transition-all flex items-center justify-center gap-2 shadow-xs hover:-translate-y-0.5 active:scale-95 text-center min-w-0"
+                  className="group relative p-3 sm:p-4 rounded-2xl bg-white dark:bg-[#121820] border border-slate-200/90 dark:border-white/10 hover:border-emerald-500/50 shadow-sm hover:shadow-lg transition-all duration-300 flex flex-col justify-between overflow-hidden active:scale-95"
                 >
-                  <Calendar size={16} className="text-emerald-500 shrink-0" />
-                  <span className="truncate">My Appointments & Tokens</span>
+                  <div className="flex items-start justify-between">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Calendar size={17} />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 leading-none">
+                      Live Queue
+                    </span>
+                  </div>
+
+                  <div className="mt-2 text-left">
+                    <h3 className="font-display font-black text-xs sm:text-sm text-slate-900 dark:text-white leading-tight flex items-center gap-1 group-hover:text-emerald-500 transition-colors">
+                      <span>Book OPD Token</span>
+                      <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform shrink-0" />
+                    </h3>
+                    <p className="text-[10px] text-slate-400 font-sans mt-0.5 truncate">
+                      Skip Clinic Waiting
+                    </p>
+                  </div>
                 </Link>
 
+                {/* Action Card 2: 30-Min Medicine Delivery */}
                 <Link
                   to="/care/order-medicines"
-                  className="w-full sm:w-auto px-4 py-2.5 sm:px-5 sm:py-3 rounded-2xl text-white text-xs sm:text-sm font-display font-black transition-all flex items-center justify-center gap-2 shadow-md hover:-translate-y-0.5 active:scale-95 text-center min-w-0"
-                  style={{ 
-                    backgroundColor: themeConfig?.primary || '#059669',
-                    boxShadow: `0 8px 20px ${themeConfig?.primary_glow || 'rgba(5, 150, 105, 0.35)'}`
-                  }}
+                  className="group relative p-3 sm:p-4 rounded-2xl bg-gradient-to-br from-emerald-600 via-teal-600 to-emerald-700 text-white shadow-md hover:shadow-xl hover:shadow-emerald-950/30 transition-all duration-300 flex flex-col justify-between overflow-hidden active:scale-95"
                 >
-                  <Upload size={16} className="shrink-0" />
-                  <span className="truncate">Order Medicines from Local Chemist</span>
+                  <div className="flex items-start justify-between">
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-white/20 text-white flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                      <Pill size={17} />
+                    </div>
+                    <span className="text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md bg-white/20 text-white leading-none">
+                      ⚡ 30m Express
+                    </span>
+                  </div>
+
+                  <div className="mt-2 text-left">
+                    <h3 className="font-display font-black text-xs sm:text-sm text-white leading-tight flex items-center gap-1">
+                      <span>Order Medicines</span>
+                      <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform shrink-0" />
+                    </h3>
+                    <p className="text-[10px] text-emerald-100/90 font-sans mt-0.5 truncate">
+                      Upload Rx Chemist Bill
+                    </p>
+                  </div>
                 </Link>
-              </div>
+              </motion.div>
             </div>
 
             {/* Right: Visual Care Hero Carousel (4 Slides with High-Res Images & Auto-Slide) */}
