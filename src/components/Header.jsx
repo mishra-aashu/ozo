@@ -41,7 +41,6 @@ import LocationPicker from './LocationPicker'
 import BrowsingBanner from './BrowsingBanner'
 import OzoLogo from './OzoLogo'
 import VerticalDropdownHeader from './VerticalDropdownHeader'
-import CareHeader from './care/CareHeader'
 import toast from 'react-hot-toast'
 import UserAvatar from './UserAvatar'
 import OptimizedImage from './OptimizedImage'
@@ -426,10 +425,6 @@ const Header = () => {
     }
   }, [searchQuery, navigate, isServicesMode])
 
-  if (isCareMode) {
-    return <CareHeader />
-  }
-
   return (
     <>
       {/* Dynamic Delivery Service Hours Banner */}
@@ -498,7 +493,7 @@ const Header = () => {
                 <VerticalDropdownHeader />
               </div>
               <div className="lg:hidden">
-                <Link to="/" className="flex items-center gap-2">
+                <Link to={isServicesMode ? "/services" : "/"} className="flex items-center gap-2">
                   <OzoLogo size="sm" verticalMode={activeVerticalMode} />
                 </Link>
               </div>
