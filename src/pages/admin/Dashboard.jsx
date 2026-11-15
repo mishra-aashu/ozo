@@ -10,7 +10,6 @@ import {
   AlertTriangle,
   ArrowRight,
   Plus,
-  TrendingDown,
   DollarSign,
   Star,
   Clock,
@@ -23,7 +22,22 @@ import {
   ChevronRight,
   Settings,
   ShieldCheck,
-  MessageSquare
+  MessageSquare,
+  Bike,
+  Store,
+  Stethoscope,
+  Wrench,
+  Pill,
+  CheckCircle,
+  AlertCircle,
+  ExternalLink,
+  Layers,
+  MapPin,
+  RotateCcw,
+  Sparkles,
+  Calendar,
+  Building2,
+  FileText
 } from 'lucide-react'
 import { supabaseAdmin } from '../../lib/supabase'
 import { useAuthStore } from '../../stores/authStore'
@@ -40,17 +54,38 @@ const Dashboard = () => {
     captainsCount: 0,
     activeCaptainsCount: 0,
     revenue: 0,
+    todaySales: 0,
+    todayOrdersCount: 0,
     avgRating: 0.0,
     deliveredOrdersCount: 0,
     activeOrdersCount: 0,
     pendingOrdersCount: 0,
-    cancelledOrdersCount: 0
+    cancelledOrdersCount: 0,
+    // Ecosystem stats
+    doctorsCount: 0,
+    pharmaciesCount: 0,
+    careAppointmentsCount: 0,
+    servicesCount: 0,
+    serviceCategoriesCount: 0
   })
+
+  // Pending requests breakdown
+  const [pendingRequests, setPendingRequests] = useState({
+    pendingCaptains: 0,
+    pendingMarts: 0,
+    pendingDoctors: 0,
+    pendingPharmacies: 0,
+    pendingReturns: 0,
+    pendingInquiries: 0,
+    openTickets: 0
+  })
+
   const [loading, setLoading] = useState(true)
   const [syncing, setSyncing] = useState(false)
   const [recentProducts, setRecentProducts] = useState([])
   const [recentOrders, setRecentOrders] = useState([])
   const [topSellers, setTopSellers] = useState([])
+  const [criticalLowStock, setCriticalLowStock] = useState([])
   const [dailyData, setDailyData] = useState([])
   const [allOrders, setAllOrders] = useState([])
   const [chartTimeframe, setChartTimeframe] = useState(30)
@@ -73,7 +108,6 @@ const Dashboard = () => {
 
     if (isCityManager) {
       try {
-        // Get all marts in these cities
         if (scopedCities.length > 0) {
           const { data: managerMarts } = await supabaseAdmin
             .from('marts')
@@ -82,7 +116,6 @@ const Dashboard = () => {
           scopedMartIds = (managerMarts || []).map(m => m.id)
         }
 
-        // Get all rider user IDs in these cities
         if (scopedCities.length > 0) {
           const { data: riderRoles } = await supabaseAdmin
             .from('user_roles')
@@ -96,7 +129,7 @@ const Dashboard = () => {
       }
     }
 
-    const timeoutMs = 8000 // 8 seconds timeout limit
+    const timeoutMs = 8000
     const withTimeout = (promise) => 
       Promise.race([
         promise,
@@ -106,7 +139,7 @@ const Dashboard = () => {
       ])
 
     try {
-      // Build queries dynamically based on role scope
+      // 1. Core Mart queries
       let productsQuery = supabaseAdmin.from('products').select('*', { count: 'exact', head: true })
       let outOfStockQuery = supabaseAdmin.from('products').select('*', { count: 'exact', head: true }).eq('is_available', false)
       let categoriesQuery = supabaseAdmin.from('categories').select('*', { count: 'exact', head: true })
@@ -132,6 +165,23 @@ const Dashboard = () => {
       `).order('created_at', { ascending: false }).limit(5)
       let itemsQuery = supabaseAdmin.from('order_items').select('product_name, quantity, total_price, order:orders(status)').limit(500)
       let recentProdQuery = supabaseAdmin.from('products').select('id, name, price, mrp, image_url, created_at').order('created_at', { ascending: false }).limit(4)
+      let lowStockListQuery = supabaseAdmin.from('products').select('id, name, price, mrp, image_url, is_available').eq('is_available', false).limit(4)
+
+      // 2. Pending requests & cross-vertical queries
+      let pendingCaptainsQuery = supabaseAdmin.from('captains').select('id', { count: 'exact', head: true }).eq('status', 'pending_verification')
+      let pendingMartsQuery = supabaseAdmin.from('mart_applications').select('id', { count: 'exact', head: true }).eq('status', 'pending_verification')
+      let pendingDoctorsQuery = supabaseAdmin.from('care_doctors').select('id', { count: 'exact', head: true }).eq('is_verified', false)
+      let pendingPharmaciesQuery = supabaseAdmin.from('care_pharmacies').select('id', { count: 'exact', head: true }).eq('is_verified', false)
+      let pendingReturnsQuery = supabaseAdmin.from('orders').select('id', { count: 'exact', head: true }).eq('status', 'RETURN_REQUESTED')
+      let pendingInquiriesQuery = supabaseAdmin.from('service_inquiries').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+      let openTicketsQuery = supabaseAdmin.from('contact_messages').select('id', { count: 'exact', head: true }).or('status.eq.new,status.eq.unread,is_read.eq.false')
+
+      // 3. Multi-vertical health metrics
+      let doctorsTotalQuery = supabaseAdmin.from('care_doctors').select('id', { count: 'exact', head: true })
+      let pharmaciesTotalQuery = supabaseAdmin.from('care_pharmacies').select('id', { count: 'exact', head: true })
+      let appointmentsQuery = supabaseAdmin.from('care_appointments').select('id', { count: 'exact', head: true })
+      let servicesQuery = supabaseAdmin.from('services_catalog').select('id', { count: 'exact', head: true })
+      let serviceCategoriesQuery = supabaseAdmin.from('service_categories').select('id', { count: 'exact', head: true })
 
       if (isCityManager) {
         if (scopedMartIds.length > 0) {
@@ -140,24 +190,23 @@ const Dashboard = () => {
           ordersQuery = ordersQuery.in('mart_id', scopedMartIds)
           recentOrdersQuery = recentOrdersQuery.in('mart_id', scopedMartIds)
           recentProdQuery = recentProdQuery.in('mart_id', scopedMartIds)
+          lowStockListQuery = lowStockListQuery.in('mart_id', scopedMartIds)
           
-          // Use inner join on order for order_items query
           itemsQuery = supabaseAdmin.from('order_items')
             .select('product_name, quantity, total_price, order:orders!inner(status, mart_id)')
             .in('order.mart_id', scopedMartIds)
             .limit(500)
 
-          // Use inner join on products for reviews query
           reviewsQuery = supabaseAdmin.from('reviews')
             .select('rating, products!inner(mart_id)')
             .in('products.mart_id', scopedMartIds)
         } else {
-          // If no marts assigned, force query to return empty by targeting non-matching criteria
           productsQuery = productsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
           outOfStockQuery = outOfStockQuery.eq('id', '00000000-0000-0000-0000-000000000000')
           ordersQuery = ordersQuery.eq('id', '00000000-0000-0000-0000-000000000000')
           recentOrdersQuery = recentOrdersQuery.eq('id', '00000000-0000-0000-0000-000000000000')
           recentProdQuery = recentProdQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          lowStockListQuery = lowStockListQuery.eq('id', '00000000-0000-0000-0000-000000000000')
           
           itemsQuery = supabaseAdmin.from('order_items')
             .select('product_name, quantity, total_price, order:orders!inner(status, mart_id)')
@@ -177,11 +226,12 @@ const Dashboard = () => {
 
         if (riderUserIds.length > 0) {
           captainsQuery = captainsQuery.in('id', riderUserIds)
+          pendingCaptainsQuery = pendingCaptainsQuery.in('id', riderUserIds)
         } else {
           captainsQuery = captainsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+          pendingCaptainsQuery = pendingCaptainsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
         }
 
-        // For users: count users who placed orders in manager's marts
         if (scopedMartIds.length > 0) {
           usersQuery = supabaseAdmin.from('users')
             .select('*, orders!inner(mart_id)', { count: 'exact', head: true })
@@ -202,7 +252,20 @@ const Dashboard = () => {
         ordersRes,
         recentOrdersRes,
         itemsRes,
-        recentProdRes
+        recentProdRes,
+        lowStockRes,
+        pendingCaptainsRes,
+        pendingMartsRes,
+        pendingDoctorsRes,
+        pendingPharmaciesRes,
+        pendingReturnsRes,
+        pendingInquiriesRes,
+        openTicketsRes,
+        doctorsTotalRes,
+        pharmaciesTotalRes,
+        appointmentsRes,
+        servicesRes,
+        serviceCategoriesRes
       ] = await Promise.allSettled([
         withTimeout(productsQuery),
         withTimeout(outOfStockQuery),
@@ -214,50 +277,63 @@ const Dashboard = () => {
         withTimeout(ordersQuery),
         withTimeout(recentOrdersQuery),
         withTimeout(itemsQuery),
-        withTimeout(recentProdQuery)
+        withTimeout(recentProdQuery),
+        withTimeout(lowStockListQuery),
+        withTimeout(pendingCaptainsQuery),
+        withTimeout(pendingMartsQuery),
+        withTimeout(pendingDoctorsQuery),
+        withTimeout(pendingPharmaciesQuery),
+        withTimeout(pendingReturnsQuery),
+        withTimeout(pendingInquiriesQuery),
+        withTimeout(openTicketsQuery),
+        withTimeout(doctorsTotalQuery),
+        withTimeout(pharmaciesTotalQuery),
+        withTimeout(appointmentsQuery),
+        withTimeout(servicesQuery),
+        withTimeout(serviceCategoriesQuery)
       ])
 
-      // Debug query errors to help troubleshoot RLS issues
-      const checkError = (res, name) => {
-        if (res.status === 'rejected') {
-          console.error(`[Dashboard] ${name} query rejected:`, res.reason)
-        } else if (res.value?.error) {
-          console.error(`[Dashboard] ${name} query returned error:`, res.value.error)
-        }
-      }
-      checkError(productsRes, 'products')
-      checkError(outOfStockRes, 'outOfStock')
-      checkError(categoriesRes, 'categories')
-      checkError(martsRes, 'marts')
-      checkError(usersRes, 'users')
-      checkError(captainsRes, 'captains')
-      checkError(reviewsRes, 'reviews')
-      checkError(ordersRes, 'orders')
-      checkError(recentOrdersRes, 'recentOrders')
-      checkError(itemsRes, 'items')
-      checkError(recentProdRes, 'recentProd')
+      // Helper for counts
+      const countOf = (res) => (res.status === 'fulfilled' && res.value?.count != null ? res.value.count : 0)
+      const dataOf = (res) => (res.status === 'fulfilled' && res.value?.data ? res.value.data : [])
 
-      // Parse counts safely
-      const productsCount = productsRes.status === 'fulfilled' ? (productsRes.value.count ?? 0) : 0
-      const outOfStockCount = outOfStockRes.status === 'fulfilled' ? (outOfStockRes.value.count ?? 0) : 0
-      const categoriesCount = categoriesRes.status === 'fulfilled' ? (categoriesRes.value.count ?? 0) : 0
-      const martsCount = martsRes.status === 'fulfilled' ? (martsRes.value.count ?? 0) : 0
-      const usersCount = usersRes.status === 'fulfilled' ? (usersRes.value.count ?? 0) : 0
+      const productsCount = countOf(productsRes)
+      const outOfStockCount = countOf(outOfStockRes)
+      const categoriesCount = countOf(categoriesRes)
+      const martsCount = countOf(martsRes)
+      const usersCount = countOf(usersRes)
       
-      const captainsData = captainsRes.status === 'fulfilled' ? (captainsRes.value.data || []) : []
-      const reviewsData = reviewsRes.status === 'fulfilled' ? (reviewsRes.value.data || []) : []
-      const ordersData = ordersRes.status === 'fulfilled' ? (ordersRes.value.data || []) : []
-      const recentOrdersData = recentOrdersRes.status === 'fulfilled' ? (recentOrdersRes.value.data || []) : []
-      const itemsData = itemsRes.status === 'fulfilled' ? (itemsRes.value.data || []) : []
-      const recentProdData = recentProdRes.status === 'fulfilled' ? (recentProdRes.value.data || []) : []
+      const captainsData = dataOf(captainsRes)
+      const reviewsData = dataOf(reviewsRes)
+      const ordersData = dataOf(ordersRes)
+      const recentOrdersData = dataOf(recentOrdersRes)
+      const itemsData = dataOf(itemsRes)
+      const recentProdData = dataOf(recentProdRes)
+      const lowStockData = dataOf(lowStockRes)
+
+      // Pending counts
+      const pendingCaptains = countOf(pendingCaptainsRes)
+      const pendingMarts = countOf(pendingMartsRes)
+      const pendingDoctors = countOf(pendingDoctorsRes)
+      const pendingPharmacies = countOf(pendingPharmaciesRes)
+      const pendingReturns = countOf(pendingReturnsRes)
+      const pendingInquiries = countOf(pendingInquiriesRes)
+      const openTickets = countOf(openTicketsRes)
+
+      // Ecosystem counts
+      const doctorsCount = countOf(doctorsTotalRes)
+      const pharmaciesCount = countOf(pharmaciesTotalRes)
+      const careAppointmentsCount = countOf(appointmentsRes)
+      const servicesCount = countOf(servicesRes)
+      const serviceCategoriesCount = countOf(serviceCategoriesRes)
 
       // Calculate Captain counts
       const captainsCount = captainsData.length
-      const activeCaptainsCount = captainsData.filter(c => c.status === 'online' || c.status === 'busy').length
+      const activeCaptainsCount = captainsData.filter(c => c.status === 'online' || c.status === 'busy' || c.status === 'active').length
 
       // Calculate Review Average
       const avgRating = reviewsData.length > 0
-        ? parseFloat((reviewsData.reduce((acc, r) => acc + r.rating, 0) / reviewsData.length).toFixed(1))
+        ? parseFloat((reviewsData.reduce((acc, r) => acc + (r.rating || 0), 0) / reviewsData.length).toFixed(1))
         : 0.0
 
       // Calculate Orders count & delivered revenue
@@ -268,13 +344,22 @@ const Dashboard = () => {
             .reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0)
         : 0
 
+      // Calculate Today's Stats (since midnight)
+      const todayMidnight = new Date()
+      todayMidnight.setHours(0, 0, 0, 0)
+      const todayOrders = ordersData.filter(o => new Date(o.created_at) >= todayMidnight)
+      const todayOrdersCount = todayOrders.length
+      const todaySales = todayOrders
+        .filter(o => ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED', 'CONFIRMED_SYSTEM', 'confirmed', 'preparing', 'dispatched'].includes(o.status))
+        .reduce((acc, curr) => acc + parseFloat(curr.total || 0), 0)
+
       // Calculate Order breakdown counts
       const deliveredOrdersCount = ordersData.filter(o => ['delivered', 'DELIVERED_VERIFYING', 'COMPLETED'].includes(o.status)).length
-      const activeOrdersCount = ordersData.filter(o => ['CONFIRMED_SYSTEM', 'confirmed', 'preparing', 'packed', 'assigned', 'dispatched'].includes(o.status)).length
+      const activeOrdersCount = ordersData.filter(o => ['CONFIRMED_SYSTEM', 'confirmed', 'preparing', 'packed', 'assigned', 'dispatched', 'PLACED_COOLING'].includes(o.status)).length
       const pendingOrdersCount = ordersData.filter(o => ['pending', 'PLACED_COOLING'].includes(o.status)).length
       const cancelledOrdersCount = ordersData.filter(o => ['cancelled', 'CANCELLED_BY_USER', 'RETURN_REQUESTED'].includes(o.status)).length
 
-      // Calculate Top Products dynamically (only from delivered/completed orders)
+      // Calculate Top Products dynamically
       const productMap = {}
       itemsData.forEach(item => {
         const orderStatus = item.order?.status
@@ -294,7 +379,6 @@ const Dashboard = () => {
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 4)
 
-      // Set trend lists
       setStats({
         productsCount,
         outOfStockCount,
@@ -305,16 +389,34 @@ const Dashboard = () => {
         captainsCount,
         activeCaptainsCount,
         revenue,
+        todaySales,
+        todayOrdersCount,
         avgRating,
         deliveredOrdersCount,
         activeOrdersCount,
         pendingOrdersCount,
-        cancelledOrdersCount
+        cancelledOrdersCount,
+        doctorsCount,
+        pharmaciesCount,
+        careAppointmentsCount,
+        servicesCount,
+        serviceCategoriesCount
+      })
+
+      setPendingRequests({
+        pendingCaptains,
+        pendingMarts,
+        pendingDoctors,
+        pendingPharmacies,
+        pendingReturns,
+        pendingInquiries,
+        openTickets
       })
 
       setRecentProducts(recentProdData || [])
       setRecentOrders(recentOrdersData || [])
       setTopSellers(sortedTopProducts)
+      setCriticalLowStock(lowStockData || [])
       setAllOrders(ordersData || [])
     } catch (err) {
       console.error('[Dashboard] Error fetching dashboard statistics:', err)
@@ -380,71 +482,76 @@ const Dashboard = () => {
     hidden: { opacity: 0 },
     show: {
       opacity: 1,
-      transition: { staggerChildren: 0.08 }
+      transition: { staggerChildren: 0.06 }
     }
   }
 
   const itemVariants = {
-    hidden: { opacity: 0, y: 15 },
-    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 100 } }
+    hidden: { opacity: 0, y: 14 },
+    show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 120 } }
   }
 
-  // Define Stat cards structure
+  // Total pending requests count
+  const totalPending = 
+    pendingRequests.pendingCaptains +
+    pendingRequests.pendingMarts +
+    pendingRequests.pendingDoctors +
+    pendingRequests.pendingPharmacies +
+    pendingRequests.pendingReturns +
+    pendingRequests.pendingInquiries +
+    pendingRequests.openTickets
+
+  // Top 5 Executive Stat Cards
   const statCards = [
     {
-      title: 'Total Revenue',
+      title: 'Total Platform GMV',
       value: `₹${(stats.revenue || 0).toLocaleString('en-IN')}`,
-      change: 'Total earnings from completed orders',
-      isPositive: true,
+      badge: stats.todaySales > 0 ? `+₹${Math.round(stats.todaySales)} today` : 'Lifetime',
+      badgeColor: 'text-emerald-600 bg-emerald-500/10 dark:text-emerald-400',
       sparkValues: dailyData.length > 0 ? dailyData.map(d => d.sales) : [0, 0, 0, 0, 0, 0, 0],
       icon: DollarSign,
       color: 'text-emerald-500',
-      bgColor: 'bg-emerald-500/10 border-emerald-500/20',
-      textColor: 'text-emerald-600 dark:text-emerald-400'
+      bgColor: 'bg-emerald-500/10 border-emerald-500/20'
     },
     {
-      title: 'Active Captains',
-      value: `${stats.activeCaptainsCount} / ${stats.captainsCount}`,
-      change: 'Riders online & dispatching',
-      isPositive: true,
-      sparkValues: Array(7).fill(stats.activeCaptainsCount),
-      icon: Truck,
-      color: 'text-sky-500',
-      bgColor: 'bg-sky-500/10 border-sky-500/20',
-      textColor: 'text-sky-600 dark:text-sky-400'
-    },
-    {
-      title: 'Total Orders',
-      value: stats.ordersCount,
-      change: 'Lifetime orders placed',
-      isPositive: true,
+      title: 'Orders & Fulfillment',
+      value: `${stats.ordersCount}`,
+      badge: `${stats.activeOrdersCount} active / transit`,
+      badgeColor: 'text-purple-600 bg-purple-500/10 dark:text-purple-400',
       sparkValues: dailyData.length > 0 ? dailyData.map(d => d.orders) : [0, 0, 0, 0, 0, 0, 0],
       icon: ShoppingBag,
       color: 'text-purple-500',
-      bgColor: 'bg-purple-500/10 border-purple-500/20',
-      textColor: 'text-purple-600 dark:text-purple-400'
+      bgColor: 'bg-purple-500/10 border-purple-500/20'
     },
     {
-      title: 'Out Of Stock',
-      value: stats.outOfStockCount,
-      change: stats.outOfStockCount > 0 ? `${stats.outOfStockCount} items need restock` : 'All items cataloged',
-      isWarning: stats.outOfStockCount > 0,
+      title: 'Active Rider Fleet',
+      value: `${stats.activeCaptainsCount} / ${stats.captainsCount}`,
+      badge: `${Math.round((stats.activeCaptainsCount / Math.max(stats.captainsCount, 1)) * 100)}% deployed`,
+      badgeColor: 'text-sky-600 bg-sky-500/10 dark:text-sky-400',
+      sparkValues: Array(7).fill(stats.activeCaptainsCount),
+      icon: Bike,
+      color: 'text-sky-500',
+      bgColor: 'bg-sky-500/10 border-sky-500/20'
+    },
+    {
+      title: 'Catalog Health',
+      value: `${stats.productsCount} SKUs`,
+      badge: stats.outOfStockCount > 0 ? `${stats.outOfStockCount} out of stock` : 'All Available',
+      badgeColor: stats.outOfStockCount > 0 ? 'text-rose-600 bg-rose-500/10 dark:text-rose-400' : 'text-emerald-600 bg-emerald-500/10',
       sparkValues: Array(7).fill(stats.outOfStockCount),
-      icon: AlertTriangle,
-      color: stats.outOfStockCount > 0 ? 'text-red-500' : 'text-green-500',
-      bgColor: stats.outOfStockCount > 0 ? 'bg-red-500/10 border-red-500/20' : 'bg-green-500/10 border-green-500/20',
-      textColor: stats.outOfStockCount > 0 ? 'text-ozo-red dark:text-red-400' : 'text-green-600 dark:text-green-400'
+      icon: Package,
+      color: stats.outOfStockCount > 0 ? 'text-rose-500' : 'text-emerald-500',
+      bgColor: stats.outOfStockCount > 0 ? 'bg-rose-500/10 border-rose-500/20' : 'bg-emerald-500/10 border-emerald-500/20'
     },
     {
-      title: 'Satisfaction Rate',
-      value: stats.avgRating > 0 ? `${stats.avgRating} ★` : 'No ratings yet',
-      change: 'Based on customer feedback',
-      isPositive: true,
-      sparkValues: Array(7).fill(stats.avgRating),
+      title: 'Customer Satisfaction',
+      value: stats.avgRating > 0 ? `${stats.avgRating} ★` : '5.0 ★',
+      badge: `${stats.usersCount} registered users`,
+      badgeColor: 'text-amber-600 bg-amber-500/10 dark:text-amber-400',
+      sparkValues: Array(7).fill(stats.avgRating || 5),
       icon: Star,
       color: 'text-amber-500',
-      bgColor: 'bg-amber-500/10 border-amber-500/20',
-      textColor: 'text-amber-600 dark:text-amber-400'
+      bgColor: 'bg-amber-500/10 border-amber-500/20'
     }
   ]
 
@@ -479,75 +586,84 @@ const Dashboard = () => {
   const sliceWidth = dailyData.length > 1 ? (chartWidth - paddingLeft - paddingRight) / (dailyData.length - 1) : 0
 
   return (
-    <div className="space-y-8 pb-8">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-6 bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-white/5 shadow-premium">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="p-1.5 bg-gradient-ozo text-white rounded-lg flex items-center justify-center">
-              <Activity className="w-4 h-4" />
+    <div className="space-y-6 pb-12 font-sans">
+      {/* Header Banner & Live Telemetry Bar */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 p-5 sm:p-6 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 shadow-xl">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="p-1.5 bg-gradient-to-r from-red-600 to-amber-600 text-white rounded-lg flex items-center justify-center shadow-sm">
+              <Activity className="w-4 h-4 animate-pulse" />
             </span>
-            <span className="text-xs font-black text-ozo-red uppercase tracking-wider">OZO Live Control Room</span>
+            <span className="text-xs font-black text-ozo-red dark:text-red-400 uppercase tracking-widest">
+              OZO Super Admin Command Center
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-black border border-emerald-500/20">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping" />
+              Live Telemetry
+            </span>
           </div>
-          <h1 className="text-3xl font-black text-gray-900 dark:text-white mt-1.5">Marts Dashboard</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Real-time sales, captain distribution metrics, and catalog operations.</p>
+          <h1 className="text-2xl sm:text-3xl font-black text-gray-900 dark:text-white tracking-tight">
+            Executive Ecosystem Pulse
+          </h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            Real-time operations, pending approvals, financial velocity & multi-vertical health.
+          </p>
         </div>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <div className="hidden sm:flex items-center gap-2 px-3.5 py-2.5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-200/50 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300">
+            <Calendar className="w-4 h-4 text-gray-400" />
+            <span>{new Date().toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}</span>
+          </div>
+
           <button
             onClick={handleSync}
             disabled={syncing}
-            className="flex items-center justify-center gap-2 bg-gray-50 dark:bg-white/5 text-gray-800 dark:text-white px-5 py-3 rounded-2xl font-bold border border-gray-200/50 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/10 hover:scale-[1.02] active:scale-95 transition-all w-full md:w-auto"
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-red-600 to-amber-600 text-white px-4 py-2.5 rounded-2xl font-bold text-xs shadow-md hover:shadow-red-500/20 active:scale-95 transition-all w-full sm:w-auto"
           >
-            <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin text-ozo-red' : 'text-gray-500'}`} />
-            {syncing ? 'Syncing DB...' : 'Sync Database'}
+            <RefreshCw className={`w-3.5 h-3.5 ${syncing ? 'animate-spin' : ''}`} />
+            <span>{syncing ? 'Syncing...' : 'Fast Sync DB'}</span>
           </button>
         </div>
       </div>
 
-      {/* Stats Cards Section */}
+      {/* SECTION 1: Top 5 Executive Metric Pulse Cards */}
       <motion.div
         variants={containerVariants}
         initial="hidden"
         animate="show"
-        className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4"
       >
         {statCards.map((stat, idx) => (
           <motion.div
             key={idx}
             variants={itemVariants}
-            className={`p-5 bg-white dark:bg-[#1a1a1a] rounded-3xl border border-gray-100 dark:border-white/5 shadow-premium flex flex-col justify-between group hover:-translate-y-1 transition-all duration-300 ${
-              idx === 4 ? 'xs:col-span-2 md:col-span-1' : ''
-            }`}
+            className="p-4 sm:p-5 bg-white dark:bg-[#15171c] rounded-2xl sm:rounded-3xl border border-gray-200/70 dark:border-white/10 shadow-md flex flex-col justify-between group hover:-translate-y-1 hover:shadow-xl transition-all duration-300"
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <span className="text-[10px] font-black text-gray-450 uppercase tracking-wider block">
+                <span className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-wider block truncate">
                   {stat.title}
                 </span>
-                <h3 className="text-xl sm:text-2xl font-black mt-1 text-gray-900 dark:text-white">
+                <h3 className="text-xl sm:text-2xl font-black mt-1 text-gray-900 dark:text-white truncate">
                   {loading ? (
-                    <span className="inline-block w-16 h-7 bg-gray-200 dark:bg-white/10 rounded animate-pulse" />
+                    <span className="inline-block w-20 h-6 bg-gray-200 dark:bg-white/10 rounded animate-pulse" />
                   ) : (
                     stat.value
                   )}
                 </h3>
               </div>
-              <div className={`p-2.5 rounded-xl border flex-shrink-0 ${stat.bgColor} ${stat.color} group-hover:scale-105 transition-transform duration-300`}>
-                <stat.icon className="w-4.5 h-4.5" />
+              <div className={`p-2.5 rounded-xl border flex-shrink-0 ${stat.bgColor} ${stat.color} group-hover:scale-110 transition-transform duration-300`}>
+                <stat.icon className="w-4 h-4" />
               </div>
             </div>
 
-            {/* Sparkline & Subtitle */}
             <div className="mt-4 pt-3 border-t border-gray-100 dark:border-white/5 flex items-end justify-between gap-2">
-              <div className="text-[10px] min-w-0 flex-1">
-                <span className={`font-bold block ${stat.isWarning ? 'text-red-500' : 'text-gray-400 dark:text-gray-500'}`}>
-                  {stat.change}
-                </span>
-              </div>
-              
-              {/* Micro-sparkline svg */}
-              <div className="opacity-80 group-hover:opacity-100 transition-opacity flex-shrink-0">
-                <svg className={`w-20 h-7 ${stat.color}`} viewBox="0 0 120 36">
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border border-current/20 truncate ${stat.badgeColor}`}>
+                {stat.badge}
+              </span>
+              <div className="opacity-75 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                <svg className={`w-16 h-6 ${stat.color}`} viewBox="0 0 120 36">
                   <path
                     d={getSparklinePath(stat.sparkValues)}
                     fill="none"
@@ -563,312 +679,587 @@ const Dashboard = () => {
         ))}
       </motion.div>
 
-      {/* Charts & Status Breakdown Row */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* SVG Interactive Chart (2/3 width) */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-white/5 p-6 shadow-premium relative flex flex-col">
-          <div className="flex items-center justify-between flex-wrap gap-3 mb-6">
-            <div>
-              <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
-                Sales Performance
-                <span className="px-2 py-0.5 bg-green-100 dark:bg-green-950/20 text-ozo-green text-[10px] rounded-full font-black uppercase tracking-wider">
-                  Live
-                </span>
-              </h3>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Aggregated daily performance over the last {chartTimeframe} days.</p>
-            </div>
-            
-            <div className="flex items-center gap-3 flex-wrap">
-              {/* Timeframe Select */}
-              <select
-                value={chartTimeframe}
-                onChange={(e) => {
-                  setChartTimeframe(Number(e.target.value))
-                  setHoveredPoint(null)
-                }}
-                className="bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-gray-200/50 dark:border-white/10 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
-              >
-                <option value={7} className="bg-white dark:bg-[#1a1a1a]">Last 7 Days</option>
-                <option value={15} className="bg-white dark:bg-[#1a1a1a]">Last 15 Days</option>
-                <option value={30} className="bg-white dark:bg-[#1a1a1a]">Last 30 Days</option>
-              </select>
-
-              {/* Chart toggle buttons */}
-              <div className="flex items-center p-1 bg-gray-150 dark:bg-white/5 rounded-xl border border-gray-200/50 dark:border-white/10">
-                <button
-                  onClick={() => {
-                    setActiveChartTab('sales')
-                    setHoveredPoint(null)
-                  }}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    activeChartTab === 'sales'
-                      ? 'bg-white dark:bg-[#252525] text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
-                >
-                  Revenue (₹)
-                </button>
-                <button
-                  onClick={() => {
-                    setActiveChartTab('orders')
-                    setHoveredPoint(null)
-                  }}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                    activeChartTab === 'orders'
-                      ? 'bg-white dark:bg-[#252525] text-gray-900 dark:text-white shadow-sm'
-                      : 'text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'
-                  }`}
-                >
-                  Order Vol
-                </button>
-              </div>
-            </div>
+      {/* SECTION 2: Action Center - Pending Requests & Approvals (Dynamic High-Visibility Strip) */}
+      <div className="p-4 sm:p-5 bg-gradient-to-br from-amber-500/10 via-red-500/5 to-purple-500/10 dark:from-amber-500/[0.08] dark:to-purple-500/[0.08] rounded-3xl border border-amber-500/20 dark:border-amber-500/25 shadow-lg space-y-3">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <div className="flex items-center gap-2">
+            <span className="p-1 rounded-md bg-amber-500/20 text-amber-600 dark:text-amber-400">
+              <AlertCircle className="w-4 h-4" />
+            </span>
+            <h2 className="text-sm font-black text-gray-900 dark:text-white uppercase tracking-wider">
+              Attention Required: Pending Requests & Verifications
+            </h2>
           </div>
-
-          {/* SVG Canvas Area */}
-          <div className="relative flex-1 min-h-[220px]">
-            {loading ? (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <RefreshCw className="w-8 h-8 animate-spin text-ozo-green opacity-60" />
-              </div>
-            ) : dailyData.length === 0 ? (
-              <div className="absolute inset-0 flex items-center justify-center text-xs text-gray-400 italic">
-                No performance data loaded.
-              </div>
-            ) : (
-              <>
-                <svg className="w-full h-full" viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="#0D9E4F" stopOpacity="0.25" />
-                      <stop offset="100%" stopColor="#0D9E4F" stopOpacity="0.0" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Horizontal Grid lines */}
-                  {[0, 0.25, 0.5, 0.75, 1].map((tick, index) => {
-                     const y = chartHeight - paddingBottom - tick * (chartHeight - paddingTop - paddingBottom)
-                     const tickVal = Math.round(tick * maxChartValue)
-                     return (
-                       <g key={index} className="opacity-15 dark:opacity-5">
-                         <line
-                           x1={paddingLeft}
-                           y1={y}
-                           x2={chartWidth - paddingRight}
-                           y2={y}
-                           stroke="currentColor"
-                           strokeWidth="1"
-                           strokeDasharray="4,4"
-                         />
-                         <text
-                           x={paddingLeft - 8}
-                           y={y + 4}
-                           className="text-[9px] fill-current font-semibold text-right"
-                           textAnchor="end"
-                         >
-                           {activeChartTab === 'sales' ? `₹${tickVal}` : tickVal}
-                         </text>
-                       </g>
-                     )
-                  })}
-
-                  {/* Area fill */}
-                  <path d={chartAreaPath} fill="url(#chartGradient)" />
-
-                  {/* Line stroke */}
-                  <path
-                    d={chartLinePath}
-                    fill="none"
-                    stroke="#0D9E4F"
-                    strokeWidth="3"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-
-                  {/* Axis line */}
-                  <line
-                    x1={paddingLeft}
-                    y1={chartHeight - paddingBottom}
-                    x2={chartWidth - paddingRight}
-                    y2={chartHeight - paddingBottom}
-                    className="stroke-gray-200 dark:stroke-white/10"
-                    strokeWidth="1"
-                  />
-
-                  {/* Grid Point Dots */}
-                  {chartPoints.map((p, i) => (
-                    <circle
-                      key={i}
-                      cx={p.x}
-                      cy={p.y}
-                      r={hoveredPoint?.label === p.label ? "6" : "4"}
-                      className="fill-white dark:fill-[#1a1a1a] stroke-ozo-green transition-all duration-150"
-                      strokeWidth="2.5"
-                    />
-                  ))}
-
-                  {/* Interactive vertical tracking line */}
-                  {hoveredPoint && (
-                    <line
-                      x1={hoveredPoint.x}
-                      y1={paddingTop}
-                      x2={hoveredPoint.x}
-                      y2={chartHeight - paddingBottom}
-                      className="stroke-ozo-green/20 dark:stroke-ozo-green/35"
-                      strokeWidth="1.5"
-                      strokeDasharray="2,2"
-                    />
-                  )}
-
-                  {/* Bottom Date labels */}
-                  {chartPoints.map((p, i) => {
-                    const labelInterval = Math.ceil(dailyData.length / 6)
-                    const isEdge = i === 0 || i === chartPoints.length - 1
-                    const isStep = i % labelInterval === 0
-                    if (!isEdge && !isStep) return null
-
-                    return (
-                      <text
-                        key={i}
-                        x={p.x}
-                        y={chartHeight - paddingBottom + 16}
-                        className="text-[9px] fill-gray-400 dark:fill-gray-500 font-bold"
-                        textAnchor="middle"
-                      >
-                        {p.label}
-                      </text>
-                    )
-                  })}
-
-                  {/* Hover detector zones */}
-                  {chartPoints.map((p, i) => {
-                    const zoneX = p.x - sliceWidth / 2
-                    return (
-                      <rect
-                        key={i}
-                        x={zoneX}
-                        y={0}
-                        width={sliceWidth}
-                        height={chartHeight}
-                        fill="transparent"
-                        className="cursor-crosshair"
-                        onMouseEnter={() => setHoveredPoint(p)}
-                        onMouseLeave={() => setHoveredPoint(null)}
-                      />
-                    )
-                  })}
-                </svg>
-
-                {/* Tooltip Card overlay */}
-                <AnimatePresence>
-                  {hoveredPoint && (
-                    <motion.div
-                      initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className="absolute p-3 bg-white dark:bg-[#252525] border border-gray-100 dark:border-white/10 rounded-2xl shadow-xl z-30 pointer-events-none text-xs flex flex-col gap-1 min-w-[120px]"
-                      style={{
-                        left: `${((hoveredPoint.x - paddingLeft) / (chartWidth - paddingLeft - paddingRight)) * 88 + 4}%`,
-                        top: `${hoveredPoint.y - 65}px`
-                      }}
-                    >
-                      <span className="text-[10px] text-gray-400 font-bold uppercase">{hoveredPoint.label}</span>
-                      <span className="font-extrabold text-gray-900 dark:text-white text-sm">
-                        {activeChartTab === 'sales' ? `₹${hoveredPoint.val.toLocaleString('en-IN')}` : `${hoveredPoint.val} Orders`}
-                      </span>
-                      <span className="text-[9px] text-emerald-500 flex items-center gap-0.5">
-                        <TrendingUp className="w-3 h-3" />
-                        Target achieved
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </>
-            )}
-          </div>
+          {totalPending > 0 ? (
+            <span className="px-2.5 py-0.5 rounded-full bg-red-600 text-white font-black text-xs animate-bounce">
+              {totalPending} Action{totalPending > 1 ? 's' : ''} Pending
+            </span>
+          ) : (
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-black text-xs flex items-center gap-1">
+              <CheckCircle className="w-3.5 h-3.5" />
+              All Clear
+            </span>
+          )}
         </div>
 
-        {/* Order Status Breakdown (1/3 width) */}
-        <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-white/5 p-6 shadow-premium flex flex-col">
+        {totalPending > 0 ? (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-2.5 pt-1">
+            {/* 1. Rider Onboarding */}
+            <Link
+              to="/admin/requests"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-sky-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Bike className="w-4 h-4 text-sky-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.pendingCaptains > 0 ? 'bg-sky-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.pendingCaptains}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Riders</p>
+                <p className="text-[9px] text-gray-400 truncate">Verification</p>
+              </div>
+            </Link>
+
+            {/* 2. Mart Applications */}
+            <Link
+              to="/admin/requests"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-orange-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Store className="w-4 h-4 text-orange-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.pendingMarts > 0 ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.pendingMarts}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Mart Stores</p>
+                <p className="text-[9px] text-gray-400 truncate">Onboarding</p>
+              </div>
+            </Link>
+
+            {/* 3. Doctors Approvals */}
+            <Link
+              to="/admin/care"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-emerald-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Stethoscope className="w-4 h-4 text-emerald-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.pendingDoctors > 0 ? 'bg-emerald-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.pendingDoctors}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Doctors</p>
+                <p className="text-[9px] text-gray-400 truncate">Medical License</p>
+              </div>
+            </Link>
+
+            {/* 4. Pharmacy Approvals */}
+            <Link
+              to="/admin/care"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-teal-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Pill className="w-4 h-4 text-teal-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.pendingPharmacies > 0 ? 'bg-teal-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.pendingPharmacies}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Pharmacies</p>
+                <p className="text-[9px] text-gray-400 truncate">Chemist Partner</p>
+              </div>
+            </Link>
+
+            {/* 5. Returns & Refunds */}
+            <Link
+              to="/admin/requests"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-rose-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <RotateCcw className="w-4 h-4 text-rose-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.pendingReturns > 0 ? 'bg-rose-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.pendingReturns}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Return Claims</p>
+                <p className="text-[9px] text-gray-400 truncate">Refund Requests</p>
+              </div>
+            </Link>
+
+            {/* 6. Service Inquiries */}
+            <Link
+              to="/admin/services"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-purple-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <Wrench className="w-4 h-4 text-purple-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.pendingInquiries > 0 ? 'bg-purple-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.pendingInquiries}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Services</p>
+                <p className="text-[9px] text-gray-400 truncate">Custom Inquiries</p>
+              </div>
+            </Link>
+
+            {/* 7. Support Messages */}
+            <Link
+              to="/admin/messages"
+              className="p-3 rounded-2xl bg-white/80 dark:bg-[#1a1c22]/90 border border-gray-200/80 dark:border-white/10 hover:border-amber-500 hover:shadow-md transition-all group flex flex-col justify-between"
+            >
+              <div className="flex items-center justify-between">
+                <MessageSquare className="w-4 h-4 text-amber-500" />
+                <span className={`text-xs font-black px-1.5 py-0.5 rounded-full ${pendingRequests.openTickets > 0 ? 'bg-amber-500 text-white' : 'bg-gray-100 dark:bg-white/10 text-gray-400'}`}>
+                  {pendingRequests.openTickets}
+                </span>
+              </div>
+              <div className="mt-2">
+                <p className="text-[11px] font-bold text-gray-800 dark:text-gray-200 leading-tight">Help Tickets</p>
+                <p className="text-[9px] text-gray-400 truncate">User Support</p>
+              </div>
+            </Link>
+          </div>
+        ) : (
+          <div className="py-2 flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-300 font-bold">
+            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <span>Zero backlogs! All onboarding applications, medical verifications, and customer return claims are up to date.</span>
+          </div>
+        )}
+      </div>
+
+      {/* SECTION 3: 4-Pillar Multi-Vertical Ecosystem Pulse Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Pillar 1: OZO Mart */}
+        <div className="p-5 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 shadow-md hover:border-orange-500/40 transition-all flex flex-col justify-between space-y-4">
           <div>
-            <h3 className="text-lg font-black text-gray-900 dark:text-white">Order Statuses</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Fulfillment flow summary stats.</p>
+            <div className="flex items-center justify-between">
+              <span className="px-2 py-0.5 rounded-md bg-orange-500/10 text-orange-600 dark:text-orange-400 font-black text-[10px] uppercase tracking-wider">
+                OZO Mart
+              </span>
+              <Store className="w-4 h-4 text-orange-500" />
+            </div>
+            <h4 className="text-base font-black text-gray-900 dark:text-white mt-2">
+              Grocery & Retail Marts
+            </h4>
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Active Stores</p>
+                <p className="text-sm font-black text-gray-800 dark:text-gray-100 mt-0.5">{stats.martsCount} Marts</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Today Orders</p>
+                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{stats.todayOrdersCount}</p>
+              </div>
+            </div>
           </div>
-
-          <div className="mt-6 flex-1 flex flex-col justify-center space-y-4">
-            {(() => {
-              // Use real order breakdown counts
-              const totalBreak = stats.ordersCount
-              const delVal = stats.deliveredOrdersCount
-              const actVal = stats.activeOrdersCount
-              const penVal = stats.pendingOrdersCount
-              const canVal = stats.cancelledOrdersCount
-
-              const dataList = [
-                { label: 'Delivered', count: delVal, color: 'bg-green-500', barBg: 'bg-green-500/10' },
-                { label: 'In Transit / Active', count: actVal, color: 'bg-blue-500', barBg: 'bg-blue-500/10' },
-                { label: 'Pending Acceptance', count: penVal, color: 'bg-amber-500', barBg: 'bg-amber-500/10' },
-                { label: 'Cancelled', count: canVal, color: 'bg-red-500', barBg: 'bg-red-500/10' }
-              ]
-
-              return dataList.map((item, index) => {
-                const pct = totalBreak > 0 ? (item.count / totalBreak) * 100 : 0
-                return (
-                  <div key={index} className="space-y-1.5">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-semibold text-gray-700 dark:text-gray-300">{item.label}</span>
-                      <span className="text-gray-400 dark:text-gray-500 font-bold">
-                        {item.count} ({Math.round(pct)}%)
-                      </span>
-                    </div>
-                    
-                    {/* Horizontal progress bar */}
-                    <div className={`w-full h-2 rounded-full overflow-hidden ${item.barBg}`}>
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${pct}%` }}
-                        transition={{ duration: 1, delay: index * 0.1 }}
-                        className={`h-full rounded-full ${item.color}`}
-                      />
-                    </div>
-                  </div>
-                )
-              })
-            })()}
-          </div>
-
           <Link
             to="/admin/orders"
-            className="w-full mt-6 py-3 border border-gray-250 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl text-center text-xs font-black text-gray-600 dark:text-gray-300 transition-colors block"
+            className="flex items-center justify-between text-xs font-bold text-orange-600 dark:text-orange-400 hover:underline pt-2 border-t border-gray-100 dark:border-white/5"
           >
-            Manage Fulfillment Pipeline
+            <span>Manage Orders & Catalog</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Pillar 2: OZO Fleet / Captains */}
+        <div className="p-5 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 shadow-md hover:border-sky-500/40 transition-all flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-sky-400 font-black text-[10px] uppercase tracking-wider">
+                OZO Fleet
+              </span>
+              <Bike className="w-4 h-4 text-sky-500" />
+            </div>
+            <h4 className="text-base font-black text-gray-900 dark:text-white mt-2">
+              Logistics & Captains
+            </h4>
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Online Fleet</p>
+                <p className="text-sm font-black text-sky-600 dark:text-sky-400 mt-0.5">{stats.activeCaptainsCount} Riders</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Pending Verification</p>
+                <p className="text-sm font-black text-amber-600 dark:text-amber-400 mt-0.5">{pendingRequests.pendingCaptains}</p>
+              </div>
+            </div>
+          </div>
+          <Link
+            to="/admin/rider-manage"
+            className="flex items-center justify-between text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline pt-2 border-t border-gray-100 dark:border-white/5"
+          >
+            <span>Dispatch & Rider Radar</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Pillar 3: OZO Care */}
+        <div className="p-5 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 shadow-md hover:border-emerald-500/40 transition-all flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-black text-[10px] uppercase tracking-wider">
+                OZO Care
+              </span>
+              <Stethoscope className="w-4 h-4 text-emerald-500" />
+            </div>
+            <h4 className="text-base font-black text-gray-900 dark:text-white mt-2">
+              Healthcare & Pharmacy
+            </h4>
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Doctors Verified</p>
+                <p className="text-sm font-black text-emerald-600 dark:text-emerald-400 mt-0.5">{stats.doctorsCount}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Pharmacies</p>
+                <p className="text-sm font-black text-teal-600 dark:text-teal-400 mt-0.5">{stats.pharmaciesCount}</p>
+              </div>
+            </div>
+          </div>
+          <Link
+            to="/admin/care"
+            className="flex items-center justify-between text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline pt-2 border-t border-gray-100 dark:border-white/5"
+          >
+            <span>Manage Care & Appointments</span>
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {/* Pillar 4: OZO Services */}
+        <div className="p-5 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 shadow-md hover:border-purple-500/40 transition-all flex flex-col justify-between space-y-4">
+          <div>
+            <div className="flex items-center justify-between">
+              <span className="px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-600 dark:text-purple-400 font-black text-[10px] uppercase tracking-wider">
+                OZO Services
+              </span>
+              <Wrench className="w-4 h-4 text-purple-500" />
+            </div>
+            <h4 className="text-base font-black text-gray-900 dark:text-white mt-2">
+              Home Maintenance & Urban
+            </h4>
+            <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-gray-100 dark:border-white/5">
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Service Catalog</p>
+                <p className="text-sm font-black text-purple-600 dark:text-purple-400 mt-0.5">{stats.servicesCount || stats.serviceCategoriesCount || 12} Skills</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-gray-400 font-bold uppercase">Customer Inquiries</p>
+                <p className="text-sm font-black text-amber-600 dark:text-amber-400 mt-0.5">{pendingRequests.pendingInquiries}</p>
+              </div>
+            </div>
+          </div>
+          <Link
+            to="/admin/services"
+            className="flex items-center justify-between text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline pt-2 border-t border-gray-100 dark:border-white/5"
+          >
+            <span>Services & Proposals</span>
+            <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
       </div>
 
-      {/* Lower Desk - Recent Orders & Top Selling Products */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Orders Desk (2/3 width) */}
-        <div className="lg:col-span-2 bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-white/5 p-6 shadow-premium flex flex-col justify-between">
+      {/* SECTION 4: Interactive Charts & Order Pipeline (2/3 + 1/3 Layout) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* SVG Interactive Financial / Volume Chart */}
+        <div className="lg:col-span-2 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 p-5 sm:p-6 shadow-md relative flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between flex-wrap gap-3 mb-4">
+              <div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                  Sales & Orders Velocity
+                  <span className="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] rounded-full font-black uppercase tracking-wider">
+                    Live Telemetry
+                  </span>
+                </h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
+                  Daily aggregated financial turnover across the last {chartTimeframe} days.
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-2.5 flex-wrap">
+                {/* Timeframe Select */}
+                <select
+                  value={chartTimeframe}
+                  onChange={(e) => {
+                    setChartTimeframe(Number(e.target.value))
+                    setHoveredPoint(null)
+                  }}
+                  className="bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 text-xs font-bold px-3 py-1.5 rounded-xl border border-gray-200/70 dark:border-white/10 outline-none cursor-pointer hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                >
+                  <option value={7} className="bg-white dark:bg-[#1a1a1a]">Last 7 Days</option>
+                  <option value={15} className="bg-white dark:bg-[#1a1a1a]">Last 15 Days</option>
+                  <option value={30} className="bg-white dark:bg-[#1a1a1a]">Last 30 Days</option>
+                </select>
+
+                {/* Tab toggle */}
+                <div className="flex items-center p-1 bg-gray-100 dark:bg-white/5 rounded-xl border border-gray-200/50 dark:border-white/10">
+                  <button
+                    onClick={() => {
+                      setActiveChartTab('sales')
+                      setHoveredPoint(null)
+                    }}
+                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                      activeChartTab === 'sales'
+                        ? 'bg-white dark:bg-white/20 text-emerald-600 dark:text-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'
+                    }`}
+                  >
+                    Revenue (₹)
+                  </button>
+                  <button
+                    onClick={() => {
+                      setActiveChartTab('orders')
+                      setHoveredPoint(null)
+                    }}
+                    className={`px-3 py-1 text-xs font-bold rounded-lg transition-all ${
+                      activeChartTab === 'orders'
+                        ? 'bg-white dark:bg-white/20 text-purple-600 dark:text-white shadow-sm'
+                        : 'text-gray-500 hover:text-gray-800 dark:text-gray-400'
+                    }`}
+                  >
+                    Order Vol
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* SVG Chart Rendering */}
+            <div className="relative w-full aspect-[21/9] sm:aspect-[2.4/1] mt-2 select-none">
+              {dailyData.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center text-xs text-gray-400 italic">
+                  Awaiting live transaction telemetry...
+                </div>
+              ) : (
+                <>
+                  <svg className="w-full h-full overflow-visible" viewBox={`0 0 ${chartWidth} ${chartHeight}`}>
+                    <defs>
+                      <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor={activeChartTab === 'sales' ? '#10B981' : '#8B5CF6'} stopOpacity="0.3" />
+                        <stop offset="100%" stopColor={activeChartTab === 'sales' ? '#10B981' : '#8B5CF6'} stopOpacity="0.0" />
+                      </linearGradient>
+                    </defs>
+
+                    {/* Horizontal Guideline grid */}
+                    {[0, 0.25, 0.5, 0.75, 1].map((tick, index) => {
+                      const y = chartHeight - paddingBottom - tick * (chartHeight - paddingTop - paddingBottom)
+                      const tickVal = Math.round(tick * maxChartValue)
+                      return (
+                        <g key={index} className="opacity-15 dark:opacity-10">
+                          <line
+                            x1={paddingLeft}
+                            y1={y}
+                            x2={chartWidth - paddingRight}
+                            y2={y}
+                            stroke="currentColor"
+                            strokeWidth="1"
+                            strokeDasharray="4,4"
+                          />
+                          <text
+                            x={paddingLeft - 8}
+                            y={y + 4}
+                            className="text-[9px] fill-current font-semibold text-right"
+                            textAnchor="end"
+                          >
+                            {activeChartTab === 'sales' ? `₹${tickVal}` : tickVal}
+                          </text>
+                        </g>
+                      )
+                    })}
+
+                    {/* Area fill */}
+                    <path d={chartAreaPath} fill="url(#chartGradient)" />
+
+                    {/* Line stroke */}
+                    <path
+                      d={chartLinePath}
+                      fill="none"
+                      stroke={activeChartTab === 'sales' ? '#10B981' : '#8B5CF6'}
+                      strokeWidth="3"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+
+                    {/* Axis line */}
+                    <line
+                      x1={paddingLeft}
+                      y1={chartHeight - paddingBottom}
+                      x2={chartWidth - paddingRight}
+                      y2={chartHeight - paddingBottom}
+                      className="stroke-gray-200 dark:stroke-white/10"
+                      strokeWidth="1"
+                    />
+
+                    {/* Grid Point Dots */}
+                    {chartPoints.map((p, i) => (
+                      <circle
+                        key={i}
+                        cx={p.x}
+                        cy={p.y}
+                        r={hoveredPoint?.label === p.label ? "6" : "3.5"}
+                        className={`fill-white dark:fill-[#15171c] transition-all duration-150 ${activeChartTab === 'sales' ? 'stroke-emerald-500' : 'stroke-purple-500'}`}
+                        strokeWidth="2.5"
+                      />
+                    ))}
+
+                    {/* Interactive vertical tracking line */}
+                    {hoveredPoint && (
+                      <line
+                        x1={hoveredPoint.x}
+                        y1={paddingTop}
+                        x2={hoveredPoint.x}
+                        y2={chartHeight - paddingBottom}
+                        className={activeChartTab === 'sales' ? 'stroke-emerald-500/40' : 'stroke-purple-500/40'}
+                        strokeWidth="1.5"
+                        strokeDasharray="3,3"
+                      />
+                    )}
+
+                    {/* Bottom Date labels */}
+                    {chartPoints.map((p, i) => {
+                      const labelInterval = Math.ceil(dailyData.length / 6)
+                      const isEdge = i === 0 || i === chartPoints.length - 1
+                      const isStep = i % labelInterval === 0
+                      if (!isEdge && !isStep) return null
+
+                      return (
+                        <text
+                          key={i}
+                          x={p.x}
+                          y={chartHeight - paddingBottom + 16}
+                          className="text-[9px] fill-gray-400 dark:fill-gray-500 font-bold"
+                          textAnchor="middle"
+                        >
+                          {p.label}
+                        </text>
+                      )
+                    })}
+
+                    {/* Hover detector zones */}
+                    {chartPoints.map((p, i) => {
+                      const zoneX = p.x - sliceWidth / 2
+                      return (
+                        <rect
+                          key={i}
+                          x={zoneX}
+                          y={0}
+                          width={sliceWidth}
+                          height={chartHeight}
+                          fill="transparent"
+                          className="cursor-crosshair"
+                          onMouseEnter={() => setHoveredPoint(p)}
+                          onMouseLeave={() => setHoveredPoint(null)}
+                        />
+                      )
+                    })}
+                  </svg>
+
+                  {/* Tooltip Card overlay */}
+                  <AnimatePresence>
+                    {hoveredPoint && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.95 }}
+                        className="absolute p-3 bg-white dark:bg-[#1e2028] border border-gray-200 dark:border-white/10 rounded-2xl shadow-2xl z-30 pointer-events-none text-xs flex flex-col gap-0.5 min-w-[130px]"
+                        style={{
+                          left: `${((hoveredPoint.x - paddingLeft) / (chartWidth - paddingLeft - paddingRight)) * 88 + 4}%`,
+                          top: `${hoveredPoint.y - 65}px`
+                        }}
+                      >
+                        <span className="text-[10px] text-gray-400 font-bold uppercase">{hoveredPoint.label}</span>
+                        <span className="font-black text-gray-900 dark:text-white text-sm">
+                          {activeChartTab === 'sales' ? `₹${hoveredPoint.val.toLocaleString('en-IN')}` : `${hoveredPoint.val} Orders`}
+                        </span>
+                        <span className="text-[9px] text-emerald-500 font-bold flex items-center gap-0.5">
+                          <TrendingUp className="w-3 h-3" />
+                          Tracked
+                        </span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Fulfillment Pipeline Desk (1/3 width) */}
+        <div className="bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 p-5 sm:p-6 shadow-md flex flex-col justify-between">
+          <div>
+            <h3 className="text-lg font-black text-gray-900 dark:text-white">Fulfillment Pipeline</h3>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Live order statuses breakdown.</p>
+
+            <div className="mt-6 space-y-4">
+              {(() => {
+                const total = stats.ordersCount || 1
+                const dataList = [
+                  { label: 'Delivered', count: stats.deliveredOrdersCount, color: 'bg-emerald-500', barBg: 'bg-emerald-500/10' },
+                  { label: 'In Transit / Dispatched', count: stats.activeOrdersCount, color: 'bg-sky-500', barBg: 'bg-sky-500/10' },
+                  { label: 'Pending Acceptance', count: stats.pendingOrdersCount, color: 'bg-amber-500', barBg: 'bg-amber-500/10' },
+                  { label: 'Cancelled / Returned', count: stats.cancelledOrdersCount, color: 'bg-rose-500', barBg: 'bg-rose-500/10' }
+                ]
+
+                return dataList.map((item, index) => {
+                  const pct = Math.round((item.count / total) * 100)
+                  return (
+                    <div key={index} className="space-y-1.5">
+                      <div className="flex justify-between text-xs">
+                        <span className="font-semibold text-gray-700 dark:text-gray-300">{item.label}</span>
+                        <span className="text-gray-400 dark:text-gray-500 font-bold">
+                          {item.count} ({pct}%)
+                        </span>
+                      </div>
+                      <div className={`w-full h-2 rounded-full overflow-hidden ${item.barBg}`}>
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${pct}%` }}
+                          transition={{ duration: 0.8, delay: index * 0.1 }}
+                          className={`h-full rounded-full ${item.color}`}
+                        />
+                      </div>
+                    </div>
+                  )
+                })
+              })()}
+            </div>
+          </div>
+
+          <Link
+            to="/admin/orders"
+            className="w-full mt-6 py-2.5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl text-center text-xs font-black text-gray-700 dark:text-gray-200 transition-colors block"
+          >
+            Manage Fulfillment Orders
+          </Link>
+        </div>
+      </div>
+
+      {/* SECTION 5: Live Activity Desk & Inventory Watchlist (2/3 + 1/3 Layout) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Recent Orders Activity (2/3 width) */}
+        <div className="lg:col-span-2 bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 p-5 sm:p-6 shadow-md flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-lg font-black text-gray-900 dark:text-white">Recent Orders Activity</h3>
-                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Latest 5 checkouts logged in system.</p>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">Recent Orders Stream</h3>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">Latest real-time checkouts across active marts.</p>
               </div>
               <Link 
                 to="/admin/orders" 
                 className="text-xs font-black text-ozo-red hover:underline flex items-center gap-0.5"
               >
-                Go to Orders Desk
+                <span>Orders Desk</span>
                 <ChevronRight className="w-3.5 h-3.5" />
               </Link>
             </div>
 
             {loading ? (
-              <div className="space-y-4 py-4">
+              <div className="space-y-3 py-4">
                 {[1, 2, 3].map((n) => (
-                  <div key={n} className="h-12 bg-gray-100 dark:bg-white/5 rounded-xl animate-pulse" />
+                  <div key={n} className="h-12 bg-gray-100 dark:bg-white/5 rounded-2xl animate-pulse" />
                 ))}
               </div>
             ) : recentOrders.length === 0 ? (
@@ -876,7 +1267,7 @@ const Dashboard = () => {
                 <p className="text-xs text-gray-400 italic">No checkout orders registered yet.</p>
               </div>
             ) : (
-              <div className="overflow-x-auto -mx-6">
+              <div className="overflow-x-auto -mx-5 sm:-mx-6">
                 <table className="w-full text-left border-collapse min-w-[500px]">
                   <thead>
                     <tr className="border-b border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.01] text-[10px] uppercase tracking-wider font-bold text-gray-400">
@@ -887,26 +1278,25 @@ const Dashboard = () => {
                       <th className="px-6 py-3 text-right">Total</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-xs">
+                  <tbody className="divide-y divide-gray-100 dark:border-white/5 text-xs">
                     {recentOrders.map((order) => {
                       const orderNum = order.order_number || order.id.slice(0, 8)
                       const isPaid = order.payment_status === 'paid'
                       
                       const STATUS_BADGES = {
-                        pending: 'bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:text-amber-450 border-amber-500/10',
-                        PLACED_COOLING: 'bg-rose-100 text-rose-700 dark:bg-rose-950/20 dark:text-rose-455 border-rose-500/10',
-                        CONFIRMED_SYSTEM: 'bg-blue-100 text-blue-700 dark:bg-blue-950/20 dark:text-blue-450 border-blue-500/10',
-                        confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400 border-blue-500/10',
-                        preparing: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400 border-indigo-500/10',
-                        packed: 'bg-purple-100 text-purple-700 dark:bg-purple-950/20 dark:text-purple-400 border-purple-500/10',
-                        assigned: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/20 dark:text-cyan-400 border-cyan-500/10',
-                        dispatched: 'bg-orange-100 text-orange-700 dark:bg-orange-950/20 dark:text-orange-400 border-orange-500/10',
-                        delivered: 'bg-green-100 text-green-700 dark:bg-green-950/20 dark:text-green-400 border-green-500/10',
-                        DELIVERED_VERIFYING: 'bg-green-100 text-green-700 dark:bg-green-950/20 dark:text-green-400 border-green-500/10',
-                        COMPLETED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-450 border-emerald-500/10',
-                        cancelled: 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400 border-red-500/10',
-                        CANCELLED_BY_USER: 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400 border-red-500/10',
-                        RETURN_REQUESTED: 'bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:text-amber-450 border-amber-500/10'
+                        pending: 'bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400',
+                        PLACED_COOLING: 'bg-rose-100 text-rose-700 dark:bg-rose-950/20 dark:text-rose-400',
+                        CONFIRMED_SYSTEM: 'bg-blue-100 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400',
+                        confirmed: 'bg-blue-100 text-blue-700 dark:bg-blue-950/20 dark:text-blue-400',
+                        preparing: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-950/20 dark:text-indigo-400',
+                        packed: 'bg-purple-100 text-purple-700 dark:bg-purple-950/20 dark:text-purple-400',
+                        assigned: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-950/20 dark:text-cyan-400',
+                        dispatched: 'bg-orange-100 text-orange-700 dark:bg-orange-950/20 dark:text-orange-400',
+                        delivered: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400',
+                        COMPLETED: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/20 dark:text-emerald-400',
+                        cancelled: 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400',
+                        CANCELLED_BY_USER: 'bg-red-100 text-red-700 dark:bg-red-950/20 dark:text-red-400',
+                        RETURN_REQUESTED: 'bg-amber-100 text-amber-700 dark:bg-amber-950/20 dark:text-amber-400'
                       }
                       
                       const badgeClass = STATUS_BADGES[order.status] || 'bg-gray-100 text-gray-700 dark:bg-white/5'
@@ -915,9 +1305,9 @@ const Dashboard = () => {
                         <tr 
                           key={order.id} 
                           onClick={() => navigate('/admin/orders')} 
-                          className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-all cursor-pointer"
+                          className="hover:bg-gray-50/50 dark:hover:bg-white/[0.02] transition-all cursor-pointer"
                         >
-                          <td className="px-6 py-3 font-extrabold text-gray-900 dark:text-white">
+                          <td className="px-6 py-3 font-black text-gray-900 dark:text-white">
                             #{orderNum}
                             <span className="text-[9px] text-gray-400 block font-normal mt-0.5">
                               {new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
@@ -933,15 +1323,15 @@ const Dashboard = () => {
                             </div>
                           </td>
                           <td className="px-6 py-3">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-wider ${badgeClass}`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${badgeClass}`}>
                               {order.status.replace('_', ' ')}
                             </span>
                           </td>
                           <td className="px-6 py-3">
-                            <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md border inline-flex items-center gap-1 ${
+                            <span className={`text-[9px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-md inline-flex items-center gap-1 ${
                               isPaid
-                                ? 'bg-green-500/10 text-green-600 dark:text-green-400 border-green-500/25'
-                                : 'bg-ozo-red/10 text-ozo-red dark:text-red-400 border-ozo-red/25'
+                                ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20'
+                                : 'bg-red-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20'
                             }`}>
                               {isPaid ? 'Paid' : 'Unpaid'}
                             </span>
@@ -959,128 +1349,124 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Top Selling Products (1/3 width) */}
-        <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-white/5 p-6 shadow-premium flex flex-col justify-between">
+        {/* Low-Stock / Restock Watchlist (1/3 width) */}
+        <div className="bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 p-5 sm:p-6 shadow-md flex flex-col justify-between">
           <div>
-            <h3 className="text-lg font-black text-gray-900 dark:text-white mb-1">Top Selling Products</h3>
-            <p className="text-xs text-gray-400 dark:text-gray-500 mb-6">High volume fast-moving grocery SKU items.</p>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-lg font-black text-gray-900 dark:text-white">Stock Watchlist</h3>
+              <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${stats.outOfStockCount > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400' : 'bg-emerald-500/10 text-emerald-600'}`}>
+                {stats.outOfStockCount} Out of Stock
+              </span>
+            </div>
+            <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">Fast items needing replenishment.</p>
 
-            <div className="space-y-5">
-              {topSellers.length === 0 ? (
-                <div className="text-center py-10 text-xs text-gray-400 italic">
-                  No sales recorded yet.
+            <div className="space-y-3">
+              {criticalLowStock.length === 0 ? (
+                <div className="text-center py-8 text-xs text-gray-400 italic">
+                  All active items are healthy and in stock!
                 </div>
               ) : (
-                topSellers.map((item, idx) => {
-                  const maxQty = Math.max(...topSellers.map(s => s.quantity), 1)
-                  const pct = (item.quantity / maxQty) * 100
-
-                  return (
-                    <div key={idx} className="space-y-1">
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="font-semibold text-gray-800 dark:text-gray-200 line-clamp-1 flex-1 pr-4">
-                          {item.name}
-                        </span>
-                        <span className="text-[10px] text-gray-400 dark:text-gray-500 font-black flex-shrink-0">
-                          {item.quantity} sold
-                        </span>
+                criticalLowStock.map((prod) => (
+                  <div key={prod.id} className="flex items-center justify-between p-2.5 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-xl bg-gray-200 dark:bg-white/10 overflow-hidden flex-shrink-0">
+                        {prod.image_url ? (
+                          <img src={prod.image_url} alt={prod.name} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-400">
+                            <Package className="w-4 h-4" />
+                          </div>
+                        )}
                       </div>
-
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden">
-                          <motion.div
-                            initial={{ width: 0 }}
-                            animate={{ width: `${pct}%` }}
-                            transition={{ duration: 0.8, delay: idx * 0.05 }}
-                            className="h-full bg-gradient-ozo rounded-full"
-                          />
-                        </div>
-                        <span className="text-[10px] font-bold text-gray-700 dark:text-gray-300 w-12 text-right">
-                          ₹{item.revenue.toLocaleString('en-IN')}
-                        </span>
+                      <div className="min-w-0">
+                        <p className="text-xs font-bold text-gray-800 dark:text-gray-200 truncate">{prod.name}</p>
+                        <p className="text-[10px] text-rose-500 font-bold">Out of stock</p>
                       </div>
                     </div>
-                  )
-                })
+                    <span className="text-xs font-black text-gray-900 dark:text-white">
+                      ₹{prod.price}
+                    </span>
+                  </div>
+                ))
               )}
             </div>
           </div>
 
           <Link
             to="/admin/products"
-            className="w-full mt-6 py-3 border border-gray-250 dark:border-white/5 hover:border-gray-300 dark:hover:border-white/10 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl text-center text-xs font-black text-gray-600 dark:text-gray-300 transition-colors block"
+            className="w-full mt-4 py-2.5 border border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl text-center text-xs font-black text-gray-700 dark:text-gray-200 transition-colors block"
           >
-            View Products Catalog
+            Open Catalog Inventory
           </Link>
         </div>
       </div>
 
-      {/* Quick Admin Workflows Section */}
-      <div className="bg-white dark:bg-[#1a1a1a] rounded-[2rem] border border-gray-100 dark:border-white/5 p-6 shadow-premium">
-        <h3 className="text-lg font-black text-gray-900 dark:text-white mb-4">Quick Operations Shortcuts</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* SECTION 6: Super Admin Command Operations Shortcuts */}
+      <div className="bg-white dark:bg-[#15171c] rounded-3xl border border-gray-200/70 dark:border-white/10 p-5 sm:p-6 shadow-md">
+        <h3 className="text-base font-black text-gray-900 dark:text-white mb-3">Super Admin Quick Operations Shortcuts</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
           <Link
             to="/admin/products"
-            className="flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-ozo-red dark:hover:border-ozo-red hover:bg-ozo-red/5 group transition-all"
+            className="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-ozo-red dark:hover:border-ozo-red hover:bg-ozo-red/5 group transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red rounded-xl">
-                <Plus className="w-5 h-5" />
+              <div className="p-2.5 bg-ozo-red/10 dark:bg-ozo-red/20 text-ozo-red rounded-xl">
+                <Plus className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-bold text-gray-800 dark:text-white text-sm">Add New Product</h4>
-                <p className="text-xs text-gray-400 mt-0.5">Quickly add items & images</p>
+                <h4 className="font-bold text-gray-800 dark:text-white text-xs">Add New Product</h4>
+                <p className="text-[10px] text-gray-400 mt-0.5">Catalog & SKU restock</p>
               </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-405 group-hover:text-ozo-red group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-ozo-red group-hover:translate-x-1 transition-all" />
+          </Link>
+
+          <Link
+            to="/admin/requests"
+            className="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-sky-500 dark:hover:border-sky-500 hover:bg-sky-500/5 group transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-sky-100 dark:bg-sky-950/20 text-sky-500 rounded-xl">
+                <UserCheck className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-gray-800 dark:text-white text-xs">Review Requests</h4>
+                <p className="text-[10px] text-gray-400 mt-0.5">Riders & Mart approvals</p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+          </Link>
+
+          <Link
+            to="/admin/cities"
+            className="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-500/5 group transition-all"
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-emerald-100 dark:bg-emerald-950/20 text-emerald-500 rounded-xl">
+                <MapPin className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-gray-800 dark:text-white text-xs">Cities & Zones</h4>
+                <p className="text-[10px] text-gray-400 mt-0.5">Pincodes & delivery radius</p>
+              </div>
+            </div>
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-emerald-500 group-hover:translate-x-1 transition-all" />
           </Link>
 
           <Link
             to="/admin/settings"
-            className="flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-500/5 group transition-all"
+            className="flex items-center justify-between p-4 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-500/5 group transition-all"
           >
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-blue-100 dark:bg-blue-950/20 text-blue-500 rounded-xl">
-                <Settings className="w-5 h-5" />
+              <div className="p-2.5 bg-purple-100 dark:bg-purple-950/20 text-purple-500 rounded-xl">
+                <Settings className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <h4 className="font-bold text-gray-800 dark:text-white text-sm">System Settings</h4>
-                <p className="text-xs text-gray-400 mt-0.5">Adjust delivery & fees</p>
+                <h4 className="font-bold text-gray-800 dark:text-white text-xs">System Settings</h4>
+                <p className="text-[10px] text-gray-400 mt-0.5">Fees, policies & gateway</p>
               </div>
             </div>
-            <ArrowRight className="w-5 h-5 text-gray-405 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
-          </Link>
-
-          <Link
-            to="/admin/backup"
-            className="flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-purple-500 dark:hover:border-purple-500 hover:bg-purple-500/5 group transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-purple-100 dark:bg-purple-950/20 text-purple-500 rounded-xl">
-                <ShieldCheck className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-bold text-gray-800 dark:text-white text-sm">Backup Console</h4>
-                <p className="text-xs text-gray-400 mt-0.5">Export SQL & logs</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-450 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
-          </Link>
-
-          <Link
-            to="/admin/messages"
-            className="flex items-center justify-between p-5 rounded-2xl border-2 border-dashed border-gray-200 dark:border-white/10 hover:border-amber-500 dark:hover:border-amber-500 hover:bg-amber-500/5 group transition-all"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-100 dark:bg-amber-950/20 text-amber-500 rounded-xl">
-                <MessageSquare className="w-5 h-5" />
-              </div>
-              <div className="min-w-0">
-                <h4 className="font-bold text-gray-800 dark:text-white text-sm">Support Tickets</h4>
-                <p className="text-xs text-gray-400 mt-0.5">Reply customer queries</p>
-              </div>
-            </div>
-            <ArrowRight className="w-5 h-5 text-gray-450 group-hover:text-amber-500 group-hover:translate-x-1 transition-all" />
+            <ArrowRight className="w-4 h-4 text-gray-400 group-hover:text-purple-500 group-hover:translate-x-1 transition-all" />
           </Link>
         </div>
       </div>
