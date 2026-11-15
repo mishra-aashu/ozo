@@ -21,7 +21,8 @@ import {
   Clock, 
   AlertCircle,
   Sparkles,
-  ClipboardList
+  ClipboardList,
+  Building2
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCareStore } from '../../stores/careStore'
