@@ -5,6 +5,7 @@ import CareHeader from '../components/care/CareHeader'
 import Footer from '../components/Footer'
 import CareFooter from '../components/care/CareFooter'
 import BottomNav from '../components/BottomNav'
+import BottomNavCare from '../components/care/BottomNavCare'
 import NetworkStatusBanner from '../components/NetworkStatusBanner'
 import { useAuthStore } from '../stores/authStore'
 import { useCartStore } from '../stores/cartStore'
@@ -128,7 +129,7 @@ const MainLayout = () => {
       {!hideFooter && (isCareMode ? <CareFooter /> : <Footer />)}
 
       {/* Bottom Navigation (Mobile Only) */}
-      {!hideHeaderFooter && <BottomNav />}
+      {!hideHeaderFooter && (isCareMode ? <BottomNavCare /> : <BottomNav />)}
     </div>
   )
 }
