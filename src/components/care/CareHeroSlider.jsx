@@ -121,16 +121,16 @@ export default function CareHeroSlider() {
         </AnimatePresence>
 
         {/* Top Tag Pill */}
-        <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-20 flex items-center gap-2">
-          <span className={`inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1 rounded-full text-[9px] xs:text-[10px] sm:text-xs font-display font-black uppercase tracking-wider backdrop-blur-md border ${currentSlide.tagColor}`}>
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <BadgeIcon size={12} />
-            <span>{currentSlide.tag}</span>
+        <div className="absolute top-2.5 left-2.5 sm:top-4 sm:left-4 z-20 flex items-center gap-2 max-w-[65%]">
+          <span className={`inline-flex items-center gap-1.5 px-2 xs:px-2.5 sm:px-3 py-1 rounded-full text-[9px] xs:text-[10px] sm:text-xs font-display font-black uppercase tracking-wider backdrop-blur-md border ${currentSlide.tagColor} truncate max-w-full`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+            <BadgeIcon size={12} className="shrink-0" />
+            <span className="truncate">{currentSlide.tag}</span>
           </span>
         </div>
 
         {/* Slide Counter on Top Right */}
-        <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-black/50 backdrop-blur-md text-[9px] xs:text-[10px] font-mono text-white/80 border border-white/10">
+        <div className="absolute top-2.5 right-2.5 sm:top-4 sm:right-4 z-20 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-black/50 backdrop-blur-md text-[9px] xs:text-[10px] font-mono text-white/80 border border-white/10 shrink-0">
           0{currentIndex + 1} / 0{SLIDES.length}
         </div>
 
@@ -190,10 +190,10 @@ export default function CareHeroSlider() {
       </div>
 
       {/* Bottom Progress Navigation Bar */}
-      <div className="bg-[#0c1015] px-5 py-3 border-t border-white/10 flex items-center justify-between">
+      <div className="bg-[#0c1015] px-3.5 xs:px-5 py-2.5 sm:py-3 border-t border-white/10 flex items-center justify-between gap-2 overflow-hidden">
         
         {/* Pagination Dots */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {SLIDES.map((slide, idx) => {
             const isActive = idx === currentIndex
             return (
@@ -203,8 +203,8 @@ export default function CareHeroSlider() {
                 aria-label={`Go to slide ${idx + 1}`}
                 className={`transition-all duration-300 rounded-full h-1.5 ${
                   isActive 
-                    ? 'w-7 bg-emerald-500 shadow-sm shadow-emerald-500' 
-                    : 'w-2 bg-white/20 hover:bg-white/40'
+                    ? 'w-5 sm:w-7 bg-emerald-500 shadow-sm shadow-emerald-500' 
+                    : 'w-1.5 sm:w-2 bg-white/20 hover:bg-white/40'
                 }`}
               />
             )
@@ -212,8 +212,8 @@ export default function CareHeroSlider() {
         </div>
 
         {/* Quick Info text */}
-        <span className="text-[10px] font-sans text-slate-400">
-          Auto-sliding • Swipe or hover to pause
+        <span className="text-[9px] xs:text-[10px] font-sans text-slate-400 truncate">
+          Auto-sliding • Swipe to pause
         </span>
       </div>
     </div>

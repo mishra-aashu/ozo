@@ -52,7 +52,7 @@ export default function DoctorCardHome({ doctor }) {
           handleCardClick()
         }
       }}
-      className="group relative bg-white dark:bg-[#121820] rounded-2xl sm:rounded-[1.75rem] border border-slate-200/90 dark:border-white/10 p-4 xs:p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-950/20 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 flex flex-col justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 select-none"
+      className="group relative bg-white dark:bg-[#121820] rounded-2xl sm:rounded-[1.75rem] border border-slate-200/90 dark:border-white/10 p-4 xs:p-5 sm:p-6 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-emerald-950/20 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 flex flex-col justify-between cursor-pointer focus:outline-none focus:ring-2 focus:ring-emerald-500/50 select-none max-w-full overflow-hidden"
     >
       {/* Top Section: Avatar + Doctor Info + Rating */}
       <div>
