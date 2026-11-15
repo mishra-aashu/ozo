@@ -303,18 +303,18 @@ export default function CareHeader() {
               </Link>
             </div>
 
-            {/* My Tokens & Appointments Button (Replaces Shopping Cart!) */}
+            {/* My Tokens & Appointments Button (Desktop & Tablet only - on mobile it's in BottomNavCare!) */}
             <Link
               to="/care/my-appointments"
-              className="relative p-2 xs:p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-500/50 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all flex items-center gap-1.5 shrink-0"
+              className="hidden sm:flex relative p-2.5 rounded-xl border border-slate-200 dark:border-white/10 hover:border-emerald-500/50 bg-slate-50 dark:bg-slate-900/60 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all items-center gap-1.5 shrink-0"
               title="My Appointments & Active Tokens"
             >
               <Calendar size={17} className="text-emerald-500 shrink-0" />
-              <span className="hidden sm:inline text-xs font-display font-bold">
+              <span className="text-xs font-display font-bold">
                 My Tokens
               </span>
               {activeTokensCount > 0 && (
-                <span className="w-4 h-4 xs:w-5 xs:h-5 rounded-full bg-emerald-600 text-white font-display font-black text-[9px] xs:text-[10px] flex items-center justify-center animate-pulse">
+                <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-display font-black text-[10px] flex items-center justify-center animate-pulse">
                   {activeTokensCount}
                 </span>
               )}
@@ -329,8 +329,8 @@ export default function CareHeader() {
               {theme === 'dark' ? <Sun size={17} /> : <Moon size={17} />}
             </button>
 
-            {/* User Profile / Login Dropdown */}
-            <div ref={profileRef} className="relative shrink-0">
+            {/* User Profile / Login Dropdown (Desktop & Tablet only - on mobile it's in BottomNavCare and Drawer!) */}
+            <div ref={profileRef} className="relative shrink-0 hidden sm:block">
               {isAuthenticated ? (
                 <button
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
