@@ -157,31 +157,33 @@ export default function BookAppointment() {
     <div className="min-h-screen bg-slate-50 dark:bg-[#0a0e14] text-slate-900 dark:text-slate-100 pb-20 font-sans text-left">
       {/* Top Header */}
       <div className="sticky top-0 z-30 bg-white/85 dark:bg-[#0e131b]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-3 xs:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
           <button 
             onClick={() => navigate(`/care/doctor/${doctor.id}`)} 
-            className="flex items-center gap-2 text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors"
+            className="flex items-center gap-1.5 xs:gap-2 text-xs xs:text-sm font-display font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white transition-colors shrink-0"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Profile
+            <ArrowLeft className="w-4 h-4 shrink-0" /> <span>Back to Profile</span>
           </button>
 
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-display font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              <ShieldCheck className="w-3.5 h-3.5" /> 100% Confirmed Token
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="inline-flex items-center gap-1.5 px-2.5 xs:px-3 py-1 rounded-full text-[10px] xs:text-xs font-display font-bold bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden xs:inline">100% Confirmed Token</span>
+              <span className="xs:hidden">Confirmed</span>
             </span>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-6xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-5 sm:py-8">
         {/* Title & Step Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-2 text-xs font-display font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
+        <div className="mb-6 sm:mb-8">
+          <div className="flex items-center gap-2 text-[10px] xs:text-xs font-display font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider mb-1">
             <span>Appointment Booking</span>
             <span>•</span>
             <span>Step 1 of 1</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
+          <h1 className="text-xl xs:text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white tracking-tight">
             Confirm Your Consultation Token
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -190,12 +192,12 @@ export default function BookAppointment() {
         </div>
 
         {/* 2-Column Responsive Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
           
           {/* LEFT: DOCTOR SUMMARY & FEE BREAKDOWN (5 cols) */}
-          <div className="lg:col-span-5 space-y-6">
+          <div className="lg:col-span-5 space-y-5 sm:space-y-6">
             {/* Doctor Card Recap */}
-            <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-5">
+            <div className="bg-white dark:bg-[#121820] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-4 sm:space-y-5">
               <div className="flex items-center gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
                 <div className="w-16 h-16 rounded-2xl overflow-hidden border-2 border-emerald-500/30 p-0.5 bg-gradient-to-br from-emerald-500/10 to-teal-500/10 shrink-0">
                   {avatarSrc ? (
