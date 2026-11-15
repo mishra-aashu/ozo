@@ -77,8 +77,12 @@ export default function OzoLogo({
               Care
             </span>
           </div>
-          <span className="text-[7px] xs:text-[8px] sm:text-[9px] font-sans font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider xs:tracking-widest leading-none mt-1 select-none whitespace-nowrap">
-            {subText || 'HEALTHCARE & PHARMACY NETWORK'}
+          <span className="text-[7px] xs:text-[8px] sm:text-[9px] font-sans font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight xs:tracking-wider leading-none mt-1 select-none whitespace-nowrap">
+            {subText || (
+              <>
+                HEALTHCARE <span className="hidden xs:inline">& PHARMACY </span>NETWORK
+              </>
+            )}
           </span>
         </div>
       );
