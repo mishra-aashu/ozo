@@ -126,7 +126,7 @@ export default function CareHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0c1015]/95 backdrop-blur-md border-b border-gray-200/90 dark:border-white/10 transition-colors">
+      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0c1015]/95 backdrop-blur-md border-b border-gray-200/90 dark:border-white/10 transition-colors pt-[env(safe-area-inset-top,0px)]">
         
         {/* Top Mini Trust Bar (Desktop only) */}
         <div className="hidden lg:block bg-gradient-to-r from-emerald-950 via-teal-950 to-emerald-950 text-emerald-200 text-[11px] font-sans py-1 border-b border-emerald-900/40">
@@ -164,7 +164,7 @@ export default function CareHeader() {
         </div>
 
         {/* Main Navbar */}
-        <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 h-15 sm:h-20 flex items-center justify-between gap-1.5 xs:gap-3 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 pt-2 xs:pt-2.5 pb-1 sm:py-0 sm:h-20 flex items-center justify-between gap-1.5 xs:gap-3 sm:gap-4">
           
           {/* LEFT: VERTICAL SWITCHER & LOGO */}
           <div className="hidden lg:flex items-center gap-3 shrink-0">
