@@ -171,7 +171,7 @@ export default function OrderMedicines() {
         <div className="mb-6 sm:mb-8 rounded-2xl sm:rounded-3xl p-4 xs:p-6 sm:p-8 bg-gradient-to-r from-emerald-600 to-teal-700 text-white relative overflow-hidden shadow-lg">
           <div className="relative z-10 max-w-2xl">
             <span className="px-2.5 xs:px-3 py-1 rounded-full text-[10px] xs:text-xs font-display font-bold bg-white/20 uppercase tracking-wider backdrop-blur-sm">
-              ⚡ 30-Min Local Chemist Delivery
+               30-Min Local Chemist Delivery
             </span>
             <h1 className="text-xl xs:text-2xl sm:text-3xl font-display font-black mt-2 sm:mt-3 tracking-tight leading-snug">
               Order Medicines with Verified Prescription
