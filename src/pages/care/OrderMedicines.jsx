@@ -196,30 +196,31 @@ export default function OrderMedicines() {
                   <span>Step 1: Attach Prescription</span>
                 </h2>
 
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3 mb-4">
-                  <button
+                {/* Segmented Control Pill Switch (Settings Capsule Style) */}
+                <div className="bg-slate-100/90 dark:bg-[#121820] p-1.5 rounded-2xl border border-slate-200/80 dark:border-white/5 flex items-center gap-1.5 sm:gap-2 mb-4">
+                  <button 
                     type="button"
                     onClick={() => setOrderMode('upload')}
-                    className={`py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 min-w-0 ${
-                      orderMode === 'upload'
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 px-3 rounded-xl transition-all font-display font-black text-xs uppercase tracking-wider select-none ${
+                      orderMode === 'upload' 
+                        ? 'bg-white dark:bg-white/10 text-emerald-700 dark:text-white shadow-md ring-1 ring-black/5 dark:ring-white/10' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
-                    <Upload className="w-3.5 h-3.5 shrink-0" />
+                    <Upload size={16} className="shrink-0" />
                     <span>Upload Rx</span>
                   </button>
 
-                  <button
+                  <button 
                     type="button"
                     onClick={() => setOrderMode('digital_rx')}
-                    className={`py-2 px-2.5 sm:py-2.5 sm:px-3 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-1.5 min-w-0 ${
-                      orderMode === 'digital_rx'
-                        ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400'
+                    className={`flex-1 flex items-center justify-center gap-2 py-2.5 sm:py-3 px-3 rounded-xl transition-all font-display font-black text-xs uppercase tracking-wider select-none ${
+                      orderMode === 'digital_rx' 
+                        ? 'bg-white dark:bg-white/10 text-emerald-700 dark:text-white shadow-md ring-1 ring-black/5 dark:ring-white/10' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
                     }`}
                   >
-                    <FileText className="w-3.5 h-3.5 shrink-0" />
+                    <FileText size={16} className="shrink-0" />
                     <span>Saved e-Rx</span>
                   </button>
                 </div>
@@ -227,12 +228,14 @@ export default function OrderMedicines() {
                 {orderMode === 'upload' ? (
                   <div>
                     {!rxImageUrl ? (
-                      <label className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-5 sm:p-7 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-800/40">
-                        <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-slate-400 mb-1.5" />
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 text-center">
+                      <label className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-800/40 group">
+                        <div className="w-12 h-12 bg-emerald-50 dark:bg-white/5 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform shadow-xs">
+                          <Upload size={22} />
+                        </div>
+                        <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 text-center">
                           {isUploadingRx ? 'Uploading to secure cloud...' : 'Click to Upload Prescription Photo / Slip'}
                         </span>
-                        <span className="text-[11px] text-slate-400 mt-0.5 text-center">
+                        <span className="text-[11px] text-slate-400 mt-1 text-center">
                           PNG, JPG up to 10MB • Clear doctor signature & date
                         </span>
                         <input 
