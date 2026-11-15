@@ -25,7 +25,7 @@ export default function VerticalDropdownHeader({ fullWidth = false, showLogo = t
       setMode('care')
     } else if (location.pathname.startsWith('/services') && currentMode !== 'services' && isServicesEnabled) {
       setMode('services')
-    } else if ((location.pathname === '/' || location.pathname.startsWith('/product') || location.pathname.startsWith('/category')) && currentMode !== 'mart') {
+    } else if ((location.pathname === '/' || location.pathname.startsWith('/product') || location.pathname.startsWith('/category') || location.pathname.startsWith('/cart') || location.pathname.startsWith('/checkout')) && currentMode !== 'mart') {
       setMode('mart')
     }
   }, [location.pathname, currentMode, setMode, isServicesEnabled])
