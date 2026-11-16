@@ -76,7 +76,7 @@ export default function CareFooter() {
   ]
 
   return (
-    <footer className="bg-white dark:bg-slate-950 text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-slate-800/80 pt-14 pb-28 md:pb-12 transition-colors duration-300 relative overflow-hidden">
+    <footer className="bg-white dark:bg-[#0c1015] text-slate-700 dark:text-slate-300 border-t border-slate-200 dark:border-white/10 pt-14 pb-28 md:pb-12 transition-colors duration-300 relative overflow-hidden">
       
       {/* Subtle background glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[250px] bg-emerald-500/5 dark:bg-emerald-600/10 blur-[120px] rounded-full pointer-events-none" />
@@ -84,13 +84,13 @@ export default function CareFooter() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
         
         {/* 1. TOP TRUST BADGES GRID */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-10 border-b border-slate-200 dark:border-slate-800/80">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pb-10 border-b border-slate-200 dark:border-white/10">
           {trustFeatures.map((item, idx) => {
             const Icon = item.icon
             return (
               <div 
                 key={idx}
-                className="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 flex items-start gap-3.5 hover:border-emerald-500/40 dark:hover:border-emerald-500/30 transition-all shadow-xs"
+                className="p-4 rounded-2xl bg-slate-50/90 dark:bg-[#121820] border border-slate-200/80 dark:border-white/10 flex items-start gap-3.5 hover:border-emerald-500/40 dark:hover:border-emerald-500/30 transition-all shadow-xs"
               >
                 <div className="w-10 h-10 rounded-xl bg-emerald-100/80 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0 border border-emerald-200/70 dark:border-emerald-500/20">
                   <Icon size={18} />
@@ -228,7 +228,7 @@ export default function CareFooter() {
         </div>
 
         {/* 4. STATUTORY IT ACT 2000 SECTION 79 REGULATORY INTERMEDIARY DISCLOSURE */}
-        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/90 border border-slate-200/80 dark:border-slate-800 text-left space-y-2 shadow-xs">
+        <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#121820] border border-slate-200/80 dark:border-white/10 text-left space-y-2 shadow-xs">
           <div className="flex items-center gap-2">
             <span className="text-base">⚖️</span>
             <span className="font-display font-bold text-xs text-slate-800 dark:text-slate-200 uppercase tracking-wider">
@@ -241,7 +241,7 @@ export default function CareFooter() {
         </div>
 
         {/* 5. BOTTOM BAR: COPYRIGHT & POLICIES */}
-        <div className="pt-6 border-t border-slate-200 dark:border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-slate-500 dark:text-slate-500">
+        <div className="pt-6 border-t border-slate-200 dark:border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-sans text-slate-500 dark:text-slate-500">
           <p>
             © {currentYear} OzoCare Technologies. All rights reserved.
           </p>
