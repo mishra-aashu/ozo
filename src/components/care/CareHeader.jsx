@@ -310,7 +310,8 @@ export default function CareHeader() {
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 12, scale: 0.95 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-                        className="absolute right-0 top-full mt-3 w-80 bg-white dark:bg-[#15171c] rounded-2xl shadow-2xl border border-gray-200/80 dark:border-white/10 overflow-hidden z-50 text-left font-sans"
+                        style={{ willChange: 'transform, opacity' }}
+                        className="absolute right-0 top-full mt-3 w-[520px] max-w-[calc(100vw-24px)] bg-white dark:bg-[#15171c] rounded-2xl shadow-2xl border border-gray-200/80 dark:border-white/10 overflow-hidden z-[100] transform-gpu text-left font-sans"
                       >
                         {/* User Header */}
                         <div className="flex items-center justify-between p-3.5 bg-gradient-to-r from-emerald-50/50 via-teal-50/30 to-gray-50 dark:from-white/[0.04] dark:to-white/[0.02] border-b border-gray-100 dark:border-white/5">
@@ -322,9 +323,20 @@ export default function CareHeader() {
                               imgClassName="w-full h-full object-cover"
                             />
                             <div className="min-w-0">
-                              <p className="font-black text-gray-900 dark:text-white leading-tight truncate text-sm">
-                                {profile?.full_name || user?.user_metadata?.full_name || 'Patient Account'}
-                              </p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-black text-gray-900 dark:text-white leading-tight truncate text-sm">
+                                  {profile?.full_name || user?.user_metadata?.full_name || 'My Account'}
+                                </p>
+                                {isSuperAdmin ? (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-amber-500/10 text-amber-600 dark:text-amber-400 font-black text-[9px] tracking-wide">
+                                    SUPER ADMIN
+                                  </span>
+                                ) : hasAdminPermission ? (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-blue-500/10 text-blue-600 dark:text-blue-400 font-black text-[9px] tracking-wide">
+                                    ADMIN
+                                  </span>
+                                ) : null}
+                              </div>
                               <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate mt-0.5">
                                 {user?.email || user?.phone}
                               </p>
@@ -339,60 +351,123 @@ export default function CareHeader() {
                           </Link>
                         </div>
 
-                        {/* Quick Links */}
-                        <div className="p-2 space-y-1">
-                          <Link
-                            to="/care/my-appointments"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-colors text-xs font-semibold"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <Calendar size={16} className="text-emerald-500" />
-                              <span>My Tokens & Appointments</span>
-                            </div>
-                            {activeTokensCount > 0 && (
-                              <span className="w-5 h-5 rounded-full bg-emerald-600 text-white font-mono font-bold text-[10px] flex items-center justify-center">
-                                {activeTokensCount}
+                        {/* Two Columns Grid */}
+                        <div className="grid grid-cols-2 divide-x divide-gray-100 dark:divide-white/5 p-2.5 gap-x-2 max-h-[calc(100vh-170px)] overflow-y-auto">
+                          {/* Column 1: Personal / Account */}
+                          <div className="space-y-0.5 pr-1">
+                            <div className="px-2.5 pt-1 pb-1.5 flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                My Account
                               </span>
-                            )}
-                          </Link>
-
-                          <Link
-                            to="/care/order-medicines"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-colors text-xs font-semibold"
-                          >
-                            <Pill size={16} className="text-teal-500" />
-                            <span>Prescriptions & Medicines</span>
-                          </Link>
-
-                          <Link
-                            to="/doctor"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-colors text-xs font-semibold"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <Stethoscope size={16} className="text-sky-500" />
-                              <span>Doctor Consultation Portal</span>
+                              <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">
+                                Personal
+                              </span>
                             </div>
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-sky-500/10 text-sky-500">
-                              OPD
-                            </span>
-                          </Link>
 
-                          <Link
-                            to="/pharmacy"
-                            onClick={() => setIsProfileOpen(false)}
-                            className="flex items-center justify-between px-3 py-2.5 rounded-xl hover:bg-emerald-50/60 dark:hover:bg-white/5 text-gray-700 dark:text-gray-200 hover:text-emerald-600 transition-colors text-xs font-semibold"
-                          >
-                            <div className="flex items-center gap-2.5">
-                              <Building2 size={16} className="text-amber-500" />
-                              <span>Chemist Pharmacy Portal</span>
+                            {[
+                              { to: '/profile', icon: User, label: 'My Profile' },
+                              { to: '/care/my-appointments', icon: Calendar, label: 'Tokens & Appointments', badge: activeTokensCount > 0 ? activeTokensCount : null },
+                              { to: '/care/order-medicines', icon: Pill, label: 'Prescriptions & Medicines' },
+                              { to: '/orders', icon: Package, label: 'My Orders' },
+                              { to: '/notifications', icon: Bell, label: 'Notifications', badge: unreadCount > 0 ? unreadCount : null },
+                              { to: '/settings', icon: Settings, label: 'Settings' },
+                            ].map((item) => (
+                              <Link
+                                key={item.to}
+                                to={item.to}
+                                onClick={() => setIsProfileOpen(false)}
+                                className="group flex items-center justify-between px-2.5 py-2 hover:bg-emerald-50/70 dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-white rounded-xl transition-all duration-150 font-semibold text-xs"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-emerald-100/60 dark:group-hover:bg-emerald-500/20 group-hover:text-emerald-600 transition-colors flex-shrink-0">
+                                    <item.icon size={15} />
+                                  </div>
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                                {item.badge != null && (
+                                  <span className="px-1.5 py-0.2 rounded-full bg-emerald-600 text-white text-[10px] font-black flex-shrink-0">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            ))}
+                          </div>
+
+                          {/* Column 2: Portals & Workspaces */}
+                          <div className="space-y-0.5 pl-1">
+                            <div className="px-2.5 pt-1 pb-1.5 flex items-center justify-between">
+                              <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
+                                Portals & Workspaces
+                              </span>
+                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
+                                Ecosystem
+                              </span>
                             </div>
-                            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-500">
-                              Form 20/21
-                            </span>
-                          </Link>
+
+                            {[
+                              ...(hasAdminPermission ? [{ 
+                                to: '/admin', 
+                                icon: ShieldCheck, 
+                                label: isSuperAdmin ? 'Admin Panel' : 'City Manager',
+                                badge: 'Admin'
+                              }] : []),
+                              ...(isMartOperator ? [{ 
+                                to: '/mart', 
+                                icon: Store, 
+                                label: 'Mart Portal',
+                                badge: 'Mart'
+                              }] : []),
+                              ...(isCaptain ? [{ 
+                                to: '/captain', 
+                                icon: Bike, 
+                                label: 'Rider Portal',
+                                badge: 'Rider'
+                              }] : []),
+                              ...(isServiceManager ? [{ 
+                                to: '/service-manager', 
+                                icon: Wrench, 
+                                label: 'Service Partner',
+                                badge: 'Services'
+                              }] : []),
+                              { 
+                                to: '/doctor', 
+                                icon: Stethoscope, 
+                                label: 'Doctor Workstation',
+                                badge: 'OPD'
+                              },
+                              { 
+                                to: '/pharmacy', 
+                                icon: Building2, 
+                                label: 'Chemist Portal',
+                                badge: 'Form 20/21'
+                              },
+                              { 
+                                to: '/', 
+                                icon: ShoppingBag, 
+                                label: 'Switch to OzoMart',
+                                badge: 'Quick Mart'
+                              },
+                            ].map((item) => (
+                              <Link
+                                key={item.to}
+                                to={item.to}
+                                onClick={() => setIsProfileOpen(false)}
+                                className="group flex items-center justify-between px-2.5 py-2 hover:bg-emerald-50/70 dark:hover:bg-white/[0.06] text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-white rounded-xl transition-all duration-150 font-semibold text-xs"
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0">
+                                  <div className="w-7 h-7 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center text-gray-600 dark:text-gray-400 group-hover:bg-emerald-100/60 dark:group-hover:bg-emerald-500/20 group-hover:text-emerald-600 transition-colors flex-shrink-0">
+                                    <item.icon size={15} />
+                                  </div>
+                                  <span className="truncate">{item.label}</span>
+                                </div>
+                                {item.badge && (
+                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold flex-shrink-0">
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </Link>
+                            ))}
+                          </div>
                         </div>
 
                         {/* Bottom Actions */}
@@ -402,7 +477,7 @@ export default function CareHeader() {
                             onClick={() => setIsProfileOpen(false)}
                             className="text-xs text-gray-500 dark:text-gray-400 font-medium hover:text-emerald-600 transition-colors"
                           >
-                            Need help? Support
+                            Need help? Support Center
                           </Link>
                           <button
                             onClick={handleLogout}
@@ -703,7 +778,7 @@ export default function CareHeader() {
 
       {/* Emergency Assistance Modal */}
       {showEmergencyModal && (
-        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 font-sans text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 mx-auto flex items-center justify-center">
               <Activity size={28} className="animate-pulse" />
