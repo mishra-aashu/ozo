@@ -200,14 +200,13 @@ export default function PatientConsultationRoom() {
         {/* Video Frame */}
         <div className="flex-1 bg-black relative flex flex-col justify-between p-3 sm:p-4">
           <div className="flex-1 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden flex items-center justify-center">
-            {remoteStream ? (
-              <video 
-                ref={remoteVideoRef} 
-                autoPlay 
-                playsInline 
-                className="w-full h-full object-cover"
-              />
-            ) : (
+            <video 
+              ref={remoteVideoRef} 
+              autoPlay 
+              playsInline 
+              className={`w-full h-full object-cover ${!remoteStream ? 'hidden' : ''}`}
+            />
+            {!remoteStream && (
               <div className="text-center p-6 space-y-3">
                 <div className="w-16 h-16 rounded-full bg-emerald-950/80 border border-emerald-700 text-emerald-400 flex items-center justify-center mx-auto animate-pulse">
                   <Stethoscope size={32} />
