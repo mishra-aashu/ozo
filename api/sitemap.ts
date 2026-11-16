@@ -187,12 +187,14 @@ async function fetchCityProducts(
   for (let offset = rangeFrom; offset < targetEnd; offset += BATCH_SIZE) {
     const to = Math.min(offset + BATCH_SIZE - 1, targetEnd - 1);
     batchPromises.push(
-      supabase
-        .from('products')
-        .select('id, slug, updated_at, last_price_updated, created_at')
-        .eq('is_available', true)
-        .order('id', { ascending: true })
-        .range(offset, to)
+      Promise.resolve(
+        supabase
+          .from('products')
+          .select('id, slug, updated_at, last_price_updated, created_at')
+          .eq('is_available', true)
+          .order('id', { ascending: true })
+          .range(offset, to)
+      )
     );
   }
 
