@@ -15,12 +15,15 @@ import {
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCareStore } from '../../stores/careStore'
+import { useLocationStore } from '../../stores/locationStore'
 import { prefetchRoute } from '../../utils/routePrefetch'
 
 export default function BottomNavCare() {
   const location = useLocation()
   const { isAuthenticated, user } = useAuthStore()
   const { myAppointments } = useCareStore()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const [showEmergencyModal, setShowEmergencyModal] = useState(false)
 
   // Active appointments: booked or in consultation
@@ -249,7 +252,7 @@ export default function BottomNavCare() {
                   Immediate Emergency Dial
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-                  For critical emergencies, accidents, or urgent medical transport in Patna:
+                  For critical emergencies, accidents, or urgent medical transport in {activeCityName}:
                 </p>
               </div>
 
