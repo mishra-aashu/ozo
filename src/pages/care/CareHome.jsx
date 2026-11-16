@@ -19,6 +19,7 @@ import {
   ChevronDown
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
+import { useLocationStore } from '../../stores/locationStore'
 import SpecialtyIcon, { CARE_SPECIALTIES } from '../../utils/careIcons'
 import DoctorCardHome from '../../components/care/DoctorCardHome'
 import CareHeroSlider from '../../components/care/CareHeroSlider'
@@ -26,6 +27,8 @@ import CareHeroSlider from '../../components/care/CareHeroSlider'
 export default function CareHome() {
   const navigate = useNavigate()
   const [showAllSpecialties, setShowAllSpecialties] = useState(true)
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const {
     doctors,
     selectedSpecialty,
@@ -199,10 +202,10 @@ export default function CareHome() {
               <span className="text-[10px] xs:text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                 In-Clinic OPD & Video Consultations
               </span>
-              <span className="text-[10px] xs:text-xs font-bold text-slate-400">• Patna Region</span>
+              <span className="text-[10px] xs:text-xs font-bold text-slate-400">• {activeCityName} Region</span>
             </div>
             <h2 className="text-xl sm:text-3xl font-display font-black text-gray-900 dark:text-white tracking-tight mt-0.5">
-              Verified Doctors in Patna
+              Verified Doctors in {activeCityName}
             </h2>
             <p className="text-xs sm:text-sm font-sans text-gray-400 mt-0.5">
               NMC / Bihar Medical Council Registration verified. Direct clinic tokens & instant queue slots.
