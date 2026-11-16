@@ -190,6 +190,64 @@ export default function CareManageAdmin() {
     }
   }
 
+  const handleAddDoctor = async (e) => {
+    e.preventDefault()
+    if (!newDoctor.full_name.trim()) {
+      toast.error('Doctor full name is required')
+      return
+    }
+    if (!newDoctor.clinic_name.trim()) {
+      toast.error('Clinic or hospital name is required')
+      return
+    }
+
+    setIsSubmittingDoctor(true)
+    try {
+      const payload = {
+        ...newDoctor,
+        full_name: newDoctor.full_name.startsWith('Dr.') ? newDoctor.full_name : `Dr. ${newDoctor.full_name}`,
+        experience_years: parseInt(newDoctor.experience_years, 10) || 5,
+        consultation_fee: parseInt(newDoctor.consultation_fee, 10) || 500,
+        teleconsult_fee: parseInt(newDoctor.teleconsult_fee, 10) || 450,
+        rating: 4.9,
+        total_patients_consulted: 0,
+        available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        timing_slots: { morning: '10:00 AM - 01:00 PM', evening: '05:00 PM - 08:30 PM' },
+        created_at: new Date().toISOString()
+      }
+
+      const { data, error } = await supabase.from('care_doctors').insert([payload]).select().single()
+      if (error) throw error
+
+      toast.success(`${payload.full_name} onboarded successfully!`)
+      setIsAddDoctorModalOpen(false)
+      setNewDoctor({
+        full_name: '',
+        specialty_slug: 'general-physician',
+        qualification: 'MBBS, MD',
+        experience_years: 5,
+        council_registration_number: '',
+        council_state: 'Bihar',
+        clinic_name: '',
+        clinic_address: '',
+        city: 'Patna',
+        phone: '',
+        email: '',
+        consultation_fee: 500,
+        teleconsult_fee: 450,
+        avatar_url: '',
+        is_verified: true,
+        is_online: true
+      })
+      loadAdminData()
+    } catch (err) {
+      console.error('Error adding doctor:', err)
+      toast.error('Failed to add doctor: ' + (err.message || 'Error'))
+    } finally {
+      setIsSubmittingDoctor(false)
+    }
+  }
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 space-y-6 text-left max-w-7xl mx-auto font-sans">
       
@@ -437,76 +495,115 @@ export default function CareManageAdmin() {
 
       {/* TAB 2: DOCTORS MANAGEMENT */}
       {activeTab === 'doctors' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {doctors.map((doc) => (
-            <div
-              key={doc.id}
-              className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+        <div className="space-y-6">
+          {/* Header Bar */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-5 rounded-3xl bg-white/80 dark:bg-[#1a1a1a]/80 border border-gray-200 dark:border-white/10 shadow-sm">
+            <div>
+              <h3 className="text-lg font-black text-gray-900 dark:text-white flex items-center gap-2">
+                <Stethoscope className="w-5 h-5 text-emerald-500" />
+                <span>Verified Medical Practitioners ({doctors.length})</span>
+              </h3>
+              <p className="text-xs text-gray-400 mt-0.5">
+                Manage doctor credentials, clinical profiles, and OPD appointment availability.
+              </p>
+            </div>
+
+            <button
+              onClick={() => setIsAddDoctorModalOpen(true)}
+              className="px-5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-emerald-600/20 transition-all active:scale-95 shrink-0"
             >
-              <div>
-                <div className="flex items-start justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-3.5">
-                    <img
-                      src={doc.avatar_url || 'https://images.unsplash.com/photo-1594824813627-2c9dd0a81177?auto=format&fit=crop&w=400&q=80'}
-                      alt={doc.full_name}
-                      className="w-14 h-14 rounded-2xl object-cover border border-emerald-500/30"
-                    />
-                    <div>
-                      <h4 className="text-base font-black text-gray-900 dark:text-white leading-tight">
-                        {doc.full_name}
-                      </h4>
-                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
-                        {doc.qualification}
-                      </p>
-                      <span className="text-[10px] font-mono text-gray-400 font-bold block mt-0.5">
-                        Council Reg: {doc.council_registration_number} ({doc.council_state})
+              <Plus size={16} />
+              <span>Add Verified Doctor</span>
+            </button>
+          </div>
+
+          {doctors.length === 0 ? (
+            <div className="bg-white/60 dark:bg-[#161e27]/60 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl p-12 text-center space-y-3">
+              <Stethoscope className="w-12 h-12 text-gray-400 mx-auto opacity-40" />
+              <h4 className="text-base font-bold text-gray-800 dark:text-gray-200">No Doctors Listed Currently</h4>
+              <p className="text-xs text-gray-400 max-w-sm mx-auto">
+                Dummy doctors were successfully cleaned. Onboard genuine verified doctors to display on OzoCare.
+              </p>
+              <button
+                onClick={() => setIsAddDoctorModalOpen(true)}
+                className="mt-3 px-5 py-2.5 rounded-xl bg-emerald-600 text-white font-bold text-xs"
+              >
+                + Onboard First Doctor
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {doctors.map((doc) => (
+                <div
+                  key={doc.id}
+                  className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm flex flex-col justify-between"
+                >
+                  <div>
+                    <div className="flex items-start justify-between gap-3 mb-4">
+                      <div className="flex items-center gap-3.5">
+                        <img
+                          src={doc.avatar_url || 'https://images.unsplash.com/photo-1594824813627-2c9dd0a81177?auto=format&fit=crop&w=400&q=80'}
+                          alt={doc.full_name}
+                          className="w-14 h-14 rounded-2xl object-cover border border-emerald-500/30"
+                        />
+                        <div>
+                          <h4 className="text-base font-black text-gray-900 dark:text-white leading-tight">
+                            {doc.full_name}
+                          </h4>
+                          <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 mt-0.5">
+                            {doc.qualification}
+                          </p>
+                          <span className="text-[10px] font-mono text-gray-400 font-bold block mt-0.5">
+                            Council Reg: {doc.council_registration_number} ({doc.council_state})
+                          </span>
+                        </div>
+                      </div>
+
+                      <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+                        doc.is_verified ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                      }`}>
+                        {doc.is_verified ? 'Approved' : 'Pending'}
                       </span>
+                    </div>
+
+                    <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-300 py-3 border-y border-gray-100 dark:border-white/5">
+                      <div className="flex items-center gap-1.5">
+                        <Building2 size={13} className="text-gray-400" />
+                        <span className="font-medium truncate">{doc.clinic_name}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <MapPin size={13} className="text-gray-400" />
+                        <span className="truncate">{doc.clinic_address}, {doc.city}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-mono text-gray-500">
+                        <Phone size={13} className="text-gray-400" />
+                        <span>{doc.phone}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs font-bold py-3">
+                      <span className="text-gray-400">Clinic Fee: <strong className="text-gray-900 dark:text-white font-mono">₹{doc.consultation_fee}</strong></span>
+                      <span className="text-gray-400">Patients: <strong className="text-emerald-500 font-mono">{doc.total_patients_consulted}</strong></span>
                     </div>
                   </div>
 
-                  <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
-                    doc.is_verified ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
-                  }`}>
-                    {doc.is_verified ? 'Approved' : 'Pending'}
-                  </span>
-                </div>
-
-                <div className="space-y-1.5 text-xs text-gray-600 dark:text-gray-300 py-3 border-y border-gray-100 dark:border-white/5">
-                  <div className="flex items-center gap-1.5">
-                    <Building2 size={13} className="text-gray-400" />
-                    <span className="font-medium truncate">{doc.clinic_name}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <MapPin size={13} className="text-gray-400" />
-                    <span className="truncate">{doc.clinic_address}, {doc.city}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 font-mono text-gray-500">
-                    <Phone size={13} className="text-gray-400" />
-                    <span>{doc.phone}</span>
+                  <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-gray-400">Status</span>
+                    <button
+                      onClick={() => toggleDoctorVerification(doc.id, doc.is_verified)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
+                        doc.is_verified
+                          ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-500'
+                          : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
+                      }`}
+                    >
+                      {doc.is_verified ? 'Revoke Approval' : 'Approve Doctor'}
+                    </button>
                   </div>
                 </div>
-
-                <div className="flex items-center justify-between text-xs font-bold py-3">
-                  <span className="text-gray-400">Clinic Fee: <strong className="text-gray-900 dark:text-white font-mono">₹{doc.consultation_fee}</strong></span>
-                  <span className="text-gray-400">Patients: <strong className="text-emerald-500 font-mono">{doc.total_patients_consulted}</strong></span>
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-gray-100 dark:border-white/10 flex items-center justify-between">
-                <span className="text-[11px] font-bold text-gray-400">Status</span>
-                <button
-                  onClick={() => toggleDoctorVerification(doc.id, doc.is_verified)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-black transition-all ${
-                    doc.is_verified
-                      ? 'bg-rose-500/10 hover:bg-rose-500/20 text-rose-500'
-                      : 'bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm'
-                  }`}
-                >
-                  {doc.is_verified ? 'Revoke Approval' : 'Approve Doctor'}
-                </button>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
       )}
 
