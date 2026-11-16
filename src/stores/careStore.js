@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
+import { CARE_SPECIALTIES } from '../utils/careIcons'
 
 // Default fallback theme: Clinical Emerald & Trust Cyan
 const DEFAULT_CARE_THEME = {
@@ -132,7 +133,13 @@ export const useCareStore = create((set, get) => ({
         .order('rating', { ascending: false })
 
       if (specialtySlug && specialtySlug !== 'all') {
-        query = query.eq('specialty_slug', specialtySlug)
+        const spec = CARE_SPECIALTIES.find(s => s.slug === specialtySlug || (s.aliases && s.aliases.includes(specialtySlug)))
+        const slugs = spec?.aliases || [specialtySlug]
+        if (slugs.length === 1) {
+          query = query.eq('specialty_slug', slugs[0])
+        } else {
+          query = query.in('specialty_slug', slugs)
+        }
       }
 
       if (search && search.trim()) {
