@@ -810,7 +810,7 @@ export default function BookAppointment() {
                         {attachments.map((file, idx) => (
                           <div 
                             key={idx}
-                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex items-center justify-between gap-3 text-xs"
+                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-white/[0.04] border border-slate-200 dark:border-white/10 flex items-center justify-between gap-3 text-xs"
                           >
                             <div className="flex items-center gap-2.5 min-w-0">
                               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -835,7 +835,7 @@ export default function BookAppointment() {
                                 href={file.url} 
                                 target="_blank" 
                                 rel="noreferrer"
-                                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-white/10 text-slate-500 hover:text-slate-800 dark:hover:text-white"
                                 title="Preview"
                               >
                                 <Eye size={14} />
@@ -893,7 +893,7 @@ export default function BookAppointment() {
       {/* CONFIRMED BOOKING MODAL */}
       {confirmedBooking && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200 font-sans">
+          <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200/90 dark:border-white/10 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200 font-sans">
             <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center mb-4">
               <CheckCircle2 className="w-9 h-9" />
             </div>
@@ -909,7 +909,7 @@ export default function BookAppointment() {
               Ref ID: {confirmedBooking.appointment_number}
             </p>
 
-            <div className="mt-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 text-left text-xs space-y-2">
+            <div className="mt-5 p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.04] text-left text-xs space-y-2 border border-slate-100 dark:border-white/5">
               <div className="flex justify-between">
                 <span className="text-slate-400">Doctor:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">{doctorDisplayName}</span>
