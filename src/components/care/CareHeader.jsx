@@ -135,11 +135,16 @@ export default function CareHeader() {
   const activeTokensCount = myAppointments?.filter(a => a.status === 'booked' || a.status === 'in_consultation').length || 0
 
   const quickMedicalSuggestions = [
-    { title: 'General Physician', query: 'General Physician', icon: '🩺' },
+    { title: 'General Physician (Fever & Cold)', query: 'General Physician', icon: '🩺' },
     { title: 'Dermatologist (Skin & Hair)', query: 'Dermatology', icon: '🧴' },
     { title: 'Pediatrician (Child Specialist)', query: 'Pediatrics', icon: '👶' },
     { title: 'Gynecologist & Women Health', query: 'Gynecology', icon: '🌸' },
     { title: 'Orthopedic (Bone & Joint)', query: 'Orthopedic', icon: '🦴' },
+    { title: 'Cardiologist (Heart Specialist)', query: 'Cardiology', icon: '❤️' },
+    { title: 'Eye Care (Ophthalmology)', query: 'Eye Care', icon: '👁️' },
+    { title: 'Neurologist (Brain & Spine)', query: 'Neurology', icon: '🧠' },
+    { title: 'Chest & Lungs (Pulmonology)', query: 'Pulmonology', icon: '🫁' },
+    { title: 'Dentist (Teeth & Oral Care)', query: 'Dental', icon: '🦷' },
     { title: 'Order Medicines (30m Delivery)', query: 'Medicines', link: '/care/order-medicines', icon: '💊' }
   ]
 
