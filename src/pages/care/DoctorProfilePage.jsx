@@ -186,7 +186,7 @@ export default function DoctorProfilePage() {
             </div>
 
             {/* Quick Fee Token Pill & Direct CTA */}
-            <div className="bg-slate-50 dark:bg-slate-900/80 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 text-right w-full md:w-auto shrink-0 flex md:flex-col justify-between items-center md:items-end gap-3">
+            <div className="bg-slate-50 dark:bg-[#121820] p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-white/10 text-right w-full md:w-auto shrink-0 flex md:flex-col justify-between items-center md:items-end gap-3">
               <div>
                 <span className="text-[11px] font-display font-bold text-slate-400 uppercase tracking-wider block">Consultation Fee</span>
                 <span className="text-2xl sm:text-3xl font-display font-black text-slate-900 dark:text-white">
