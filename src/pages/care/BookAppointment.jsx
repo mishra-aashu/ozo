@@ -560,30 +560,71 @@ export default function BookAppointment() {
 
                 {/* 3. SELECT TIME SLOT */}
                 <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
-                  <label className="text-xs font-display font-bold text-slate-700 dark:text-slate-300 block mb-1">
-                    3. Choose Preferred Time Slot
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-display font-bold text-slate-700 dark:text-slate-300 block">
+                      3. Choose Preferred Time Slot
+                    </label>
+                    {isLoadingSlots && (
+                      <span className="text-[10px] text-emerald-500 animate-pulse font-medium">Checking live slot availability...</span>
+                    )}
+                  </div>
+
+                  {/* Slots Legend */}
+                  <div className="flex items-center gap-3 text-[10px] text-slate-400">
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500"></span> Available
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-rose-500"></span> Booked
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-slate-400"></span> Passed
+                    </span>
+                  </div>
 
                   {/* Morning Slots */}
                   <div>
                     <span className="text-[11px] font-semibold text-slate-400 mb-1.5 block">
-                      Morning Sessions (10:00 AM – 01:00 PM)
+                      Morning Sessions (09:30 AM – 01:00 PM)
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {morningSlots.map((slot) => (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`text-[11px] font-semibold py-2 px-2.5 rounded-xl border text-center transition-all ${
-                            selectedSlot === slot
-                              ? 'bg-emerald-600 text-white border-transparent font-bold shadow-md'
-                              : 'border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-slate-300'
-                          }`}
-                        >
-                          {slot}
-                        </button>
-                      ))}
+                      {morningSlots.map((slot) => {
+                        const booked = isSlotBooked(slot)
+                        const past = isSlotPast(slot)
+                        const isSelected = selectedSlot === slot
+                        const disabled = booked || past
+
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`text-[11px] font-semibold py-2 px-2.5 rounded-xl border text-center transition-all relative flex flex-col items-center justify-center gap-0.5 ${
+                              disabled
+                                ? 'opacity-40 bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-400 cursor-not-allowed'
+                                : isSelected
+                                ? 'bg-emerald-600 text-white border-transparent font-bold shadow-md ring-2 ring-emerald-500/20'
+                                : 'border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-50/20'
+                            }`}
+                          >
+                            <span>{slot}</span>
+                            {booked && (
+                              <span className="text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center gap-0.5">
+                                <Lock size={9} /> Booked
+                              </span>
+                            )}
+                            {past && !booked && (
+                              <span className="text-[9px] font-medium text-slate-400">Passed</span>
+                            )}
+                            {!disabled && isSelected && (
+                              <span className="text-[9px] font-bold text-emerald-100 flex items-center gap-0.5">
+                                <Check size={10} /> Selected
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
 
@@ -593,20 +634,43 @@ export default function BookAppointment() {
                       Evening Sessions (05:00 PM – 08:00 PM)
                     </span>
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                      {eveningSlots.map((slot) => (
-                        <button
-                          key={slot}
-                          type="button"
-                          onClick={() => setSelectedSlot(slot)}
-                          className={`text-[11px] font-semibold py-2 px-2.5 rounded-xl border text-center transition-all ${
-                            selectedSlot === slot
-                              ? 'bg-emerald-600 text-white border-transparent font-bold shadow-md'
-                              : 'border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-slate-300'
-                          }`}
-                        >
-                          {slot}
-                        </button>
-                      ))}
+                      {eveningSlots.map((slot) => {
+                        const booked = isSlotBooked(slot)
+                        const past = isSlotPast(slot)
+                        const isSelected = selectedSlot === slot
+                        const disabled = booked || past
+
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => setSelectedSlot(slot)}
+                            className={`text-[11px] font-semibold py-2 px-2.5 rounded-xl border text-center transition-all relative flex flex-col items-center justify-center gap-0.5 ${
+                              disabled
+                                ? 'opacity-40 bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/5 text-slate-400 cursor-not-allowed'
+                                : isSelected
+                                ? 'bg-emerald-600 text-white border-transparent font-bold shadow-md ring-2 ring-emerald-500/20'
+                                : 'border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-300 hover:border-emerald-500/50 hover:bg-emerald-50/20'
+                            }`}
+                          >
+                            <span>{slot}</span>
+                            {booked && (
+                              <span className="text-[9px] font-bold text-rose-500 uppercase tracking-wider flex items-center gap-0.5">
+                                <Lock size={9} /> Booked
+                              </span>
+                            )}
+                            {past && !booked && (
+                              <span className="text-[9px] font-medium text-slate-400">Passed</span>
+                            )}
+                            {!disabled && isSelected && (
+                              <span className="text-[9px] font-bold text-emerald-100 flex items-center gap-0.5">
+                                <Check size={10} /> Selected
+                              </span>
+                            )}
+                          </button>
+                        )
+                      })}
                     </div>
                   </div>
                 </div>
@@ -686,6 +750,107 @@ export default function BookAppointment() {
                       className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
+                </div>
+
+                {/* 5. UPLOAD REPORTS, IMAGES OR PDF */}
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-display font-bold text-slate-700 dark:text-slate-300 block">
+                      5. Attach Medical Reports, Prescriptions or Photos (Optional)
+                    </label>
+                    <span className="text-[10px] text-slate-400">Max 5 files • Up to 10MB each</span>
+                  </div>
+
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Upload previous prescriptions, blood reports (PDF), or symptom photos. These will be visible to Dr. {doctor.full_name} during your consultation.
+                  </p>
+
+                  {/* Hidden file input */}
+                  <input 
+                    type="file" 
+                    ref={fileInputRef}
+                    multiple
+                    accept="image/jpeg,image/png,image/webp,application/pdf"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
+
+                  {/* Upload Drag/Click Zone */}
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="p-5 border-2 border-dashed border-slate-200 dark:border-white/10 hover:border-emerald-500 dark:hover:border-emerald-500 rounded-2xl bg-slate-50/50 dark:bg-white/[0.02] flex flex-col items-center justify-center text-center cursor-pointer transition-all hover:bg-emerald-50/30"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mb-2">
+                      <UploadCloud size={20} />
+                    </div>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      Click to upload PDF reports or photos
+                    </span>
+                    <span className="text-[10px] text-slate-400 mt-0.5">
+                      Supports PDF, JPG, PNG, WEBP (Instant Doctor Co-View)
+                    </span>
+                    {isUploadingFiles && (
+                      <div className="mt-2 flex items-center gap-2 text-[11px] text-emerald-600 font-semibold">
+                        <div className="w-3.5 h-3.5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                        <span>Uploading document to secure health vault...</span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Uploaded Files Preview Grid */}
+                  {attachments.length > 0 && (
+                    <div className="space-y-2 pt-1">
+                      <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                        Attached Documents ({attachments.length}/5):
+                      </span>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {attachments.map((file, idx) => (
+                          <div 
+                            key={idx}
+                            className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80 flex items-center justify-between gap-3 text-xs"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+                                {file.file_type?.includes('pdf') ? (
+                                  <FileText size={16} className="text-rose-500" />
+                                ) : (
+                                  <ImageIcon size={16} className="text-emerald-500" />
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <span className="font-semibold text-slate-800 dark:text-slate-200 truncate block text-[11px]">
+                                  {file.name}
+                                </span>
+                                <span className="text-[10px] text-slate-400 font-mono">
+                                  {file.size_bytes ? `${(file.size_bytes / 1024 / 1024).toFixed(2)} MB` : 'Attached'}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              <a 
+                                href={file.url} 
+                                target="_blank" 
+                                rel="noreferrer"
+                                className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-white"
+                                title="Preview"
+                              >
+                                <Eye size={14} />
+                              </a>
+                              <button 
+                                type="button"
+                                onClick={() => handleRemoveAttachment(idx)}
+                                className="p-1 rounded-lg hover:bg-rose-100 dark:hover:bg-rose-950/40 text-slate-400 hover:text-rose-500 transition-colors"
+                                title="Remove"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* 5. SUBMIT BUTTON */}
