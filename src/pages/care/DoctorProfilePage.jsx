@@ -562,7 +562,7 @@ export default function DoctorProfilePage() {
             )}
 
             {/* Intermediary Regulatory Shield Notice */}
-            <div className="p-4 rounded-2xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-white/10 text-[11px] text-slate-500 leading-normal font-sans">
+            <div className="p-4 rounded-2xl bg-slate-100/70 dark:bg-[#121820] border border-slate-200 dark:border-white/10 text-[11px] text-slate-500 leading-normal font-sans">
               <strong className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
                 ⚖️ Intermediary Health Notice (IT Act 2000 Section 79)
               </strong>
@@ -601,7 +601,7 @@ export default function DoctorProfilePage() {
 
               {/* Consultation Modes Quick Toggle Preview */}
               <div className="grid grid-cols-2 gap-2 text-xs font-sans">
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-emerald-500/30 space-y-1">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-black/30 border border-emerald-500/30 space-y-1">
                   <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold block flex items-center gap-1">
                     <Building2 size={13} /> In-Clinic OPD
                   </span>
@@ -611,7 +611,7 @@ export default function DoctorProfilePage() {
                   <p className="text-[10px] text-slate-400 truncate">At {doctor.clinic_name}</p>
                 </div>
 
-                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-white/10 space-y-1">
+                <div className="p-3 rounded-2xl bg-slate-50 dark:bg-black/30 border border-slate-200/80 dark:border-white/10 space-y-1">
                   <span className="text-[10px] text-sky-600 dark:text-sky-400 font-bold block flex items-center gap-1">
                     <Video size={13} /> Video Call
                   </span>
