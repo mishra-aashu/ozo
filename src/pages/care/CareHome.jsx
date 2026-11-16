@@ -270,16 +270,36 @@ export default function CareHome() {
             Loading verified doctors in your area...
           </div>
         ) : doctors.length === 0 ? (
-          <div className="bg-white/60 dark:bg-[#161e27]/60 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl sm:rounded-3xl p-10 sm:p-16 text-center">
+          <div className="bg-white/60 dark:bg-[#161e27]/60 border border-dashed border-gray-200 dark:border-white/10 rounded-2xl sm:rounded-3xl p-8 sm:p-14 text-center">
             <Stethoscope className="w-12 h-12 text-gray-300 dark:text-white/20 mx-auto mb-3" />
-            <h3 className="text-base font-display font-black text-gray-800 dark:text-gray-200">No Doctors Found</h3>
-            <p className="text-xs font-sans text-gray-400 mt-1 max-w-sm mx-auto">Try clearing search filters or choosing another specialty category.</p>
-            <button
-              onClick={() => { setSelectedSpecialty('all'); setSearchQuery('') }}
-              className="mt-4 px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-display font-bold shadow-md"
-            >
-              Reset Filters
-            </button>
+            {selectedSpecialty !== 'all' || searchQuery.trim() ? (
+              <>
+                <h3 className="text-base font-display font-black text-gray-800 dark:text-gray-200">No Doctors Match Your Search</h3>
+                <p className="text-xs font-sans text-gray-400 mt-1 max-w-sm mx-auto">Try clearing search filters or choosing another specialty category.</p>
+                <button
+                  onClick={() => { setSelectedSpecialty('all'); setSearchQuery('') }}
+                  className="mt-4 px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-display font-bold shadow-md hover:bg-emerald-500 transition-colors"
+                >
+                  Reset Filters
+                </button>
+              </>
+            ) : (
+              <>
+                <h3 className="text-base font-display font-black text-gray-800 dark:text-gray-200">No Doctors Listed Yet</h3>
+                <p className="text-xs font-sans text-gray-400 mt-1 max-w-sm mx-auto">
+                  Verified medical specialists will appear here once onboarded.
+                </p>
+                <div className="flex items-center justify-center gap-3 mt-4">
+                  <Link
+                    to="/doctor"
+                    className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-display font-bold shadow-md transition-colors inline-flex items-center gap-2"
+                  >
+                    <Stethoscope size={14} />
+                    <span>Are you a Doctor? Onboard Practice</span>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 pt-2">
