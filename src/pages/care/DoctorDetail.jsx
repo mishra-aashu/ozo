@@ -200,8 +200,8 @@ export default function DoctorDetail() {
               </div>
 
               {/* Verified Credentials Box */}
-              <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800/80 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
+              <div className="mt-6 pt-5 border-t border-slate-100 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="bg-slate-50 dark:bg-white/[0.04] p-3 rounded-xl border border-slate-100 dark:border-white/5">
                   <p className="text-slate-400 font-medium">Medical Registration Reg. No</p>
                   <p className="text-slate-900 dark:text-white font-mono font-bold mt-0.5 flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-emerald-500" />
@@ -210,7 +210,7 @@ export default function DoctorDetail() {
                   <p className="text-[11px] text-slate-400 mt-1">Verified with State Medical Council</p>
                 </div>
 
-                <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl">
+                <div className="bg-slate-50 dark:bg-white/[0.04] p-3 rounded-xl border border-slate-100 dark:border-white/5">
                   <p className="text-slate-400 font-medium">Clinical Consultation Fee</p>
                   <p className="text-emerald-600 dark:text-emerald-400 font-bold text-base mt-0.5">
                     ₹{doctor.consultation_fee || 500}
@@ -244,7 +244,7 @@ export default function DoctorDetail() {
             </div>
 
             {/* Intermediary Regulatory Shield Notice */}
-            <div className="p-4 rounded-xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 text-[11px] text-slate-500 leading-normal">
+            <div className="p-4 rounded-xl bg-slate-100/70 dark:bg-[#121820] border border-slate-200/80 dark:border-white/10 text-[11px] text-slate-500 leading-normal">
               <strong className="text-slate-700 dark:text-slate-300 font-semibold block mb-1">
                 ⚖️ Intermediary Health Notice (IT Act 2000 Section 79)
               </strong>
@@ -254,8 +254,8 @@ export default function DoctorDetail() {
 
           {/* Right Column: Appointment Booking Engine */}
           <div className="lg:col-span-5">
-            <div className="sticky top-20 bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-md">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="sticky top-20 bg-white dark:bg-[#121820] rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 shadow-md">
+              <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-white/5">
                 <div>
                   <h2 className="text-lg font-black text-slate-900 dark:text-white">Book Consultation</h2>
                   <p className="text-xs text-slate-400">Instant Token Confirmation</p>
@@ -278,7 +278,7 @@ export default function DoctorDetail() {
                     className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${
                       consultationType === 'clinic_visit'
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
                     }`}
                   >
                     <Building2 className="w-4 h-4" /> In-Clinic Visit
@@ -289,7 +289,7 @@ export default function DoctorDetail() {
                     className={`flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold border transition-all ${
                       consultationType === 'teleconsult'
                         ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900 border-transparent shadow-sm'
-                        : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800'
+                        : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/5'
                     }`}
                   >
                     <Video className="w-4 h-4" /> Teleconsult (Video)
@@ -310,7 +310,7 @@ export default function DoctorDetail() {
                       value={selectedDate}
                       min={new Date().toISOString().split('T')[0]}
                       onChange={(e) => setSelectedDate(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-medium text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       required
                     />
                   </div>
@@ -330,7 +330,7 @@ export default function DoctorDetail() {
                         className={`text-[11px] font-semibold py-2 px-2.5 rounded-lg border text-center transition-all ${
                           selectedSlot === slot
                             ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-700 dark:text-emerald-300 font-bold shadow-sm'
-                            : 'border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
+                            : 'border-slate-200 dark:border-white/10 text-slate-600 dark:text-slate-400 hover:border-slate-300 dark:hover:border-white/20'
                         }`}
                       >
                         {slot}
@@ -340,7 +340,7 @@ export default function DoctorDetail() {
                 </div>
 
                 {/* Patient Information */}
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                <div className="pt-2 border-t border-slate-100 dark:border-white/5 space-y-3">
                   <div>
                     <label className="text-xs font-bold text-slate-600 dark:text-slate-300 block mb-1">
                       Patient Full Name *
@@ -350,7 +350,7 @@ export default function DoctorDetail() {
                       placeholder="e.g. Ramesh Kumar"
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       required
                     />
                   </div>
@@ -365,7 +365,7 @@ export default function DoctorDetail() {
                         placeholder="Age (yrs)"
                         value={patientAge}
                         onChange={(e) => setPatientAge(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       />
                     </div>
                     <div>
@@ -375,7 +375,7 @@ export default function DoctorDetail() {
                       <select
                         value={patientGender}
                         onChange={(e) => setPatientGender(e.target.value)}
-                        className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                        className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       >
                         <option value="Male">Male</option>
                         <option value="Female">Female</option>
@@ -393,7 +393,7 @@ export default function DoctorDetail() {
                       placeholder="10-digit mobile number"
                       value={patientPhone}
                       onChange={(e) => setPatientPhone(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       required
                     />
                   </div>
@@ -407,7 +407,7 @@ export default function DoctorDetail() {
                       placeholder="Describe briefly (e.g. fever since 3 days, mild cough, body ache)"
                       value={symptoms}
                       onChange={(e) => setSymptoms(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl p-3 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -432,7 +432,7 @@ export default function DoctorDetail() {
       {/* Booking Confirmation Modal */}
       {confirmedBooking && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200/90 dark:border-white/10 shadow-2xl text-center animate-in fade-in zoom-in-95 duration-200">
             <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center mb-4">
               <CheckCircle className="w-9 h-9" />
             </div>
@@ -448,7 +448,7 @@ export default function DoctorDetail() {
               Ref ID: {confirmedBooking.appointment_number}
             </p>
 
-            <div className="mt-5 p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 text-left text-xs space-y-2">
+            <div className="mt-5 p-4 rounded-2xl bg-slate-50 dark:bg-white/[0.04] text-left text-xs space-y-2 border border-slate-100 dark:border-white/5">
               <div className="flex justify-between">
                 <span className="text-slate-400">Doctor:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">Dr. {doctor.full_name}</span>
