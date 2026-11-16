@@ -163,6 +163,246 @@ export default function DoctorDashboard() {
     })
   }
 
+  const handleCompleteOnboarding = async (e) => {
+    e.preventDefault()
+    if (!onboardForm.full_name.trim()) {
+      toast.error('Doctor full name is required')
+      return
+    }
+    if (!onboardForm.clinic_name.trim()) {
+      toast.error('Clinic or Hospital name is required')
+      return
+    }
+
+    setIsOnboarding(true)
+    try {
+      const res = await onboardDoctor({
+        ...onboardForm,
+        full_name: onboardForm.full_name.startsWith('Dr.') ? onboardForm.full_name : `Dr. ${onboardForm.full_name}`,
+        experience_years: parseInt(onboardForm.experience_years, 10) || 5,
+        consultation_fee: parseInt(onboardForm.consultation_fee, 10) || 500,
+        teleconsult_fee: parseInt(onboardForm.teleconsult_fee, 10) || 450,
+        rating: 5.0,
+        total_patients_consulted: 0,
+        available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        timing_slots: { morning: '10:00 AM - 01:00 PM', evening: '05:00 PM - 08:30 PM' }
+      })
+      if (res) {
+        toast.success('Doctor practice registered and activated!')
+      }
+    } finally {
+      setIsOnboarding(false)
+    }
+  }
+
+  // Doctor self-registration / onboarding view when user has no doctor profile yet
+  if (!doctor && isDoctorLoaded) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+        <header className="bg-slate-950 border-b border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
+                <Stethoscope className="w-6 h-6" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
+                  <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                    Practitioner Onboarding
+                  </span>
+                </div>
+              </div>
+            </div>
+            <Link
+              to="/care"
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+            >
+              Back to Patient Care ↗
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
+          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            <div className="flex items-center gap-3.5 mb-6 pb-6 border-b border-slate-800">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+                <ShieldCheck size={26} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">
+                  Register Your Medical Practice
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Complete your verified profile to start taking in-clinic OPD tokens and WebRTC video teleconsultations.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCompleteOnboarding} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Doctor Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Rajesh Sharma"
+                    value={onboardForm.full_name}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, full_name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Medical Specialty *</label>
+                  <select
+                    value={onboardForm.specialty_slug}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, specialty_slug: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  >
+                    <option value="general-physician">General Physician</option>
+                    <option value="pediatrics">Pediatrics (Child Care)</option>
+                    <option value="gynecology">Gynecology & Obstetrics</option>
+                    <option value="dermatology">Dermatology (Skin & Hair)</option>
+                    <option value="orthopedic">Orthopedic (Bone & Joint)</option>
+                    <option value="cardiologist">Cardiology (Heart)</option>
+                    <option value="neurologist">Neurology</option>
+                    <option value="dentist">Dentistry</option>
+                    <option value="ent-specialist">ENT Specialist</option>
+                    <option value="psychiatrist">Psychiatry & Mental Health</option>
+                    <option value="ophthalmologist">Ophthalmology (Eye)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Qualifications</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. MBBS, MD (Medicine)"
+                    value={onboardForm.qualification}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, qualification: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Experience (Years)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={onboardForm.experience_years}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, experience_years: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">NMC / State Council Reg. No</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. BR-49201"
+                    value={onboardForm.council_registration_number}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, council_registration_number: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Clinic / Hospital Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Metro Care Clinic"
+                    value={onboardForm.clinic_name}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, clinic_name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Clinic Address</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Kankarbagh Main Rd, Patna"
+                    value={onboardForm.clinic_address}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, clinic_address: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">City</label>
+                  <input
+                    type="text"
+                    value={onboardForm.city}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, city: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">OPD Consultation Fee (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={onboardForm.consultation_fee}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, consultation_fee: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Video Teleconsult Fee (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={onboardForm.teleconsult_fee}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, teleconsult_fee: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-slate-300 block mb-1">Profile Photo / Avatar URL (Optional)</label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={onboardForm.avatar_url}
+                  onChange={(e) => setOnboardForm({ ...onboardForm, avatar_url: e.target.value })}
+                  className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                />
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isOnboarding}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-900/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
+                >
+                  {isOnboarding ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Activating Profile...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={14} />
+                      <span>Activate Doctor Workstation</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
   // Filter queue
   const filteredQueue = appointments.filter((apt) => {
     if (activeQueueFilter === 'all') return true
