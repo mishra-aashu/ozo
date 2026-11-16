@@ -12,10 +12,13 @@ import {
   Sparkles
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
+import { useLocationStore } from '../../stores/locationStore'
 
 export default function DoctorCardHome({ doctor }) {
   const navigate = useNavigate()
   const { themeConfig } = useCareStore()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const [imgError, setImgError] = useState(false)
 
   if (!doctor) return null
@@ -127,7 +130,7 @@ export default function DoctorCardHome({ doctor }) {
 
           <div className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
             <MapPin size={14} className="text-slate-400 shrink-0 mt-0.5" />
-            <span className="truncate leading-snug">{doctor.clinic_address}, {doctor.city || 'Patna'}</span>
+            <span className="truncate leading-snug">{doctor.clinic_address}{doctor.clinic_address ? ', ' : ''}{doctor.city || activeCityName}</span>
           </div>
 
           {/* Council & Availability Row */}
