@@ -7,12 +7,16 @@ import {
 } from 'lucide-react'
 import { useDoctorStore } from '../../stores/doctorStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useLocationStore } from '../../stores/locationStore'
+import { CARE_SPECIALTIES } from '../../utils/careIcons'
 import DoctorTeleconsultWorkstation from '../../components/care/DoctorTeleconsultWorkstation'
 import toast from 'react-hot-toast'
 
 export default function DoctorDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const { 
     doctor, 
     isDoctorLoaded,
@@ -44,7 +48,7 @@ export default function DoctorDashboard() {
     council_state: 'Bihar',
     clinic_name: '',
     clinic_address: '',
-    city: 'Patna',
+    city: activeCityName,
     phone: '',
     email: '',
     consultation_fee: 500,
@@ -260,17 +264,11 @@ export default function DoctorDashboard() {
                     onChange={(e) => setOnboardForm({ ...onboardForm, specialty_slug: e.target.value })}
                     className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
                   >
-                    <option value="general-physician">General Physician</option>
-                    <option value="pediatrics">Pediatrics (Child Care)</option>
-                    <option value="gynecology">Gynecology & Obstetrics</option>
-                    <option value="dermatology">Dermatology (Skin & Hair)</option>
-                    <option value="orthopedic">Orthopedic (Bone & Joint)</option>
-                    <option value="cardiologist">Cardiology (Heart)</option>
-                    <option value="neurologist">Neurology</option>
-                    <option value="dentist">Dentistry</option>
-                    <option value="ent-specialist">ENT Specialist</option>
-                    <option value="psychiatrist">Psychiatry & Mental Health</option>
-                    <option value="ophthalmologist">Ophthalmology (Eye)</option>
+                    {CARE_SPECIALTIES.map(s => (
+                      <option key={s.slug} value={s.slug}>
+                        {s.title} ({s.subtitle})
+                      </option>
+                    ))}
                   </select>
                 </div>
 
