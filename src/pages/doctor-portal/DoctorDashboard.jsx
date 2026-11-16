@@ -15,6 +15,8 @@ export default function DoctorDashboard() {
   const { user } = useAuthStore()
   const { 
     doctor, 
+    isDoctorLoaded,
+    onboardDoctor,
     fetchDoctorProfile, 
     toggleDutyStatus,
     appointments, 
@@ -30,6 +32,25 @@ export default function DoctorDashboard() {
   const [activeTab, setActiveTab] = useState('queue') // 'queue' | 'rx_studio' | 'profile' | 'history'
   const [activeQueueFilter, setActiveQueueFilter] = useState('all') // 'all' | 'booked' | 'in_consultation' | 'completed'
   const [activeTeleconsultAppointment, setActiveTeleconsultAppointment] = useState(null)
+
+  // Doctor Self-Registration Onboarding State
+  const [isOnboarding, setIsOnboarding] = useState(false)
+  const [onboardForm, setOnboardForm] = useState({
+    full_name: '',
+    specialty_slug: 'general-physician',
+    qualification: 'MBBS, MD',
+    experience_years: 5,
+    council_registration_number: '',
+    council_state: 'Bihar',
+    clinic_name: '',
+    clinic_address: '',
+    city: 'Patna',
+    phone: '',
+    email: '',
+    consultation_fee: 500,
+    teleconsult_fee: 450,
+    avatar_url: ''
+  })
 
   // Rx Modal State
   const [selectedAppointmentForRx, setSelectedAppointmentForRx] = useState(null)
