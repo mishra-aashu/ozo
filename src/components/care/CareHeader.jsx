@@ -20,7 +20,13 @@ import {
   X, 
   Clock, 
   Building2,
-  Bell
+  Bell,
+  Package,
+  Settings,
+  ShoppingBag,
+  Store,
+  Bike,
+  Wrench
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/authStore'
 import { useCareStore } from '../../stores/careStore'
@@ -39,7 +45,7 @@ export default function CareHeader() {
   const { currentMode } = useServiceModeStore()
 
   const { theme, toggleTheme } = useThemeStore()
-  const { user, profile, isAuthenticated, signOut } = useAuthStore()
+  const { user, profile, isAuthenticated, signOut, isAdmin } = useAuthStore()
   const { 
     searchQuery, 
     setSearchQuery, 
