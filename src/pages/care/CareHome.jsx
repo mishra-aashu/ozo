@@ -15,7 +15,8 @@ import {
   FileText,
   Upload,
   X,
-  Activity
+  Activity,
+  ChevronDown
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import SpecialtyIcon, { CARE_SPECIALTIES } from '../../utils/careIcons'
@@ -24,6 +25,7 @@ import CareHeroSlider from '../../components/care/CareHeroSlider'
 
 export default function CareHome() {
   const navigate = useNavigate()
+  const [showAllSpecialties, setShowAllSpecialties] = useState(true)
   const {
     doctors,
     selectedSpecialty,
@@ -118,34 +120,50 @@ export default function CareHome() {
 
       {/* 2. MEDICAL SPECIALTIES GRID */}
       <section className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-6 sm:py-10 overflow-hidden">
-        <div className="flex items-end justify-between mb-4 sm:mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-6">
           <div>
-            <span className="text-[10px] xs:text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
-              Find Doctors By Clinical Field
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] xs:text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+                Find Doctors By Clinical Field
+              </span>
+              <span className="text-[10px] xs:text-xs font-bold text-slate-400 bg-slate-100 dark:bg-white/5 px-2 py-0.5 rounded-full">
+                {CARE_SPECIALTIES.length} Specialities
+              </span>
+            </div>
             <h2 className="text-xl sm:text-3xl font-display font-black text-gray-900 dark:text-white mt-0.5 tracking-tight">
               Medical Specialities
             </h2>
           </div>
 
-          <button
-            onClick={() => setSelectedSpecialty('all')}
-            className={`text-xs font-display font-black transition-colors ${
-              selectedSpecialty === 'all' ? 'text-emerald-600 dark:text-emerald-400 underline' : 'text-gray-400 hover:text-gray-700'
-            }`}
-          >
-            Show All
-          </button>
+          <div className="flex items-center gap-3">
+            {selectedSpecialty !== 'all' && (
+              <button
+                onClick={() => setSelectedSpecialty('all')}
+                className="text-xs font-display font-bold text-rose-500 hover:text-rose-600 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <X size={13} />
+                <span>Clear Filter</span>
+              </button>
+            )}
+
+            <button
+              onClick={() => setShowAllSpecialties(!showAllSpecialties)}
+              className="text-xs font-display font-black text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer transition-colors"
+            >
+              <span>{showAllSpecialties ? 'Show Top 8' : `Show All (${CARE_SPECIALTIES.length})`}</span>
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showAllSpecialties ? 'rotate-180' : ''}`} />
+            </button>
+          </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2.5 sm:gap-3.5">
-          {CARE_SPECIALTIES.map((spec) => {
+        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2.5 sm:gap-3.5">
+          {(showAllSpecialties ? CARE_SPECIALTIES : CARE_SPECIALTIES.slice(0, 8)).map((spec) => {
             const isSelected = selectedSpecialty === spec.slug
             return (
               <button
                 key={spec.slug}
                 onClick={() => setSelectedSpecialty(isSelected ? 'all' : spec.slug)}
-                className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border transition-all text-center flex flex-col items-center justify-between group active:scale-95 min-w-0 overflow-hidden ${
+                className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border transition-all text-center flex flex-col items-center justify-between group active:scale-95 min-w-0 overflow-hidden cursor-pointer ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/20 shadow-md scale-[1.02]'
                     : 'bg-white/90 dark:bg-[#161e27]/90 border-gray-200 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 hover:shadow-md'
