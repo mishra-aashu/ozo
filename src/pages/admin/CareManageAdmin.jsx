@@ -721,6 +721,284 @@ export default function CareManageAdmin() {
         </div>
       )}
 
+      {/* MODAL: ONBOARD VERIFIED DOCTOR */}
+      {isAddDoctorModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-[#161e27] border border-gray-200 dark:border-white/10 rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative my-8 text-left animate-in fade-in zoom-in-95 duration-200">
+            <button
+              onClick={() => setIsAddDoctorModalOpen(false)}
+              className="absolute top-5 right-5 p-2 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-500 dark:text-gray-400 transition-colors"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
+                <Stethoscope size={24} />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-gray-900 dark:text-white">
+                  Onboard Verified Doctor
+                </h3>
+                <p className="text-xs text-gray-400">
+                  Add genuine doctor profile with clinical council credentials & fees
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleAddDoctor} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Doctor Name */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Doctor Full Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Dr. Amit Sharma"
+                    value={newDoctor.full_name}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, full_name: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Specialty */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Medical Specialty *
+                  </label>
+                  <select
+                    value={newDoctor.specialty_slug}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, specialty_slug: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  >
+                    <option value="general-physician">General Physician</option>
+                    <option value="pediatrics">Pediatrics (Child Care)</option>
+                    <option value="gynecology">Gynecology & Obstetrics</option>
+                    <option value="dermatology">Dermatology (Skin & Hair)</option>
+                    <option value="orthopedic">Orthopedic (Bone & Joint)</option>
+                    <option value="cardiologist">Cardiology (Heart)</option>
+                    <option value="neurologist">Neurology</option>
+                    <option value="dentist">Dentistry</option>
+                    <option value="ent-specialist">ENT Specialist</option>
+                    <option value="psychiatrist">Psychiatry & Mental Health</option>
+                    <option value="ophthalmologist">Ophthalmology (Eye)</option>
+                  </select>
+                </div>
+
+                {/* Qualification */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Medical Qualifications
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. MBBS, MD (Medicine)"
+                    value={newDoctor.qualification}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, qualification: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Experience */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Experience (Years)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="60"
+                    value={newDoctor.experience_years}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, experience_years: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Council Registration */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Medical Council Reg. Number
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. BR-49201"
+                    value={newDoctor.council_registration_number}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, council_registration_number: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Clinic Name */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Clinic / Hospital Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. City Health Care Clinic"
+                    value={newDoctor.clinic_name}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, clinic_name: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Clinic Address */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Clinic Address
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Boring Road Crossing, Patna"
+                    value={newDoctor.clinic_address}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, clinic_address: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* City */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    value={newDoctor.city}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, city: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Phone */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Doctor Phone
+                  </label>
+                  <input
+                    type="tel"
+                    placeholder="e.g. +91 9876543210"
+                    value={newDoctor.phone}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, phone: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Email */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Doctor Email
+                  </label>
+                  <input
+                    type="email"
+                    placeholder="e.g. doctor@clinic.com"
+                    value={newDoctor.email}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, email: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* OPD Fee */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    OPD Consultation Fee (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={newDoctor.consultation_fee}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, consultation_fee: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+
+                {/* Teleconsult Fee */}
+                <div>
+                  <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                    Video Teleconsult Fee (₹)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="50"
+                    value={newDoctor.teleconsult_fee}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, teleconsult_fee: e.target.value })}
+                    className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                  />
+                </div>
+              </div>
+
+              {/* Photo URL */}
+              <div>
+                <label className="text-xs font-bold text-gray-700 dark:text-gray-300 block mb-1">
+                  Doctor Photo / Avatar URL (Optional)
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://images.unsplash.com/photo-..."
+                  value={newDoctor.avatar_url}
+                  onChange={(e) => setNewDoctor({ ...newDoctor, avatar_url: e.target.value })}
+                  className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
+                />
+              </div>
+
+              {/* Toggles */}
+              <div className="flex items-center gap-6 pt-2">
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={newDoctor.is_verified}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, is_verified: e.target.checked })}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <span>Mark as NMC Verified</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-gray-700 dark:text-gray-300">
+                  <input
+                    type="checkbox"
+                    checked={newDoctor.is_online}
+                    onChange={(e) => setNewDoctor({ ...newDoctor, is_online: e.target.checked })}
+                    className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                  />
+                  <span>Available Online Today</span>
+                </label>
+              </div>
+
+              {/* Submit Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setIsAddDoctorModalOpen(false)}
+                  className="px-4 py-2.5 rounded-xl border border-gray-200 dark:border-white/10 text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingDoctor}
+                  className="px-6 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-lg shadow-emerald-600/20 disabled:opacity-50 transition-all flex items-center gap-2"
+                >
+                  {isSubmittingDoctor ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Onboarding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} />
+                      <span>Confirm & Onboard Doctor</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
     </div>
   )
 }
