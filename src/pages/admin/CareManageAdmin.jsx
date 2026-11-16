@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useCareStore } from '../../stores/careStore'
+import { useLocationStore } from '../../stores/locationStore'
 import { CARE_SPECIALTIES } from '../../utils/careIcons'
 import toast from 'react-hot-toast'
 
@@ -84,6 +85,8 @@ const THEME_PRESETS = [
 
 export default function CareManageAdmin() {
   const [activeTab, setActiveTab] = useState('theme') // 'theme' | 'doctors' | 'pharmacies' | 'appointments'
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   
   // Theme state
   const { themeConfig, updateThemeConfig, fetchThemeConfig } = useCareStore()
@@ -108,7 +111,7 @@ export default function CareManageAdmin() {
     council_state: 'Bihar',
     clinic_name: '',
     clinic_address: '',
-    city: 'Patna',
+    city: activeCityName,
     phone: '',
     email: '',
     consultation_fee: 500,
@@ -231,7 +234,7 @@ export default function CareManageAdmin() {
         council_state: 'Bihar',
         clinic_name: '',
         clinic_address: '',
-        city: 'Patna',
+        city: activeCityName,
         phone: '',
         email: '',
         consultation_fee: 500,

@@ -30,7 +30,7 @@ const INITIAL_REVIEWS = [
     rating: 5,
     date: '1 week ago',
     consultation_type: 'OPD Consultation',
-    comment: 'Minimal waiting time at the clinic thanks to the OzoCare token system. Doctor is very knowledgeable and courteous. Highly recommended in Patna!',
+    comment: 'Minimal waiting time at the clinic thanks to the OzoCare token system. Doctor is very knowledgeable and courteous. Highly recommended!',
     helpful_count: 9,
     tags: ['Minimal Wait Time', 'Knowledgeable']
   },

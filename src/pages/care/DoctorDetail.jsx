@@ -6,12 +6,15 @@ import {
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useLocationStore } from '../../stores/locationStore'
 import toast from 'react-hot-toast'
 
 export default function DoctorDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const { getDoctorById, bookAppointment, themeConfig, applyThemeVariables } = useCareStore()
 
   const [doctor, setDoctor] = useState(null)
@@ -190,7 +193,7 @@ export default function DoctorDetail() {
                     </div>
                     <div className="flex items-center gap-1.5">
                       <MapPin className="w-4 h-4 text-slate-400" />
-                      <span>{doctor.clinic_address || 'Patna, Bihar'}</span>
+                      <span>{doctor.clinic_address || `${doctor.city || activeCityName}, Bihar`}</span>
                     </div>
                   </div>
                 </div>
