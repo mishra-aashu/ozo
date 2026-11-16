@@ -3,10 +3,11 @@ import { useNavigate, Link } from 'react-router-dom'
 import { 
   Stethoscope, Users, Calendar, Clock, CheckCircle, AlertCircle, 
   Plus, Search, ShieldCheck, FileText, Phone, Building2, 
-  ToggleLeft, ToggleRight, RefreshCw, X, ChevronRight, Activity
+  ToggleLeft, ToggleRight, RefreshCw, X, ChevronRight, Activity, Video, Paperclip
 } from 'lucide-react'
 import { useDoctorStore } from '../../stores/doctorStore'
 import { useAuthStore } from '../../stores/authStore'
+import DoctorTeleconsultWorkstation from '../../components/care/DoctorTeleconsultWorkstation'
 import toast from 'react-hot-toast'
 
 export default function DoctorDashboard() {
@@ -28,6 +29,7 @@ export default function DoctorDashboard() {
 
   const [activeTab, setActiveTab] = useState('queue') // 'queue' | 'rx_studio' | 'profile' | 'history'
   const [activeQueueFilter, setActiveQueueFilter] = useState('all') // 'all' | 'booked' | 'in_consultation' | 'completed'
+  const [activeTeleconsultAppointment, setActiveTeleconsultAppointment] = useState(null)
 
   // Rx Modal State
   const [selectedAppointmentForRx, setSelectedAppointmentForRx] = useState(null)
@@ -332,17 +334,40 @@ export default function DoctorDashboard() {
                           <span className="text-xs font-mono text-slate-500">📞 {apt.patient_phone}</span>
                         </div>
                         <p className="text-xs text-slate-400 mt-0.5">
-                          <strong>Chief Symptoms:</strong> {apt.symptoms || 'General Checkup'}
+                          <strong>Chief Symptoms:</strong> {apt.symptoms || apt.symptoms_description || 'General Checkup'}
                         </p>
-                        <span className="text-[11px] text-slate-500 mt-1 block">
-                          Slot: {apt.time_slot} • Type: {apt.consultation_type === 'teleconsult' ? '📹 Video Call' : '🏥 In-Clinic OPD'}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-2 mt-1">
+                          <span className="text-[11px] text-slate-500">
+                            Slot: {apt.time_slot || apt.slot_time} • Type: {apt.consultation_type === 'teleconsult' || apt.consultation_mode === 'teleconsult' ? '📹 Video Call' : '🏥 In-Clinic OPD'}
+                          </span>
+                          {apt.attachments && apt.attachments.length > 0 && (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-950/80 text-emerald-400 border border-emerald-800 text-[10px] font-bold">
+                              <Paperclip className="w-3 h-3" /> {apt.attachments.length} Reports/Files
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
                     {/* Operational Action Controls */}
                     <div className="flex items-center gap-2 self-end md:self-center">
-                      {apt.status === 'booked' && (
+                      {/* Teleconsult Dedicated Video Call Action */}
+                      {(apt.consultation_type === 'teleconsult' || apt.consultation_mode === 'teleconsult') && (apt.status === 'booked' || apt.status === 'in_consultation') && (
+                        <button
+                          onClick={() => {
+                            if (apt.status === 'booked') {
+                              updateAppointmentStatus(apt.id, 'in_consultation')
+                            }
+                            setActiveTeleconsultAppointment(apt)
+                          }}
+                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950 transition-all hover:scale-105"
+                        >
+                          <Video className="w-4 h-4" /> Start Video Consultation
+                        </button>
+                      )}
+
+                      {/* In-Clinic OPD Call Inside */}
+                      {apt.consultation_type !== 'teleconsult' && apt.consultation_mode !== 'teleconsult' && apt.status === 'booked' && (
                         <button
                           onClick={() => updateAppointmentStatus(apt.id, 'in_consultation')}
                           className="px-3.5 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-sm"
@@ -351,12 +376,13 @@ export default function DoctorDashboard() {
                         </button>
                       )}
 
+                      {/* Standalone Rx Modal Trigger */}
                       {apt.status === 'in_consultation' && (
                         <button
                           onClick={() => handleOpenRxModal(apt)}
-                          className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950"
+                          className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs font-bold flex items-center gap-1.5 border border-slate-700"
                         >
-                          <FileText className="w-4 h-4" /> Issue Digital Prescription (Rx)
+                          <FileText className="w-4 h-4" /> Write Rx
                         </button>
                       )}
 
@@ -660,6 +686,21 @@ export default function DoctorDashboard() {
             </form>
           </div>
         </div>
+      )}
+
+      {/* Dedicated Dual-Panel Video Consultation Workstation */}
+      {activeTeleconsultAppointment && (
+        <DoctorTeleconsultWorkstation
+          appointment={activeTeleconsultAppointment}
+          onClose={() => {
+            setActiveTeleconsultAppointment(null)
+            fetchAppointments()
+          }}
+          onPrescriptionIssued={() => {
+            fetchAppointments()
+            fetchIssuedPrescriptions()
+          }}
+        />
       )}
     </div>
   )

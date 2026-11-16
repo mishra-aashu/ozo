@@ -123,6 +123,7 @@ const BookAppointment = lazyWithRetry(() => import('./pages/care/BookAppointment
 const DoctorDetail = lazyWithRetry(() => import('./pages/care/DoctorDetail'))
 const MyAppointments = lazyWithRetry(() => import('./pages/care/MyAppointments'))
 const OrderMedicines = lazyWithRetry(() => import('./pages/care/OrderMedicines'))
+const PatientConsultationRoom = lazyWithRetry(() => import('./pages/care/PatientConsultationRoom'))
 
 // OZO Care Admin & Partner Portals
 const AdminCareManage = lazyWithRetry(() => import('./pages/admin/CareManageAdmin'))
@@ -611,6 +612,8 @@ function App() {
             <Route path="care/book-appointment/:id" element={<BookAppointment />} />
             <Route path="care/my-appointments" element={<MyAppointments />} />
             <Route path="care/order-medicines" element={<OrderMedicines />} />
+            <Route path="care/room/:appointmentId" element={<PatientConsultationRoom />} />
+            <Route path="care/consultation/:appointmentId" element={<PatientConsultationRoom />} />
 
             {/* Auth Route */}
             <Route
