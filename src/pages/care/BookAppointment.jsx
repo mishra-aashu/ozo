@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { 
   ArrowLeft, 
@@ -15,7 +15,15 @@ import {
   Star, 
   Sparkles,
   ChevronRight,
-  Info
+  Info,
+  UploadCloud,
+  FileText,
+  Image as ImageIcon,
+  Trash2,
+  Lock,
+  Check,
+  ExternalLink,
+  Eye
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -25,7 +33,14 @@ export default function BookAppointment() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
-  const { getDoctorById, bookAppointment, themeConfig, applyThemeVariables } = useCareStore()
+  const { 
+    getDoctorById, 
+    bookAppointment, 
+    fetchBookedSlots, 
+    uploadCareDocument, 
+    themeConfig, 
+    applyThemeVariables 
+  } = useCareStore()
 
   const [doctor, setDoctor] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -48,6 +63,15 @@ export default function BookAppointment() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [confirmedBooking, setConfirmedBooking] = useState(null)
 
+  // Live Slots Management State
+  const [bookedSlots, setBookedSlots] = useState([])
+  const [isLoadingSlots, setIsLoadingSlots] = useState(false)
+
+  // Attachments State (Images & PDFs)
+  const [attachments, setAttachments] = useState([])
+  const [isUploadingFiles, setIsUploadingFiles] = useState(false)
+  const fileInputRef = useRef(null)
+
   useEffect(() => {
     applyThemeVariables()
     const loadDoctor = async () => {
@@ -58,6 +82,20 @@ export default function BookAppointment() {
     }
     if (id) loadDoctor()
   }, [id])
+
+  // Fetch booked slots whenever doctor or selectedDate changes
+  useEffect(() => {
+    if (doctor?.id && selectedDate) {
+      setIsLoadingSlots(true)
+      fetchBookedSlots(doctor.id, selectedDate)
+        .then((booked) => {
+          setBookedSlots(booked || [])
+        })
+        .finally(() => {
+          setIsLoadingSlots(false)
+        })
+    }
+  }, [doctor?.id, selectedDate])
 
   const morningSlots = [
     '09:30 AM - 10:00 AM',
@@ -77,6 +115,69 @@ export default function BookAppointment() {
     '07:30 PM - 08:00 PM'
   ]
 
+  // Slot validity helpers
+  const isSlotPast = (slotStr) => {
+    if (selectedDate !== today) return false
+    try {
+      const startTimeStr = slotStr.split('-')[0].trim()
+      const parts = startTimeStr.split(' ')
+      const [hStr, mStr] = parts[0].split(':')
+      const modifier = parts[1]
+      let hours = parseInt(hStr, 10)
+      const minutes = parseInt(mStr, 10)
+      if (modifier === 'PM' && hours < 12) hours += 12
+      if (modifier === 'AM' && hours === 12) hours = 0
+
+      const slotTime = new Date()
+      slotTime.setHours(hours, minutes, 0, 0)
+      return new Date() > slotTime
+    } catch {
+      return false
+    }
+  }
+
+  const isSlotBooked = (slotStr) => {
+    return bookedSlots.includes(slotStr)
+  }
+
+  const isSlotAvailable = (slotStr) => {
+    return !isSlotBooked(slotStr) && !isSlotPast(slotStr)
+  }
+
+  // Handle Multi-file Upload (Images & PDFs)
+  const handleFileUpload = async (e) => {
+    const files = Array.from(e.target.files || [])
+    if (!files.length) return
+
+    if (attachments.length + files.length > 5) {
+      toast.error('You can upload a maximum of 5 documents/images per consultation.')
+      return
+    }
+
+    setIsUploadingFiles(true)
+    for (const file of files) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error(`"${file.name}" exceeds the 10MB limit.`)
+        continue
+      }
+      try {
+        const uploadedDoc = await uploadCareDocument(file)
+        if (uploadedDoc) {
+          setAttachments(prev => [...prev, uploadedDoc])
+          toast.success(`Attached "${file.name}"`)
+        }
+      } catch (err) {
+        toast.error(`Failed to upload "${file.name}"`)
+      }
+    }
+    setIsUploadingFiles(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
+  const handleRemoveAttachment = (idxToRemove) => {
+    setAttachments(prev => prev.filter((_, idx) => idx !== idxToRemove))
+  }
+
   const handleBooking = async (e) => {
     e.preventDefault()
     if (!patientName.trim()) {
@@ -85,6 +186,17 @@ export default function BookAppointment() {
     }
     if (!patientPhone.trim() || patientPhone.trim().length < 10) {
       toast.error('Please enter a valid 10-digit mobile number for SMS token')
+      return
+    }
+
+    // Verify selected slot isn't already booked
+    if (isSlotBooked(selectedSlot)) {
+      toast.error('This slot was just booked by another patient! Please pick an available slot.')
+      return
+    }
+
+    if (isSlotPast(selectedSlot)) {
+      toast.error('This slot time has already passed today. Please select an upcoming slot.')
       return
     }
 
@@ -99,6 +211,7 @@ export default function BookAppointment() {
       appointment_date: selectedDate,
       time_slot: selectedSlot,
       symptoms: symptoms.trim() || 'General Health Consultation',
+      attachments: attachments,
       consultation_fee: consultationType === 'teleconsult' 
         ? (doctor.teleconsult_fee || doctor.consultation_fee || 450)
         : (doctor.consultation_fee || 500),

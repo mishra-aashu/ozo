@@ -184,15 +184,78 @@ export const useCareStore = create((set, get) => ({
   // 3. APPOINTMENTS & PATIENT BOOKINGS
   // =============================================
 
+  fetchBookedSlots: async (doctorId, date) => {
+    if (!doctorId || !date) return []
+    try {
+      const { data, error } = await supabase
+        .from('care_appointments')
+        .select('time_slot, slot_time, status')
+        .eq('doctor_id', doctorId)
+        .eq('appointment_date', date)
+        .in('status', ['booked', 'in_consultation', 'completed'])
+
+      if (error) throw error
+      const booked = (data || []).map(item => item.time_slot || item.slot_time).filter(Boolean)
+      return booked
+    } catch (err) {
+      console.warn('[OzoCare] Error fetching booked slots:', err)
+      return []
+    }
+  },
+
+  uploadCareDocument: async (file) => {
+    try {
+      const cleanName = (file.name || 'document').replace(/[^a-zA-Z0-9.-]/g, '_')
+      const ext = cleanName.split('.').pop()
+      const filePath = `patient-docs/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`
+
+      const { data, error } = await supabase.storage
+        .from('care-documents')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (error) throw error
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('care-documents')
+        .getPublicUrl(filePath)
+
+      return {
+        name: file.name,
+        url: publicUrl,
+        file_type: file.type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg'),
+        size_bytes: file.size,
+        uploaded_at: new Date().toISOString()
+      }
+    } catch (err) {
+      console.error('[OzoCare] Error uploading document:', err)
+      throw err
+    }
+  },
+
   bookAppointment: async (appointmentPayload) => {
     try {
       const appointmentNumber = `CARE-${Date.now().toString().slice(-6)}-${Math.floor(10 + Math.random() * 90)}`
       const tokenNumber = Math.floor(1 + Math.random() * 25)
+      const meetingRoomId = `care-room-${appointmentNumber.toLowerCase()}`
 
       const payload = {
         ...appointmentPayload,
+        slot_time: appointmentPayload.time_slot || appointmentPayload.slot_time,
+        time_slot: appointmentPayload.time_slot || appointmentPayload.slot_time,
+        consultation_mode: appointmentPayload.consultation_type || appointmentPayload.consultation_mode || 'clinic_visit',
+        consultation_type: appointmentPayload.consultation_type || appointmentPayload.consultation_mode || 'clinic_visit',
+        fee_amount: appointmentPayload.consultation_fee || appointmentPayload.fee_amount || 500,
+        consultation_fee: appointmentPayload.consultation_fee || appointmentPayload.fee_amount || 500,
+        symptoms_description: appointmentPayload.symptoms || appointmentPayload.symptoms_description || 'General Health Consultation',
+        symptoms: appointmentPayload.symptoms || appointmentPayload.symptoms_description || 'General Health Consultation',
         appointment_number: appointmentNumber,
         token_number: tokenNumber,
+        meeting_room_id: meetingRoomId,
+        call_status: 'pending',
+        attachments: appointmentPayload.attachments || [],
         status: 'booked',
         created_at: new Date().toISOString()
       }
