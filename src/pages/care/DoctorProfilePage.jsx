@@ -7,6 +7,7 @@ import {
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useLocationStore } from '../../stores/locationStore'
 import DoctorReviewsComponent from '../../components/care/DoctorReviewsComponent'
 import toast from 'react-hot-toast'
 
@@ -15,6 +16,8 @@ export default function DoctorProfilePage() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
   const { getDoctorById, themeConfig, applyThemeVariables } = useCareStore()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
 
   const [doctor, setDoctor] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -326,7 +329,7 @@ export default function DoctorProfilePage() {
                     <span className="text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full">
                       Physical Clinic Location
                     </span>
-                    <span className="text-xs font-bold text-slate-400">Patna, Bihar</span>
+                    <span className="text-xs font-bold text-slate-400">{doctor?.city || activeCityName}, Bihar</span>
                   </div>
                   <h3 className="text-xl font-display font-black text-slate-900 dark:text-white mt-1">
                     Clinic Details & Directions
@@ -346,7 +349,7 @@ export default function DoctorProfilePage() {
                       </h4>
                       <p className="text-xs font-sans text-slate-600 dark:text-slate-300 flex items-start gap-1.5 leading-relaxed">
                         <MapPin size={15} className="text-emerald-500 shrink-0 mt-0.5" />
-                        <span>{doctor.clinic_address}, {doctor.city || 'Patna'}, Bihar</span>
+                        <span>{doctor.clinic_address}{doctor.clinic_address ? ', ' : ''}{doctor.city || activeCityName}, Bihar</span>
                       </p>
                       <p className="text-[11px] font-sans text-slate-400">
                         Landmark: Prominent Medical Corridor, easy access via Metro / Auto / Car Parking available
@@ -398,7 +401,7 @@ export default function DoctorProfilePage() {
                     </div>
 
                     <a
-                      href={`https://maps.google.com/?q=${encodeURIComponent(`${doctor.clinic_name} ${doctor.clinic_address} Patna`)}`}
+                      href={`https://maps.google.com/?q=${encodeURIComponent(`${doctor.clinic_name} ${doctor.clinic_address} ${doctor?.city || activeCityName}`)}`}
                       target="_blank"
                       rel="noreferrer"
                       className="px-4 py-2.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 font-display font-bold text-xs flex items-center gap-1.5 hover:opacity-90 transition-opacity shadow-sm"
