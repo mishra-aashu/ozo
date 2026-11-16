@@ -51,16 +51,6 @@ export const useDoctorStore = create((set, get) => ({
         }
       }
 
-      // Demo fallback: If no doctor profile, link to first verified doctor for immediate UI testing
-      if (!data) {
-        const { data: demoDoc } = await supabase
-          .from('care_doctors')
-          .select('*')
-          .limit(1)
-          .maybeSingle()
-        if (demoDoc) data = demoDoc
-      }
-
       set({ doctor: data, isDoctorLoaded: true })
       return data
     } catch (err) {

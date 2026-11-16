@@ -43,16 +43,6 @@ export const usePharmacyStore = create((set, get) => ({
         }
       }
 
-      // Demo fallback: If no pharmacy linked, link to first verified store for immediate testing
-      if (!data) {
-        const { data: demoPharm } = await supabase
-          .from('care_pharmacies')
-          .select('*')
-          .limit(1)
-          .maybeSingle()
-        if (demoPharm) data = demoPharm
-      }
-
       set({ pharmacy: data, isPharmacyLoaded: true })
       return data
     } catch (err) {
