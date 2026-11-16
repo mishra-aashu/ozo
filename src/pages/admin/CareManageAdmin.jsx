@@ -24,6 +24,7 @@ import {
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useCareStore } from '../../stores/careStore'
+import { CARE_SPECIALTIES } from '../../utils/careIcons'
 import toast from 'react-hot-toast'
 
 const THEME_PRESETS = [
@@ -783,17 +784,11 @@ export default function CareManageAdmin() {
                     onChange={(e) => setNewDoctor({ ...newDoctor, specialty_slug: e.target.value })}
                     className="w-full bg-gray-50 dark:bg-black/30 border border-gray-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-xs font-bold text-gray-900 dark:text-white outline-none focus:border-emerald-500"
                   >
-                    <option value="general-physician">General Physician</option>
-                    <option value="pediatrics">Pediatrics (Child Care)</option>
-                    <option value="gynecology">Gynecology & Obstetrics</option>
-                    <option value="dermatology">Dermatology (Skin & Hair)</option>
-                    <option value="orthopedic">Orthopedic (Bone & Joint)</option>
-                    <option value="cardiologist">Cardiology (Heart)</option>
-                    <option value="neurologist">Neurology</option>
-                    <option value="dentist">Dentistry</option>
-                    <option value="ent-specialist">ENT Specialist</option>
-                    <option value="psychiatrist">Psychiatry & Mental Health</option>
-                    <option value="ophthalmologist">Ophthalmology (Eye)</option>
+                    {CARE_SPECIALTIES.map(s => (
+                      <option key={s.slug} value={s.slug}>
+                        {s.title} ({s.subtitle})
+                      </option>
+                    ))}
                   </select>
                 </div>
 
