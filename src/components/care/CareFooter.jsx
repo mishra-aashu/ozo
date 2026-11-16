@@ -20,8 +20,12 @@ import {
   Phone
 } from 'lucide-react'
 
+import { useLocationStore } from '../../stores/locationStore'
+
 export default function CareFooter() {
   const currentYear = new Date().getFullYear()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
 
   const trustFeatures = [
     {
@@ -139,14 +143,14 @@ export default function CareFooter() {
             </Link>
 
             <p className="text-xs text-slate-600 dark:text-slate-400 font-sans leading-relaxed max-w-sm">
-              Connecting verified patients in Patna with NMC-registered doctors for confirmed OPD queue tokens and 30-minute authentic medicine delivery from licensed neighborhood chemists.
+              Connecting verified patients in {activeCityName} with NMC-registered doctors for confirmed OPD queue tokens and 30-minute authentic medicine delivery from licensed neighborhood chemists.
             </p>
 
             {/* Helpline & Location Info */}
             <div className="space-y-2 pt-2 text-xs font-sans text-slate-600 dark:text-slate-400">
               <div className="flex items-center gap-2">
                 <MapPin size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
-                <span>Patna Central & Greater Bihar Region</span>
+                <span>{activeCityName} & Greater Bihar Region</span>
               </div>
               <div className="flex items-center gap-2">
                 <Phone size={14} className="text-emerald-600 dark:text-emerald-400 shrink-0" />
