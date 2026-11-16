@@ -99,13 +99,13 @@ export default function PatientConsultationRoom() {
     if (localVideoRef.current && localStream) {
       localVideoRef.current.srcObject = localStream
     }
-  }, [localStream])
+  }, [localStream, isLoading])
 
   useEffect(() => {
     if (remoteVideoRef.current && remoteStream) {
       remoteVideoRef.current.srcObject = remoteStream
     }
-  }, [remoteStream])
+  }, [remoteStream, isLoading])
 
   if (isLoading) {
     return (

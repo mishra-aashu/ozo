@@ -212,14 +212,13 @@ export default function DoctorTeleconsultWorkstation({
           
           {/* Main Remote Video (Patient) */}
           <div className="flex-1 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden flex items-center justify-center">
-            {remoteStream ? (
-              <video 
-                ref={remoteVideoRef} 
-                autoPlay 
-                playsInline 
-                className="w-full h-full object-cover"
-              />
-            ) : (
+            <video 
+              ref={remoteVideoRef} 
+              autoPlay 
+              playsInline 
+              className={`w-full h-full object-cover ${!remoteStream ? 'hidden' : ''}`}
+            />
+            {!remoteStream && (
               <div className="text-center p-6 space-y-3">
                 <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500 animate-pulse">
                   <User size={32} />
