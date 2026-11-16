@@ -18,7 +18,9 @@ import {
   Check,
   Award,
   Phone,
-  FileText
+  FileText,
+  Plus,
+  X
 } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { useCareStore } from '../../stores/careStore'
@@ -92,6 +94,28 @@ export default function CareManageAdmin() {
   const [pharmacies, setPharmacies] = useState([])
   const [appointments, setAppointments] = useState([])
   const [isLoadingData, setIsLoadingData] = useState(false)
+
+  // Add Doctor Modal State
+  const [isAddDoctorModalOpen, setIsAddDoctorModalOpen] = useState(false)
+  const [isSubmittingDoctor, setIsSubmittingDoctor] = useState(false)
+  const [newDoctor, setNewDoctor] = useState({
+    full_name: '',
+    specialty_slug: 'general-physician',
+    qualification: 'MBBS, MD',
+    experience_years: 5,
+    council_registration_number: '',
+    council_state: 'Bihar',
+    clinic_name: '',
+    clinic_address: '',
+    city: 'Patna',
+    phone: '',
+    email: '',
+    consultation_fee: 500,
+    teleconsult_fee: 450,
+    avatar_url: '',
+    is_verified: true,
+    is_online: true
+  })
 
   useEffect(() => {
     fetchThemeConfig()
