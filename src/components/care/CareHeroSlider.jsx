@@ -15,6 +15,8 @@ import {
   Activity
 } from 'lucide-react'
 
+import { useLocationStore } from '../../stores/locationStore'
+
 const SLIDES = [
   {
     id: 1,
@@ -70,6 +72,8 @@ export default function CareHeroSlider() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isPaused, setIsPaused] = useState(false)
   const navigate = useNavigate()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
 
   const nextSlide = useCallback(() => {
     setCurrentIndex((prev) => (prev + 1) % SLIDES.length)
@@ -150,7 +154,7 @@ export default function CareHeroSlider() {
               </h3>
               
               <p className="text-[11px] sm:text-sm text-slate-200 font-sans font-medium line-clamp-1 drop-shadow">
-                {currentSlide.subtitle}
+                {currentSlide.subtitle.replace('Patna', activeCityName)}
               </p>
 
               <div className="flex items-center justify-between gap-2 pt-1 sm:pt-2">
