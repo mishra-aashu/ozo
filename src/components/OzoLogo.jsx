@@ -39,16 +39,6 @@ export default function OzoLogo({
   const selectedTextSize = textSizes[size] || 'text-xl';
 
   const renderLogo = () => {
-    if (verticalMode === 'care') {
-      return (
-        <div className={`${selectedImgSize} flex items-center justify-center flex-shrink-0 ${imgClassName}`}>
-          <div className="w-full h-full rounded-xl sm:rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white flex items-center justify-center shadow-md shadow-emerald-500/25 flex-shrink-0">
-            <Stethoscope className="w-1/2 h-1/2" strokeWidth={2.5} />
-          </div>
-        </div>
-      );
-    }
-
     return (
       <div 
         className={`${selectedImgSize} flex items-center justify-center flex-shrink-0 ${imgClassName}`}
@@ -66,33 +56,18 @@ export default function OzoLogo({
   };
 
   const renderText = () => {
-    if (verticalMode === 'care') {
-      return (
-        <div className={`flex flex-col ${centered ? 'items-center' : 'items-start'} leading-none text-left`}>
-          <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
-            <span className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-tight text-slate-900 dark:text-white">
-              Ozo
-            </span>
-            <span className="font-display font-black text-lg xs:text-xl sm:text-2xl tracking-tight text-emerald-600 dark:text-emerald-400">
-              Care
-            </span>
-          </div>
-          <span className="text-[7px] xs:text-[8px] sm:text-[9px] font-sans font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight xs:tracking-wider leading-none mt-1 select-none whitespace-nowrap">
-            {subText || (
-              <>
-                HEALTHCARE <span className="hidden xs:inline">& PHARMACY </span>NETWORK
-              </>
-            )}
-          </span>
-        </div>
-      );
-    }
-
     return (
       <div className={`flex flex-col ${centered ? 'items-center' : 'items-start'} leading-none`}>
         <span className={`${selectedTextSize} font-display font-black tracking-tighter notranslate flex items-baseline gap-0.5 ${textClassName}`} translate="no">
           <span className="text-gradient">OZO</span>
-          {verticalMode === 'services' ? (
+          {verticalMode === 'care' ? (
+            <span 
+              style={{ fontFamily: "'Dancing Script', cursive" }} 
+              className="text-emerald-600 dark:text-emerald-400 font-bold text-[0.95em] tracking-wide normal-case translate-y-[-1px] select-none"
+            >
+              care
+            </span>
+          ) : verticalMode === 'services' ? (
             <span 
               style={{ fontFamily: "'Dancing Script', cursive" }} 
               className="text-sky-500 dark:text-sky-400 font-bold text-[0.95em] tracking-wide normal-case translate-y-[-1px] select-none"
