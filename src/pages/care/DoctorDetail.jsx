@@ -93,7 +93,7 @@ export default function DoctorDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm text-slate-500 font-medium">Loading Doctor Profile...</p>
@@ -104,7 +104,7 @@ export default function DoctorDetail() {
 
   if (!doctor) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] flex flex-col items-center justify-center p-6 text-center">
         <AlertCircle className="w-12 h-12 text-rose-500 mb-3" />
         <h2 className="text-xl font-bold text-slate-900 dark:text-white">Doctor Not Found</h2>
         <p className="text-sm text-slate-500 mt-1 max-w-sm">The doctor profile you are searching for might be unavailable or awaiting credential verification.</p>
@@ -119,9 +119,9 @@ export default function DoctorDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 font-sans">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] text-slate-900 dark:text-white pb-20 font-sans">
       {/* Top Navbar */}
-      <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <div className="sticky top-0 z-30 bg-white/80 dark:bg-[#0c1015]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-3 xs:px-4 h-14 flex items-center justify-between gap-2">
           <button 
             onClick={() => navigate('/care')} 
@@ -144,7 +144,7 @@ export default function DoctorDetail() {
           {/* Left Column: Doctor Profile Details */}
           <div className="lg:col-span-7 space-y-5 sm:space-y-6">
             {/* Card: Doctor Main Info */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-sm relative overflow-hidden">
+            <div className="bg-white dark:bg-[#121820] rounded-2xl p-4 sm:p-6 border border-slate-200/80 dark:border-white/10 shadow-sm relative overflow-hidden">
               <div 
                 className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r"
                 style={{ 
