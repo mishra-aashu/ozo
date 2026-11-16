@@ -231,7 +231,7 @@ export default function BookAppointment() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center font-sans">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] flex items-center justify-center font-sans">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
           <p className="text-sm font-display font-medium text-slate-500">Preparing Booking Desk...</p>
@@ -242,7 +242,7 @@ export default function BookAppointment() {
 
   if (!doctor) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col items-center justify-center p-6 text-center font-sans">
+      <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] flex flex-col items-center justify-center p-6 text-center font-sans">
         <AlertCircle className="w-12 h-12 text-rose-500 mb-3" />
         <h2 className="text-xl font-display font-bold text-slate-900 dark:text-white">Doctor Not Found</h2>
         <p className="text-sm text-slate-500 mt-1 max-w-sm">The doctor profile you are trying to book with is currently unavailable.</p>
@@ -270,9 +270,9 @@ export default function BookAppointment() {
     : (doctor.consultation_fee || 500)
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0a0e14] text-slate-900 dark:text-slate-100 pb-20 font-sans text-left">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] text-slate-900 dark:text-white pb-20 font-sans text-left">
       {/* Top Header */}
-      <div className="sticky top-0 z-30 bg-white/85 dark:bg-[#0e131b]/85 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10">
+      <div className="sticky top-0 z-30 bg-white/85 dark:bg-[#0c1015]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-3 xs:px-4 h-14 sm:h-16 flex items-center justify-between gap-2">
           <button 
             onClick={() => navigate(`/care/doctor/${doctor.id}`)} 
