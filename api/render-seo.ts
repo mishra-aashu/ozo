@@ -852,6 +852,7 @@ async function renderCityPage(res: VercelResponse, city: any, activeCities: any[
   const cityName = city.name.split(',')[0].trim();
   const title = `OZO Mart ${cityName} | Online Grocery & Food Delivery`;
   const description = `Order fresh vegetables, organic fruits, daily groceries, and Mithila regional specialities online on OZO Mart in ${cityName}. Fast 10-30 minute delivery. Cash on Delivery available.`;
+  const keywords = `online grocery ${cityName}, grocery delivery ${cityName}, fresh vegetables ${cityName}, fresh fruits ${cityName}, buy groceries online ${cityName}, OZO Mart ${cityName}, daily essentials ${cityName}`;
   const canonicalCitySlug = city.slug === 'aurangabad-bihar' ? 'aurangabad' : city.slug;
   const canonicalUrl = `https://www.ozomart.store/${canonicalCitySlug}`;
 
