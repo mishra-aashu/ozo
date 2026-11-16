@@ -146,9 +146,9 @@ export default function OrderMedicines() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 pb-20 font-sans">
+    <div className="min-h-screen bg-gray-50/50 dark:bg-[#0c1015] text-slate-900 dark:text-white pb-20 font-sans">
       {/* Top Navbar */}
-      <div className="sticky top-0 z-30 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+      <div className="sticky top-0 z-30 bg-white/80 dark:bg-[#0c1015]/90 backdrop-blur-md border-b border-slate-200/80 dark:border-white/10">
         <div className="max-w-6xl mx-auto px-3 xs:px-4 h-14 flex items-center justify-between gap-2">
           <Link 
             to="/care"
@@ -190,7 +190,7 @@ export default function OrderMedicines() {
           <div className="lg:col-span-7 space-y-6">
             <form onSubmit={handleOrderSubmit} className="space-y-6">
               {/* Step 1: Prescription Selection */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="bg-white dark:bg-[#121820] rounded-2xl p-4 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-sm">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 sm:mb-4">
                   <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Step 1: Attach Prescription</span>
@@ -228,7 +228,7 @@ export default function OrderMedicines() {
                 {orderMode === 'upload' ? (
                   <div>
                     {!rxImageUrl ? (
-                      <label className="border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-emerald-500 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-slate-800/40 group">
+                      <label className="border-2 border-dashed border-slate-300 dark:border-white/15 hover:border-emerald-500 rounded-2xl p-6 sm:p-8 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-slate-50/50 dark:bg-white/[0.03] group">
                         <div className="w-12 h-12 bg-emerald-50 dark:bg-white/5 text-emerald-600 dark:text-emerald-400 rounded-xl flex items-center justify-center mb-2.5 group-hover:scale-110 transition-transform shadow-xs">
                           <Upload size={22} />
                         </div>
@@ -247,7 +247,7 @@ export default function OrderMedicines() {
                         />
                       </label>
                     ) : (
-                      <div className="relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
+                      <div className="relative rounded-2xl overflow-hidden border border-slate-200/90 dark:border-white/10 bg-slate-50 dark:bg-black/30 p-3">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                             <CheckCircle className="w-4 h-4 shrink-0" /> Prescription Attached
