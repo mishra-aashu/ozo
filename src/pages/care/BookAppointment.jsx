@@ -930,6 +930,14 @@ export default function BookAppointment() {
             </div>
 
             <div className="mt-6 flex flex-col gap-2 font-display">
+              {confirmedBooking.consultation_type === 'teleconsult' && (
+                <button
+                  onClick={() => navigate(`/care/room/${confirmedBooking.id}`)}
+                  className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-sm shadow-lg flex items-center justify-center gap-2"
+                >
+                  <Video size={16} /> Enter Video Consultation Room Now
+                </button>
+              )}
               <button
                 onClick={() => navigate('/care/my-appointments')}
                 className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md"
