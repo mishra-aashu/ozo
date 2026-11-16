@@ -27,12 +27,15 @@ import {
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useLocationStore } from '../../stores/locationStore'
 import toast from 'react-hot-toast'
 
 export default function BookAppointment() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { addressDetails, nearestCity } = useLocationStore()
+  const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const { 
     getDoctorById, 
     bookAppointment, 
@@ -357,7 +360,7 @@ export default function BookAppointment() {
 
                 <div className="flex items-start gap-2.5 text-slate-500 dark:text-slate-400">
                   <MapPin size={15} className="text-slate-400 shrink-0 mt-0.5" />
-                  <span className="leading-snug">{doctor.clinic_address}, {doctor.city || 'Patna'}</span>
+                  <span className="leading-snug">{doctor.clinic_address}{doctor.clinic_address ? ', ' : ''}{doctor.city || activeCityName}</span>
                 </div>
 
                 <div className="flex items-start gap-2.5 text-slate-500 dark:text-slate-400">
