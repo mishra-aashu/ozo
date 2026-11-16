@@ -278,7 +278,7 @@ export default function DoctorProfilePage() {
 
                 {/* Key Clinical Credentials */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs font-sans">
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-white/5 space-y-1">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#121820] border border-slate-100 dark:border-white/5 space-y-1">
                     <span className="text-slate-400 font-medium">Medical Qualifications</span>
                     <p className="font-display font-bold text-slate-900 dark:text-white text-sm">
                       {doctor.qualification}
@@ -286,7 +286,7 @@ export default function DoctorProfilePage() {
                     <p className="text-[11px] text-slate-400">Premier Medical Institutions</p>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/60 border border-slate-100 dark:border-white/5 space-y-1">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#121820] border border-slate-100 dark:border-white/5 space-y-1">
                     <span className="text-slate-400 font-medium">Medical Registration</span>
                     <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-1.5">
                       <ShieldCheck size={16} /> {doctor.registration_number || doctor.council_registration_number || 'NMC-847291-BR'}
@@ -338,7 +338,7 @@ export default function DoctorProfilePage() {
                 </div>
 
                 {/* Primary Clinic Card */}
-                <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200/80 dark:border-white/10 space-y-4">
+                <div className="p-6 rounded-2xl bg-slate-50 dark:bg-[#121820] border border-slate-200/80 dark:border-white/10 space-y-4">
                   <div className="flex items-start gap-4">
                     <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 shadow-inner">
                       <Building2 size={28} />
@@ -359,7 +359,7 @@ export default function DoctorProfilePage() {
 
                   {/* Consultation Timings Grid */}
                   <div className="pt-4 border-t border-slate-200/60 dark:border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                    <div className="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-slate-100 dark:border-white/5 space-y-1">
+                    <div className="p-3 bg-white dark:bg-white/[0.04] rounded-xl border border-slate-100 dark:border-white/5 space-y-1">
                       <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1.5">
                         <Clock size={13} className="text-emerald-500" /> Morning OPD Session
                       </span>
@@ -368,7 +368,7 @@ export default function DoctorProfilePage() {
                       </p>
                     </div>
 
-                    <div className="p-3 bg-white dark:bg-slate-800/80 rounded-xl border border-slate-100 dark:border-white/5 space-y-1">
+                    <div className="p-3 bg-white dark:bg-white/[0.04] rounded-xl border border-slate-100 dark:border-white/5 space-y-1">
                       <span className="text-[11px] text-slate-400 font-semibold block flex items-center gap-1.5">
                         <Clock size={13} className="text-emerald-500" /> Evening OPD Session
                       </span>
@@ -437,7 +437,7 @@ export default function DoctorProfilePage() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {/* Mode 1: In-Clinic OPD Visit */}
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border-2 border-emerald-500/40 space-y-3 relative overflow-hidden">
+                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#121820] border-2 border-emerald-500/40 space-y-3 relative overflow-hidden">
                     <div className="flex items-center justify-between">
                       <span className="font-display font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                         <Building2 size={16} className="text-emerald-500" />
@@ -476,7 +476,7 @@ export default function DoctorProfilePage() {
                   </div>
 
                   {/* Mode 2: Video Call Teleconsultation */}
-                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-900/70 border border-slate-200 dark:border-white/10 space-y-3">
+                  <div className="p-5 rounded-2xl bg-slate-50 dark:bg-[#121820] border border-slate-200 dark:border-white/10 space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="font-display font-bold text-sm text-slate-900 dark:text-white flex items-center gap-2">
                         <Video size={16} className="text-sky-500" />
