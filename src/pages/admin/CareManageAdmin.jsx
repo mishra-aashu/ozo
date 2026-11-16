@@ -609,8 +609,17 @@ export default function CareManageAdmin() {
 
       {/* TAB 3: PHARMACIES MANAGEMENT */}
       {activeTab === 'pharmacies' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {pharmacies.map((pharm) => (
+        pharmacies.length === 0 ? (
+          <div className="bg-white/60 dark:bg-[#161e27]/60 border border-dashed border-gray-200 dark:border-white/10 rounded-3xl p-12 text-center space-y-3">
+            <Pill className="w-12 h-12 text-gray-400 mx-auto opacity-40" />
+            <h4 className="text-base font-bold text-gray-800 dark:text-gray-200">No Licensed Chemists Listed</h4>
+            <p className="text-xs text-gray-400 max-w-sm mx-auto">
+              Chemists will appear here once registered with Form 20/21 drug licenses.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {pharmacies.map((pharm) => (
             <div
               key={pharm.id}
               className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-md border border-gray-200 dark:border-white/10 rounded-3xl p-6 shadow-sm flex flex-col justify-between"
@@ -671,6 +680,7 @@ export default function CareManageAdmin() {
             </div>
           ))}
         </div>
+        )
       )}
 
       {/* TAB 4: APPOINTMENTS STREAM */}
