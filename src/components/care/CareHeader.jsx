@@ -784,7 +784,7 @@ export default function CareHeader() {
       {/* Emergency Assistance Modal */}
       {showEmergencyModal && (
         <div className="fixed inset-0 z-[110] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 font-sans text-center space-y-4">
+          <div className="bg-white dark:bg-[#121820] rounded-3xl max-w-md w-full border border-slate-200/90 dark:border-white/10 shadow-2xl p-6 sm:p-8 animate-in fade-in zoom-in-95 duration-200 font-sans text-center space-y-4">
             <div className="w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 mx-auto flex items-center justify-center">
               <Activity size={28} className="animate-pulse" />
             </div>
