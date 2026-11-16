@@ -288,8 +288,8 @@ export default function OrderMedicines() {
                         </p>
                       </div>
                     ) : (
-                      <div className="p-6 text-center border border-slate-200 dark:border-slate-800 rounded-2xl">
-                        <p className="text-xs text-slate-500">
+                      <div className="p-6 text-center border border-slate-200/80 dark:border-white/10 rounded-2xl">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           No e-Rx selected yet. You can book an appointment first or choose "Upload Rx Photo" above.
                         </p>
                         <Link 
@@ -305,7 +305,7 @@ export default function OrderMedicines() {
               </div>
 
               {/* Step 2: Select Local Chemist */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="bg-white dark:bg-[#121820] rounded-2xl p-4 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-sm">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-3 sm:mb-4">
                   <Building2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Step 2: Choose Local Chemist</span>
@@ -318,7 +318,7 @@ export default function OrderMedicines() {
                       className={`p-3 sm:p-3.5 rounded-xl border flex items-start gap-3 cursor-pointer transition-all ${
                         selectedPharmacyId === store.id
                           ? 'border-emerald-500 bg-emerald-50/50 dark:bg-emerald-950/20 ring-1 ring-emerald-500'
-                          : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'
+                          : 'border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20'
                       }`}
                     >
                       <input 
@@ -339,8 +339,8 @@ export default function OrderMedicines() {
                         </div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1 text-[10px] xs:text-[11px] text-slate-500 dark:text-slate-400">
                           <span>{store.address || 'Verified Chemist'}</span>
-                          <span className="text-slate-300 dark:text-slate-600">•</span>
-                          <span className="font-mono text-[9px] xs:text-[10px] bg-slate-100 dark:bg-slate-800 px-1.5 py-0.2 rounded text-slate-600 dark:text-slate-300">
+                          <span className="text-slate-300 dark:text-white/20">•</span>
+                          <span className="font-mono text-[9px] xs:text-[10px] bg-slate-100 dark:bg-white/5 px-1.5 py-0.2 rounded text-slate-600 dark:text-slate-300">
                             Lic: {store.drug_license_number || 'Form 20/21'}
                           </span>
                         </div>
@@ -351,7 +351,7 @@ export default function OrderMedicines() {
               </div>
 
               {/* Step 3: Delivery Address & Details */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
+              <div className="bg-white dark:bg-[#121820] rounded-2xl p-4 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-4">
                 <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-2">
                   <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                   <span>Step 3: Delivery Details</span>
@@ -367,7 +367,7 @@ export default function OrderMedicines() {
                       placeholder="Full Name"
                       value={patientName}
                       onChange={(e) => setPatientName(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
                       required
                     />
                   </div>
@@ -381,7 +381,7 @@ export default function OrderMedicines() {
                       placeholder="10-digit mobile number"
                       value={patientPhone}
                       onChange={(e) => setPatientPhone(e.target.value)}
-                      className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
+                      className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
                       required
                     />
                   </div>
@@ -396,7 +396,7 @@ export default function OrderMedicines() {
                     placeholder="House/Flat No, Landmark, Sector, City"
                     value={deliveryAddress}
                     onChange={(e) => setDeliveryAddress(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl p-3 text-xs focus:ring-2 focus:ring-emerald-500"
                     required
                   />
                 </div>
@@ -410,12 +410,12 @@ export default function OrderMedicines() {
                     placeholder="e.g. Call before ringing bell, send generic substitutes if approved"
                     value={patientNotes}
                     onChange={(e) => setPatientNotes(e.target.value)}
-                    className="w-full bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
+                    className="w-full bg-slate-50 dark:bg-black/30 border border-slate-200/90 dark:border-white/10 text-slate-900 dark:text-white rounded-xl px-3 py-2 text-xs focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 {/* Statutory Mediation Notice */}
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-[11px] text-slate-500 leading-relaxed border border-slate-200 dark:border-slate-700">
+                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-white/[0.04] text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed border border-slate-200/80 dark:border-white/10">
                   <span className="font-bold text-slate-700 dark:text-slate-300 block mb-0.5">
                     🛡️ Regulatory Compliance (Drugs & Cosmetics Act)
                   </span>
@@ -445,7 +445,7 @@ export default function OrderMedicines() {
             </h3>
 
             {myMedicineOrders.length === 0 ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">
+              <div className="bg-white dark:bg-[#121820] rounded-2xl p-6 border border-slate-200/90 dark:border-white/10 text-center text-xs text-slate-400">
                 No medicine orders yet. Submit your prescription on the left to order from nearby chemists.
               </div>
             ) : (
@@ -454,7 +454,7 @@ export default function OrderMedicines() {
                 return (
                   <div 
                     key={ord.id}
-                    className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-sm space-y-3"
+                    className="bg-white dark:bg-[#121820] rounded-2xl p-4 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <span className="font-mono text-xs font-bold text-slate-900 dark:text-white">
@@ -473,7 +473,7 @@ export default function OrderMedicines() {
                       <p className="text-[11px] text-slate-400 mt-0.5 truncate">{ord.delivery_address}</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 text-xs">
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-white/5 text-xs">
                       <span className="text-slate-400">Delivery Status:</span>
                       <span className="font-bold text-emerald-600">30-Min Express Dispatch</span>
                     </div>
@@ -488,7 +488,7 @@ export default function OrderMedicines() {
       {/* Confirmation Modal */}
       {orderConfirmed && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200 dark:border-slate-800 shadow-2xl text-center">
+          <div className="bg-white dark:bg-[#121820] rounded-3xl p-6 sm:p-8 max-w-md w-full border border-slate-200/90 dark:border-white/10 shadow-2xl text-center">
             <div className="w-16 h-16 rounded-full bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 mx-auto flex items-center justify-center mb-4">
               <CheckCircle className="w-9 h-9" />
             </div>
