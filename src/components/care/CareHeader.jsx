@@ -124,6 +124,13 @@ export default function CareHeader() {
     }
   }
 
+  const isSuperAdmin = profile?.isSuperAdmin || profile?.role === 'super_admin' || profile?.role === 'admin'
+  const isCityManager = profile?.isCityManager || profile?.role === 'city_manager'
+  const hasAdminPermission = isAdmin || isSuperAdmin || isCityManager
+  const isCaptain = profile?.role === 'captain' || profile?.role === 'rider' || profile?.isRider || hasAdminPermission
+  const isMartOperator = profile?.role === 'mart_operator' || profile?.role === 'mart_owner' || profile?.isMartOwner || hasAdminPermission
+  const isServiceManager = profile?.role === 'service_manager' || hasAdminPermission
+
   const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad, Bihar'
   const activeTokensCount = myAppointments?.filter(a => a.status === 'booked' || a.status === 'in_consultation').length || 0
 
@@ -162,7 +169,7 @@ export default function CareHeader() {
         </div>
       </div>
 
-      <header className="sticky top-0 z-40 bg-white/95 dark:bg-[#0c1015]/95 backdrop-blur-md border-b border-gray-200/90 dark:border-white/10 transition-colors py-3 md:py-4 pt-[env(safe-area-inset-top,0px)]">
+      <header className={`sticky top-0 ${isProfileOpen ? 'z-[70]' : 'z-50'} bg-white/95 dark:bg-[#0c1015]/95 backdrop-blur-md border-b border-gray-200/90 dark:border-white/10 transition-colors py-3 md:py-4 pt-[env(safe-area-inset-top,0px)] shadow-xs`}>
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between gap-1.5 xs:gap-3 md:gap-4">
             
