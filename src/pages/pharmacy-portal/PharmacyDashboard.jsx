@@ -60,10 +60,10 @@ export default function PharmacyDashboard() {
     fetchPharmacyProfile().then((store) => {
       if (store) {
         setEditStoreName(store.store_name || '')
-        setEditAddress(store.address || '')
+        setEditAddress(store.address || store.store_address || '')
         setEditPhone(store.phone || '')
-        setEditLicense(store.drug_license_number || '')
-        setEditPharmacist(store.registered_pharmacist_name || '')
+        setEditLicense(store.drug_license_number || store.drug_license_form_20 || '')
+        setEditPharmacist(store.registered_pharmacist_name || store.owner_name || '')
       }
     })
   }, [])

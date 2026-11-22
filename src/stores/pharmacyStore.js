@@ -58,8 +58,25 @@ export const usePharmacyStore = create((set, get) => ({
     set({ isLoading: true })
     try {
       const { data: { user } } = await supabase.auth.getUser()
+      const addressValue = payload.address || payload.store_address || ''
+      const licenseValue = payload.drug_license_number || payload.drug_license_form_20 || 'DL-PENDING'
+      const pharmacistName = payload.registered_pharmacist_name || payload.owner_name || 'Pharmacist'
+
       const pharmacyData = {
-        ...payload,
+        store_name: payload.store_name,
+        registered_pharmacist_name: pharmacistName,
+        owner_name: payload.owner_name || pharmacistName,
+        drug_license_number: licenseValue,
+        drug_license_form_20: payload.drug_license_form_20 || licenseValue,
+        drug_license_form_21: payload.drug_license_form_21 || licenseValue,
+        pharmacist_reg_number: payload.pharmacist_reg_number || licenseValue,
+        address: addressValue,
+        store_address: addressValue,
+        city: payload.city || 'Aurangabad',
+        phone: payload.phone || user?.phone || '',
+        email: payload.email || user?.email || '',
+        operating_hours: payload.operating_hours || '08:00 AM - 10:00 PM',
+        serviceable_pincodes: payload.serviceable_pincodes || [],
         user_id: user?.id || null,
         is_verified: true, // auto-verified for seamless operational onboarding
         is_active: true,
@@ -92,9 +109,18 @@ export const usePharmacyStore = create((set, get) => ({
 
     set({ isLoading: true })
     try {
+      const sanitized = { ...updatedFields }
+      if (sanitized.address) {
+        sanitized.store_address = sanitized.address
+      }
+      if (sanitized.drug_license_number) {
+        sanitized.drug_license_form_20 = sanitized.drug_license_number
+        sanitized.drug_license_form_21 = sanitized.drug_license_number
+      }
+
       const { data, error } = await supabase
         .from('care_pharmacies')
-        .update(updatedFields)
+        .update(sanitized)
         .eq('id', pharmacy.id)
         .select()
         .single()
