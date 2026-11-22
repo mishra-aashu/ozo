@@ -387,7 +387,7 @@ export default function AdPortal() {
                       ? 'bg-sky-500 text-white'
                       : 'bg-emerald-600 text-white'
                   }`}>
-                    {ad.city_slug === 'all' ? '🌐 All Cities' : `📍 ${getCityNameBySlug(ad.city_slug)}`}
+                    {ad.city_slug === 'all' ? 'All Cities' : getCityNameBySlug(ad.city_slug)}
                   </span>
                 </div>
 
@@ -561,10 +561,10 @@ export default function AdPortal() {
                     onChange={e => setFormData({ ...formData, citySlug: e.target.value })}
                     className="w-full px-4 py-3 bg-gray-50 dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-xl text-sm font-bold text-gray-900 dark:text-white focus:outline-none focus:border-ozo-red"
                   >
-                    <option value="all">🌐 All Cities (Global Ad)</option>
+                    <option value="all">All Cities (Global Ad)</option>
                     {activeCities.map(c => (
                       <option key={c.slug} value={c.slug}>
-                        📍 {c.name.split(',')[0]} ({c.state || 'Bihar'})
+                        {c.name.split(',')[0]} ({c.state || 'Bihar'})
                       </option>
                     ))}
                   </select>

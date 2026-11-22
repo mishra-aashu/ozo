@@ -440,7 +440,7 @@ const Festivals = () => {
                       
                       {/* Warning suggestion for Inventory */}
                       <div className="mt-3 flex items-start gap-2 text-xs text-gray-500 dark:text-gray-450 bg-white/50 dark:bg-black/20 p-2.5 rounded-xl border border-gray-100 dark:border-white/5">
-                        <span className="text-sm">💡</span>
+                        <Sparkles className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                         <span>
                           <strong>Smart Inventory Warning:</strong> Check stocks for sweets, puja samagri, and gifts for this festival.
                         </span>
@@ -485,8 +485,8 @@ const Festivals = () => {
           >
             <option value="all">All Campaign Status</option>
             <option value="Upcoming">Upcoming</option>
-            <option value="Active">🟢 Active (Running)</option>
-            <option value="Completed">⚪ Completed</option>
+            <option value="Active">Active (Running)</option>
+            <option value="Completed">Completed</option>
           </select>
 
           <select
@@ -655,7 +655,7 @@ const Festivals = () => {
                             ? 'bg-amber-100 dark:bg-amber-950/20 text-amber-700 dark:text-amber-400 border border-amber-200 dark:border-amber-900/30'
                             : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700'
                         }`}>
-                          {festival.status === 'Active' ? '🟢 Active (Running)' : festival.status === 'Upcoming' ? '⚪ Upcoming' : '✅ Completed'}
+                          {festival.status === 'Active' ? 'Active (Running)' : festival.status === 'Upcoming' ? 'Upcoming' : 'Completed'}
                         </span>
                       </td>
                       <td className="p-4 text-right">
@@ -978,9 +978,9 @@ const Festivals = () => {
                     )
                   })}
                 {calendarHolidays.filter(h => h.name.toLowerCase().includes(calendarSearchQuery.toLowerCase())).length === 0 && (
-                  <div className="text-center py-12">
-                    <span className="text-3xl">📅</span>
-                    <h4 className="font-bold text-gray-800 dark:text-white mt-2">No matching holidays found</h4>
+                  <div className="text-center py-12 flex flex-col items-center">
+                    <Calendar className="w-8 h-8 text-gray-400 mb-2" />
+                    <h4 className="font-bold text-gray-800 dark:text-white mt-1">No matching holidays found</h4>
                     <p className="text-xs text-gray-500 mt-1">Try searching for other terms.</p>
                   </div>
                 )}

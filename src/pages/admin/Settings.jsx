@@ -3046,7 +3046,7 @@ const AdminSettings = () => {
                       type="text"
                       value={customPushTitle}
                       onChange={e => setCustomPushTitle(e.target.value)}
-                      placeholder="e.g. Fresh Mangoes arrived! 🥭"
+                      placeholder="e.g. Fresh Mangoes arrived!"
                       className="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl w-full focus:outline-none focus:ring-2 focus:ring-ozo-red text-sm font-semibold text-gray-800 dark:text-white"
                     />
                   </div>
@@ -3096,7 +3096,7 @@ const AdminSettings = () => {
                   <Compass className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-black text-gray-800 dark:text-white font-display">🏪 Mart Center Location & Georouting Settings</h2>
+                  <h2 className="text-lg font-black text-gray-800 dark:text-white font-display">Mart Center Location & Georouting Settings</h2>
                   <p className="text-xs text-gray-500 dark:text-gray-400">Set central coordinates and operational boundary radius</p>
                 </div>
               </div>
