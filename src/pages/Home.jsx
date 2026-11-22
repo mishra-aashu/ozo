@@ -6,6 +6,7 @@ import {
   Zap, 
   ShieldCheck, 
   Gift, 
+  ChevronLeft,
   ChevronRight, 
   ChevronDown,
   ChevronUp,
@@ -63,7 +64,6 @@ import CityAdBanner from '../components/CityAdBanner'
 // Import Swiper styles
 import 'swiper/css'
 import 'swiper/css/pagination'
-import 'swiper/css/navigation'
 
 // Shuffle seed: fresh on every page load/refresh, stable during React re-renders.
 // Generates a new random seed on every script execution (page refresh/load)
@@ -329,6 +329,7 @@ const applyCityOverrides = (products, citySlug) => {
 };
 
 const MartHome = () => {
+  const bannerSwiperRef = useRef(null)
   const [shuffleSeed] = useState(() => PAGE_LOAD_SHUFFLE_SEED)
   const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1200)
   const [activeFestivals, setActiveFestivals] = useState([])
@@ -1943,24 +1944,28 @@ const MartHome = () => {
         </div>
 
         <div className="container-custom py-4 md:py-8 relative z-10">
-          <Swiper
-            spaceBetween={20}
-            slidesPerView="auto"
-            grabCursor={true}
-            speed={600}
-            watchSlidesProgress={true}
-            autoplay={{
-              delay: 5000,
-              disableOnInteraction: false,
-            }}
-            pagination={{
-              clickable: true,
-              dynamicBullets: true,
-            }}
-            navigation={true}
-            modules={[Autoplay, Pagination, Navigation]}
-            className="rounded-[2rem] md:rounded-[2.5rem] overflow-hidden h-[220px] sm:h-[280px] md:h-[340px] lg:h-[380px] shadow-premium"
-          >
+          <div className="relative group/hero-banner">
+            <Swiper
+              onSwiper={(swiper) => {
+                bannerSwiperRef.current = swiper;
+              }}
+              spaceBetween={20}
+              slidesPerView="auto"
+              grabCursor={true}
+              speed={600}
+              watchSlidesProgress={true}
+              autoplay={{
+                delay: 5000,
+                disableOnInteraction: false,
+              }}
+              pagination={{
+                clickable: true,
+                dynamicBullets: true,
+              }}
+              navigation={false}
+              modules={[Autoplay, Pagination]}
+              className="rounded-[2rem] md:rounded-[2.5rem] overflow-hidden h-[220px] sm:h-[280px] md:h-[340px] lg:h-[380px] shadow-premium"
+            >
             {displayOffers.map((offer, index) => {
               const isFreeDeliveryOffer = offer?.coupon_code === 'FREEDELIVERY' || offer?.title?.toLowerCase() === 'free delivery';
               
@@ -2026,7 +2031,38 @@ const MartHome = () => {
                 </SwiperSlide>
               );
             })}
-          </Swiper>
+            </Swiper>
+
+            {/* Sleek, subtle, compact navigation buttons replacing oversized blue arrows */}
+            {displayOffers.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    bannerSwiperRef.current?.slidePrev();
+                  }}
+                  aria-label="Previous Slide"
+                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+                >
+                  <ChevronLeft size={16} strokeWidth={2.5} className="mr-0.5 text-white" />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    bannerSwiperRef.current?.slideNext();
+                  }}
+                  aria-label="Next Slide"
+                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+                >
+                  <ChevronRight size={16} strokeWidth={2.5} className="ml-0.5 text-white" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
       </section>
 
