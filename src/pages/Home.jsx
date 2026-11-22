@@ -2033,9 +2033,9 @@ const MartHome = () => {
             })}
             </Swiper>
 
-            {/* Sleek, subtle, compact navigation buttons replacing oversized blue arrows */}
+            {/* Sleek, subtle, compact navigation buttons in top-right to prevent overlapping banner text/tags */}
             {displayOffers.length > 1 && (
-              <>
+              <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-20 flex items-center bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/20 rounded-full p-0.5 sm:p-1 shadow-lg transition-all duration-200">
                 <button
                   type="button"
                   onClick={(e) => {
@@ -2044,10 +2044,11 @@ const MartHome = () => {
                     bannerSwiperRef.current?.slidePrev();
                   }}
                   aria-label="Previous Slide"
-                  className="absolute left-2.5 sm:left-4 top-1/2 -translate-y-1/2 z-20 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                 >
-                  <ChevronLeft size={16} strokeWidth={2.5} className="mr-0.5 text-white" />
+                  <ChevronLeft size={16} strokeWidth={2.5} />
                 </button>
+                <div className="w-[1px] h-3.5 bg-white/20 my-auto" />
                 <button
                   type="button"
                   onClick={(e) => {
@@ -2056,11 +2057,11 @@ const MartHome = () => {
                     bannerSwiperRef.current?.slideNext();
                   }}
                   aria-label="Next Slide"
-                  className="absolute right-2.5 sm:right-4 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/25 text-white flex items-center justify-center transition-all duration-200 shadow-md hover:scale-110 active:scale-95 focus:outline-none cursor-pointer"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full text-white/90 hover:text-white hover:bg-white/20 flex items-center justify-center transition-all active:scale-90 cursor-pointer"
                 >
-                  <ChevronRight size={16} strokeWidth={2.5} className="ml-0.5 text-white" />
+                  <ChevronRight size={16} strokeWidth={2.5} />
                 </button>
-              </>
+              </div>
             )}
           </div>
         </div>
