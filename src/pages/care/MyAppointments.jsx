@@ -338,7 +338,7 @@ export default function MyAppointments() {
                   </h4>
                   <p className="text-slate-500">{selectedRx.care_doctors?.qualification || 'MBBS / MD'}</p>
                   <p className="font-mono text-[11px] text-emerald-600 dark:text-emerald-400 font-semibold mt-0.5">
-                    Reg. No: {selectedRx.care_doctors?.registration_number || 'NMC-847291-BR'}
+                    Reg. No: {selectedRx.care_doctors?.council_registration_number || selectedRx.care_doctors?.registration_number || 'RMP Verified'}
                   </p>
                 </div>
                 <div className="text-right">

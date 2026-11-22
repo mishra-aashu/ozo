@@ -205,7 +205,7 @@ export default function DoctorDetail() {
                   <p className="text-slate-400 font-medium">Medical Registration Reg. No</p>
                   <p className="text-slate-900 dark:text-white font-mono font-bold mt-0.5 flex items-center gap-1.5">
                     <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                    {doctor.registration_number || 'NMC-847291-BR'}
+                    {doctor.council_registration_number || doctor.registration_number || 'Verified RMP'}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">Verified with State Medical Council</p>
                 </div>

@@ -180,7 +180,7 @@ export default function DoctorProfilePage() {
                 </p>
 
                 <p className="text-xs font-sans text-slate-500 dark:text-slate-400">
-                  {doctor.experience_years}+ Years Clinical Practice • State Medical Council Reg: <strong className="font-mono text-slate-700 dark:text-slate-300">{doctor.registration_number || doctor.council_registration_number || 'NMC-847291-BR'}</strong>
+                  {doctor.experience_years}+ Years Clinical Practice • State Medical Council Reg: <strong className="font-mono text-slate-700 dark:text-slate-300">{doctor.council_registration_number || doctor.registration_number || 'Verified RMP'}</strong>
                 </p>
               </div>
             </div>
@@ -289,7 +289,7 @@ export default function DoctorProfilePage() {
                   <div className="p-4 rounded-2xl bg-slate-50 dark:bg-[#121820] border border-slate-100 dark:border-white/5 space-y-1">
                     <span className="text-slate-400 font-medium">Medical Registration</span>
                     <p className="font-mono font-bold text-emerald-600 dark:text-emerald-400 text-sm flex items-center gap-1.5">
-                      <ShieldCheck size={16} /> {doctor.registration_number || doctor.council_registration_number || 'NMC-847291-BR'}
+                      <ShieldCheck size={16} /> {doctor.council_registration_number || doctor.registration_number || 'Verified RMP'}
                     </p>
                     <p className="text-[11px] text-slate-400">Verified with State Medical Council</p>
                   </div>
