@@ -11,7 +11,7 @@ import { useRef } from 'react'
 import MainLayout from './layouts/MainLayout'
 import AdminLayout from './layouts/AdminLayout'
 
-// Helper for lazy loading with automatic retry on chunk load failure (e.g. on new deployments)
+// Helper for lazy loading with automatic fast retry on chunk load failure (e.g. on new deployments)
 const lazyWithRetry = (importFn) => {
   return lazy(() => 
     importFn()
@@ -19,9 +19,9 @@ const lazyWithRetry = (importFn) => {
         sessionStorage.removeItem('ozo-chunk-reload-attempted');
         return module;
       })
-      .catch((error) => {
-        const errorMsg = error.message || '';
-        const isChunkLoadFailed = error.name === 'ChunkLoadError' || 
+      .catch(async (error) => {
+        const errorMsg = error?.message || '';
+        const isChunkLoadFailed = error?.name === 'ChunkLoadError' || 
                                   errorMsg.includes('Failed to fetch dynamically imported module') ||
                                   errorMsg.includes('Error importing') ||
                                   errorMsg.includes('Unable to preload CSS') ||
@@ -29,37 +29,27 @@ const lazyWithRetry = (importFn) => {
                                   errorMsg.includes('Load failed');
                                   
         if (isChunkLoadFailed) {
-          const hasReloaded = sessionStorage.getItem('ozo-chunk-reload-attempted');
-          if (!hasReloaded) {
-            sessionStorage.setItem('ozo-chunk-reload-attempted', 'true');
-            
-            // Show toast notification and schedule a reload. We re-throw a
-            // recognisable error so React Suspense propagates it to the nearest
-            // ErrorBoundary, which renders the "Reload Page" UI instead of
-            // leaving the Suspense fallback spinner frozen indefinitely.
-            toast.loading('Updating OZO to the latest version...', {
-              id: 'ozo-chunk-reload-toast',
-              duration: 3500,
-            });
-
-            setTimeout(() => {
-              window.location.reload();
-            }, 1200);
-
-            // Reject so the ErrorBoundary catches it — the page reloads in 1.2s
-            // anyway, but this prevents the Suspense boundary from hanging forever
-            // if the reload is somehow delayed.
-            throw Object.assign(
-              new Error('New version available — reloading...'),
-              { isChunkReload: true }
-            );
-          } else {
-            // Already reloaded once and failed — likely slow/offline network
-            toast.error('Network connection is slow or offline. Please refresh the page manually.', {
-              id: 'ozo-chunk-error-toast',
-              duration: 6000,
-            });
+          // Immediately purge caches so fresh chunks can be fetched
+          try {
+            if ('caches' in window) {
+              const keys = await caches.keys();
+              await Promise.all(keys.map(k => caches.delete(k)));
+            }
+          } catch (e) {
+            console.warn('[OZO App] Cache purge error in lazyWithRetry:', e);
           }
+
+          // Fast reload in 350ms with cache-busting parameter
+          setTimeout(() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('_v', Date.now().toString());
+            window.location.replace(url.toString());
+          }, 350);
+
+          throw Object.assign(
+            new Error('New version available — updating OZO...'),
+            { isChunkReload: true }
+          );
         }
         throw error;
       })
