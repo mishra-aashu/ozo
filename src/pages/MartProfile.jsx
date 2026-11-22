@@ -928,15 +928,15 @@ const MartProfile = () => {
 
       {/* Tabs Selector Bar */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-12">
-        <div className="flex border-b border-gray-200 dark:border-white/5 gap-8">
+        <div className="flex border-b border-gray-200 dark:border-white/5 gap-4 sm:gap-8 overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab('products')}
-            className={`pb-4 text-sm font-black uppercase tracking-widest transition-all relative ${
+            className={`pb-3 sm:pb-4 text-xs sm:text-sm font-black uppercase tracking-wider transition-all relative shrink-0 whitespace-nowrap ${
               activeTab === 'products' ? 'text-ozo-red' : 'text-gray-400 hover:text-gray-650'
             }`}
           >
             <span className="flex items-center gap-2">
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-4 h-4 shrink-0" />
               <span>Offerings ({productsLoading ? '...' : filteredProducts.length})</span>
             </span>
             {activeTab === 'products' && (
@@ -946,12 +946,12 @@ const MartProfile = () => {
           
           <button
             onClick={() => setActiveTab('about')}
-            className={`pb-4 text-sm font-black uppercase tracking-widest transition-all relative ${
+            className={`pb-3 sm:pb-4 text-xs sm:text-sm font-black uppercase tracking-wider transition-all relative shrink-0 whitespace-nowrap ${
               activeTab === 'about' ? 'text-ozo-red' : 'text-gray-400 hover:text-gray-650'
             }`}
           >
             <span className="flex items-center gap-2">
-              <Info className="w-4 h-4" />
+              <Info className="w-4 h-4 shrink-0" />
               <span>Store Info & Hours</span>
             </span>
             {activeTab === 'about' && (
@@ -1026,9 +1026,10 @@ const MartProfile = () => {
               {/* Product Grid */}
               <div>
                 {productsLoading ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    <ProductSkeleton count={10} />
-                  </div>
+                  <ProductSkeleton 
+                    count={10} 
+                    className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-6" 
+                  />
                 ) : filteredProducts.length === 0 ? (
                   <div className="bg-white dark:bg-[#121214] rounded-[2.5rem] border border-gray-100 dark:border-white/5 p-16 text-center max-w-lg mx-auto shadow-sm">
                     <Info className="w-14 h-14 text-gray-400 mx-auto mb-4" />

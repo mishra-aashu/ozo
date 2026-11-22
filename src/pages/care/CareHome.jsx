@@ -197,29 +197,31 @@ export default function CareHome() {
         
         {/* Section Heading Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] xs:text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
+          <div className="min-w-0">
+            <div className="flex flex-wrap items-center gap-1.5 xs:gap-2 mb-1">
+              <span className="text-[10px] sm:text-xs font-display font-black uppercase tracking-wider text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 dark:bg-emerald-500/20 px-2 py-0.5 rounded-md border border-emerald-500/20">
                 In-Clinic OPD & Video Consultations
               </span>
-              <span className="text-[10px] xs:text-xs font-bold text-slate-400">• {activeCityName} Region</span>
+              <span className="text-[10px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                • {activeCityName} Region
+              </span>
             </div>
-            <h2 className="text-xl sm:text-3xl font-display font-black text-gray-900 dark:text-white tracking-tight mt-0.5">
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-display font-black text-gray-900 dark:text-white tracking-tight leading-tight mt-1">
               Verified Doctors in {activeCityName}
             </h2>
-            <p className="text-xs sm:text-sm font-sans text-gray-400 mt-0.5">
+            <p className="text-xs sm:text-sm font-sans text-gray-500 dark:text-gray-400 mt-1 leading-relaxed">
               NMC / Bihar Medical Council Registration verified. Direct clinic tokens & instant queue slots.
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <span className="text-xs font-display font-black px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-              {doctors.length} Doctors Available
+            <span className="text-xs font-display font-black px-3.5 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 whitespace-nowrap shadow-xs">
+              {doctors.length} {doctors.length === 1 ? 'Doctor' : 'Doctors'} Available
             </span>
             {(searchQuery || selectedSpecialty !== 'all') && (
               <button
                 onClick={() => { setSelectedSpecialty('all'); setSearchQuery('') }}
-                className="text-xs font-display font-bold text-slate-400 hover:text-rose-500 px-2 py-1 rounded-lg transition-colors flex items-center gap-1"
+                className="text-xs font-display font-bold text-slate-400 hover:text-rose-500 px-2 py-1 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
               >
                 <X size={13} />
                 <span>Clear</span>
@@ -229,7 +231,7 @@ export default function CareHome() {
         </div>
 
         {/* Dedicated Search & Symptoms Toolbar */}
-        <div className="bg-white dark:bg-[#121820] rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-3.5 sm:space-y-4">
+        <div className="bg-white dark:bg-[#121820] rounded-2xl sm:rounded-3xl p-3.5 sm:p-6 border border-slate-200/90 dark:border-white/10 shadow-sm space-y-3 sm:space-y-4">
           
           {/* Main Doctor Search Input */}
           <div className="relative">
@@ -244,7 +246,7 @@ export default function CareHome() {
             {searchQuery && (
               <button 
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-white transition-colors cursor-pointer"
                 title="Clear Search"
               >
                 <X size={16} />
@@ -253,11 +255,11 @@ export default function CareHome() {
           </div>
 
           {/* Common Symptoms Quick Filter Chips */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-0.5">
-            <span className="text-[11px] font-display font-bold text-slate-400 shrink-0">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2 pt-1">
+            <span className="text-[10px] sm:text-[11px] font-display font-bold uppercase tracking-wider text-slate-400 shrink-0">
               Common Symptoms:
             </span>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-1 sm:pb-0 sm:flex-wrap">
               {['Fever', 'Cough & Flu', 'Joint Pain', 'Skin Rash', 'Stomach Ache', 'PCOS', 'Acne', 'Diabetes'].map((sym) => {
                 const isSymActive = searchQuery.toLowerCase().includes(sym.toLowerCase())
                 return (
@@ -271,7 +273,7 @@ export default function CareHome() {
                         setSearchQuery(sym)
                       }
                     }}
-                    className={`px-2.5 xs:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[11px] xs:text-xs font-sans font-bold transition-all border ${
+                    className={`px-3 py-1.5 rounded-xl text-xs font-sans font-bold whitespace-nowrap transition-all border shrink-0 cursor-pointer ${
                       isSymActive
                         ? 'bg-emerald-600 text-white border-transparent shadow-sm'
                         : 'bg-slate-50 dark:bg-white/5 hover:bg-emerald-500/10 hover:text-emerald-500 text-slate-600 dark:text-slate-300 border-slate-200/70 dark:border-white/5'
