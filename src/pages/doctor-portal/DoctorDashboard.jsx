@@ -188,9 +188,9 @@ export default function DoctorDashboard() {
       const res = await onboardDoctor({
         ...onboardForm,
         full_name: onboardForm.full_name.startsWith('Dr.') ? onboardForm.full_name : `Dr. ${onboardForm.full_name}`,
-        experience_years: parseInt(onboardForm.experience_years, 10) || 5,
-        consultation_fee: parseInt(onboardForm.consultation_fee, 10) || 500,
-        teleconsult_fee: parseInt(onboardForm.teleconsult_fee, 10) || 450,
+        experience_years: parseInt(onboardForm.experience_years, 10) || 0,
+        consultation_fee: parseInt(onboardForm.consultation_fee, 10) || 0,
+        teleconsult_fee: parseInt(onboardForm.teleconsult_fee, 10) || 0,
         rating: 5.0,
         total_patients_consulted: 0,
         available_days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
