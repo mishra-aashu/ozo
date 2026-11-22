@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import OzoLogo from './OzoLogo'
 import { 
-  ShoppingCart, 
   Mail, 
   Phone, 
   MapPin, 
@@ -12,20 +11,11 @@ import {
   ArrowRight,
   ShieldCheck,
   Truck,
-  Clock,
-  Heart,
-  Wrench,
-  CheckCircle2,
   Zap,
   Lock,
   Headphones,
   Award,
-  Sparkles,
-  ExternalLink,
   ChevronRight,
-  Store,
-  Stethoscope,
-  Pill,
   CreditCard
 } from 'lucide-react'
 import { useCartStore } from '../stores/cartStore'
