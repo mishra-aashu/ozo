@@ -2,15 +2,20 @@ import React, { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { 
   Building2, ShoppingBag, ShieldCheck, Clock, FileText, CheckCircle, 
-  AlertCircle, RefreshCw, X, ZoomIn, Phone, MapPin, Truck, ChevronRight 
+  AlertCircle, RefreshCw, X, ZoomIn, Phone, MapPin, Truck, ChevronRight,
+  Sun, Moon, ArrowLeft, LogIn
 } from 'lucide-react'
 import { usePharmacyStore } from '../../stores/pharmacyStore'
 import { useAuthStore } from '../../stores/authStore'
+import { useThemeStore } from '../../stores/themeStore'
+import PharmacyPortalBackground from './PharmacyPortalBackground'
+import PharmacyOnboarding from './PharmacyOnboarding'
 import toast from 'react-hot-toast'
 
 export default function PharmacyDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
   const { 
     pharmacy, 
     isPharmacyLoaded,
@@ -128,58 +133,59 @@ export default function PharmacyDashboard() {
   // 2. Unauthenticated user gate
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-        <header className="bg-slate-950 border-b border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-teal-900/30">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
-                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800">
-                  Chemist Portal
-                </span>
-              </div>
-            </div>
-            <Link
-              to="/care"
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white py-12 px-4 flex flex-col items-center justify-center overflow-y-auto transition-colors duration-300 gap-6 relative">
+        <PharmacyPortalBackground />
+
+        {/* Floating Back Button */}
+        <div className="absolute top-4 left-4 z-20">
+          <Link
+            to="/care"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
+            title="Back to Patient Care"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-gray-700" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          </button>
+        </div>
+
+        <div className="w-full max-w-md mx-auto bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b2d] rounded-[2rem] p-6 sm:p-8 md:p-10 shadow-2xl transition-all duration-300 relative z-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-500 to-cyan-500 p-3.5 mx-auto mb-4 text-white shadow-md shadow-teal-500/20 flex items-center justify-center">
+            <ShieldCheck size={28} />
+          </div>
+          <h2 className="text-xl font-black text-gray-900 dark:text-white font-display tracking-tight">
+            Chemist Workstation
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed font-medium">
+            This dispensation workstation is restricted to licensed pharmacy retail partners. Sign in to review doctor e-prescriptions and fulfill medicine deliveries.
+          </p>
+
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={() => navigate('/auth?redirect=/pharmacy')}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white font-bold text-xs shadow-lg shadow-teal-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
             >
-              Back to Patient Care ↗
-            </Link>
+              <LogIn className="w-4 h-4" />
+              <span>Sign In to Chemist Account</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/auth?redirect=/pharmacy')}
+              className="w-full py-3 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-bold text-xs border border-gray-200 dark:border-white/10 transition-all cursor-pointer"
+            >
+              Partner with OzoCare
+            </button>
           </div>
-        </header>
-
-        <main className="flex-1 max-w-md mx-auto w-full px-4 flex flex-col justify-center py-12">
-          <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center">
-            <div className="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center justify-center mx-auto mb-4">
-              <ShieldCheck size={28} />
-            </div>
-            <h2 className="text-lg font-black text-white tracking-tight">
-              Authorized Chemist Station
-            </h2>
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              This dispensation workstation is restricted to licensed pharmacy retail partners. Sign in to review doctor e-prescriptions and fulfill medicine deliveries.
-            </p>
-
-            <div className="mt-6 space-y-3">
-              <button
-                onClick={() => navigate('/auth?redirect=/pharmacy')}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-xs shadow-lg shadow-teal-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                Sign In to Chemist Account
-              </button>
-
-              <button
-                onClick={() => navigate('/auth?redirect=/pharmacy')}
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all cursor-pointer"
-              >
-                Partner with OzoCare
-              </button>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
     )
   }
@@ -187,135 +193,38 @@ export default function PharmacyDashboard() {
   // 3. User is logged in, but no pharmacy store created yet
   if (!pharmacy) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-        <header className="bg-slate-950 border-b border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-teal-900/30">
-                <Building2 className="w-6 h-6" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
-                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800">
-                  Chemist Onboarding
-                </span>
-              </div>
-            </div>
-            <Link
-              to="/care"
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
-            >
-              Back to Patient Care ↗
-            </Link>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white py-12 px-4 flex flex-col items-center justify-center overflow-y-auto transition-colors duration-300 gap-6 relative">
+        <PharmacyPortalBackground />
 
-        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
-            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-start gap-3">
-              <AlertCircle size={20} className="shrink-0 mt-0.5 text-amber-400" />
-              <div className="text-xs leading-relaxed">
-                <strong className="font-bold block text-amber-200 mb-0.5">No Pharmacy Store Linked</strong>
-                Signed in as <strong className="text-white">{user.email || user.phone}</strong>. Register your retail pharmacy license below to activate your chemist dispensation workstation.
-              </div>
-            </div>
+        {/* Floating Back Button */}
+        <div className="absolute top-4 left-4 z-20">
+          <Link
+            to="/care"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center cursor-pointer"
+            title="Back to Patient Care"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </div>
 
-            <div className="flex items-center gap-3.5 mb-6 pb-6 border-b border-slate-800">
-              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center">
-                <ShieldCheck size={26} />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-white tracking-tight">
-                  Register Your Pharmacy Store
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Complete store registration with your Drug License (Form 20/21) to receive patient prescriptions.
-                </p>
-              </div>
-            </div>
+        {/* Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-gray-700" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          </button>
+        </div>
 
-            <form onSubmit={handleCompleteOnboarding} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Pharmacy / Medical Hall Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Sanjeevani Medical Store"
-                    value={onboardForm.store_name}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, store_name: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Registered Pharmacist Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. R. K. Sharma (D.Pharm / B.Pharm)"
-                    value={onboardForm.registered_pharmacist_name}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, registered_pharmacist_name: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Drug License Number (Form 20/21) *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. BR-PAT-2024-DL9012"
-                    value={onboardForm.drug_license_number}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, drug_license_number: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none font-mono"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Contact Phone</label>
-                  <input
-                    type="tel"
-                    placeholder="+91 98765 43210"
-                    value={onboardForm.phone}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, phone: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Store Address</label>
-                  <input
-                    type="text"
-                    placeholder="Shop No., Market Area, Landmark"
-                    value={onboardForm.address}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, address: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isOnboarding}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs shadow-lg shadow-teal-900/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-                >
-                  {isOnboarding ? (
-                    <>
-                      <RefreshCw size={14} className="animate-spin" />
-                      <span>Activating Store...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={14} />
-                      <span>Activate Pharmacy Workstation</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
+        <PharmacyOnboarding
+          user={user}
+          onboardForm={onboardForm}
+          setOnboardForm={setOnboardForm}
+          handleCompleteOnboarding={handleCompleteOnboarding}
+          isOnboarding={isOnboarding}
+        />
       </div>
     )
   }
