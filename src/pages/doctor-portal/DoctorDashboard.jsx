@@ -4,18 +4,22 @@ import {
   Stethoscope, Users, Calendar, Clock, CheckCircle, AlertCircle, 
   Plus, Search, ShieldCheck, FileText, Phone, Building2, 
   ToggleLeft, ToggleRight, RefreshCw, X, ChevronRight, Activity, Video, Paperclip,
-  MapPin, IndianRupee, Sparkles, Award
+  MapPin, IndianRupee, Sparkles, Award, Sun, Moon, ArrowLeft, LogIn
 } from 'lucide-react'
 import { useDoctorStore } from '../../stores/doctorStore'
 import { useAuthStore } from '../../stores/authStore'
 import { useLocationStore } from '../../stores/locationStore'
+import { useThemeStore } from '../../stores/themeStore'
 import { CARE_SPECIALTIES } from '../../utils/careIcons'
 import DoctorTeleconsultWorkstation from '../../components/care/DoctorTeleconsultWorkstation'
+import DoctorPortalBackground from './DoctorPortalBackground'
+import DoctorOnboarding from './DoctorOnboarding'
 import toast from 'react-hot-toast'
 
 export default function DoctorDashboard() {
   const navigate = useNavigate()
   const { user } = useAuthStore()
+  const { theme, toggleTheme } = useThemeStore()
   const { addressDetails, nearestCity } = useLocationStore()
   const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const { 
