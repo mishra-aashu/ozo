@@ -199,8 +199,95 @@ export default function DoctorDashboard() {
     }
   }
 
-  // Doctor self-registration / onboarding view when user has no doctor profile yet
-  if (!doctor && isDoctorLoaded) {
+  useEffect(() => {
+    if (user) {
+      setOnboardForm(prev => ({
+        ...prev,
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || '',
+        full_name: prev.full_name || (user.user_metadata?.full_name ? `Dr. ${user.user_metadata.full_name}` : '')
+      }))
+    }
+  }, [user])
+
+  // 1. Loading state while checking practitioner profile
+  if (!isDoctorLoaded || isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
+          <Stethoscope className="w-8 h-8 animate-pulse" />
+        </div>
+        <h3 className="text-sm font-black text-white uppercase tracking-wider">
+          Verifying Practitioner Credentials
+        </h3>
+        <p className="text-xs text-slate-400 mt-1.5 font-medium">
+          Checking clinical authorization with OzoCare registry...
+        </p>
+      </div>
+    )
+  }
+
+  // 2. Unauthenticated user gate: If user is not logged in, prompt sign in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+        <header className="bg-slate-950 border-b border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
+                <Stethoscope className="w-6 h-6" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
+                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                  Doctor Workstation
+                </span>
+              </div>
+            </div>
+            <Link
+              to="/care"
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+            >
+              Back to Patient Care ↗
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-md mx-auto w-full px-4 flex flex-col justify-center py-12">
+          <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center">
+            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck size={28} />
+            </div>
+            <h2 className="text-lg font-black text-white tracking-tight">
+              Authorized Clinical Workstation
+            </h2>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              This clinical workstation is restricted to registered & verified medical practitioners (RMP). Please sign in to manage your OPD patient queue and issue digital prescriptions.
+            </p>
+
+            <div className="mt-6 space-y-3">
+              <button
+                onClick={() => navigate('/auth?redirect=/doctor')}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Sign In to Doctor Account
+              </button>
+
+              <button
+                onClick={() => navigate('/auth?redirect=/doctor')}
+                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all cursor-pointer"
+              >
+                Register as New Practitioner
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 3. Doctor self-registration / onboarding view when user is logged in but has no doctor profile yet
+  if (!doctor) {
     return (
       <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
         <header className="bg-slate-950 border-b border-slate-800">
@@ -229,6 +316,15 @@ export default function DoctorDashboard() {
 
         <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
           <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            {/* Notice Banner */}
+            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-start gap-3">
+              <AlertCircle size={20} className="shrink-0 mt-0.5 text-amber-400" />
+              <div className="text-xs leading-relaxed">
+                <strong className="font-bold block text-amber-200 mb-0.5">No Active Doctor Profile Linked</strong>
+                Signed in as <strong className="text-white">{user.email || user.phone}</strong>. To access the live clinical workstation, please register your clinic credentials and State Medical Council / NMC details below.
+              </div>
+            </div>
+
             <div className="flex items-center gap-3.5 mb-6 pb-6 border-b border-slate-800">
               <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
                 <ShieldCheck size={26} />
@@ -424,7 +520,9 @@ export default function DoctorDashboard() {
                 </span>
               </div>
               <p className="text-[11px] font-sans text-slate-400">
-                Dr. {doctor?.full_name || 'Medical Practitioner'} • {doctor?.qualification || 'MBBS, MD'}
+                {doctor?.full_name?.startsWith('Dr.') ? doctor.full_name : `Dr. ${doctor?.full_name || ''}`}
+                {doctor?.qualification ? ` • ${doctor.qualification}` : ''}
+                {doctor?.clinic_name ? ` • ${doctor.clinic_name}` : ''}
               </p>
             </div>
           </div>
@@ -521,7 +619,7 @@ export default function DoctorDashboard() {
           <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Consultation Fee</span>
             <div className="text-2xl font-black text-sky-400 mt-1">
-              ₹{doctor?.consultation_fee || 500}
+              ₹{doctor?.consultation_fee ?? 0}
             </div>
             <span className="text-[10px] text-slate-400 font-semibold">Per OPD Token</span>
           </div>
@@ -529,10 +627,10 @@ export default function DoctorDashboard() {
           <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
             <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Council Status</span>
             <div className="text-sm font-bold text-emerald-400 mt-2 flex items-center gap-1">
-              <ShieldCheck className="w-4 h-4" /> Verified RMP
+              <ShieldCheck className="w-4 h-4" /> {doctor?.is_verified ? 'Verified RMP' : 'Verification Pending'}
             </div>
-            <span className="text-[10px] text-slate-500 font-mono truncate block mt-0.5">
-              {doctor?.registration_number || 'NMC-847291-BR'}
+            <span className="text-[10px] text-slate-400 font-mono truncate block mt-0.5">
+              {doctor?.council_registration_number || doctor?.registration_number ? `Reg: ${doctor?.council_registration_number || doctor?.registration_number}` : 'State Medical Council'}
             </span>
           </div>
         </div>
@@ -729,9 +827,9 @@ export default function DoctorDashboard() {
                 <label className="font-bold text-slate-300 block mb-1">State / NMC Medical Registration Number</label>
                 <input 
                   type="text" 
-                  value={doctor?.registration_number || 'NMC-847291-BR'} 
+                  value={doctor?.council_registration_number || doctor?.registration_number || '-'} 
                   disabled 
-                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-500 font-mono"
+                  className="w-full bg-slate-900 border border-slate-800 rounded-xl p-2.5 text-slate-400 font-mono"
                 />
                 <span className="text-[10px] text-emerald-500 mt-1 block">✓ Verified with State Medical Council</span>
               </div>
