@@ -791,7 +791,11 @@ const MartManageAdmin = () => {
                             </h4>
                             <p className="text-[10px] text-gray-400 dark:text-gray-500 font-bold mt-2 font-mono flex items-center gap-1">
                               <Phone className="w-2.5 h-2.5 text-gray-400 dark:text-gray-500 shrink-0" />
-                              {mart.phone || mart.users?.phone || <span className="text-red-500 font-black">⚠️ Phone Required</span>}
+                              {mart.phone || mart.users?.phone || (
+                                <span className="text-red-500 font-black inline-flex items-center gap-1">
+                                  <AlertTriangle className="w-2.5 h-2.5 shrink-0" /> Phone Required
+                                </span>
+                              )}
                             </p>
                           </div>
                         </div>

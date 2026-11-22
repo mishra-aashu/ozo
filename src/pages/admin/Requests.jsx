@@ -312,7 +312,7 @@ const Requests = () => {
         .insert([
           {
             user_id: app.id,
-            title: 'Mart Application Approved! 🎉',
+            title: 'Mart Application Approved!',
             message: `Congratulations! Your store application for "${app.store_name}" has been approved. You can now access your Mart Operator portal.`,
             type: 'system',
             data: { status: 'approved', store_name: app.store_name }
@@ -349,7 +349,7 @@ const Requests = () => {
         .insert([
           {
             user_id: app.id,
-            title: 'Mart Application Rejected 😔',
+            title: 'Mart Application Rejected',
             message: `We regret to inform you that your application for "${app.store_name}" was rejected. Please contact support for details.`,
             type: 'system',
             data: { status: 'rejected', store_name: app.store_name }
@@ -699,7 +699,8 @@ const Requests = () => {
                         <td className="p-4">
                           <div>
                             <div className="font-extrabold text-gray-905 dark:text-white flex items-center gap-1.5">
-                              🏪 {app.store_name}
+                              <Store className="w-3.5 h-3.5 text-ozo-red shrink-0" />
+                              <span>{app.store_name}</span>
                             </div>
                             <div className="text-xs text-gray-500 mt-0.5 font-medium">Owner: {app.owner_name}</div>
                           </div>
@@ -841,8 +842,9 @@ const Requests = () => {
                           </div>
                         </td>
                         <td className="p-4">
-                          <span className="font-mono text-xs font-bold text-gray-700 dark:text-gray-300">
-                            🏍 {rider.bike_number}
+                          <span className="font-mono text-xs font-bold text-gray-700 dark:text-gray-300 flex items-center gap-1">
+                            <Bike className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                            <span>{rider.bike_number}</span>
                           </span>
                         </td>
                         <td className="p-4">
@@ -902,7 +904,8 @@ const Requests = () => {
                     getFilteredActiveMarts().slice((currentPage - 1) * pageSize, currentPage * pageSize).map((mart) => (
                       <tr key={mart.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
                         <td className="p-4 font-black text-gray-900 dark:text-white flex items-center gap-2">
-                          🏪 {mart.name}
+                          <Store className="w-4 h-4 text-ozo-red shrink-0" />
+                          <span>{mart.name}</span>
                         </td>
                         <td className="p-4 text-xs font-mono text-gray-500 font-semibold">{mart.slug}</td>
                         <td className="p-4 text-xs text-gray-500 dark:text-gray-400 line-clamp-1 max-w-[280px]" title={mart.address}>
