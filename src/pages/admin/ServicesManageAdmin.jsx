@@ -118,7 +118,7 @@ export default function ServicesManageAdmin() {
   const [categoryForm, setCategoryForm] = useState({
     title: '',
     slug: '',
-    icon: '🛠️',
+    icon: 'Wrench',
     description: '',
     priceStarting: '199',
     badge: '',
@@ -247,7 +247,7 @@ export default function ServicesManageAdmin() {
       setCategoryForm({
         title: category.title || '',
         slug: category.slug || '',
-        icon: category.icon || '🛠️',
+        icon: category.icon || 'Wrench',
         description: category.description || '',
         priceStarting: category.priceStarting || '199',
         badge: category.badge || '',
@@ -259,7 +259,7 @@ export default function ServicesManageAdmin() {
       setCategoryForm({
         title: '',
         slug: '',
-        icon: '🛠️',
+        icon: 'Wrench',
         description: '',
         priceStarting: '199',
         badge: '',
@@ -1628,10 +1628,10 @@ export default function ServicesManageAdmin() {
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-xs font-black uppercase text-gray-500 dark:text-gray-400 mb-1">Emoji Icon</label>
+                    <label className="block text-xs font-black uppercase text-gray-500 dark:text-gray-400 mb-1">Service Icon</label>
                     <input
                       type="text"
-                      placeholder="🚰"
+                      placeholder="e.g. Wrench, Sparkles, Zap"
                       value={categoryForm.icon}
                       onChange={(e) => setCategoryForm({ ...categoryForm, icon: e.target.value })}
                       className="w-full px-4 py-2.5 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-2xl text-xs font-bold text-gray-900 dark:text-white focus:ring-2 focus:ring-sky-500"
