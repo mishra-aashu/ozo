@@ -19,9 +19,10 @@ export default function DoctorPortalBackground() {
           alt="OzoCare Clinical Background Light"
           loading="eager"
           decoding="async"
+          fetchPriority="high"
           onLoad={() => setIsLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out opacity-90 ${
-            isLoaded ? 'opacity-90' : 'opacity-0'
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${
+            isLoaded ? 'opacity-95' : 'opacity-80'
           }`}
         />
       </picture>
@@ -33,16 +34,27 @@ export default function DoctorPortalBackground() {
           alt="OzoCare Clinical Background Dark"
           loading="eager"
           decoding="async"
+          fetchPriority="high"
           onLoad={() => setIsLoaded(true)}
-          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out opacity-85 ${
-            isLoaded ? 'opacity-85' : 'opacity-0'
+          className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-out ${
+            isLoaded ? 'opacity-90' : 'opacity-80'
           }`}
         />
       </picture>
 
-      {/* Subtle Gradient Fog Overlays for contrast & legibility */}
-      <div className="absolute inset-0 bg-white/40 dark:bg-[#070b12]/60 backdrop-blur-[2px]" />
-      <div className="absolute inset-0 bg-gradient-to-t from-gray-50/90 via-transparent to-gray-50/50 dark:from-[#070b12] dark:via-transparent dark:to-[#070b12]/70" />
+      {/* Ambient Vignette Overlay for Crisp Readability without washing out 3D art */}
+      <div 
+        className="absolute inset-0 bg-transparent dark:bg-[#070709]/30 transition-colors duration-300" 
+        aria-hidden="true" 
+      />
+      <div 
+        className="absolute inset-0 bg-gradient-to-t from-gray-100/40 via-transparent to-gray-100/30 dark:from-[#070709]/80 dark:via-transparent dark:to-[#070709]/60 pointer-events-none transition-colors duration-300" 
+        aria-hidden="true" 
+      />
+      <div 
+        className="absolute inset-0 bg-gradient-to-r from-gray-100/30 via-transparent to-gray-100/30 dark:from-[#070709]/50 dark:via-transparent dark:to-[#070709]/50 pointer-events-none transition-colors duration-300" 
+        aria-hidden="true" 
+      />
     </div>
   )
 }
