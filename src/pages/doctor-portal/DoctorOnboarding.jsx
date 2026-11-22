@@ -153,13 +153,8 @@ export default function DoctorOnboarding({
               <button
                 type="button"
                 onClick={() => setIsSpecialtyModalOpen(true)}
-                className="w-full bg-gray-50/90 dark:bg-[#121220]/90 hover:bg-gray-100/90 dark:hover:bg-[#18182c] border border-gray-200 dark:border-[#1e1e35] hover:border-emerald-500/50 dark:hover:border-emerald-400/50 rounded-2xl p-3 pl-3.5 pr-4 text-left transition-all flex items-center gap-3.5 cursor-pointer group shadow-sm active:scale-[0.99]"
+                className="w-full bg-gray-50/90 dark:bg-[#121220]/90 hover:bg-gray-100/90 dark:hover:bg-[#18182c] border border-gray-200 dark:border-[#1e1e35] hover:border-emerald-500/50 dark:hover:border-emerald-400/50 rounded-2xl p-3.5 px-4 text-left transition-all flex items-center justify-between gap-3 cursor-pointer group shadow-sm active:scale-[0.99]"
               >
-                {/* Specialty Icon Badge */}
-                <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${selectedSpecialty.gradient || 'from-emerald-500 to-teal-600'} flex items-center justify-center text-white shrink-0 shadow-sm shadow-emerald-500/20`}>
-                  <SelectedIcon className="w-5 h-5" />
-                </div>
-
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-gray-900 dark:text-white truncate font-display">

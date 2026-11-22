@@ -4,7 +4,6 @@ import {
   Search, 
   X, 
   Check, 
-  Stethoscope, 
   ChevronRight
 } from 'lucide-react'
 import { CARE_SPECIALTIES } from '../../utils/careIcons'
@@ -103,20 +102,15 @@ export default function DoctorSpecialtyModal({
         className="w-full max-w-lg bg-white dark:bg-[#0c0c16] border border-gray-200/90 dark:border-white/10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scaleIn transition-all duration-300 relative"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Modal Header */}
+        {/* Modal Header without bulky icon */}
         <div className="p-5 sm:p-6 pb-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between gap-4 bg-white dark:bg-[#0c0c16]">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
-              <Stethoscope className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white font-display tracking-tight">
-                Select Medical Specialty
-              </h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-                Choose your primary area of clinical practice
-              </p>
-            </div>
+          <div>
+            <h3 className="text-base sm:text-lg font-black text-gray-900 dark:text-white font-display tracking-tight">
+              Select Medical Specialty
+            </h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
+              Choose your primary area of clinical practice
+            </p>
           </div>
 
           <button
@@ -172,7 +166,7 @@ export default function DoctorSpecialtyModal({
           </div>
         </div>
 
-        {/* Scrollable Specialty List */}
+        {/* Scrollable Specialty List - Pure Text & Detailed Options (No bulky icons) */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2.5">
           {filteredSpecialties.length === 0 ? (
             <div className="py-12 text-center">
@@ -198,7 +192,6 @@ export default function DoctorSpecialtyModal({
             </div>
           ) : (
             filteredSpecialties.map((specialty) => {
-              const IconComp = specialty.icon || Stethoscope
               const isSelected = selectedSlug === specialty.slug
 
               return (
@@ -209,48 +202,49 @@ export default function DoctorSpecialtyModal({
                     onSelect(specialty.slug)
                     onClose()
                   }}
-                  className={`w-full text-left p-3.5 rounded-2xl transition-all flex items-center gap-3.5 border cursor-pointer group active:scale-[0.99] ${
+                  className={`w-full text-left p-4 rounded-2xl transition-all border cursor-pointer group active:scale-[0.99] ${
                     isSelected
                       ? 'bg-emerald-50/90 dark:bg-emerald-500/15 border-2 border-emerald-500 dark:border-emerald-400 shadow-sm shadow-emerald-500/10'
-                      : 'bg-white hover:bg-emerald-50/40 dark:bg-[#121222]/80 dark:hover:bg-[#18182e] border-gray-200/80 hover:border-emerald-300/80 dark:border-white/5 dark:hover:border-emerald-500/30 shadow-xs'
+                      : 'bg-white hover:bg-gray-50/90 dark:bg-[#121222]/80 dark:hover:bg-[#18182e] border-gray-200/80 hover:border-emerald-300/80 dark:border-white/5 dark:hover:border-emerald-500/30 shadow-xs'
                   }`}
                 >
-                  {/* Specialty Icon */}
-                  <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${specialty.gradient || 'from-emerald-500 to-teal-600'} flex items-center justify-center text-white shrink-0 shadow-sm`}>
-                    <IconComp className="w-5 h-5" />
-                  </div>
-
-                  {/* Specialty Details */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="font-bold text-sm text-gray-900 dark:text-white font-display truncate">
-                        {specialty.title}
-                      </span>
-                      {specialty.badge && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 shrink-0">
-                          {specialty.badge}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      {/* Title & Badge */}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-black text-sm text-gray-900 dark:text-white font-display">
+                          {specialty.title}
                         </span>
+                        {specialty.badge && (
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 dark:bg-white/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20 shrink-0">
+                            {specialty.badge}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Subtitle / Clinical Domain */}
+                      <p className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 mt-1">
+                        {specialty.subtitle}
+                      </p>
+
+                      {/* Detailed Symptoms & Treatments */}
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 leading-relaxed">
+                        {specialty.description}
+                      </p>
+                    </div>
+
+                    {/* Active Status Indicator */}
+                    <div className="shrink-0 pt-0.5">
+                      {isSelected ? (
+                        <div className="w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30">
+                          <Check className="w-3.5 h-3.5 stroke-[3]" />
+                        </div>
+                      ) : (
+                        <div className="w-6 h-6 rounded-full border border-gray-200 dark:border-white/10 group-hover:border-emerald-500/40 flex items-center justify-center text-gray-400 dark:text-gray-500 group-hover:text-emerald-500 transition-all">
+                          <ChevronRight className="w-3.5 h-3.5" />
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 font-medium truncate mt-0.5">
-                      {specialty.subtitle}
-                    </p>
-                    <p className="text-[11px] text-gray-400 dark:text-gray-500 line-clamp-1 mt-0.5">
-                      {specialty.description}
-                    </p>
-                  </div>
-
-                  {/* Active Indicator */}
-                  <div className="shrink-0 pl-1">
-                    {isSelected ? (
-                      <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-md shadow-emerald-500/30">
-                        <Check className="w-4 h-4 stroke-[3]" />
-                      </div>
-                    ) : (
-                      <div className="w-7 h-7 rounded-full bg-transparent group-hover:bg-gray-100 dark:group-hover:bg-white/10 flex items-center justify-center text-gray-400 dark:text-gray-500 transition-all">
-                        <ChevronRight className="w-4 h-4" />
-                      </div>
-                    )}
                   </div>
                 </button>
               )
@@ -275,6 +269,6 @@ export default function DoctorSpecialtyModal({
     </div>
   )
 
-  // Render via React Portal into document.body to ensure full viewport positioning and prevent clipping by parent backdrop-blur containers
+  // Render via React Portal into document.body to prevent clipping by parent backdrop-blur containers
   return createPortal(modalContent, document.body)
 }
