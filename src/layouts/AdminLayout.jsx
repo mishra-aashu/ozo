@@ -758,9 +758,9 @@ const AdminLayout = () => {
         {/* Main Content */}
         <main className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden max-w-full">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.25 }}
           >
             <Outlet />
           </motion.div>
