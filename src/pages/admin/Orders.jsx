@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useSearchParams } from 'react-router-dom'
 import {
@@ -1622,12 +1623,13 @@ const Orders = () => {
         )}
       </div>
 
-      {/* Detailed Order Modal / Side Drawer */}
-      <AnimatePresence>
-        {((isModalOpen && !orderIdParam) || (orderIdParam && selectedOrder)) && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm overflow-hidden">
-            {/* Backdrop click handler to close */}
-            <div className="absolute inset-0" onClick={handleCloseDetails} />
+      {/* Detailed Order Modal / Side Drawer - Portaled to document.body to cover full screen without layout gap */}
+      {typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {((isModalOpen && !orderIdParam) || (orderIdParam && selectedOrder)) && (
+            <div className="fixed inset-0 z-[100] flex justify-end bg-black/60 backdrop-blur-sm overflow-hidden">
+              {/* Backdrop click handler to close */}
+              <div className="absolute inset-0" onClick={handleCloseDetails} />
             
             <motion.div
               initial={{ x: '100%', opacity: 0.8 }}
@@ -2773,7 +2775,9 @@ const Orders = () => {
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
+    )}
     </div>
   )
 }
