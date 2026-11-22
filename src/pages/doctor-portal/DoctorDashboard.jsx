@@ -4,7 +4,7 @@ import {
   Stethoscope, Users, Calendar, Clock, CheckCircle, AlertCircle, 
   Plus, Search, ShieldCheck, FileText, Phone, Building2, 
   ToggleLeft, ToggleRight, RefreshCw, X, ChevronRight, Activity, Video, Paperclip,
-  MapPin, IndianRupee, Sparkles, Award, Sun, Moon, ArrowLeft, LogIn
+  MapPin, IndianRupee, Sparkles, Award, Sun, Moon, ArrowLeft, LogIn, Loader2
 } from 'lucide-react'
 import { useDoctorStore } from '../../stores/doctorStore'
 import { useAuthStore } from '../../stores/authStore'
