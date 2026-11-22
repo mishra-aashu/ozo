@@ -43,10 +43,10 @@ export default function PharmacyDashboard() {
     registered_pharmacist_name: '',
     drug_license_number: '',
     address: '',
-    city: 'Aurangabad',
+    city: '',
     phone: '',
     email: '',
-    operating_hours: '08:00 AM - 10:00 PM'
+    operating_hours: ''
   })
 
   // Profile Edit State

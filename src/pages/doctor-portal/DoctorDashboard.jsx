@@ -42,22 +42,22 @@ export default function DoctorDashboard() {
   const [activeQueueFilter, setActiveQueueFilter] = useState('all') // 'all' | 'booked' | 'in_consultation' | 'completed'
   const [activeTeleconsultAppointment, setActiveTeleconsultAppointment] = useState(null)
 
-  // Doctor Self-Registration Onboarding State
+  // Doctor Self-Registration Onboarding State - Keep completely empty by default
   const [isOnboarding, setIsOnboarding] = useState(false)
   const [onboardForm, setOnboardForm] = useState({
     full_name: '',
     specialty_slug: 'general-physician',
-    qualification: 'MBBS, MD',
-    experience_years: 5,
+    qualification: '',
+    experience_years: '',
     council_registration_number: '',
-    council_state: 'Bihar',
+    council_state: '',
     clinic_name: '',
     clinic_address: '',
-    city: activeCityName,
+    city: '',
     phone: '',
     email: '',
-    consultation_fee: 500,
-    teleconsult_fee: 450,
+    consultation_fee: '',
+    teleconsult_fee: '',
     avatar_url: ''
   })
 
@@ -218,12 +218,10 @@ export default function DoctorDashboard() {
 
   useEffect(() => {
     if (user) {
-      const defaultName = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
       setOnboardForm(prev => ({
         ...prev,
         email: prev.email || user.email || '',
-        phone: prev.phone || user.phone || '',
-        full_name: prev.full_name ? formatDoctorName(prev.full_name) : formatDoctorName(defaultName)
+        phone: prev.phone || user.phone || ''
       }))
     }
   }, [user])
