@@ -248,58 +248,59 @@ export default function DoctorDashboard() {
   // 2. Unauthenticated user gate: If user is not logged in, prompt sign in
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-        <header className="bg-slate-950 border-b border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
-                <Stethoscope className="w-6 h-6" />
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
-                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
-                  Doctor Workstation
-                </span>
-              </div>
-            </div>
-            <Link
-              to="/care"
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white py-12 px-4 flex flex-col items-center justify-center overflow-y-auto transition-colors duration-300 gap-6 relative">
+        <DoctorPortalBackground />
+
+        {/* Floating Back Button */}
+        <div className="absolute top-4 left-4 z-20">
+          <Link
+            to="/care"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center"
+            title="Back to Patient Care"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </div>
+
+        {/* Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-gray-700" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          </button>
+        </div>
+
+        <div className="w-full max-w-md mx-auto bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b2d] rounded-[2rem] p-6 sm:p-8 md:p-10 shadow-2xl transition-all duration-300 relative z-10 text-center">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-500 p-3.5 mx-auto mb-4 text-white shadow-md shadow-emerald-500/20 flex items-center justify-center">
+            <ShieldCheck size={28} />
+          </div>
+          <h2 className="text-xl font-black text-gray-900 dark:text-white font-display tracking-tight">
+            Doctor Workstation
+          </h2>
+          <p className="text-xs text-gray-500 dark:text-gray-400 mt-2 leading-relaxed font-medium">
+            This clinical workstation is restricted to verified medical practitioners (RMP). Sign in to manage your patient appointments and issue digital prescriptions.
+          </p>
+
+          <div className="mt-6 space-y-3">
+            <button
+              onClick={() => navigate('/auth?redirect=/doctor')}
+              className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
             >
-              Back to Patient Care ↗
-            </Link>
+              <LogIn className="w-4 h-4" />
+              <span>Sign In to Doctor Account</span>
+            </button>
+
+            <button
+              onClick={() => navigate('/auth?redirect=/doctor')}
+              className="w-full py-3 rounded-xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-bold text-xs border border-gray-200 dark:border-white/10 transition-all cursor-pointer"
+            >
+              Register as New Practitioner
+            </button>
           </div>
-        </header>
-
-        <main className="flex-1 max-w-md mx-auto w-full px-4 flex flex-col justify-center py-12">
-          <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center">
-            <div className="w-14 h-14 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 flex items-center justify-center mx-auto mb-4">
-              <ShieldCheck size={28} />
-            </div>
-            <h2 className="text-lg font-black text-white tracking-tight">
-              Authorized Clinical Workstation
-            </h2>
-            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-              This clinical workstation is restricted to registered & verified medical practitioners (RMP). Please sign in to manage your OPD patient queue and issue digital prescriptions.
-            </p>
-
-            <div className="mt-6 space-y-3">
-              <button
-                onClick={() => navigate('/auth?redirect=/doctor')}
-                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs shadow-lg shadow-emerald-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
-              >
-                Sign In to Doctor Account
-              </button>
-
-              <button
-                onClick={() => navigate('/auth?redirect=/doctor')}
-                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all cursor-pointer"
-              >
-                Register as New Practitioner
-              </button>
-            </div>
-          </div>
-        </main>
+        </div>
       </div>
     )
   }
@@ -307,210 +308,39 @@ export default function DoctorDashboard() {
   // 3. Doctor self-registration / onboarding view when user is logged in but has no doctor profile yet
   if (!doctor) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
-        <header className="bg-slate-950 border-b border-slate-800">
-          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-900/30">
-                <Stethoscope className="w-6 h-6" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
-                  <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
-                    Practitioner Onboarding
-                  </span>
-                </div>
-              </div>
-            </div>
-            <Link
-              to="/care"
-              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
-            >
-              Back to Patient Care ↗
-            </Link>
-          </div>
-        </header>
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white py-12 px-4 flex flex-col items-center justify-center overflow-y-auto transition-colors duration-300 gap-6 relative">
+        <DoctorPortalBackground />
 
-        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
-          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
-            {/* Notice Banner */}
-            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-start gap-3">
-              <AlertCircle size={20} className="shrink-0 mt-0.5 text-amber-400" />
-              <div className="text-xs leading-relaxed">
-                <strong className="font-bold block text-amber-200 mb-0.5">No Active Doctor Profile Linked</strong>
-                Signed in as <strong className="text-white">{user.email || user.phone}</strong>. To access the live clinical workstation, please register your clinic credentials and State Medical Council / NMC details below.
-              </div>
-            </div>
+        {/* Floating Back Button */}
+        <div className="absolute top-4 left-4 z-20">
+          <Link
+            to="/care"
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm flex items-center justify-center cursor-pointer"
+            title="Back to Patient Care"
+          >
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </div>
 
-            <div className="flex items-center gap-3.5 mb-6 pb-6 border-b border-slate-800">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                <ShieldCheck size={26} />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-white tracking-tight">
-                  Register Your Medical Practice
-                </h2>
-                <p className="text-xs text-slate-400 mt-0.5">
-                  Complete your verified profile to start taking in-clinic OPD tokens and WebRTC video teleconsultations.
-                </p>
-              </div>
-            </div>
+        {/* Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-gray-700" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          </button>
+        </div>
 
-            <form onSubmit={handleCompleteOnboarding} className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Doctor Full Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Dr. Rajesh Sharma"
-                    value={onboardForm.full_name}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, full_name: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Medical Specialty *</label>
-                  <select
-                    value={onboardForm.specialty_slug}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, specialty_slug: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  >
-                    {CARE_SPECIALTIES.map(s => (
-                      <option key={s.slug} value={s.slug}>
-                        {s.title} ({s.subtitle})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Qualifications</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. MBBS, MD (Medicine)"
-                    value={onboardForm.qualification}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, qualification: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Experience (Years)</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="60"
-                    value={onboardForm.experience_years}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, experience_years: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">NMC / State Council Reg. No</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. BR-49201"
-                    value={onboardForm.council_registration_number}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, council_registration_number: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Clinic / Hospital Name *</label>
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Metro Care Clinic"
-                    value={onboardForm.clinic_name}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, clinic_name: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Clinic Address</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Kankarbagh Main Rd, Patna"
-                    value={onboardForm.clinic_address}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, clinic_address: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">City</label>
-                  <input
-                    type="text"
-                    value={onboardForm.city}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, city: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">OPD Consultation Fee (₹)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    value={onboardForm.consultation_fee}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, consultation_fee: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1">Video Teleconsult Fee (₹)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="50"
-                    value={onboardForm.teleconsult_fee}
-                    onChange={(e) => setOnboardForm({ ...onboardForm, teleconsult_fee: e.target.value })}
-                    className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="text-xs font-bold text-slate-300 block mb-1">Profile Photo / Avatar URL (Optional)</label>
-                <input
-                  type="url"
-                  placeholder="https://images.unsplash.com/photo-..."
-                  value={onboardForm.avatar_url}
-                  onChange={(e) => setOnboardForm({ ...onboardForm, avatar_url: e.target.value })}
-                  className="w-full bg-slate-900 border border-slate-700 focus:border-emerald-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
-                />
-              </div>
-
-              <div className="pt-4 flex justify-end">
-                <button
-                  type="submit"
-                  disabled={isOnboarding}
-                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs shadow-lg shadow-emerald-900/30 transition-all flex items-center gap-2 active:scale-95 disabled:opacity-50"
-                >
-                  {isOnboarding ? (
-                    <>
-                      <RefreshCw size={14} className="animate-spin" />
-                      <span>Activating Profile...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={14} />
-                      <span>Activate Doctor Workstation</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </main>
+        <DoctorOnboarding
+          user={user}
+          onboardForm={onboardForm}
+          setOnboardForm={setOnboardForm}
+          handleCompleteOnboarding={handleCompleteOnboarding}
+          isOnboarding={isOnboarding}
+          formatDoctorName={formatDoctorName}
+        />
       </div>
     )
   }
