@@ -74,7 +74,7 @@ export const useAdminIndicatorStore = create((set, get) => ({
         supabaseAdmin
           .from('orders')
           .select('id', { count: 'exact', head: true })
-          .eq('status', 'CONFIRMED_SYSTEM')
+          .in('status', ['PLACED_COOLING', 'CONFIRMED_SYSTEM', 'pending', 'placed'])
           .gt('created_at', ordersCutoff),
 
         supabaseAdmin
@@ -136,18 +136,54 @@ export const useAdminIndicatorStore = create((set, get) => ({
           orders: todayOrders.length,
         }
       })
+
+      // Silently process cooling period transitions if 5 minutes have elapsed
+      try {
+        await supabaseAdmin.rpc('process_order_state_transitions')
+      } catch (_) {}
     } catch (err) {
       console.warn('[IndicatorStore] Failed to fetch badge counts:', err)
     }
   },
 
+  playOrderAlarm: () => {
+    try {
+      const audioContext = new (window.AudioContext || window.webkitAudioContext)()
+      if (audioContext.state === 'suspended') {
+        audioContext.resume()
+      }
+      const playTone = (freq, duration, delay) => {
+        setTimeout(() => {
+          const osc = audioContext.createOscillator()
+          const gain = audioContext.createGain()
+          osc.connect(gain)
+          gain.connect(audioContext.destination)
+          osc.type = 'triangle'
+          osc.frequency.setValueAtTime(freq, audioContext.currentTime)
+          gain.gain.setValueAtTime(0.2, audioContext.currentTime)
+          gain.gain.exponentialRampToValueAtTime(0.005, audioContext.currentTime + duration - 0.02)
+          osc.start()
+          osc.stop(audioContext.currentTime + duration)
+        }, delay)
+      }
+      // Unmistakable urgent double-ring alert
+      playTone(880, 0.12, 0)
+      playTone(1174, 0.20, 120)
+      playTone(880, 0.12, 280)
+      playTone(1174, 0.30, 400)
+      playTone(1480, 0.45, 600)
+    } catch (e) {
+      console.warn('Could not play order alarm chime:', e)
+    }
+  },
+
   startSubscribing: () => {
-    const { fetchCounts } = get()
+    const { fetchCounts, playOrderAlarm } = get()
     
     // Fetch immediately
     fetchCounts()
 
-    // Setup periodic polling
+    // Setup periodic polling (every 30 seconds)
     if (!pollInterval) {
       pollInterval = setInterval(fetchCounts, 30000)
     }
@@ -160,7 +196,24 @@ export const useAdminIndicatorStore = create((set, get) => ({
           .on(
             'postgres_changes',
             { event, schema: 'public', table },
-            () => {
+            (payload) => {
+              if (table === 'orders' && payload.eventType === 'INSERT') {
+                playOrderAlarm()
+                const ord = payload.new
+                import('react-hot-toast').then(({ default: toast }) => {
+                  toast(`🚨 New Order #${ord?.order_number || ''} (₹${ord?.total || ''}) Placed!`, {
+                    duration: 10000,
+                    icon: '🔔',
+                    style: {
+                      background: '#1e1b4b',
+                      color: '#ffffff',
+                      border: '2px solid #6366f1',
+                      fontWeight: '800',
+                      fontSize: '15px'
+                    }
+                  })
+                }).catch(() => {})
+              }
               fetchCounts()
             }
           )

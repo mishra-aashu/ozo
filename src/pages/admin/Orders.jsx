@@ -632,6 +632,14 @@ const Orders = () => {
           const newOrder = payload.new
           const oldOrder = payload.old
           
+          if (payload.eventType === 'INSERT') {
+            try {
+              import('../../stores/adminIndicatorStore').then(({ useAdminIndicatorStore }) => {
+                useAdminIndicatorStore.getState().playOrderAlarm()
+              }).catch(() => {})
+            } catch (_) {}
+          }
+
           if (newOrder) {
             const isSelected = selectedOrderIdRef.current === newOrder.id
             const hasStatusChanged = !oldOrder || oldOrder.status !== newOrder.status
