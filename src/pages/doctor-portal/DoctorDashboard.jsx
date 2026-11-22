@@ -231,16 +231,46 @@ export default function DoctorDashboard() {
   // 1. Loading state while checking practitioner profile
   if (!isDoctorLoaded || isLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center mb-4">
-          <Stethoscope className="w-8 h-8 animate-pulse" />
+      <div className="min-h-screen bg-gray-50 dark:bg-[#070709] text-gray-900 dark:text-white py-12 px-4 flex flex-col items-center justify-center overflow-y-auto transition-colors duration-300 gap-6 relative">
+        <DoctorPortalBackground />
+
+        {/* Floating Theme Toggle */}
+        <div className="absolute top-4 right-4 z-20">
+          <button
+            onClick={toggleTheme}
+            className="p-2.5 bg-white/90 dark:bg-[#0c0c14]/90 backdrop-blur-md border border-gray-200 dark:border-[#1e1e32] rounded-xl text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all shadow-sm cursor-pointer"
+            title="Toggle theme"
+          >
+            {theme === 'light' ? <Moon className="w-4 h-4 text-gray-700" /> : <Sun className="w-4 h-4 text-yellow-400" />}
+          </button>
         </div>
-        <h3 className="text-sm font-black text-white uppercase tracking-wider">
-          Verifying Practitioner Credentials
-        </h3>
-        <p className="text-xs text-slate-400 mt-1.5 font-medium">
-          Checking clinical authorization with OzoCare registry...
-        </p>
+
+        <div className="w-full max-w-sm mx-auto bg-white/95 dark:bg-[#0c0c14]/90 backdrop-blur-2xl border border-gray-200/80 dark:border-[#1b1b2d] rounded-[2rem] p-8 shadow-2xl transition-all duration-300 relative z-10 text-center flex flex-col items-center">
+          
+          {/* Animated Loading Badge with Spinning Gradient Ring */}
+          <div className="relative w-20 h-20 mb-5 flex items-center justify-center">
+            {/* Spinning gradient ring */}
+            <div className="absolute inset-0 rounded-3xl border-2 border-emerald-500/20 border-t-emerald-500 border-r-teal-400 animate-spin" />
+            {/* Center icon badge */}
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-lg shadow-emerald-500/25">
+              <Stethoscope className="w-7 h-7 animate-pulse" />
+            </div>
+          </div>
+
+          <h3 className="text-base font-black text-gray-900 dark:text-white font-display tracking-tight uppercase">
+            Verifying Practitioner Credentials
+          </h3>
+          
+          <div className="flex items-center justify-center gap-2 mt-2 text-xs text-gray-500 dark:text-gray-400 font-medium">
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-500 shrink-0" />
+            <span>Checking clinical authorization with OzoCare registry...</span>
+          </div>
+
+          {/* Progress bar shimmer */}
+          <div className="w-full h-1.5 bg-gray-100 dark:bg-white/5 rounded-full overflow-hidden mt-6">
+            <div className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-600 rounded-full w-2/3 animate-[pulse_1.5s_ease-in-out_infinite]" />
+          </div>
+        </div>
       </div>
     )
   }
