@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { 
   Building2, ShoppingBag, ShieldCheck, Clock, FileText, CheckCircle, 
   AlertCircle, RefreshCw, X, ZoomIn, Phone, MapPin, Truck, ChevronRight 
@@ -9,10 +9,13 @@ import { useAuthStore } from '../../stores/authStore'
 import toast from 'react-hot-toast'
 
 export default function PharmacyDashboard() {
+  const navigate = useNavigate()
   const { user } = useAuthStore()
   const { 
     pharmacy, 
+    isPharmacyLoaded,
     fetchPharmacyProfile, 
+    onboardPharmacy,
     orders, 
     fetchOrders, 
     updateOrderStatus,
@@ -27,6 +30,19 @@ export default function PharmacyDashboard() {
   const [inspectingOrder, setInspectingOrder] = useState(null)
   const [billAmount, setBillAmount] = useState('')
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false)
+
+  // Onboarding State
+  const [isOnboarding, setIsOnboarding] = useState(false)
+  const [onboardForm, setOnboardForm] = useState({
+    store_name: '',
+    registered_pharmacist_name: '',
+    drug_license_number: '',
+    address: '',
+    city: 'Aurangabad',
+    phone: '',
+    email: '',
+    operating_hours: '08:00 AM - 10:00 PM'
+  })
 
   // Profile Edit State
   const [editStoreName, setEditStoreName] = useState('')
@@ -48,6 +64,16 @@ export default function PharmacyDashboard() {
   }, [])
 
   useEffect(() => {
+    if (user) {
+      setOnboardForm(prev => ({
+        ...prev,
+        email: prev.email || user.email || '',
+        phone: prev.phone || user.phone || ''
+      }))
+    }
+  }, [user])
+
+  useEffect(() => {
     if (pharmacy) {
       fetchOrders()
     }
@@ -60,6 +86,239 @@ export default function PharmacyDashboard() {
     }, 15000)
     return () => clearInterval(interval)
   }, [pharmacy])
+
+  const handleCompleteOnboarding = async (e) => {
+    e.preventDefault()
+    if (!onboardForm.store_name.trim()) {
+      toast.error('Store / Medical Hall name is required')
+      return
+    }
+    if (!onboardForm.drug_license_number.trim()) {
+      toast.error('Drug License number is required')
+      return
+    }
+    setIsOnboarding(true)
+    try {
+      const res = await onboardPharmacy(onboardForm)
+      if (res) {
+        fetchOrders()
+      }
+    } finally {
+      setIsOnboarding(false)
+    }
+  }
+
+  // 1. Loading state while verifying credentials
+  if (!isPharmacyLoaded || isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-2xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center mb-4">
+          <Building2 className="w-8 h-8 animate-pulse" />
+        </div>
+        <h3 className="text-sm font-black text-white uppercase tracking-wider">
+          Verifying Chemist Credentials
+        </h3>
+        <p className="text-xs text-slate-400 mt-1.5 font-medium">
+          Connecting to OzoCare Pharmacy Dispensation Registry...
+        </p>
+      </div>
+    )
+  }
+
+  // 2. Unauthenticated user gate
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+        <header className="bg-slate-950 border-b border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-teal-900/30">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
+                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800">
+                  Chemist Portal
+                </span>
+              </div>
+            </div>
+            <Link
+              to="/care"
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+            >
+              Back to Patient Care ↗
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-md mx-auto w-full px-4 flex flex-col justify-center py-12">
+          <div className="bg-slate-950/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md text-center">
+            <div className="w-14 h-14 rounded-2xl bg-teal-500/10 text-teal-400 border border-teal-500/20 flex items-center justify-center mx-auto mb-4">
+              <ShieldCheck size={28} />
+            </div>
+            <h2 className="text-lg font-black text-white tracking-tight">
+              Authorized Chemist Station
+            </h2>
+            <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+              This dispensation workstation is restricted to licensed pharmacy retail partners. Sign in to review doctor e-prescriptions and fulfill medicine deliveries.
+            </p>
+
+            <div className="mt-6 space-y-3">
+              <button
+                onClick={() => navigate('/auth?redirect=/pharmacy')}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-bold text-xs shadow-lg shadow-teal-900/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
+              >
+                Sign In to Chemist Account
+              </button>
+
+              <button
+                onClick={() => navigate('/auth?redirect=/pharmacy')}
+                className="w-full py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs border border-slate-800 transition-all cursor-pointer"
+              >
+                Partner with OzoCare
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    )
+  }
+
+  // 3. User is logged in, but no pharmacy store created yet
+  if (!pharmacy) {
+    return (
+      <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col font-sans">
+        <header className="bg-slate-950 border-b border-slate-800">
+          <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center text-white shadow-md shadow-teal-900/30">
+                <Building2 className="w-6 h-6" />
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="font-display font-black text-white text-base tracking-tight">OzoCare</span>
+                <span className="text-[10px] font-display uppercase font-bold tracking-widest px-2 py-0.5 rounded-full bg-teal-950 text-teal-400 border border-teal-800">
+                  Chemist Onboarding
+                </span>
+              </div>
+            </div>
+            <Link
+              to="/care"
+              className="text-xs text-slate-400 hover:text-white flex items-center gap-1 font-semibold"
+            >
+              Back to Patient Care ↗
+            </Link>
+          </div>
+        </header>
+
+        <main className="flex-1 max-w-3xl mx-auto w-full px-4 py-8">
+          <div className="bg-slate-950/80 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl backdrop-blur-md">
+            <div className="mb-6 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-300 flex items-start gap-3">
+              <AlertCircle size={20} className="shrink-0 mt-0.5 text-amber-400" />
+              <div className="text-xs leading-relaxed">
+                <strong className="font-bold block text-amber-200 mb-0.5">No Pharmacy Store Linked</strong>
+                Signed in as <strong className="text-white">{user.email || user.phone}</strong>. Register your retail pharmacy license below to activate your chemist dispensation workstation.
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3.5 mb-6 pb-6 border-b border-slate-800">
+              <div className="w-12 h-12 rounded-2xl bg-teal-500/10 text-teal-400 flex items-center justify-center">
+                <ShieldCheck size={26} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">
+                  Register Your Pharmacy Store
+                </h2>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Complete store registration with your Drug License (Form 20/21) to receive patient prescriptions.
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleCompleteOnboarding} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Pharmacy / Medical Hall Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Sanjeevani Medical Store"
+                    value={onboardForm.store_name}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, store_name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Registered Pharmacist Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. R. K. Sharma (D.Pharm / B.Pharm)"
+                    value={onboardForm.registered_pharmacist_name}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, registered_pharmacist_name: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Drug License Number (Form 20/21) *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. BR-PAT-2024-DL9012"
+                    value={onboardForm.drug_license_number}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, drug_license_number: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none font-mono"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Contact Phone</label>
+                  <input
+                    type="tel"
+                    placeholder="+91 98765 43210"
+                    value={onboardForm.phone}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, phone: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-bold text-slate-300 block mb-1">Store Address</label>
+                  <input
+                    type="text"
+                    placeholder="Shop No., Market Area, Landmark"
+                    value={onboardForm.address}
+                    onChange={(e) => setOnboardForm({ ...onboardForm, address: e.target.value })}
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-teal-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isOnboarding}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 text-white font-black text-xs shadow-lg shadow-teal-900/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {isOnboarding ? (
+                    <>
+                      <RefreshCw size={14} className="animate-spin" />
+                      <span>Activating Store...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle size={14} />
+                      <span>Activate Pharmacy Workstation</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </main>
+      </div>
+    )
+  }
 
   const handleOpenInspector = (order) => {
     setInspectingOrder(order)
@@ -139,7 +398,9 @@ export default function PharmacyDashboard() {
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                {pharmacy?.store_name || 'Retail Pharmacy Store'} • Lic: {pharmacy?.drug_license_number || 'Form 20/21'}
+                {pharmacy.store_name}
+                {pharmacy.drug_license_number ? ` • Lic: ${pharmacy.drug_license_number}` : ''}
+                {pharmacy.address ? ` • ${pharmacy.address}` : ''}
               </p>
             </div>
           </div>
