@@ -45,7 +45,7 @@ Deno.serve(async (req: Request) => {
               .eq('id', user.id)
               .maybeSingle()
             
-            if (!profileError && profile?.role === 'admin') {
+            if (!profileError && (profile?.role === 'admin' || profile?.role === 'super_admin')) {
               isAuthorized = true
             }
           }
@@ -170,6 +170,56 @@ Deno.serve(async (req: Request) => {
     }
 
     console.log(`[PUSH] Resolved deep-link target URL: ${targetUrl}`)
+
+    // ── Instant Telegram Admin Bot Alert (Fail-Proof Offline Notification) ──
+    if (type === 'admin_order_alert') {
+      try {
+        const SUPABASE_URL = Deno.env.get('SUPABASE_URL') || 'https://ungxccwdondssatixzlz.supabase.co'
+        const SUPABASE_SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+        let botToken = Deno.env.get('TELEGRAM_BOT_TOKEN')
+        let chatId = Deno.env.get('TELEGRAM_CHAT_ID')
+
+        // If not in env, check database app_settings table for telegram_config
+        if ((!botToken || !chatId) && SUPABASE_SERVICE_KEY) {
+          const settingsRes = await fetch(`${SUPABASE_URL}/rest/v1/app_settings?key=eq.telegram_config&select=value`, {
+            headers: {
+              'apikey': SUPABASE_SERVICE_KEY,
+              'Authorization': `Bearer ${SUPABASE_SERVICE_KEY}`,
+              'Content-Type': 'application/json'
+            }
+          })
+          if (settingsRes.ok) {
+            const settingsData = await settingsRes.json()
+            const cfg = settingsData?.[0]?.value
+            if (cfg && cfg.enabled !== false) {
+              botToken = botToken || cfg.bot_token
+              chatId = chatId || cfg.chat_id
+            }
+          }
+        }
+
+        if (botToken && chatId) {
+          console.log('[PUSH] Sending instant Telegram alert for admin order...')
+          const orderNum = parsedData?.order_number || ''
+          const totalVal = parsedData?.total ? `₹${parsedData.total}` : ''
+          const teleText = `🚨 *NEW OZO MART ORDER RECEIVED!*\n\n*${title}*\n${message}\n\n🛒 Order: *${orderNum}*\n💵 Total: *${totalVal}*\n\n👉 [Open Admin Orders Panel](${targetUrl})`
+          
+          await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              chat_id: chatId,
+              text: teleText,
+              parse_mode: 'Markdown',
+              disable_web_page_preview: false
+            })
+          })
+          console.log('[PUSH] Telegram alert dispatched successfully.')
+        }
+      } catch (tgErr) {
+        console.warn('[PUSH] Telegram notification attempt warning:', tgErr)
+      }
+    }
 
     // FCM Integration: Send push notification to target user's active device tokens
     // We allow all user notifications to be sent via FCM as long as there is a user_id
