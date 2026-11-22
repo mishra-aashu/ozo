@@ -1496,7 +1496,7 @@ function doPost(e) {
                 </button>
                 {!webhookUrl && (
                   <span className="text-[10px] text-amber-500 font-bold">
-                    ⚠️ Configure Webhook URL in panel above to pull sheets data.
+                    Configure Webhook URL in panel above to pull sheets data.
                   </span>
                 )}
               </div>
@@ -1614,10 +1614,10 @@ function doPost(e) {
                 <Info className="w-4 h-4 text-amber-500 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-[10px] font-bold text-gray-755 dark:text-gray-300">
-                    {syncMode === 'oos_only' && '⚠️ OOS Only Mode (Recommended)'}
-                    {syncMode === 'availability_only' && '⚠️ Availability Only Mode'}
-                    {syncMode === 'availability_stock' && '⚠️ Availability & Stock Mode'}
-                    {syncMode === 'full_overwrite' && '🚨 Full Overwrite Mode (Critical)'}
+                    {syncMode === 'oos_only' && 'OOS Only Mode (Recommended)'}
+                    {syncMode === 'availability_only' && 'Availability Only Mode'}
+                    {syncMode === 'availability_stock' && 'Availability & Stock Mode'}
+                    {syncMode === 'full_overwrite' && 'Full Overwrite Mode (Critical)'}
                   </p>
                   <p className="text-[9.5px] text-gray-400 leading-normal mt-0.5">
                     {syncMode === 'oos_only' && 'Updates is_available = false ONLY for items marked as out-of-stock. Leaves currently active products unaffected. Ideal for restoring manual out-of-stock tags.'}
