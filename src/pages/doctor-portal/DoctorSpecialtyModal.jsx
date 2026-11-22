@@ -1,12 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { 
   Search, 
   X, 
   Check, 
   Stethoscope, 
-  Sparkles,
-  ChevronRight,
-  Filter
+  ChevronRight
 } from 'lucide-react'
 import { CARE_SPECIALTIES } from '../../utils/careIcons'
 
@@ -20,13 +19,19 @@ export default function DoctorSpecialtyModal({
   const [activeCategory, setActiveCategory] = useState('All')
   const searchInputRef = useRef(null)
 
-  // Focus search input when modal opens
+  // Lock body scroll and focus search input when modal opens
   useEffect(() => {
     if (isOpen) {
-      setTimeout(() => {
+      document.body.style.overflow = 'hidden'
+      const timer = setTimeout(() => {
         searchInputRef.current?.focus()
       }, 100)
+      return () => {
+        clearTimeout(timer)
+        document.body.style.overflow = ''
+      }
     } else {
+      document.body.style.overflow = ''
       setSearchQuery('')
       setActiveCategory('All')
     }
@@ -89,17 +94,17 @@ export default function DoctorSpecialtyModal({
 
   if (!isOpen) return null
 
-  return (
+  const modalContent = (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn"
+      className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/65 backdrop-blur-sm animate-fadeIn"
       onClick={onClose}
     >
       <div 
-        className="w-full max-w-lg bg-white dark:bg-[#0c0c16] border border-gray-200 dark:border-[#1e1e32] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scaleIn transition-all duration-300"
+        className="w-full max-w-lg bg-white dark:bg-[#0c0c16] border border-gray-200/90 dark:border-white/10 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-scaleIn transition-all duration-300 relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Modal Header */}
-        <div className="p-5 sm:p-6 pb-4 border-b border-gray-100 dark:border-[#1a1a2e] flex items-center justify-between gap-4">
+        <div className="p-5 sm:p-6 pb-4 border-b border-gray-100 dark:border-white/5 flex items-center justify-between gap-4 bg-white dark:bg-[#0c0c16]">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 shrink-0">
               <Stethoscope className="w-5 h-5" />
@@ -124,8 +129,8 @@ export default function DoctorSpecialtyModal({
           </button>
         </div>
 
-        {/* Search Bar */}
-        <div className="p-4 sm:px-6 pb-3 bg-gray-50/50 dark:bg-[#0a0a13]/50 border-b border-gray-100 dark:border-[#16162a]">
+        {/* Search Bar & Category Chips */}
+        <div className="p-4 sm:px-6 pb-3 bg-gray-50/70 dark:bg-[#0f0f1c]/70 border-b border-gray-100 dark:border-white/5">
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none" />
             <input
@@ -133,14 +138,15 @@ export default function DoctorSpecialtyModal({
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search specialty (e.g. Heart, Skin, MBBS, Fever)..."
-              className="w-full bg-white dark:bg-[#121222] border border-gray-200 dark:border-[#22223a] rounded-xl py-2.5 pl-10 pr-9 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 font-medium transition-all"
+              placeholder="Search specialty (e.g. Heart, Skin, Fever, MBBS)..."
+              className="w-full bg-white dark:bg-[#141426] border border-gray-200 dark:border-white/10 rounded-2xl py-3 pl-10 pr-9 text-xs sm:text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-4 focus:ring-emerald-500/10 font-medium transition-all shadow-sm"
             />
             {searchQuery && (
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-0.5 rounded-full"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-1 rounded-full cursor-pointer"
+                title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -154,10 +160,10 @@ export default function DoctorSpecialtyModal({
                 key={c.label}
                 type="button"
                 onClick={() => setActiveCategory(c.label)}
-                className={`px-3 py-1 rounded-lg text-xs font-bold whitespace-nowrap transition-all border ${
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all border cursor-pointer ${
                   activeCategory === c.label
                     ? 'bg-emerald-500 text-white border-emerald-500 shadow-sm shadow-emerald-500/20'
-                    : 'bg-white dark:bg-[#121222] text-gray-600 dark:text-gray-400 border-gray-200 dark:border-[#22223a] hover:text-gray-900 dark:hover:text-white'
+                    : 'bg-white dark:bg-[#141426] text-gray-600 dark:text-gray-400 border-gray-200/80 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:text-gray-900 dark:hover:text-white'
                 }`}
               >
                 {c.label}
@@ -167,7 +173,7 @@ export default function DoctorSpecialtyModal({
         </div>
 
         {/* Scrollable Specialty List */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2 divide-y-0">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-2.5">
           {filteredSpecialties.length === 0 ? (
             <div className="py-12 text-center">
               <div className="w-12 h-12 rounded-2xl bg-gray-100 dark:bg-[#161626] text-gray-400 flex items-center justify-center mx-auto mb-3">
@@ -203,10 +209,10 @@ export default function DoctorSpecialtyModal({
                     onSelect(specialty.slug)
                     onClose()
                   }}
-                  className={`w-full text-left p-3.5 rounded-2xl transition-all flex items-center gap-3.5 border cursor-pointer group ${
+                  className={`w-full text-left p-3.5 rounded-2xl transition-all flex items-center gap-3.5 border cursor-pointer group active:scale-[0.99] ${
                     isSelected
-                      ? 'bg-emerald-500/10 dark:bg-emerald-500/15 border-emerald-500/50 shadow-sm'
-                      : 'bg-gray-50/70 hover:bg-gray-100/90 dark:bg-[#11111f]/70 dark:hover:bg-[#17172a] border-gray-100 dark:border-[#1a1a2e] hover:border-gray-200 dark:hover:border-[#252542]'
+                      ? 'bg-emerald-50/90 dark:bg-emerald-500/15 border-2 border-emerald-500 dark:border-emerald-400 shadow-sm shadow-emerald-500/10'
+                      : 'bg-white hover:bg-emerald-50/40 dark:bg-[#121222]/80 dark:hover:bg-[#18182e] border-gray-200/80 hover:border-emerald-300/80 dark:border-white/5 dark:hover:border-emerald-500/30 shadow-xs'
                   }`}
                 >
                   {/* Specialty Icon */}
@@ -221,7 +227,7 @@ export default function DoctorSpecialtyModal({
                         {specialty.title}
                       </span>
                       {specialty.badge && (
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-200/80 dark:bg-white/10 text-gray-600 dark:text-gray-300 shrink-0">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-300 shrink-0">
                           {specialty.badge}
                         </span>
                       )}
@@ -241,7 +247,7 @@ export default function DoctorSpecialtyModal({
                         <Check className="w-4 h-4 stroke-[3]" />
                       </div>
                     ) : (
-                      <div className="w-7 h-7 rounded-full bg-transparent group-hover:bg-gray-200/60 dark:group-hover:bg-white/10 flex items-center justify-center text-gray-400 dark:text-gray-500 transition-all">
+                      <div className="w-7 h-7 rounded-full bg-transparent group-hover:bg-gray-100 dark:group-hover:bg-white/10 flex items-center justify-center text-gray-400 dark:text-gray-500 transition-all">
                         <ChevronRight className="w-4 h-4" />
                       </div>
                     )}
@@ -253,9 +259,9 @@ export default function DoctorSpecialtyModal({
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 px-6 border-t border-gray-100 dark:border-[#16162a] bg-gray-50/50 dark:bg-[#0a0a13]/50 flex items-center justify-between">
+        <div className="p-4 px-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/80 dark:bg-[#0c0c16]/90 backdrop-blur-md flex items-center justify-between">
           <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">
-            Showing <strong className="text-gray-900 dark:text-white">{filteredSpecialties.length}</strong> verified clinical categories
+            Showing <strong className="text-gray-900 dark:text-white font-bold">{filteredSpecialties.length}</strong> clinical specialties
           </span>
           <button
             type="button"
@@ -268,4 +274,7 @@ export default function DoctorSpecialtyModal({
       </div>
     </div>
   )
+
+  // Render via React Portal into document.body to ensure full viewport positioning and prevent clipping by parent backdrop-blur containers
+  return createPortal(modalContent, document.body)
 }
