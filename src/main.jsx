@@ -104,6 +104,226 @@ Sentry.init({
   enableLogs: !isLowNetworkDevice
 });
 
+// Fast cache purge and reload helper: clears CacheStorage and ServiceWorker, then cache-busts URL
+export const purgeCacheAndReload = async () => {
+  try {
+    sessionStorage.removeItem('ozo-chunk-reload-attempted');
+    if (typeof window !== 'undefined') {
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map(k => caches.delete(k)));
+      }
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map(r => r.unregister()));
+      }
+    }
+  } catch (err) {
+    console.warn('[OZO] Cache purge error:', err);
+  } finally {
+    const url = new URL(window.location.href);
+    url.searchParams.set('_v', Date.now().toString());
+    window.location.replace(url.toString());
+  }
+};
+
+function OzoUpdatingScreen() {
+  React.useEffect(() => {
+    // 1. Instant reload after a brief 350ms splash animation
+    const fastTimer = setTimeout(() => {
+      purgeCacheAndReload();
+    }, 350);
+
+    // 2. Safety watchdog: force reload at 2.5s if browser stalled
+    const watchdogTimer = setTimeout(() => {
+      purgeCacheAndReload();
+    }, 2500);
+
+    return () => {
+      clearTimeout(fastTimer);
+      clearTimeout(watchdogTimer);
+    };
+  }, []);
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: '20px',
+      textAlign: 'center',
+      background: '#070709',
+      color: 'white',
+      fontFamily: 'Inter, system-ui, sans-serif',
+      position: 'relative',
+      overflow: 'hidden'
+    }}>
+      <style>{`
+        @keyframes progressLoad {
+          0% { left: -40%; }
+          100% { left: 110%; }
+        }
+        @keyframes pulseSlow {
+          0%, 100% { opacity: 0.15; transform: scale(1) translate(-50%, -50%); }
+          50% { opacity: 0.3; transform: scale(1.15) translate(-50%, -50%); }
+        }
+        .main-ambient-glow {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          width: 350px;
+          height: 350px;
+          background: radial-gradient(circle, rgba(255,42,68,0.15) 0%, rgba(255,42,68,0) 70%);
+          border-radius: 50%;
+          pointer-events: none;
+          z-index: 1;
+          animation: pulseSlow 4s ease-in-out infinite;
+        }
+        .main-progress-track {
+          width: 100%;
+          max-width: 240px;
+          background: rgba(255, 255, 255, 0.05);
+          height: 5px;
+          border-radius: 10px;
+          overflow: hidden;
+          position: relative;
+          margin-top: 24px;
+          border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .main-progress-bar {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 40%;
+          background: linear-gradient(90deg, #ff2a44 0%, #ff5268 50%, #00e676 100%);
+          border-radius: 10px;
+          animation: progressLoad 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .brand-glow-card {
+          position: relative;
+          z-index: 10;
+          background: rgba(18, 18, 20, 0.7);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          border-radius: 32px;
+          padding: 32px 28px;
+          box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          max-width: 320px;
+          width: 100%;
+        }
+        .spinning-circles-container {
+          position: relative;
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 24px;
+        }
+        .spinning-outer-ring {
+          width: 72px;
+          height: 72px;
+          border-radius: 20px;
+          border: 2px dashed rgba(255, 42, 68, 0.35);
+          animation: spin 8s linear infinite;
+        }
+        .spinning-inner-ring {
+          position: absolute;
+          width: 56px;
+          height: 56px;
+          border-radius: 14px;
+          border: 1px dashed rgba(0, 230, 118, 0.4);
+          animation: spin 6s linear infinite reverse;
+        }
+        .brand-inner-core {
+          position: absolute;
+          width: 40px;
+          height: 40px;
+          background: linear-gradient(135deg, #ff2a44 0%, #e11d48 100%);
+          border-radius: 12px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 10px 20px rgba(255, 42, 68, 0.3);
+        }
+        .brand-icon-logo {
+          width: 20px;
+          height: 20px;
+          background: white;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2050/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m2 7 4.41-3.67A2 2 0 0 1 7.73 3h8.54a2 2 0 0 1 1.32.33L22 7'/><path d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/><path d='M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4'/></svg>") no-repeat center;
+          -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m2 7 4.41-3.67A2 2 0 0 1 7.73 3h8.54a2 2 0 0 1 1.32.33L22 7'/><path d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/><path d='M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4'/></svg>") no-repeat center;
+        }
+      `}</style>
+
+      <div className="main-ambient-glow" />
+
+      <div className="brand-glow-card">
+        <div className="spinning-circles-container">
+          <div className="spinning-outer-ring" />
+          <div className="spinning-inner-ring" />
+          <div className="brand-inner-core">
+            <div className="brand-icon-logo" />
+          </div>
+        </div>
+
+        <div style={{
+          background: 'rgba(255, 42, 68, 0.12)',
+          border: '1px solid rgba(255, 42, 68, 0.25)',
+          color: '#ff2a44',
+          fontSize: '10px',
+          fontWeight: '900',
+          textTransform: 'uppercase',
+          letterSpacing: '0.15em',
+          padding: '4px 12px',
+          borderRadius: '9999px',
+          marginBottom: '12px'
+        }}>
+          OZO UPDATE
+        </div>
+
+        <h2 style={{ fontSize: '16px', fontWeight: '950', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', color: 'white' }}>
+          Updating Ozo
+        </h2>
+
+        <p style={{ fontSize: '11px', fontWeight: '600', color: '#a1a1aa', margin: '0 auto', lineHeight: '1.5', maxWidth: '240px' }}>
+          Installing latest updates & refreshing cache...
+        </p>
+
+        <div className="main-progress-track">
+          <div className="main-progress-bar" />
+        </div>
+
+        <button
+          onClick={() => purgeCacheAndReload()}
+          style={{
+            marginTop: '22px',
+            background: 'linear-gradient(135deg, #ff2a44 0%, #e11d48 100%)',
+            color: 'white',
+            border: 'none',
+            borderRadius: '14px',
+            padding: '9px 20px',
+            fontSize: '11px',
+            fontWeight: '900',
+            cursor: 'pointer',
+            boxShadow: '0 8px 20px rgba(255, 42, 68, 0.35)',
+            letterSpacing: '0.05em',
+            textTransform: 'uppercase',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          Open App Now
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // Error Boundary Component
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -140,8 +360,7 @@ class ErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    console.error('Error caught by boundary:', error, errorInfo)
-    
+    console.error('Error caught by boundary:', error, errorInfo);
     const errorMsg = error?.message || '';
     const isChunkReload = error?.isChunkReload || 
                           error?.name === 'ChunkLoadError' || 
@@ -152,17 +371,9 @@ class ErrorBoundary extends React.Component {
                           errorMsg.includes('Load failed');
 
     if (isChunkReload) {
-      const hasReloaded = sessionStorage.getItem('ozo-chunk-reload-attempted');
-      if (!hasReloaded) {
-        sessionStorage.setItem('ozo-chunk-reload-attempted', 'true');
-        setTimeout(() => {
-          window.location.reload();
-        }, 1200);
-      }
-      
       logError({
         error,
-        message: error?.message || 'Chunk load/preload failure - reloading...',
+        message: error?.message || 'Chunk load/preload failure - auto-refreshing...',
         componentName: 'ErrorBoundary',
         severity: 'info',
         additionalInfo: { errorInfo }
@@ -182,167 +393,7 @@ class ErrorBoundary extends React.Component {
     if (this.state.hasError) {
       const isChunkReload = this.state.error?.isChunkReload;
       if (isChunkReload) {
-        return (
-          <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '100vh',
-            padding: '20px',
-            textAlign: 'center',
-            background: '#070709',
-            color: 'white',
-            fontFamily: 'Inter, system-ui, sans-serif',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            {/* Custom Animations & Styles */}
-            <style>{`
-              @keyframes progressLoad {
-                0% { left: -40%; }
-                100% { left: 110%; }
-              }
-              @keyframes pulseSlow {
-                0%, 100% { opacity: 0.15; transform: scale(1) translate(-50%, -50%); }
-                50% { opacity: 0.3; transform: scale(1.15) translate(-50%, -50%); }
-              }
-              .main-ambient-glow {
-                position: absolute;
-                top: 50%;
-                left: 50%;
-                width: 350px;
-                height: 350px;
-                background: radial-gradient(circle, rgba(255,42,68,0.15) 0%, rgba(255,42,68,0) 70%);
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 1;
-                animation: pulseSlow 4s ease-in-out infinite;
-              }
-              .main-progress-track {
-                width: 100%;
-                max-width: 240px;
-                background: rgba(255, 255, 255, 0.05);
-                height: 5px;
-                border-radius: 10px;
-                overflow: hidden;
-                position: relative;
-                margin-top: 24px;
-                border: 1px solid rgba(255, 255, 255, 0.05);
-              }
-              .main-progress-bar {
-                position: absolute;
-                top: 0;
-                bottom: 0;
-                width: 40%;
-                background: linear-gradient(90deg, #ff2a44 0%, #ff5268 50%, #00e676 100%);
-                border-radius: 10px;
-                animation: progressLoad 1.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-              }
-              .brand-glow-card {
-                position: relative;
-                z-index: 10;
-                background: rgba(18, 18, 20, 0.6);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-                border-radius: 32px;
-                padding: 32px;
-                box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                max-width: 320px;
-                width: 100%;
-              }
-              .spinning-circles-container {
-                position: relative;
-                width: 80px;
-                height: 80px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                margin-bottom: 24px;
-              }
-              .spinning-outer-ring {
-                width: 72px;
-                height: 72px;
-                border-radius: 20px;
-                border: 2px dashed rgba(255, 42, 68, 0.35);
-                animation: spin 8s linear infinite;
-              }
-              .spinning-inner-ring {
-                position: absolute;
-                width: 56px;
-                height: 56px;
-                border-radius: 14px;
-                border: 1px dashed rgba(0, 230, 118, 0.4);
-                animation: spin 6s linear infinite reverse;
-              }
-              .brand-inner-core {
-                position: absolute;
-                width: 40px;
-                height: 40px;
-                background: linear-gradient(135deg, #ff2a44 0%, #e11d48 100%);
-                border-radius: 12px;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                box-shadow: 0 10px 20px rgba(255, 42, 68, 0.3);
-              }
-              .brand-icon-logo {
-                width: 20px;
-                height: 20px;
-                background: white;
-                mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2050/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m2 7 4.41-3.67A2 2 0 0 1 7.73 3h8.54a2 2 0 0 1 1.32.33L22 7'/><path d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/><path d='M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4'/></svg>") no-repeat center;
-                -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><path d='m2 7 4.41-3.67A2 2 0 0 1 7.73 3h8.54a2 2 0 0 1 1.32.33L22 7'/><path d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/><path d='M15 22v-4a2 2 0 0 0-2-2h-2a2 2 0 0 0-2 2v4'/></svg>") no-repeat center;
-              }
-            `}</style>
-
-            <div className="main-ambient-glow" />
-
-            <div className="brand-glow-card">
-              {/* Animated Rings */}
-              <div className="spinning-circles-container">
-                <div className="spinning-outer-ring" />
-                <div className="spinning-inner-ring" />
-                <div className="brand-inner-core">
-                  <div className="brand-icon-logo" />
-                </div>
-              </div>
-
-              {/* Tag / Brand */}
-              <div style={{
-                background: 'rgba(255, 42, 68, 0.1)',
-                border: '1px solid rgba(255, 42, 68, 0.2)',
-                color: '#ff2a44',
-                fontSize: '10px',
-                fontWeight: '900',
-                textTransform: 'uppercase',
-                letterSpacing: '0.15em',
-                padding: '4px 12px',
-                borderRadius: '9999px',
-                marginBottom: '12px',
-                animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite'
-              }}>
-                OZO UPDATE
-              </div>
-
-              <h2 style={{ fontSize: '16px', fontWeight: '950', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px', color: 'white' }}>
-                Updating Ozo
-              </h2>
-
-              <p style={{ fontSize: '11px', fontWeight: '600', color: '#a1a1aa', margin: '0 auto', lineHeight: '1.5', maxWidth: '220px' }}>
-                Installing the latest features and security updates...
-              </p>
-
-              {/* Progress Tracker */}
-              <div className="main-progress-track">
-                <div className="main-progress-bar" />
-              </div>
-            </div>
-          </div>
-        );
+        return <OzoUpdatingScreen />;
       }
 
       return (
