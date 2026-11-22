@@ -661,12 +661,13 @@ const AdminLayout = () => {
       <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
         {/* Top Bar */}
         <header className="bg-white dark:bg-[#0d0d0d] shadow-sm border-b border-gray-200 dark:border-white/5 sticky top-0 z-30 transition-colors duration-300">
-          <div className="px-6 py-4">
+          <div className="px-3.5 sm:px-6 py-2.5 sm:py-3.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 <button
                   onClick={() => setIsSidebarOpen(!isSidebarOpen)}
-                  className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-gray-500 dark:text-gray-400 lg:hidden"
+                  className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-gray-650 dark:text-gray-300 active:scale-95 transition-all lg:hidden"
+                  aria-label="Open menu"
                 >
                   <Menu className="w-5 h-5" />
                 </button>
@@ -683,7 +684,7 @@ const AdminLayout = () => {
               </div>
 
               {/* Right Side Actions */}
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2 sm:gap-4">
                 {/* Stats Cards */}
                 <div className="hidden lg:flex items-center gap-4">
                   <div className="flex items-center gap-2 px-4 py-2 bg-green-50 dark:bg-green-950/20 rounded-lg">
@@ -699,7 +700,7 @@ const AdminLayout = () => {
                 {/* Theme Toggle */}
                 <button
                   onClick={toggleTheme}
-                  className="p-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 transition-all flex items-center justify-center"
+                  className="p-2 sm:p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 transition-all flex items-center justify-center active:scale-95"
                   aria-label="Toggle Theme"
                 >
                   <AnimatePresence mode="wait">
@@ -711,7 +712,7 @@ const AdminLayout = () => {
                         exit={{ opacity: 0, rotate: 90, scale: 0.8 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Moon size={20} />
+                        <Moon size={19} />
                       </motion.div>
                     ) : (
                       <motion.div
@@ -721,30 +722,30 @@ const AdminLayout = () => {
                         exit={{ opacity: 0, rotate: -90, scale: 0.8 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <Sun size={20} />
+                        <Sun size={19} />
                       </motion.div>
                     )}
                   </AnimatePresence>
                 </button>
 
                 {/* Notifications */}
-                <button className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400">
+                <button className="relative p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 text-ozo-gray dark:text-gray-400 active:scale-95 transition-all">
                   <Bell className="w-5 h-5" />
                   {totalAlerts > 0 ? (
-                    <span className="absolute -top-1.5 -right-1.5 bg-ozo-red text-white text-[9px] font-black rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center border-2 border-white dark:border-[#0d0d0d] animate-pulse">
+                    <span className="absolute -top-1 -right-1 bg-ozo-red text-white text-[9px] font-black rounded-full h-4 min-w-[16px] px-1 flex items-center justify-center border-2 border-white dark:border-[#0d0d0d] animate-pulse">
                       {totalAlerts}
                     </span>
                   ) : (
-                    <span className="absolute -top-1 -right-1 w-2 h-2 bg-ozo-red rounded-full animate-pulse" />
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-ozo-red rounded-full animate-pulse" />
                   )}
                 </button>
 
                 {/* Profile */}
-                <div className="flex items-center gap-3 px-3 py-2 bg-gradient-ozo text-white rounded-lg shadow-sm">
+                <div className="flex items-center gap-2.5 p-1 sm:px-3 sm:py-2 bg-gradient-ozo text-white rounded-xl shadow-sm">
                   <UserAvatar 
                     profile={profile} 
                     user={user} 
-                    className="w-8 h-8 rounded-full overflow-hidden bg-white/20 text-white font-bold flex items-center justify-center text-xs uppercase"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full overflow-hidden bg-white/20 text-white font-bold flex items-center justify-center text-xs uppercase"
                     imgClassName="w-full h-full object-cover"
                   />
                   <span className="text-sm font-medium hidden sm:block">{isSuperAdmin ? 'Admin' : 'City Manager'}</span>
@@ -755,7 +756,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 p-4 sm:p-6 overflow-y-auto overflow-x-hidden max-w-full">
+        <main className="flex-1 p-3 sm:p-6 overflow-y-auto overflow-x-hidden max-w-full">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

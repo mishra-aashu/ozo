@@ -878,7 +878,7 @@ WHERE id = '${editingProduct.id}';`
             const payload = {
               tag_key: `notify_prod_${editingProduct.id}`,
               tag_value: 'true',
-              title: `${formData.name} is back in stock! 🎉`,
+              title: `${formData.name} is back in stock!`,
               message: `Great news! ${formData.name} is available again. Grab it before it runs out!`,
               type: 'promo',
               data: {
@@ -1146,7 +1146,7 @@ WHERE id = '${editingProduct.id}';`
             const payload = {
               tag_key: `notify_prod_${productId}`,
               tag_value: 'true',
-              title: `${targetProduct.name} is back in stock! 🎉`,
+              title: `${targetProduct.name} is back in stock!`,
               message: `Great news! ${targetProduct.name} is available again. Grab it before it runs out!`,
               type: 'promo',
               data: {
@@ -1926,8 +1926,9 @@ WHERE id = '${editingProduct.id}';`
                       {/* Mart */}
                       <td className="px-2 py-1.5 whitespace-nowrap min-w-[110px]">
                         {product.mart ? (
-                          <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
-                            🏪 {product.mart.name}
+                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400">
+                            <Store className="w-2.5 h-2.5 shrink-0" />
+                            <span>{product.mart.name}</span>
                           </span>
                         ) : (
                           <span className="text-[10px] text-gray-400 italic">No Mart</span>
@@ -2021,7 +2022,9 @@ WHERE id = '${editingProduct.id}';`
                               className="text-[9px] text-gray-550 dark:text-gray-400 font-semibold flex items-center gap-0.5 hover:text-amber-600 dark:hover:text-amber-300 transition-colors cursor-pointer bg-transparent border-none p-0 flex-shrink-0"
                               title="Click to apply suggested price"
                             >
-                              <span className="inline-flex items-center justify-center w-2.5 h-2.5 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-500 text-[7px] font-black">💡</span>
+                              <span className="inline-flex items-center justify-center w-3 h-3 rounded-full bg-amber-50 dark:bg-amber-950/30 text-amber-500">
+                                <Zap className="w-2.5 h-2.5 text-amber-500" />
+                              </span>
                               <span>Sug: <strong className="text-amber-500 hover:underline">₹{suggestedOzoPrice.toFixed(2)}</strong></span>
                             </button>
 
@@ -2045,8 +2048,9 @@ WHERE id = '${editingProduct.id}';`
                             {activeTooltipId === product.id && (
                               <div className="absolute bottom-full right-2 mb-2 w-56 bg-white dark:bg-[#12121a] border border-gray-250 dark:border-white/15 rounded-xl shadow-xl p-2.5 z-50 text-left animate-in fade-in slide-in-from-bottom-2 duration-200">
                                 <div className="flex justify-between items-center border-b border-gray-100 dark:border-white/10 pb-1.5 mb-1.5">
-                                  <span className="font-bold text-[10px] text-gray-800 dark:text-gray-200 flex items-center gap-0.5">
-                                    📊 Price Breakdown
+                                  <span className="font-bold text-[10px] text-gray-800 dark:text-gray-200 flex items-center gap-1">
+                                    <BarChart2 className="w-3 h-3 text-ozo-red" />
+                                    <span>Price Breakdown</span>
                                   </span>
                                   <button 
                                     onClick={(e) => {

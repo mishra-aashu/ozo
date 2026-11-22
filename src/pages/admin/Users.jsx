@@ -1099,7 +1099,7 @@ WHERE id = '${selectedUser.id}';`
               <div className="grid grid-cols-4 border-b border-gray-100 dark:border-white/5 bg-gray-50/30 dark:bg-white/[0.005]">
                 {[
                   { id: 'profile', label: 'Profile' },
-                  { id: 'requests', label: 'Requests' + (hasRequests ? ' 🔴' : '') },
+                  { id: 'requests', label: 'Requests' + (hasRequests ? ' (New)' : '') },
                   { id: 'addresses', label: `Addresses (${userAddresses.length})` },
                   { id: 'orders', label: `Orders (${userOrders.length})` }
                 ].map((tab) => (
@@ -1498,8 +1498,9 @@ WHERE id = '${selectedUser.id}';`
                                 <div className="grid grid-cols-2 gap-4 text-xs">
                                   <div>
                                     <span className="text-gray-400 block font-semibold">Store Name</span>
-                                    <span className="font-bold text-gray-800 dark:text-gray-200 text-sm">
-                                      🏪 {userMartRequest.store_name || 'N/A'}
+                                    <span className="font-bold text-gray-800 dark:text-gray-200 text-sm flex items-center gap-1.5 mt-0.5">
+                                      <Store className="w-3.5 h-3.5 text-ozo-red shrink-0" />
+                                      {userMartRequest.store_name || 'N/A'}
                                     </span>
                                   </div>
                                   <div>
