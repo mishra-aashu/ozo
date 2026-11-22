@@ -1064,7 +1064,7 @@ const AdminSettings = () => {
       const response = await fetch(`/api/mandi-sync${isTest ? '?test=true' : ''}`, {
         method: 'POST',
         headers: {
-          'Authorization': 'Bearer OzoSecret123!',
+          'Authorization': `Bearer ${import.meta.env.VITE_MANDI_SYNC_SECRET || ''}`,
           'Content-Type': 'application/json'
         }
       })
