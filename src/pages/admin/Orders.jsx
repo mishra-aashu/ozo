@@ -178,6 +178,8 @@ const Orders = () => {
 
   const handleCloseDetails = () => {
     setIsModalOpen(false)
+    setShowCancelPrompt(false)
+    setIsEditingItems(false)
     if (searchParams.has('id')) {
       const newParams = new URLSearchParams(searchParams)
       newParams.delete('id')
@@ -2704,8 +2706,8 @@ const Orders = () => {
                     </button>
                   )}
                   <button
-                    onClick={() => setIsModalOpen(false)}
-                    className="bg-gray-800 text-white dark:bg-white dark:text-gray-900 px-5 py-2.5 rounded-xl font-black text-xs w-full sm:w-auto hover:opacity-90 active:scale-95 transition-all"
+                    onClick={handleCloseDetails}
+                    className="bg-gray-800 text-white dark:bg-white dark:text-gray-900 px-5 py-2.5 rounded-xl font-black text-xs w-full sm:w-auto hover:opacity-90 active:scale-95 transition-all cursor-pointer"
                   >
                     Done
                   </button>
