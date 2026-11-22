@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom'
 import { 
   Stethoscope, Users, Calendar, Clock, CheckCircle, AlertCircle, 
   Plus, Search, ShieldCheck, FileText, Phone, Building2, 
-  ToggleLeft, ToggleRight, RefreshCw, X, ChevronRight, Activity, Video, Paperclip
+  ToggleLeft, ToggleRight, RefreshCw, X, ChevronRight, Activity, Video, Paperclip,
+  MapPin, IndianRupee, Sparkles, Award
 } from 'lucide-react'
 import { useDoctorStore } from '../../stores/doctorStore'
 import { useAuthStore } from '../../stores/authStore'
@@ -199,13 +200,26 @@ export default function DoctorDashboard() {
     }
   }
 
+  const formatDoctorName = (raw) => {
+    if (!raw) return ''
+    let cleaned = raw.replace(/^Dr\.?\s*/i, '').trim()
+    cleaned = cleaned
+      .toLowerCase()
+      .split(' ')
+      .filter(Boolean)
+      .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ')
+    return cleaned ? `Dr. ${cleaned}` : ''
+  }
+
   useEffect(() => {
     if (user) {
+      const defaultName = user.user_metadata?.full_name || user.email?.split('@')[0] || ''
       setOnboardForm(prev => ({
         ...prev,
         email: prev.email || user.email || '',
         phone: prev.phone || user.phone || '',
-        full_name: prev.full_name || (user.user_metadata?.full_name ? `Dr. ${user.user_metadata.full_name}` : '')
+        full_name: prev.full_name ? formatDoctorName(prev.full_name) : formatDoctorName(defaultName)
       }))
     }
   }, [user])
