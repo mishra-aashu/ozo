@@ -772,8 +772,8 @@ WHERE id = '${editingOffer.id}';`
           </div>
         ) : filteredOffers.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center">
-            <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center text-2xl mb-4">
-              🎁
+            <div className="w-16 h-16 bg-gray-100 dark:bg-white/5 rounded-full flex items-center justify-center mb-4">
+              <Gift className="w-8 h-8 text-gray-400" />
             </div>
             <h3 className="text-lg font-bold text-gray-800 dark:text-white">Koi offers nahi mile</h3>
             <p className="text-sm text-gray-500 max-w-sm mt-1">Filters change karein ya fir naya offer add krein.</p>
@@ -968,7 +968,7 @@ WHERE id = '${editingOffer.id}';`
                             onClick={() => {
                               setNotifyingOffer(offer)
                               setNotificationTargetType(offer.category_slug ? 'category' : 'broadcast')
-                              setNotificationTitle(offer.title || 'Special Promotion! 🎉')
+                              setNotificationTitle(offer.title || 'Special Promotion!')
                               const defaultMsg = offer.coupon_code 
                                 ? `Use code ${offer.coupon_code} to get discounts! ${offer.description || ''}` 
                                 : (offer.description || offer.tagline || 'Check out our new offer on OZO!')
