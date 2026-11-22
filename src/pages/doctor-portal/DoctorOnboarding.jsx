@@ -14,9 +14,12 @@ import {
   ArrowLeft, 
   ChevronRight, 
   Check, 
-  RefreshCw 
+  RefreshCw,
+  Search,
+  ChevronDown
 } from 'lucide-react'
 import { CARE_SPECIALTIES } from '../../utils/careIcons'
+import DoctorSpecialtyModal from './DoctorSpecialtyModal'
 import toast from 'react-hot-toast'
 
 export default function DoctorOnboarding({
@@ -28,6 +31,10 @@ export default function DoctorOnboarding({
   formatDoctorName
 }) {
   const [step, setStep] = useState(1)
+  const [isSpecialtyModalOpen, setIsSpecialtyModalOpen] = useState(false)
+
+  const selectedSpecialty = CARE_SPECIALTIES.find(s => s.slug === onboardForm.specialty_slug) || CARE_SPECIALTIES[0]
+  const SelectedIcon = selectedSpecialty.icon || Stethoscope
 
   const quickCities = ['Bhagalpur', 'Aurangabad', 'Patna', 'Gaya', 'Darbhanga']
   const qualificationChips = ['MBBS', 'MD', 'MS', 'DNB', 'DM', 'BAMS', 'BHMS']
@@ -129,20 +136,51 @@ export default function DoctorOnboarding({
               />
             </div>
 
-            {/* Medical Specialty */}
-            <div className="relative group">
-              <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500 pointer-events-none z-10" />
-              <select
-                value={onboardForm.specialty_slug}
-                onChange={(e) => setOnboardForm({ ...onboardForm, specialty_slug: e.target.value })}
-                className="w-full bg-gray-50/90 dark:bg-[#121220]/90 border border-gray-200 dark:border-[#1e1e35] rounded-2xl py-3.5 pl-11 pr-4 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 transition-colors font-medium cursor-pointer"
+            {/* Medical Specialty - Searchable Modal Trigger */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-1 flex items-center justify-between">
+                <span>Medical Specialty *</span>
+                <button
+                  type="button"
+                  onClick={() => setIsSpecialtyModalOpen(true)}
+                  className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                >
+                  <Search className="w-3 h-3" />
+                  <span>Search All (18)</span>
+                </button>
+              </label>
+
+              <button
+                type="button"
+                onClick={() => setIsSpecialtyModalOpen(true)}
+                className="w-full bg-gray-50/90 dark:bg-[#121220]/90 hover:bg-gray-100/90 dark:hover:bg-[#18182c] border border-gray-200 dark:border-[#1e1e35] hover:border-emerald-500/50 dark:hover:border-emerald-400/50 rounded-2xl p-3 pl-3.5 pr-4 text-left transition-all flex items-center gap-3.5 cursor-pointer group shadow-sm active:scale-[0.99]"
               >
-                {CARE_SPECIALTIES.map(s => (
-                  <option key={s.slug} value={s.slug} className="bg-white dark:bg-[#121220] text-gray-900 dark:text-white">
-                    {s.title} ({s.subtitle})
-                  </option>
-                ))}
-              </select>
+                {/* Specialty Icon Badge */}
+                <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${selectedSpecialty.gradient || 'from-emerald-500 to-teal-600'} flex items-center justify-center text-white shrink-0 shadow-sm shadow-emerald-500/20`}>
+                  <SelectedIcon className="w-5 h-5" />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-bold text-gray-900 dark:text-white truncate font-display">
+                      {selectedSpecialty.title}
+                    </span>
+                    {selectedSpecialty.badge && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0">
+                        {selectedSpecialty.badge}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5 font-medium">
+                    {selectedSpecialty.subtitle}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl bg-emerald-500/10 group-hover:bg-emerald-500/20 transition-all shrink-0">
+                  <Search className="w-3.5 h-3.5" />
+                  <span>Change</span>
+                </div>
+              </button>
             </div>
 
             {/* Qualifications */}
@@ -483,6 +521,14 @@ export default function DoctorOnboarding({
         )}
 
       </form>
+
+      {/* Searchable Medical Specialty Modal */}
+      <DoctorSpecialtyModal
+        isOpen={isSpecialtyModalOpen}
+        onClose={() => setIsSpecialtyModalOpen(false)}
+        selectedSlug={onboardForm.specialty_slug}
+        onSelect={(slug) => setOnboardForm(prev => ({ ...prev, specialty_slug: slug }))}
+      />
     </div>
   )
 }
