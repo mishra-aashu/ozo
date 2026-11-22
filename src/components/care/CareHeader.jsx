@@ -364,9 +364,6 @@ export default function CareHeader() {
                               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
                                 My Account
                               </span>
-                              <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">
-                                Personal
-                              </span>
                             </div>
 
                             {[
@@ -404,9 +401,6 @@ export default function CareHeader() {
                               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
                                 Portals & Workspaces
                               </span>
-                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                                Ecosystem
-                              </span>
                             </div>
 
                             {[
@@ -414,43 +408,36 @@ export default function CareHeader() {
                                 to: '/admin', 
                                 icon: ShieldCheck, 
                                 label: isSuperAdmin ? 'Admin Panel' : 'City Manager',
-                                badge: 'Admin'
                               }] : []),
                               ...(isMartOperator ? [{ 
                                 to: '/mart', 
                                 icon: Store, 
                                 label: 'Mart Portal',
-                                badge: 'Mart'
                               }] : []),
                               ...(isCaptain ? [{ 
                                 to: '/captain', 
                                 icon: Bike, 
                                 label: 'Rider Portal',
-                                badge: 'Rider'
                               }] : []),
                               ...(isServiceManager ? [{ 
                                 to: '/service-manager', 
                                 icon: Wrench, 
                                 label: 'Service Partner',
-                                badge: 'Services'
                               }] : []),
                               { 
                                 to: '/doctor', 
                                 icon: Stethoscope, 
                                 label: 'Doctor Workstation',
-                                badge: 'OPD'
                               },
                               { 
                                 to: '/pharmacy', 
                                 icon: Building2, 
                                 label: 'Chemist Portal',
-                                badge: 'Form 20/21'
                               },
                               { 
                                 to: '/', 
                                 icon: ShoppingBag, 
                                 label: 'Switch to OzoMart',
-                                badge: 'Quick Mart'
                               },
                             ].map((item) => (
                               <Link
@@ -465,11 +452,6 @@ export default function CareHeader() {
                                   </div>
                                   <span className="truncate">{item.label}</span>
                                 </div>
-                                {item.badge && (
-                                  <span className="px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[10px] font-bold flex-shrink-0">
-                                    {item.badge}
-                                  </span>
-                                )}
                               </Link>
                             ))}
                           </div>

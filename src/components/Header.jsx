@@ -801,9 +801,6 @@ const Header = () => {
                               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
                                 My Account
                               </span>
-                              <span className="text-[10px] font-semibold text-gray-400 dark:text-gray-500">
-                                Personal
-                              </span>
                             </div>
 
                             {[
@@ -846,9 +843,6 @@ const Header = () => {
                               <span className="text-[10px] font-black uppercase tracking-wider text-gray-400 dark:text-gray-500">
                                 Portals & Workspaces
                               </span>
-                              <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400">
-                                Ecosystem
-                              </span>
                             </div>
 
                             {[
@@ -856,43 +850,36 @@ const Header = () => {
                                 to: '/admin', 
                                 icon: Shield, 
                                 label: isSuperAdmin ? 'Admin Panel' : 'City Manager',
-                                badge: 'Admin'
                               }] : []),
                               ...(isMartOperator ? [{ 
                                 to: '/mart', 
                                 icon: Store, 
                                 label: 'Mart Portal',
-                                badge: 'Mart'
                               }] : []),
                               ...(isCaptain ? [{ 
                                 to: '/captain', 
                                 icon: Bike, 
                                 label: 'Rider Portal',
-                                badge: 'Rider'
                               }] : []),
                               ...(isServiceManager ? [{ 
                                 to: '/service-manager', 
                                 icon: Wrench, 
                                 label: 'Service Partner',
-                                badge: 'Services'
                               }] : []),
                               { 
                                 to: '/care', 
                                 icon: Stethoscope, 
                                 label: 'OzoCare Health',
-                                badge: 'Care'
                               },
                               { 
                                 to: '/doctor', 
                                 icon: Stethoscope, 
                                 label: 'Doctor Workstation',
-                                badge: 'OPD'
                               },
                               { 
                                 to: '/pharmacy', 
                                 icon: Pill, 
                                 label: 'Chemist Portal',
-                                badge: 'Pharmacy'
                               },
                             ].map((item) => (
                               <Link
@@ -907,11 +894,6 @@ const Header = () => {
                                   </div>
                                   <span className="truncate">{item.label}</span>
                                 </div>
-                                {item.badge && (
-                                  <span className="px-1.5 py-0.5 rounded-md bg-gray-100 dark:bg-white/10 text-gray-600 dark:text-gray-400 text-[10px] font-bold flex-shrink-0">
-                                    {item.badge}
-                                  </span>
-                                )}
                               </Link>
                             ))}
                           </div>
