@@ -1321,43 +1321,24 @@ const MartHome = () => {
     }
   }, [displaySummerSpecials])
 
-  // Computed / fallback budget products under 50
+  // Computed budget products under 50 (100% Real DB Products only)
   const displayBudgetProducts = useMemo(() => {
-    const fallbackBudget = [
-      { id: 'budget-1', name: 'Amul Vanilla Ice Cream Cup', price: 20, mrp: 20, discount_percentage: 0, unit: '100ml', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/baskin-robbins-vanilla-ice-cream-tub-450ml.png', is_available: true, category_id: 'ice-cream' },
-      { id: 'budget-2', name: 'Amul Chocobar Ice Cream', price: 30, mrp: 30, discount_percentage: 0, unit: '60ml', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/minus-thirty-vanilla-mini-ice-cream-stick-vegan-sugar-free-40ml.png', is_available: true, category_id: 'ice-cream' },
-      { id: 'budget-3', name: 'Pepsi Soft Drink', price: 40, mrp: 40, discount_percentage: 0, unit: '750ml', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/pepsi-soft-drink-750ml.png', is_available: true, category_id: 'beverages' },
-      { id: 'budget-4', name: 'Coca-Cola Soft Drink Can', price: 35, mrp: 40, discount_percentage: 12, unit: '250ml', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/coca-cola-diet-coke-soft-drink-no-caffeine-330ml.png', is_available: true, category_id: 'beverages' },
-      { id: 'budget-5', name: "Haldiram's Aloo Bhujia", price: 20, mrp: 20, discount_percentage: 0, unit: '85g', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/haldirams-aloo-bhujia-85g.png', is_available: true, category_id: 'snacks' },
-      { id: 'budget-6', name: "Haldiram's Khatta Meetha Namkeen", price: 20, mrp: 20, discount_percentage: 0, unit: '85g', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/haldirams-khatta-meetha-mixture-namkeen-85g.png', is_available: true, category_id: 'snacks' },
-      { id: 'budget-7', name: 'Sweet Gulab Jamun Cup', price: 30, mrp: 35, discount_percentage: 14, unit: '2 pcs', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/bauli-moonfils-choco-vanilla-twin-crme-soft-croissant-eggless-110g.png', is_available: true, category_id: 'sweets' },
-      { id: 'budget-8', name: 'Fresh Banana (Kela)', price: 49, mrp: 60, discount_percentage: 18, unit: '1 Dozen', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/fresh-banana-kela-fres.jpg', is_available: true, category_id: 'fruits-vegetables' }
-    ];
+    if (!budgetProductsData || budgetProductsData.length === 0) return []
 
-    if (budgetProductsData && budgetProductsData.length > 0) {
-      const isUpcoming = (p) => {
-        const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
-        const isOOS = !p.is_available || isQtyOOS;
-        return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
-      };
-      const filteredBudget = budgetProductsData.filter(p => !isUpcoming(p));
-      const excludedIds = new Set([
-        ...displayStealDeals.map(p => p.id),
-        ...displayMandi.map(p => p.id)
-      ]);
-      const filtered = filteredBudget.filter(p => !excludedIds.has(p.id));
-
-      const inStock = filtered.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-      const outOfStock = filtered.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
-
-      const mixedInStock = mixCategories(inStock, shuffleSeed, 150);
-      const mixedOutOfStock = mixCategories(outOfStock, shuffleSeed, 150);
-
-      return [...mixedInStock, ...mixedOutOfStock].slice(0, 12);
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0
+      const isOOS = !p.is_available || isQtyOOS
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false)
     }
+    const filteredBudget = budgetProductsData.filter(p => !isUpcoming(p) && p.is_available)
+    const excludedIds = new Set([
+      ...displayStealDeals.map(p => p.id),
+      ...displayMandi.map(p => p.id)
+    ])
+    const inStock = filteredBudget.filter(p => !excludedIds.has(p.id) && !(p.quantity_available !== null && p.quantity_available === 0))
 
-    return [];
-  }, [budgetProductsData, displayStealDeals, displayMandi, shuffleSeed, launchConfig]);
+    return mixCategories(inStock, shuffleSeed, 150).slice(0, 12)
+  }, [budgetProductsData, displayStealDeals, displayMandi, shuffleSeed, launchConfig])
 
   const features = [
     {
