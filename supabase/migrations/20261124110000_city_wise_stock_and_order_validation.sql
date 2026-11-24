@@ -604,3 +604,79 @@ $$;
 
 GRANT EXECUTE ON FUNCTION public.mark_all_products_city_in_stock(TEXT) TO authenticated, service_role;
 
+-- 5. Statistics helpers for city catalog & stock health
+CREATE OR REPLACE FUNCTION public.get_city_catalog_stats(p_city_slug TEXT)
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_total_global INT;
+  v_total_city INT;
+  v_in_stock INT;
+  v_out_of_stock INT;
+BEGIN
+  SELECT count(*) INTO v_total_global FROM public.products;
+
+  SELECT 
+    count(*),
+    count(*) FILTER (WHERE is_available = true),
+    count(*) FILTER (WHERE is_available = false)
+  INTO v_total_city, v_in_stock, v_out_of_stock
+  FROM public.product_city_availability
+  WHERE city_slug = p_city_slug;
+
+  RETURN json_build_object(
+    'city_slug', p_city_slug,
+    'global_total', v_total_global,
+    'city_total', v_total_city,
+    'in_stock', v_in_stock,
+    'out_of_stock', v_out_of_stock
+  );
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_city_catalog_stats(TEXT) TO authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.get_all_cities_catalog_stats()
+RETURNS JSON
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  result JSON;
+  v_total_global INT;
+BEGIN
+  SELECT count(*) INTO v_total_global FROM public.products;
+
+  SELECT json_agg(
+    json_build_object(
+      'city_id', oc.id,
+      'city_name', oc.name,
+      'city_slug', oc.slug,
+      'state', oc.state,
+      'global_total', v_total_global,
+      'city_total', COALESCE(stats.city_total, 0),
+      'in_stock', COALESCE(stats.in_stock, 0),
+      'out_of_stock', COALESCE(stats.out_of_stock, 0)
+    ) ORDER BY oc.name
+  ) INTO result
+  FROM public.operating_cities oc
+  LEFT JOIN (
+    SELECT 
+      city_slug,
+      count(*) as city_total,
+      count(*) FILTER (WHERE is_available = true) as in_stock,
+      count(*) FILTER (WHERE is_available = false) as out_of_stock
+    FROM public.product_city_availability
+    GROUP BY city_slug
+  ) stats ON stats.city_slug = oc.slug
+  WHERE oc.is_active = true;
+
+  RETURN COALESCE(result, '[]'::json);
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.get_all_cities_catalog_stats() TO authenticated, service_role;
+
+

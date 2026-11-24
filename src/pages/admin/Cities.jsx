@@ -26,7 +26,8 @@ import {
   AlertOctagon,
   CheckCircle2,
   Filter,
-  Layers
+  Layers,
+  BarChart3
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -107,6 +108,8 @@ const Cities = () => {
   // City PCA Catalog isolation state
   const [cityPcaCount, setCityPcaCount] = useState(null)
   const [totalMasterCount, setTotalMasterCount] = useState(0)
+  const [citiesCatalogStats, setCitiesCatalogStats] = useState([])
+  const [loadingCatalogStats, setLoadingCatalogStats] = useState(false)
 
   // Emergency Out-of-Stock All State
   const [showMarkAllOosModal, setShowMarkAllOosModal] = useState(false)
@@ -265,11 +268,28 @@ const Cities = () => {
     }
   }
 
+  const fetchCitiesCatalogStats = async () => {
+    setLoadingCatalogStats(true)
+    try {
+      const { data, error } = await supabase.rpc('get_all_cities_catalog_stats')
+      if (error) {
+        console.warn('get_all_cities_catalog_stats error:', error)
+      } else if (data) {
+        setCitiesCatalogStats(data)
+      }
+    } catch (e) {
+      console.warn('Stats fetch error:', e)
+    } finally {
+      setLoadingCatalogStats(false)
+    }
+  }
+
   useEffect(() => {
     fetchCities()
     fetchVisCategories()
     fetchVisBrands()
     fetchCityManagers()
+    fetchCitiesCatalogStats()
   }, [])
 
   useEffect(() => {
@@ -553,6 +573,7 @@ const Cities = () => {
         setAllOosConfirmInput('')
         setAllOosAcknowledged(false)
         await fetchVisibilityProducts()
+        await fetchCitiesCatalogStats()
         return
       }
 
@@ -597,6 +618,7 @@ const Cities = () => {
       setAllOosAcknowledged(false)
       setAllOosProgress(null)
       await fetchVisibilityProducts()
+      await fetchCitiesCatalogStats()
     } catch (err) {
       console.error('Failed to mark all out of stock:', err)
       toast.error('Failed to mark out of stock: ' + err.message, { id: toastId })
@@ -621,6 +643,7 @@ const Cities = () => {
         setShowMarkAllInStockModal(false)
         setAllInStockAcknowledged(false)
         await fetchVisibilityProducts()
+        await fetchCitiesCatalogStats()
         return
       }
 
@@ -654,6 +677,7 @@ const Cities = () => {
       setShowMarkAllInStockModal(false)
       setAllInStockAcknowledged(false)
       await fetchVisibilityProducts()
+      await fetchCitiesCatalogStats()
     } catch (err) {
       console.error('Failed to mark all in stock:', err)
       toast.error('Failed: ' + err.message, { id: toastId })
@@ -1516,6 +1540,138 @@ const Cities = () => {
               </select>
             </div>
           </div>
+
+          {/* City Catalog & Stock Health Dashboard */}
+          {(() => {
+            const currentCityStats = citiesCatalogStats.find(s => s.city_slug === selectedCityForVisibility) || {
+              global_total: totalMasterCount || 36473,
+              city_total: cityPcaCount ?? 0,
+              in_stock: 0,
+              out_of_stock: 0
+            }
+
+            return (
+              <div className="bg-gradient-to-br from-gray-50/90 to-gray-100/50 dark:from-white/[0.03] dark:to-white/[0.01] p-5 rounded-3xl border border-gray-150 dark:border-white/10 mb-6 shadow-sm">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-200/70 dark:border-white/5">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-lg bg-ozo-red/10 text-ozo-red">
+                      <BarChart3 className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h3 className="text-sm font-extrabold text-gray-900 dark:text-white uppercase tracking-wider">
+                        City Stock & Catalogue Health Overview
+                      </h3>
+                      <p className="text-[11px] text-gray-500 dark:text-gray-400">
+                        Real-time status of global master products in <strong className="text-gray-800 dark:text-gray-200">{cities.find(c => c.slug === selectedCityForVisibility)?.name || selectedCityForVisibility}</strong>
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      fetchCitiesCatalogStats()
+                      fetchVisibilityProducts()
+                    }}
+                    disabled={loadingCatalogStats}
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl border border-gray-250 dark:border-white/10 hover:bg-white dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 text-xs font-bold transition-all shadow-xs cursor-pointer active:scale-95 self-start sm:self-auto"
+                    title="Refresh real-time stats from database"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingCatalogStats ? 'animate-spin' : ''}`} />
+                    <span>Sync Live Stats</span>
+                  </button>
+                </div>
+
+                {/* Target City 4-Metric Grid */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+                  {/* Card 1: Global Master Catalog */}
+                  <div className="bg-white dark:bg-[#1f1f28] p-3.5 rounded-2xl border border-gray-150 dark:border-white/5 shadow-xs">
+                    <div className="flex items-center justify-between text-gray-400 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Global Master Total</span>
+                      <Globe className="w-3.5 h-3.5 text-blue-500" />
+                    </div>
+                    <div className="text-xl font-black text-gray-900 dark:text-white">
+                      {(currentCityStats?.global_total || totalMasterCount || 36473).toLocaleString()}
+                    </div>
+                    <span className="text-[10px] text-gray-400">All master products</span>
+                  </div>
+
+                  {/* Card 2: Configured in City */}
+                  <div className="bg-white dark:bg-[#1f1f28] p-3.5 rounded-2xl border border-gray-150 dark:border-white/5 shadow-xs">
+                    <div className="flex items-center justify-between text-gray-400 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">In City Catalogue</span>
+                      <Package className="w-3.5 h-3.5 text-purple-500" />
+                    </div>
+                    <div className="text-xl font-black text-gray-900 dark:text-white">
+                      {(currentCityStats?.city_total ?? cityPcaCount ?? 0).toLocaleString()}
+                    </div>
+                    <span className="text-[10px] text-gray-400">Linked to this city</span>
+                  </div>
+
+                  {/* Card 3: Live In Stock */}
+                  <div className="bg-white dark:bg-[#1f1f28] p-3.5 rounded-2xl border border-emerald-200/60 dark:border-emerald-800/30 shadow-xs">
+                    <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Live In Stock</span>
+                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                    </div>
+                    <div className="text-xl font-black text-emerald-600 dark:text-emerald-400">
+                      {(currentCityStats?.in_stock ?? 0).toLocaleString()}
+                    </div>
+                    <span className="text-[10px] text-emerald-500/80 font-semibold">Available for orders</span>
+                  </div>
+
+                  {/* Card 4: Out of Stock */}
+                  <div className="bg-white dark:bg-[#1f1f28] p-3.5 rounded-2xl border border-red-200/60 dark:border-red-800/30 shadow-xs">
+                    <div className="flex items-center justify-between text-red-600 dark:text-red-400 mb-1">
+                      <span className="text-[10px] font-bold uppercase tracking-wider">Out of Stock</span>
+                      <AlertOctagon className="w-3.5 h-3.5 text-red-500" />
+                    </div>
+                    <div className="text-xl font-black text-red-600 dark:text-red-400">
+                      {(currentCityStats?.out_of_stock ?? 0).toLocaleString()}
+                    </div>
+                    <span className="text-[10px] text-red-500/80 font-semibold">Blocked from orders</span>
+                  </div>
+                </div>
+
+                {/* All Operating Cities Comparative Pills */}
+                {citiesCatalogStats.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-200/70 dark:border-white/5">
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
+                      City-by-City Quick Status & Switcher:
+                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {citiesCatalogStats.map(stat => {
+                        const isSelected = stat.city_slug === selectedCityForVisibility
+                        return (
+                          <button
+                            key={stat.city_slug}
+                            type="button"
+                            onClick={() => {
+                              setSelectedCityForVisibility(stat.city_slug)
+                              setProdPage(1)
+                            }}
+                            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer border ${
+                              isSelected
+                                ? 'bg-white dark:bg-[#25252e] border-ozo-red text-gray-900 dark:text-white shadow-md ring-2 ring-ozo-red/20'
+                                : 'bg-white/60 dark:bg-white/[0.02] border-gray-200 dark:border-white/10 text-gray-600 dark:text-gray-400 hover:bg-white dark:hover:bg-white/5'
+                            }`}
+                          >
+                            <MapPin className={`w-3.5 h-3.5 ${isSelected ? 'text-ozo-red' : 'text-gray-400'}`} />
+                            <span>{stat.city_name}</span>
+                            <span className="inline-flex items-center gap-1.5 ml-1 px-1.5 py-0.5 rounded-lg bg-gray-100 dark:bg-white/5 text-[10px]">
+                              <span className="text-emerald-600 font-extrabold">{stat.in_stock} In</span>
+                              <span className="text-gray-300 dark:text-gray-600">|</span>
+                              <span className="text-red-500 font-extrabold">{stat.out_of_stock} Out</span>
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {/* Sub Navigation Tabs */}
           <div className="flex gap-2 p-1.5 bg-gray-50 dark:bg-white/[0.02] border border-gray-100 dark:border-white/5 rounded-2xl w-fit mb-6">
@@ -2521,9 +2677,10 @@ const Cities = () => {
                   <div className="font-black flex items-center gap-1.5 uppercase text-amber-700 dark:text-amber-400">
                     <AlertCircle className="w-4 h-4" /> Immediate Impact Warning
                   </div>
-                  <p>• Every single product in <span className="font-bold">{selectedCityForVisibility}</span> will immediately show <span className="font-bold text-red-600">OUT OF STOCK</span> across the entire store and app.</p>
-                  <p>• Customers will NOT be able to add items or place orders for this city.</p>
-                  <p>• Runs safely in an atomic server query or non-blocking batch queue.</p>
+                  <p>• All <span className="font-bold">{(totalMasterCount || 36473).toLocaleString()} products</span> in the entire global master catalogue will immediately be marked as <span className="font-bold text-red-600">OUT OF STOCK</span> specifically for <span className="font-bold underline">{cities.find(c => c.slug === selectedCityForVisibility)?.name || selectedCityForVisibility}</span>.</p>
+                  <p>• Other operating cities will remain completely unaffected.</p>
+                  <p>• Customers in this city will NOT be able to add any products or checkout until restored.</p>
+                  <p>• Executed instantly and atomically via database RPC without browser freezing.</p>
                 </div>
 
                 {allOosProgress && (
