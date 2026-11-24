@@ -1022,6 +1022,8 @@ const Cities = () => {
     setFormData({
       name: '',
       slug: '',
+      code: '',
+      aliasesStr: '',
       state: '',
       latitude: '',
       longitude: '',
@@ -1040,6 +1042,8 @@ const Cities = () => {
     setFormData({
       name: city.name || '',
       slug: city.slug || '',
+      code: city.code || '',
+      aliasesStr: city.aliases ? city.aliases.join(', ') : '',
       state: city.state || '',
       latitude: city.latitude || '',
       longitude: city.longitude || '',
@@ -1083,9 +1087,31 @@ const Cities = () => {
         ? formData.allowedPincodesStr.split(',').map(p => p.trim()).filter(Boolean)
         : []
 
+      // Generate or normalize 3-letter city code
+      let cityCode = (formData.code || '').trim().toUpperCase()
+      if (!cityCode) {
+        const cleanName = formData.name.replace(/[^a-zA-Z]/g, '')
+        cityCode = cleanName.length >= 3 ? cleanName.substring(0, 3).toUpperCase() : cleanName.toUpperCase()
+      }
+
+      // Generate or parse aliases array
+      const customAliases = formData.aliasesStr
+        ? formData.aliasesStr.split(',').map(a => a.trim().toLowerCase()).filter(Boolean)
+        : []
+      
+      const defaultAliases = [
+        formData.name.toLowerCase().trim(),
+        formData.slug.toLowerCase().trim(),
+        cityCode.toLowerCase().trim(),
+        formData.name.split(',')[0].trim().toLowerCase()
+      ]
+      const mergedAliases = Array.from(new Set([...customAliases, ...defaultAliases])).filter(Boolean)
+
       const payload = {
         name: formData.name.trim(),
         slug: formData.slug.trim(),
+        code: cityCode,
+        aliases: mergedAliases,
         state: formData.state.trim(),
         latitude: formData.latitude ? parseFloat(formData.latitude) : null,
         longitude: formData.longitude ? parseFloat(formData.longitude) : null,
@@ -1390,7 +1416,19 @@ const Cities = () => {
                     return (
                       <tr key={city.id} className="hover:bg-gray-50/50 dark:hover:bg-white/[0.01] transition-colors">
                         <td className="p-4 font-bold text-gray-850 dark:text-white">
-                          {city.name}
+                          <div className="flex items-center gap-2">
+                            <span>{city.name}</span>
+                            {city.code && (
+                              <span className="px-2 py-0.5 rounded text-[11px] font-mono font-black bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 shadow-sm" title={`City Code: ${city.code}`}>
+                                {city.code}
+                              </span>
+                            )}
+                          </div>
+                          {city.aliases && city.aliases.length > 0 && (
+                            <div className="text-[10px] font-normal text-gray-400 truncate max-w-[220px] mt-0.5" title={`Aliases: ${city.aliases.join(', ')}`}>
+                              {city.aliases.slice(0, 3).join(', ')}{city.aliases.length > 3 ? '...' : ''}
+                            </div>
+                          )}
                         </td>
                         <td className="p-4 text-sm font-mono text-gray-500">
                           {city.slug}
@@ -2359,16 +2397,48 @@ const Cities = () => {
                   />
                 </div>
 
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase mb-2">
+                      City Code <span className="text-[10px] text-amber-500 font-normal">(Admin & Stock)</span>
+                    </label>
+                    <input
+                      type="text"
+                      maxLength={5}
+                      placeholder="e.g. BGP, AUR"
+                      value={formData.code}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value.toUpperCase() })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-mono font-bold uppercase tracking-wider"
+                    />
+                    <p className="text-[10px] text-gray-400 mt-1">Unique 3-letter code. Auto-generated if blank.</p>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-black text-gray-400 uppercase mb-2">State *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g., Bihar"
+                      value={formData.state}
+                      onChange={(e) => setFormData({ ...formData, state: e.target.value })}
+                      className="w-full px-4 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-semibold"
+                    />
+                  </div>
+                </div>
+
                 <div>
-                  <label className="block text-xs font-black text-gray-400 uppercase mb-2">State *</label>
+                  <label className="block text-xs font-black text-gray-400 uppercase mb-2">
+                    Search Aliases & Typo Nicknames <span className="text-[10px] text-gray-400 font-normal">(Comma-separated)</span>
+                  </label>
                   <input
                     type="text"
-                    required
-                    placeholder="e.g., Bihar"
-                    value={formData.state}
-                    onChange={(e) => setFormData({ ...formData, state: e.target.value })}
-                    className="w-full px-4 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-semibold"
+                    placeholder="e.g. bhagalpur, bgp, bhg, bhagalpur bihar, bhgalpur"
+                    value={formData.aliasesStr}
+                    onChange={(e) => setFormData({ ...formData, aliasesStr: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white font-mono"
                   />
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    Customer inputs and address typos matching these resolve automatically to this city.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
