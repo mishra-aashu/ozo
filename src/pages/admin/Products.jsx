@@ -147,6 +147,7 @@ const Products = () => {
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [marts, setMarts] = useState([])
+  const [operatingCities, setOperatingCities] = useState([])
   const [hoveredImage, setHoveredImage] = useState(null)
 
   // States
@@ -427,6 +428,18 @@ WHERE id = '${editingProduct.id}';`
       } catch (err) {
         console.warn('Error fetching vendor config:', err)
       }
+
+      // 4. Fetch Operating Cities for real city badges
+      try {
+        const { data: cityData } = await supabaseAdmin
+          .from('operating_cities')
+          .select('id, name, slug, state')
+          .eq('is_active', true)
+          .order('name', { ascending: true })
+        setOperatingCities(cityData || [])
+      } catch (cityErr) {
+        console.warn('Failed to load operating cities:', cityErr)
+      }
     } catch (error) {
       console.error('Unexpected error fetching static lookups:', error)
     }
@@ -472,7 +485,8 @@ WHERE id = '${editingProduct.id}';`
           *,
           category:categories ( id, name, slug ),
           mart:marts!mart_id ( id, name ),
-          enriched_mart:marts!enriched_by_mart_id ( id, name )
+          enriched_mart:marts!enriched_by_mart_id ( id, name ),
+          product_city_availability ( city_slug, is_available )
         `, { count: 'exact' })
 
       // Verification Status Filter
@@ -1914,6 +1928,54 @@ WHERE id = '${editingProduct.id}';`
                               )}
                               <span className="text-[10px] text-gray-400 whitespace-nowrap">{product.unit}</span>
                             </div>
+
+                            {/* Live City Availability Badges */}
+                            {operatingCities.length > 0 && (
+                              <div className="flex flex-wrap items-center gap-1 mt-1">
+                                {operatingCities.map(city => {
+                                  const pca = Array.isArray(product.product_city_availability) 
+                                    ? product.product_city_availability.find(p => p.city_slug === city.slug)
+                                    : null
+
+                                  if (!pca) {
+                                    return (
+                                      <span 
+                                        key={city.slug} 
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          handleEditProductClick(product)
+                                          setDrawerTab('inventory')
+                                        }}
+                                        className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer transition-colors" 
+                                        title={`${city.name}: Not in catalog (Click to configure)`}
+                                      >
+                                        <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
+                                        {city.name.split(',')[0]}
+                                      </span>
+                                    )
+                                  }
+                                  return (
+                                    <span 
+                                      key={city.slug} 
+                                      onClick={(e) => {
+                                        e.stopPropagation()
+                                        handleEditProductClick(product)
+                                        setDrawerTab('inventory')
+                                      }}
+                                      className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-bold cursor-pointer transition-colors ${
+                                        pca.is_available 
+                                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/30 hover:bg-emerald-100' 
+                                          : 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/30 hover:bg-red-100'
+                                      }`} 
+                                      title={`${city.name}: ${pca.is_available ? 'Live In Stock' : 'Out of Stock'} (Click to manage)`}
+                                    >
+                                      <span className={`w-1.5 h-1.5 rounded-full ${pca.is_available ? 'bg-emerald-500' : 'bg-red-500'}`} />
+                                      {city.name.split(',')[0]}: {pca.is_available ? 'In' : 'Out'}
+                                    </span>
+                                  )
+                                })}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -2584,6 +2646,7 @@ WHERE id = '${editingProduct.id}';`
               <ProductCityManager 
                 productId={editingProduct?.id} 
                 productName={editingProduct?.name} 
+                onSaveSuccess={fetchProducts}
               />
             </div>
           ) : (
