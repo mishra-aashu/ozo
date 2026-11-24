@@ -70,6 +70,8 @@ const Cities = () => {
   const [formData, setFormData] = useState({
     name: '',
     slug: '',
+    code: '',
+    aliasesStr: '',
     state: '',
     latitude: '',
     longitude: '',

@@ -1,7 +1,8 @@
 // Dynamic Smart City Resolver & Normalizer
-// 100% Dynamic: NO hardcoded cities or aliases.
-// Reads entirely from database (operating_cities) via activeCities list or locationStore.
-// Supports: Case insensitivity, Code matching, Alias matching, Substring matching, and Levenshtein Typo Tolerance.
+// 100% Dynamic: ZERO hardcoded cities or static dictionaries.
+// Reads entirely from database (operating_cities) via activeCities list or window.__ozo_active_cities.
+// Features: Case insensitivity, City code matching, Pincode matching, Dynamic alias synthesis,
+// Substring matching, and Levenshtein Typo/Spelling Tolerance.
 
 /**
  * Calculates string similarity using Levenshtein distance (0.0 to 1.0)
@@ -47,9 +48,56 @@ export function normalizeCityString(input) {
 }
 
 /**
- * Dynamically resolves any city string / code / alias to canonical city object
- * @param {string} input - City string, slug, code or address fragment (e.g. 'BHAGALPUR', 'bgp', 'bhgalpur', 'Aurangabad, Bihar')
- * @param {Array} citiesList - Optional array of operating_cities from DB. If not provided, reads from locationStore.
+ * Dynamically synthesizes search aliases for a city object if not already explicitly stored.
+ * Generates combinations: pure name, name without state, acronyms, code, slug without hyphens.
+ */
+export function getCityAliases(city) {
+  if (!city) return []
+  const aliases = new Set()
+
+  // 1. Explicit aliases from DB if present
+  if (Array.isArray(city.aliases)) {
+    city.aliases.forEach(a => {
+      if (a && typeof a === 'string') {
+        aliases.add(a.toLowerCase().trim())
+        const cleanA = normalizeCityString(a)
+        if (cleanA) aliases.add(cleanA)
+      }
+    })
+  }
+
+  // 2. City Code
+  if (city.code && typeof city.code === 'string') {
+    aliases.add(city.code.toLowerCase().trim())
+  }
+
+  // 3. City Slug
+  if (city.slug && typeof city.slug === 'string') {
+    aliases.add(city.slug.toLowerCase().trim())
+    aliases.add(city.slug.replace(/[-_]+/g, ' ').trim().toLowerCase())
+  }
+
+  // 4. City Name (both full and primary part before comma)
+  if (city.name && typeof city.name === 'string') {
+    const rawLower = city.name.toLowerCase().trim()
+    aliases.add(rawLower)
+    const primary = city.name.split(',')[0].trim().toLowerCase()
+    aliases.add(primary)
+    const cleanName = normalizeCityString(city.name)
+    if (cleanName) aliases.add(cleanName)
+    // Primary + state combo (e.g. "bhagalpur bihar")
+    if (city.state && typeof city.state === 'string') {
+      aliases.add(`${primary} ${city.state.toLowerCase().trim()}`)
+    }
+  }
+
+  return Array.from(aliases).filter(Boolean)
+}
+
+/**
+ * Dynamically resolves any city string / code / alias / pincode to canonical city object
+ * @param {string} input - City string, slug, code, pincode, or address fragment (e.g. 'BHAGALPUR', 'bgp', 'bhgalpur', '824101')
+ * @param {Array} citiesList - Optional array of operating_cities from DB. If not provided, reads from cache/window.
  * @returns {object|null} Canonical city object from DB: { id, name, slug, code, state, ... }
  */
 export function resolveCity(input, citiesList = null) {
@@ -71,28 +119,34 @@ export function resolveCity(input, citiesList = null) {
   const cleaned = normalizeCityString(rawTrimmed)
   const slugified = cleaned.replace(/\s+/g, '-')
 
-  // 1. Exact City Code match (e.g. 'BGP', 'AUR')
+  // Check 1: Pincode Match (if input is 6 digits)
+  if (/^\d{6}$/.test(rawTrimmed)) {
+    const byPincode = activeCities.find(c => 
+      Array.isArray(c.allowed_pincodes) && c.allowed_pincodes.some(p => String(p).trim() === rawTrimmed)
+    )
+    if (byPincode) return byPincode
+  }
+
+  // Check 2: Exact City Code match (e.g. 'BGP', 'AUR', 'GAY')
   const byCode = activeCities.find(c => c.code && c.code.toUpperCase() === upperTrimmed)
   if (byCode) return byCode
 
-  // 2. Exact Slug match (case-insensitive)
+  // Check 3: Exact Slug match (case-insensitive)
   const bySlug = activeCities.find(c => 
     c.slug && (c.slug.toLowerCase() === rawTrimmed.toLowerCase() || c.slug.toLowerCase() === slugified)
   )
   if (bySlug) return bySlug
 
-  // 3. Match within dynamic DB aliases array (e.g. c.aliases from Postgres)
+  // Check 4: Match within dynamic synthesized aliases (DB aliases + auto-derived aliases)
   const byAlias = activeCities.find(c => {
-    if (!Array.isArray(c.aliases)) return false
-    return c.aliases.some(a => {
-      if (!a) return false
-      const aClean = normalizeCityString(a)
-      return aClean === cleaned || a.toLowerCase() === rawTrimmed.toLowerCase()
+    const allAliases = getCityAliases(c)
+    return allAliases.some(a => {
+      return a === rawTrimmed.toLowerCase() || a === cleaned
     })
   })
   if (byAlias) return byAlias
 
-  // 4. Cleaned Name exact or substring match
+  // Check 5: Cleaned Name exact or substring match
   const byName = activeCities.find(c => {
     const cClean = normalizeCityString(c.name)
     if (!cClean) return false
@@ -100,16 +154,18 @@ export function resolveCity(input, citiesList = null) {
   })
   if (byName) return byName
 
-  // 5. Smart Fuzzy matching with similarity threshold (handles spelling mistakes like 'bhaglpur' -> 'Bhagalpur')
+  // Check 6: Smart Fuzzy matching with Levenshtein distance for typos (e.g. 'bhgalpur' -> 'Bhagalpur', 'aurangbad' -> 'Aurangabad')
   let bestMatch = null
   let highestSimilarity = 0
 
   for (const c of activeCities) {
-    const cClean = normalizeCityString(c.name)
-    const sim = calculateSimilarity(cleaned, cClean)
-    if (sim > highestSimilarity && sim >= 0.65) {
-      highestSimilarity = sim
-      bestMatch = c
+    const allAliases = getCityAliases(c)
+    for (const alias of allAliases) {
+      const sim = calculateSimilarity(cleaned, alias)
+      if (sim > highestSimilarity && sim >= 0.65) {
+        highestSimilarity = sim
+        bestMatch = c
+      }
     }
   }
 
@@ -125,7 +181,7 @@ export function resolveCitySlug(input, citiesList = null, fallback = null) {
   if (fallback) return fallback
   const first = (Array.isArray(citiesList) && citiesList.length > 0)
     ? citiesList[0]
-    : useLocationStore?.getState?.()?.activeCities?.[0]
+    : (typeof window !== 'undefined' && window.__ozo_active_cities?.[0])
   return first?.slug || 'aurangabad-bihar'
 }
 
