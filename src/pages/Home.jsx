@@ -1007,199 +1007,75 @@ const MartHome = () => {
     }
   }
 
-  // Smart helper to look up real product matching context keywords
-  const findRealProduct = (keywords, defaultName, defaultImage) => {
-    const allProds = [...bestsellerProducts, ...featuredProducts]
-    const found = allProds.find(p => 
-      keywords.some(kw => p.name.toLowerCase().includes(kw))
-    )
-    if (found) {
-      return {
-        product_id: found.id,
-        name: found.name,
-        image_url: found.image_url
-      }
-    }
-    return {
-      product_id: `mock-${defaultName.toLowerCase().replace(/\s+/g, '-')}`,
-      name: defaultName,
-      image_url: defaultImage
-    }
-  }
-
-  // Pair correct products instead of blindly slicing indices
-  const tomatoProd = findRealProduct(['tomato', 'tamatar'], 'Fresh Red Tomatoes', 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/tomato_1.jpg')
-  const onionProd = findRealProduct(['onion', 'pyaz', 'pyaaz'], 'Fresh Red Onion (Pyaz)', 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/fresh-red-onion-pyaz-fres.jpg')
-  const potatoProd = findRealProduct(['potato', 'aloo'], 'Premium Potato (Aloo)', 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/potato_1.jpg')
-  const makhanaProd = findRealProduct(['makhana', 'phool'], 'Premium Mithila Phool Makhana', 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/premium-mithila-phool-makhana.jpg')
-  const thekuaProd = findRealProduct(['thekua'], 'Mithila Special Leaf-Shaped Thekua', '/images/products/thekua.png')
-  const mangoProd = findRealProduct(['mango', 'hapus', 'aam'], 'Premium Alphonso Mango (Hapus)', 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/premium-alphonso-mango-hapus-prem.jpg')
-  const pomegranateProd = findRealProduct(['pomegranate', 'anar'], 'Fresh Pomegranate (Anar)', 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/fresh-pomegranate-anar-fres.jpg')
-  const pickleProd = findRealProduct(['pickle', 'achar', 'mango pickle'], 'Mithila Special Homemade Mango Pickle', '/images/products/mithila-special-homemade-mango-pickle.jpg')
-
-  // Computed / fallback quick reorders
+  // Computed quick reorders (Real past user orders only - ZERO mock products)
   const reorderPacks = useMemo(() => {
-    let rawList = [];
-    if (user && recentOrdersData && recentOrdersData.length > 0) {
-      rawList = recentOrdersData.map(o => ({
-        id: o?.id,
-        name: `Order #${o?.order_number ? o.order_number.slice(-6) : ''}`,
-        items: (o?.order_items || [])
-          .filter(item => item && item.product_id && item.product_name)
-          .map(item => ({
-            product_id: item.product_id,
-            name: item.product_name,
-            image_url: item.product_image,
-            quantity: item.quantity
-          }))
-      })).filter(pack => pack.items.length > 0);
-    } else if (!user) {
-      rawList = [
-        {
-          id: 'mock-1',
-          name: 'Salad Special Combo',
-          items: [
-            { ...tomatoProd, quantity: 1 },
-            { ...onionProd, quantity: 1 },
-            { ...potatoProd, quantity: 2 }
-          ]
-        },
-        {
-          id: 'mock-2',
-          name: 'Mithila Feast Combo',
-          items: [
-            { ...thekuaProd, quantity: 1 },
-            { ...makhanaProd, quantity: 1 },
-            { ...pickleProd, quantity: 1 }
-          ]
-        },
-        {
-          id: 'mock-3',
-          name: 'Fruit Basket Combo',
-          items: [
-            { ...mangoProd, quantity: 1 },
-            { ...pomegranateProd, quantity: 1 }
-          ]
-        }
-      ].filter(pack => pack.items && pack.items.length > 0 && pack.items.every(i => i.name));
+    if (!user || !recentOrdersData || recentOrdersData.length === 0) {
+      return []
     }
+    const rawList = recentOrdersData.map(o => ({
+      id: o?.id,
+      name: `Order #${o?.order_number ? o.order_number.slice(-6) : ''}`,
+      items: (o?.order_items || [])
+        .filter(item => item && item.product_id && item.product_name)
+        .map(item => ({
+          product_id: item.product_id,
+          name: item.product_name,
+          image_url: item.product_image,
+          quantity: item.quantity
+        }))
+    })).filter(pack => pack.items.length > 0)
 
-    const uniquePacks = [];
-    const seenProductKeys = new Set();
+    const uniquePacks = []
+    const seenProductKeys = new Set()
     for (const pack of rawList) {
-      const key = pack.items.map(item => item.product_id || item.id || item.name).sort().join(',');
+      const key = pack.items.map(item => item.product_id || item.id || item.name).sort().join(',')
       if (key && !seenProductKeys.has(key)) {
-        seenProductKeys.add(key);
-        uniquePacks.push(pack);
+        seenProductKeys.add(key)
+        uniquePacks.push(pack)
       }
     }
-    return uniquePacks;
-  }, [recentOrdersData, user, tomatoProd, onionProd, potatoProd, thekuaProd, makhanaProd, pickleProd, mangoProd, pomegranateProd])
+    return uniquePacks
+  }, [recentOrdersData, user])
 
-  // Computed / fallback steal deals
+  // Computed steal deals (Real DB Products only)
   const displayStealDeals = useMemo(() => {
-    const fallbackDeals = [
-      {
-        id: 'deal-1',
-        name: 'Mithila Special Leaf-Shaped Thekua',
-        price: 120,
-        mrp: 150,
-        discount_percentage: 20,
-        unit: '250g',
-        image_url: '/images/products/thekua.png',
-        is_available: true
-      },
-      {
-        id: 'deal-2',
-        name: 'Premium Mithila Phool Makhana',
-        price: 149,
-        mrp: 199,
-        discount_percentage: 25,
-        unit: '250g',
-        image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/premium-mithila-phool-makhana.jpg',
-        is_available: true
-      },
-      {
-        id: 'deal-3',
-        name: 'Mithila Special Homemade Mango Pickle',
-        price: 165,
-        mrp: 220,
-        discount_percentage: 25,
-        unit: '400g',
-        image_url: '/images/products/mithila-special-homemade-mango-pickle.jpg',
-        is_available: true
-      },
-      {
-        id: 'deal-4',
-        name: 'Premium Salad Kit (Broccoli, Lettuce, Cherry Tomatoes)',
-        price: 89,
-        mrp: 120,
-        discount_percentage: 25,
-        unit: '1 Pack',
-        image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/broccoli_1.jpg',
-        is_available: true
-      }
-    ];
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0
+      const isOOS = !p.is_available || isQtyOOS
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false)
+    }
+
+    const filteredDeals = (stealDealsData || []).filter(p => !isUpcoming(p) && p.is_available)
+    const filteredBestsellers = (bestsellerProducts || []).filter(p => !isUpcoming(p) && p.is_available)
+
+    if (filteredDeals.length > 0) {
+      return getOnePerCategory(filteredDeals, shuffleSeed, 4)
+    }
+    if (filteredBestsellers.length >= 4) {
+      return getOnePerCategory(filteredBestsellers, shuffleSeed, 4).map(p => ({
+        ...p,
+        mrp: (p?.mrp && p.mrp > p.price) ? p.mrp : Math.round((p?.price || 0) * 1.25),
+        discount_percentage: p?.discount_percentage || 20
+      }))
+    }
+    return []
+  }, [stealDealsData, bestsellerProducts, shuffleSeed, launchConfig])
+
+  // Computed fresh mandi arrivals (Real DB Products only)
+  const displayMandi = useMemo(() => {
+    if (!mandiProductsData || mandiProductsData.length === 0) return []
 
     const isUpcoming = (p) => {
-      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
-      const isOOS = !p.is_available || isQtyOOS;
-      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
-    };
-
-    const filteredDeals = (stealDealsData || []).filter(p => !isUpcoming(p));
-    const filteredBestsellers = (bestsellerProducts || []).filter(p => !isUpcoming(p));
-
-    return (filteredDeals.length > 0)
-      ? getOnePerCategory(filteredDeals, shuffleSeed, 4)
-      : (
-        filteredBestsellers.length >= 4 
-          ? getOnePerCategory(filteredBestsellers, shuffleSeed, 4).map(p => ({
-              ...p,
-              mrp: (p?.mrp && p.mrp > p.price) ? p.mrp : Math.round((p?.price || 0) * 1.25),
-              discount_percentage: p?.discount_percentage || 20
-             }))
-          : []
-      );
-  }, [stealDealsData, bestsellerProducts, shuffleSeed, launchConfig]);
-
-  // Computed / fallback fresh mandi arrivals
-  const displayMandi = useMemo(() => {
-    const fallbackMandi = [
-      { id: 'mandi-1', name: 'Fresh Red Apple (Seb)', price: 129, mrp: 160, discount_percentage: 20, unit: '4 pcs', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/fresh-red-apple-seb-fres.jpg', is_available: true },
-      { id: 'mandi-2', name: 'Premium Green Broccoli', price: 79, mrp: 110, discount_percentage: 28, unit: '1 pc', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/broccoli_1.jpg', is_available: true },
-      { id: 'mandi-3', name: 'Fresh Spinach (Palak)', price: 22, mrp: 30, discount_percentage: 26, unit: '250 g', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/fresh-spinach-palak-b6d253.jpg', is_available: true },
-      { id: 'mandi-4', name: 'Premium Potato (Aloo)', price: 30, mrp: 40, discount_percentage: 25, unit: '1 kg', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/potato_1.jpg', is_available: true },
-      { id: 'mandi-5', name: 'Fresh Red Onion (Pyaz)', price: 35, mrp: 45, discount_percentage: 22, unit: '1 kg', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/fresh-red-onion-pyaz-fres.jpg', is_available: true },
-      { id: 'mandi-6', name: 'Fresh Red Tomatoes', price: 49, mrp: 70, discount_percentage: 30, unit: '1 kg', image_url: 'https://raw.githubusercontent.com/mishra-aashu/ozo/master/public/images/products/tomato_1.jpg', is_available: true }
-    ];
-
-    if (mandiProductsData && mandiProductsData.length > 0) {
-      const isUpcoming = (p) => {
-        const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
-        const isOOS = !p.is_available || isQtyOOS;
-        return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
-      };
-      const filteredMandi = mandiProductsData.filter(p => !isUpcoming(p));
-      const stealDealsIds = new Set(displayStealDeals.map(p => p.id));
-      const filtered = filteredMandi.filter(p => !stealDealsIds.has(p.id));
-
-      const inStock = filtered.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-      const outOfStock = filtered.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
-
-      const shuffledInStock = seededSort(inStock, shuffleSeed);
-      const shuffledOutOfStock = seededSort(outOfStock, shuffleSeed);
-
-      // Prioritize in-stock products, show up to 8 total. Include OOS only if we don't have enough in-stock.
-      let result = shuffledInStock.slice(0, 8);
-      if (result.length < 8 && shuffledOutOfStock.length > 0) {
-        result = [...result, ...shuffledOutOfStock.slice(0, 8 - result.length)];
-      }
-      return result;
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0
+      const isOOS = !p.is_available || isQtyOOS
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false)
     }
+    const filteredMandi = mandiProductsData.filter(p => !isUpcoming(p) && p.is_available)
+    const stealDealsIds = new Set(displayStealDeals.map(p => p.id))
+    const inStock = filteredMandi.filter(p => !stealDealsIds.has(p.id) && !(p.quantity_available !== null && p.quantity_available === 0))
 
-    return [];
-  }, [mandiProductsData, displayStealDeals, shuffleSeed, launchConfig]);
+    return seededSort(inStock, shuffleSeed).slice(0, 8)
+  }, [mandiProductsData, displayStealDeals, shuffleSeed, launchConfig])
 
   useEffect(() => {
     const el = mandiScrollRef.current
@@ -1315,86 +1191,22 @@ const MartHome = () => {
     }
   }, [displayMandi])
 
-  // Computed / fallback summer specials
+  // Computed summer specials (100% Real DB Products only - ZERO hardcoded fallbacks)
   const displaySummerSpecials = useMemo(() => {
-    const fallbackSummer = [
-      {
-        id: 'summer-fallback-1',
-        name: 'Coca-Cola Soft Drink',
-        price: 40,
-        mrp: 45,
-        discount_percentage: 11,
-        unit: '250 ml Can',
-        image_url: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?auto=format&fit=crop&q=60&w=300',
-        is_available: true,
-        slug: 'coca-cola-250ml'
-      },
-      {
-        id: 'summer-fallback-2',
-        name: 'Sprite Lemon-Lime Drink',
-        price: 38,
-        mrp: 40,
-        discount_percentage: 5,
-        unit: '250 ml Can',
-        image_url: 'https://images.unsplash.com/photo-1625772290748-3909393a53cb?auto=format&fit=crop&q=60&w=300',
-        is_available: true,
-        slug: 'sprite-250ml'
-      },
-      {
-        id: 'summer-fallback-3',
-        name: 'Amul Vanilla Gold Ice Cream',
-        price: 220,
-        mrp: 250,
-        discount_percentage: 12,
-        unit: '1 L',
-        image_url: 'https://images.unsplash.com/photo-1560180474-e8563fd75bab?auto=format&fit=crop&q=60&w=300',
-        is_available: true,
-        slug: 'amul-vanilla-1l'
-      },
-      {
-        id: 'summer-fallback-4',
-        name: 'Kwality Walls Choco Feast',
-        price: 40,
-        mrp: 40,
-        discount_percentage: 0,
-        unit: '70 ml',
-        image_url: 'https://images.unsplash.com/photo-1557142046-c704a3adf364?auto=format&fit=crop&q=60&w=300',
-        is_available: true,
-        slug: 'choco-feast-70ml'
-      }
-    ];
-
-    if (summerSpecialsProductsData && summerSpecialsProductsData.length > 0) {
-      const isUpcoming = (p) => {
-        const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
-        const isOOS = !p.is_available || isQtyOOS;
-        return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
-      };
-      const filteredSummer = summerSpecialsProductsData.filter(p => !isUpcoming(p));
-
-      const inStock = filteredSummer.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-      const outOfStock = filteredSummer.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
-
-      const shuffledInStock = seededSort(inStock, shuffleSeed);
-      const shuffledOutOfStock = seededSort(outOfStock, shuffleSeed);
-
-      let result = shuffledInStock.slice(0, 10);
-      if (result.length < 10 && shuffledOutOfStock.length > 0) {
-        result = [...result, ...shuffledOutOfStock.slice(0, 10 - result.length)];
-      }
-
-      // Backfill with fallback items if fewer than 4 items to ensure rich carousel layout
-      if (result.length < 4) {
-        const existingIds = new Set(result.map(p => p.id));
-        const needed = fallbackSummer.filter(p => !existingIds.has(p.id));
-        result = [...result, ...needed.slice(0, 4 - result.length)];
-      }
-
-      return result;
+    if (!summerSpecialsProductsData || summerSpecialsProductsData.length === 0) {
+      return []
     }
 
-    return fallbackSummer;
-  }, [summerSpecialsProductsData, shuffleSeed, launchConfig]);
+    const isUpcoming = (p) => {
+      const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0
+      const isOOS = !p.is_available || isQtyOOS
+      return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false)
+    }
+    const filteredSummer = summerSpecialsProductsData.filter(p => !isUpcoming(p) && p.is_available)
+    const inStock = filteredSummer.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0))
+
+    return seededSort(inStock, shuffleSeed).slice(0, 10)
+  }, [summerSpecialsProductsData, shuffleSeed, launchConfig])
 
   // Automatic smooth scrolling for Summer Specials
   useEffect(() => {
