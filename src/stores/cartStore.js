@@ -694,14 +694,17 @@ export const useCartStore = create(
           
           const updatedItems = items.map(item => {
             const pca = pcaMap.get(item.productId)
-            if (!pca) {
-              return { ...item, isAvailable: false, _cityUnavailable: true }
-            }
             
-            const isAvailable = pca.is_available !== false
-            const price = pca.city_price != null ? parseFloat(pca.city_price) : item.price
-            const mrp = pca.city_mrp != null ? parseFloat(pca.city_mrp) : item.mrp
-            const ozoPrice = pca.city_ozo_price != null ? parseFloat(pca.city_ozo_price) : item.ozoPrice
+            // If pca override exists:
+            // pca.is_available === false means Out of Stock in this city
+            // If NO pca row exists, fallback to item's default availability
+            const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
+              ? pca.is_available
+              : (item.isAvailable !== false && (item.quantityAvailable === null || item.quantityAvailable === undefined || item.quantityAvailable > 0))
+
+            const price = pca?.city_price != null ? parseFloat(pca.city_price) : item.price
+            const mrp = pca?.city_mrp != null ? parseFloat(pca.city_mrp) : item.mrp
+            const ozoPrice = pca?.city_ozo_price != null ? parseFloat(pca.city_ozo_price) : item.ozoPrice
             const displayPrice = (ozoPrice != null && ozoPrice > 0) ? ozoPrice : price
             
             return {
@@ -720,7 +723,7 @@ export const useCartStore = create(
           
           const unavailableCount = updatedItems.filter(i => !i.isAvailable || i._cityUnavailable).length
           if (unavailableCount > 0) {
-            toast(`${unavailableCount} item(s) in your cart are not available in this city`, {
+            toast(`${unavailableCount} item(s) in your cart are out of stock in this city`, {
               icon: '⚠️',
               duration: 4000
             })
@@ -733,6 +736,16 @@ export const useCartStore = create(
       // Add item to cart
       addToCart: async (product, quantity = 1, showToast = true) => {
         try {
+          // Out of stock guard for selected city
+          if (product.is_available === false || product.isAvailable === false || product._cityUnavailable || (product.quantity_available !== undefined && product.quantity_available !== null && product.quantity_available === 0)) {
+            if (showToast) {
+              toast.error('This product is currently out of stock in your selected city', {
+                icon: '⚠️'
+              })
+            }
+            return { success: false, reason: 'OUT_OF_STOCK' }
+          }
+
           const locationState = useLocationStore.getState()
           const currentBrowsingCity = locationState.browsingCitySlug || locationState.selectedCitySlug
           const activeCartCity = get().cartCitySlug

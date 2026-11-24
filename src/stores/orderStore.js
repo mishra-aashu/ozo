@@ -349,6 +349,15 @@ export const useOrderStore = create((set, get) => ({
         console.warn('Could not fetch address coordinates during order placement', e)
       }
 
+      // Pre-order verification: verify no out-of-stock items in this delivery city
+      const oosItems = cartItems.filter(item => item.isAvailable === false || item._cityUnavailable)
+      if (oosItems.length > 0) {
+        const names = oosItems.map(i => `"${i.name}"`).join(', ')
+        toast.error(`Item(s) out of stock in selected city: ${names}. Please remove them to proceed.`)
+        set({ isPlacingOrder: false })
+        return { success: false, reason: 'CITY_OUT_OF_STOCK' }
+      }
+
       // Prepare items list for the RPC call
       const rpcItems = cartItems.map(item => ({
         product_id: item.productId,

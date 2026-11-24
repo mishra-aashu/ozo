@@ -363,7 +363,11 @@ const Checkout = () => {
     }
 
     if (hasOutOfStockItems) {
-      toast.error('Some items in your cart are out of stock. Please edit your cart.')
+      const oosNames = items
+        .filter(item => !item.isAvailable || item._cityUnavailable || (item.quantityAvailable !== undefined && item.quantityAvailable !== null && item.quantityAvailable <= 0))
+        .map(item => `"${item.name}"`)
+        .join(', ')
+      toast.error(`Out of stock in your city: ${oosNames || 'Some items'}. Please remove them to proceed.`, { duration: 5000 })
       navigate('/cart')
       return
     }

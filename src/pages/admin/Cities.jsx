@@ -19,7 +19,14 @@ import {
   Tag,
   Package,
   RotateCcw,
-  AlertCircle
+  AlertCircle,
+  CheckSquare,
+  Square,
+  MinusSquare,
+  AlertOctagon,
+  CheckCircle2,
+  Filter,
+  Layers
 } from 'lucide-react'
 import { supabaseAdmin as supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -80,9 +87,12 @@ const Cities = () => {
   const [selectedCityForVisibility, setSelectedCityForVisibility] = useState('')
   const [visibilityTab, setVisibilityTab] = useState('products') // 'products', 'brands'
   
-  // Products Tab State
+  // Products Tab State (with city stock filter & bulk selection)
   const [prodSearch, setProdSearch] = useState('')
   const [prodCategory, setProdCategory] = useState('all')
+  const [prodBrand, setProdBrand] = useState('all')
+  const [prodStockStatus, setProdStockStatus] = useState('all') // 'all', 'in-stock', 'out-of-stock'
+  const [prodPageSize, setProdPageSize] = useState(25) // 10, 25, 50, 100
   const [prodPage, setProdPage] = useState(1)
   const [prodTotalCount, setProdTotalCount] = useState(0)
   const [visProducts, setVisProducts] = useState([])
@@ -91,6 +101,8 @@ const Cities = () => {
   const [loadingVisProducts, setLoadingVisProducts] = useState(false)
   const [savingProductId, setSavingProductId] = useState(null)
   const [localOverrides, setLocalOverrides] = useState({}) // product_id -> { is_available, is_featured, city_price, city_mrp }
+  const [selectedProdIds, setSelectedProdIds] = useState(new Set())
+  const [isBulkOperating, setIsBulkOperating] = useState(false)
 
   // Brands Tab State
   const [brandSearch, setBrandSearch] = useState('')
@@ -236,24 +248,72 @@ const Cities = () => {
     }
   }, [cities])
 
-  // Fetch Visibility Products
+  // Fetch Visibility Products with advanced filtering and pagination
   const fetchVisibilityProducts = async () => {
     if (!selectedCityForVisibility) return
     setLoadingVisProducts(true)
     try {
       let query = supabase
         .from('products')
-        .select('id, name, brand, price, mrp, category_id, is_available, is_featured', { count: 'exact' })
+        .select('id, name, brand, barcode, price, mrp, category_id, is_available, is_featured, quantity_available, image_url', { count: 'exact' })
       
       if (prodSearch.trim()) {
-        query = query.ilike('name', `%${prodSearch.trim()}%`)
+        const term = prodSearch.trim()
+        query = query.or(`name.ilike.%${term}%,brand.ilike.%${term}%,barcode.ilike.%${term}%`)
       }
       if (prodCategory !== 'all') {
         query = query.eq('category_id', prodCategory)
       }
+      if (prodBrand !== 'all') {
+        query = query.eq('brand', prodBrand)
+      }
+
+      // City-specific stock status pre-filter
+      if (prodStockStatus === 'out-of-stock') {
+        const { data: oosPca } = await supabase
+          .from('product_city_availability')
+          .select('product_id')
+          .eq('city_slug', selectedCityForVisibility)
+          .eq('is_available', false)
+        const oosCityIds = (oosPca || []).map(r => r.product_id)
+
+        const { data: truePca } = await supabase
+          .from('product_city_availability')
+          .select('product_id')
+          .eq('city_slug', selectedCityForVisibility)
+          .eq('is_available', true)
+        const trueCityIds = new Set((truePca || []).map(r => r.product_id))
+
+        const { data: globalOos } = await supabase
+          .from('products')
+          .select('id')
+          .eq('is_available', false)
+        const effectiveGlobalOos = (globalOos || []).map(r => r.id).filter(id => !trueCityIds.has(id))
+
+        const allOosIds = Array.from(new Set([...oosCityIds, ...effectiveGlobalOos]))
+        if (allOosIds.length === 0) {
+          setVisProducts([])
+          setProdTotalCount(0)
+          setVisPcaMap({})
+          setLocalOverrides({})
+          setLoadingVisProducts(false)
+          return
+        }
+        query = query.in('id', allOosIds)
+      } else if (prodStockStatus === 'in-stock') {
+        const { data: oosPca } = await supabase
+          .from('product_city_availability')
+          .select('product_id')
+          .eq('city_slug', selectedCityForVisibility)
+          .eq('is_available', false)
+        const oosCityIds = (oosPca || []).map(r => r.product_id)
+        if (oosCityIds.length > 0) {
+          query = query.not('id', 'in', `(${oosCityIds.join(',')})`)
+        }
+      }
       
-      const start = (prodPage - 1) * 8
-      const end = start + 7
+      const start = (prodPage - 1) * prodPageSize
+      const end = start + prodPageSize - 1
       
       const { data, count, error } = await query
         .range(start, end)
@@ -261,21 +321,20 @@ const Cities = () => {
         
       if (error) throw error
       
-      setVisProducts(data || [])
-      setProdTotalCount(count || 0)
+      let fetchedProducts = data || []
       
       // Fetch city overrides for these products
-      if (data && data.length > 0) {
-        const pIds = data.map(p => p.id)
+      if (fetchedProducts.length > 0) {
+        const pIds = fetchedProducts.map(p => p.id)
         const { data: pcaData, error: pcaError } = await supabase
           .from('product_city_availability')
           .select('*')
           .eq('city_slug', selectedCityForVisibility)
           .in('product_id', pIds)
           
+        const map = {}
+        const overrides = {}
         if (!pcaError && pcaData) {
-          const map = {}
-          const overrides = {}
           pcaData.forEach(row => {
             map[row.product_id] = row
             overrides[row.product_id] = {
@@ -285,13 +344,23 @@ const Cities = () => {
               city_mrp: row.city_mrp !== null && row.city_mrp !== undefined ? row.city_mrp.toString() : ''
             }
           })
-          setVisPcaMap(map)
-          setLocalOverrides(overrides)
-        } else {
-          setVisPcaMap({})
-          setLocalOverrides({})
         }
+
+        if (prodStockStatus === 'in-stock') {
+          fetchedProducts = fetchedProducts.filter(p => {
+            const row = map[p.id]
+            const isAvail = row ? row.is_available : p.is_available
+            return isAvail !== false
+          })
+        }
+
+        setVisProducts(fetchedProducts)
+        setProdTotalCount(count || 0)
+        setVisPcaMap(map)
+        setLocalOverrides(overrides)
       } else {
+        setVisProducts([])
+        setProdTotalCount(0)
         setVisPcaMap({})
         setLocalOverrides({})
       }
@@ -327,12 +396,13 @@ const Cities = () => {
   }
 
   useEffect(() => {
+    setSelectedProdIds(new Set())
     if (visibilityTab === 'products') {
       fetchVisibilityProducts()
     } else {
       fetchVisibilityBrandsMap()
     }
-  }, [selectedCityForVisibility, visibilityTab, prodPage, prodCategory])
+  }, [selectedCityForVisibility, visibilityTab, prodPage, prodCategory, prodBrand, prodStockStatus, prodPageSize])
 
   useEffect(() => {
     if (visibilityTab === 'products') {
@@ -343,6 +413,144 @@ const Cities = () => {
       return () => clearTimeout(delay)
     }
   }, [prodSearch])
+
+  // Bulk Selection Handlers
+  const toggleSelectProduct = (productId) => {
+    setSelectedProdIds(prev => {
+      const next = new Set(prev)
+      if (next.has(productId)) {
+        next.delete(productId)
+      } else {
+        next.add(productId)
+      }
+      return next
+    })
+  }
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = visProducts.map(p => p.id)
+    const allSelected = visibleIds.length > 0 && visibleIds.every(id => selectedProdIds.has(id))
+    
+    setSelectedProdIds(prev => {
+      const next = new Set(prev)
+      if (allSelected) {
+        visibleIds.forEach(id => next.delete(id))
+      } else {
+        visibleIds.forEach(id => next.add(id))
+      }
+      return next
+    })
+  }
+
+  // Bulk mark In Stock or Out of Stock for selected products
+  const handleBulkSetStock = async (isAvailable) => {
+    if (selectedProdIds.size === 0) {
+      toast.error('Please select at least one product')
+      return
+    }
+    const ids = Array.from(selectedProdIds)
+    const statusLabel = isAvailable ? 'In Stock' : 'Out of Stock'
+    const toastId = toast.loading(`Marking ${ids.length} products as ${statusLabel} in ${selectedCityForVisibility}...`)
+    setIsBulkOperating(true)
+    try {
+      const payload = ids.map(id => {
+        const currentLocal = localOverrides[id] || {}
+        const currentProduct = visProducts.find(p => p.id === id)
+        return {
+          product_id: id,
+          city_slug: selectedCityForVisibility,
+          is_available: isAvailable,
+          is_featured: currentLocal.is_featured ?? currentProduct?.is_featured ?? false,
+          city_price: currentLocal.city_price && currentLocal.city_price.trim() !== '' ? parseFloat(currentLocal.city_price) : null,
+          city_mrp: currentLocal.city_mrp && currentLocal.city_mrp.trim() !== '' ? parseFloat(currentLocal.city_mrp) : null,
+          updated_at: new Date().toISOString()
+        }
+      })
+
+      // Batch upsert in chunks of 50
+      const CHUNK_SIZE = 50
+      for (let i = 0; i < payload.length; i += CHUNK_SIZE) {
+        const chunk = payload.slice(i, i + CHUNK_SIZE)
+        const { error } = await supabase
+          .from('product_city_availability')
+          .upsert(chunk, { onConflict: 'product_id,city_slug' })
+        if (error) throw error
+      }
+
+      toast.success(`Successfully marked ${ids.length} products as ${statusLabel} in this city!`, { id: toastId })
+      setSelectedProdIds(new Set())
+      await fetchVisibilityProducts()
+    } catch (err) {
+      console.error('Bulk stock update error:', err)
+      toast.error(`Failed to update products: ${err.message}`, { id: toastId })
+    } finally {
+      setIsBulkOperating(false)
+    }
+  }
+
+  // Bulk reset city overrides to global default
+  const handleBulkResetOverrides = async () => {
+    if (selectedProdIds.size === 0) return
+    const ids = Array.from(selectedProdIds)
+    const toastId = toast.loading(`Resetting overrides for ${ids.length} products...`)
+    setIsBulkOperating(true)
+    try {
+      const { error } = await supabase
+        .from('product_city_availability')
+        .delete()
+        .eq('city_slug', selectedCityForVisibility)
+        .in('product_id', ids)
+
+      if (error) throw error
+
+      toast.success(`Reset ${ids.length} products to global defaults!`, { id: toastId })
+      setSelectedProdIds(new Set())
+      await fetchVisibilityProducts()
+    } catch (err) {
+      console.error('Bulk reset error:', err)
+      toast.error(`Failed to reset overrides: ${err.message}`, { id: toastId })
+    } finally {
+      setIsBulkOperating(false)
+    }
+  }
+
+  // 1-Click instant toggle availability for a single product
+  const handleInstantToggleAvailability = async (product, currentAvailable) => {
+    const nextAvailable = !currentAvailable
+    const statusLabel = nextAvailable ? 'In Stock' : 'Out of Stock'
+    const toastId = toast.loading(`Updating ${product.name}...`)
+    try {
+      const existing = localOverrides[product.id] || {}
+      const payload = {
+        product_id: product.id,
+        city_slug: selectedCityForVisibility,
+        is_available: nextAvailable,
+        is_featured: existing.is_featured ?? product.is_featured ?? false,
+        city_price: existing.city_price && existing.city_price.trim() !== '' ? parseFloat(existing.city_price) : null,
+        city_mrp: existing.city_mrp && existing.city_mrp.trim() !== '' ? parseFloat(existing.city_mrp) : null,
+        updated_at: new Date().toISOString()
+      }
+
+      const { error } = await supabase
+        .from('product_city_availability')
+        .upsert(payload, { onConflict: 'product_id,city_slug' })
+
+      if (error) throw error
+
+      setVisPcaMap(prev => ({ ...prev, [product.id]: payload }))
+      setLocalOverrides(prev => ({
+        ...prev,
+        [product.id]: {
+          ...(prev[product.id] || {}),
+          is_available: nextAvailable
+        }
+      }))
+      toast.success(`"${product.name}" marked as ${statusLabel} in this city`, { id: toastId })
+    } catch (err) {
+      console.error('Instant toggle error:', err)
+      toast.error('Failed to update stock: ' + err.message, { id: toastId })
+    }
+  }
 
   // Handle local override changes
   const handleLocalOverrideChange = (productId, field, value) => {
@@ -1030,56 +1238,196 @@ const Cities = () => {
           {/* PRODUCTS TAB CONTENT */}
           {visibilityTab === 'products' && (
             <div className="space-y-4">
-              {/* Product Filters */}
-              <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <div className="relative w-full sm:w-80">
-                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
-                    <Search className="w-4.5 h-4.5" />
-                  </span>
-                  <input
-                    type="text"
-                    placeholder="Search products in catalog..."
-                    value={prodSearch}
-                    onChange={(e) => setProdSearch(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-ozo-red dark:text-white"
-                  />
-                  {prodSearch && (
+              {/* Product Filters & Search Bar */}
+              <div className="bg-gray-50/70 dark:bg-white/[0.02] p-4 rounded-2xl border border-gray-150 dark:border-white/5 space-y-3">
+                <div className="flex flex-col md:flex-row gap-3 items-center justify-between">
+                  {/* Search Input */}
+                  <div className="relative w-full md:w-96">
+                    <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400">
+                      <Search className="w-4.5 h-4.5" />
+                    </span>
+                    <input
+                      type="text"
+                      placeholder="Search by name, brand, or barcode..."
+                      value={prodSearch}
+                      onChange={(e) => setProdSearch(e.target.value)}
+                      className="w-full pl-10 pr-9 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#18181f] text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ozo-red dark:text-white shadow-xs"
+                    />
+                    {prodSearch && (
+                      <button
+                        onClick={() => setProdSearch('')}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Actions & Refresh */}
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                     <button
-                      onClick={() => setProdSearch('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      onClick={() => fetchVisibilityProducts()}
+                      disabled={loadingVisProducts}
+                      className="p-2.5 rounded-xl border border-gray-200 dark:border-white/10 hover:bg-gray-100 dark:hover:bg-white/5 text-gray-600 dark:text-gray-300 transition-all shadow-xs flex items-center gap-1.5 text-xs font-bold"
+                      title="Refresh product list"
                     >
-                      <X className="w-4 h-4" />
+                      <RefreshCw className={`w-4 h-4 ${loadingVisProducts ? 'animate-spin text-ozo-red' : ''}`} />
+                      <span className="hidden sm:inline">Refresh</span>
                     </button>
-                  )}
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <span className="text-xs font-bold text-gray-400 uppercase whitespace-nowrap">Category:</span>
-                  <select
-                    value={prodCategory}
-                    onChange={(e) => {
-                      setProdCategory(e.target.value)
-                      setProdPage(1)
-                    }}
-                    className="pl-4 pr-10 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#1c1c24] text-sm text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-4 focus:ring-ozo-red/15 cursor-pointer appearance-none bg-no-repeat bg-[right_12px_center] bg-[size:14px] bg-[url('data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20fill%3D%22none%22%20viewBox%3D%220%200%2024%2024%22%20stroke%3D%22%236b7280%22%20stroke-width%3D%222.5%22%3E%3Cpath%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%20d%3D%22M19.5%208.25l-7.5%207.5-7.5-7.5%22%2F%3E%3C%2Fsvg%3E')]"
-                  >
-                    <option value="all">All Categories</option>
-                    {visCategories.map(cat => (
-                      <option key={cat.id} value={cat.id}>{cat.name}</option>
-                    ))}
-                  </select>
+                {/* Filter Dropdowns Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1 border-t border-gray-100 dark:border-white/5">
+                  {/* Category Filter */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Category</label>
+                    <select
+                      value={prodCategory}
+                      onChange={(e) => {
+                        setProdCategory(e.target.value)
+                        setProdPage(1)
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#18181f] text-xs font-bold text-gray-750 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-ozo-red cursor-pointer"
+                    >
+                      <option value="all">All Categories</option>
+                      {visCategories.map(cat => (
+                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Brand Filter */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Brand</label>
+                    <select
+                      value={prodBrand}
+                      onChange={(e) => {
+                        setProdBrand(e.target.value)
+                        setProdPage(1)
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#18181f] text-xs font-bold text-gray-750 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-ozo-red cursor-pointer"
+                    >
+                      <option value="all">All Brands</option>
+                      {visBrands.map(brand => (
+                        <option key={brand} value={brand}>{brand}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* City Stock Status Filter */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Stock Status in City</label>
+                    <select
+                      value={prodStockStatus}
+                      onChange={(e) => {
+                        setProdStockStatus(e.target.value)
+                        setProdPage(1)
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#18181f] text-xs font-bold text-gray-750 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-ozo-red cursor-pointer"
+                    >
+                      <option value="all">All Statuses</option>
+                      <option value="in-stock">🟢 In Stock in this City</option>
+                      <option value="out-of-stock">🔴 Out of Stock in this City</option>
+                    </select>
+                  </div>
+
+                  {/* Page Size Filter */}
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-gray-400 block mb-1">Per Page</label>
+                    <select
+                      value={prodPageSize}
+                      onChange={(e) => {
+                        setProdPageSize(Number(e.target.value))
+                        setProdPage(1)
+                      }}
+                      className="w-full px-3 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#18181f] text-xs font-bold text-gray-750 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-ozo-red cursor-pointer"
+                    >
+                      <option value={10}>10 items</option>
+                      <option value={25}>25 items</option>
+                      <option value={50}>50 items</option>
+                      <option value={100}>100 items</option>
+                    </select>
+                  </div>
                 </div>
               </div>
 
+              {/* Floating Bulk Actions Bar */}
+              <AnimatePresence>
+                {selectedProdIds.size > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                    className="p-3.5 bg-gray-900/95 dark:bg-[#111116]/95 backdrop-blur-md rounded-2xl border border-white/10 text-white shadow-xl flex flex-wrap items-center justify-between gap-3 sticky top-4 z-20"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="px-3 py-1 bg-ozo-red/20 text-ozo-red border border-ozo-red/30 rounded-xl text-xs font-black flex items-center gap-1.5">
+                        <CheckSquare className="w-3.5 h-3.5" />
+                        {selectedProdIds.size} Selected
+                      </span>
+                      <button
+                        onClick={toggleSelectAllVisible}
+                        className="text-xs font-bold text-gray-300 hover:text-white underline transition-colors"
+                      >
+                        {visProducts.length > 0 && visProducts.every(p => selectedProdIds.has(p.id))
+                          ? 'Deselect Page'
+                          : 'Select All on Page'}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <button
+                        disabled={isBulkOperating}
+                        onClick={() => handleBulkSetStock(false)}
+                        className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+                        title="Mark selected products as Out of Stock in this city"
+                      >
+                        {isBulkOperating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <AlertOctagon className="w-3.5 h-3.5" />}
+                        Mark Out of Stock
+                      </button>
+
+                      <button
+                        disabled={isBulkOperating}
+                        onClick={() => handleBulkSetStock(true)}
+                        className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md flex items-center gap-1.5 transition-all active:scale-95 disabled:opacity-50"
+                        title="Mark selected products as In Stock in this city"
+                      >
+                        {isBulkOperating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                        Mark In Stock
+                      </button>
+
+                      <button
+                        disabled={isBulkOperating}
+                        onClick={handleBulkResetOverrides}
+                        className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-gray-200 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all disabled:opacity-50"
+                        title="Remove custom city overrides for selected products"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Reset to Global
+                      </button>
+
+                      <button
+                        onClick={() => setSelectedProdIds(new Set())}
+                        className="p-2 text-gray-400 hover:text-white rounded-xl hover:bg-white/10 transition-colors ml-1"
+                        title="Clear selection"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Products Overrides Table */}
-              <div className="bg-white dark:bg-[#18181f] rounded-2xl border border-gray-150 dark:border-white/5 overflow-hidden">
+              <div className="bg-white dark:bg-[#18181f] rounded-2xl border border-gray-150 dark:border-white/5 overflow-hidden shadow-xs">
                 {loadingVisProducts ? (
-                  <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
                     <Loader2 className="w-8 h-8 animate-spin text-ozo-red" />
-                    <span className="text-sm font-semibold text-gray-500">Loading catalog...</span>
+                    <span className="text-sm font-semibold text-gray-500">Loading catalog for {selectedCityForVisibility}...</span>
                   </div>
                 ) : visProducts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
                     <AlertCircle className="w-10 h-10 text-gray-400 mb-2" />
                     <h4 className="text-sm font-bold text-gray-700 dark:text-white">No products found</h4>
                     <p className="text-xs text-gray-500 mt-1">Try refining search parameters or filters.</p>
@@ -1088,9 +1436,18 @@ const Cities = () => {
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="border-b border-gray-150 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.01]">
+                        <tr className="border-b border-gray-150 dark:border-white/5 bg-gray-50/70 dark:bg-white/[0.01]">
+                          <th className="p-3.5 text-center w-10">
+                            <input
+                              type="checkbox"
+                              checked={visProducts.length > 0 && visProducts.every(p => selectedProdIds.has(p.id))}
+                              onChange={toggleSelectAllVisible}
+                              className="w-4 h-4 rounded accent-ozo-red cursor-pointer"
+                              title="Select/Deselect all visible products"
+                            />
+                          </th>
                           <th className="p-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider w-1/3">Product details</th>
-                          <th className="p-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Available</th>
+                          <th className="p-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">City Stock Status</th>
                           <th className="p-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider text-center">Featured</th>
                           <th className="p-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">Base Prices</th>
                           <th className="p-3.5 text-xs font-bold text-gray-400 uppercase tracking-wider">City Overrides</th>
@@ -1108,39 +1465,85 @@ const Cities = () => {
                           }
                           const isSaving = savingProductId === product.id
                           const hasOverride = !!pca
+                          const isSelected = selectedProdIds.has(product.id)
+                          const effectiveAvailable = local.is_available ?? product.is_available
 
                           return (
-                            <tr key={product.id} className="hover:bg-gray-50/30 dark:hover:bg-white/[0.005] transition-colors">
+                            <tr
+                              key={product.id}
+                              className={`transition-colors ${
+                                isSelected
+                                  ? 'bg-ozo-red/5 dark:bg-ozo-red/10'
+                                  : 'hover:bg-gray-50/40 dark:hover:bg-white/[0.008]'
+                              }`}
+                            >
+                              {/* Selection Checkbox */}
+                              <td className="p-3.5 text-center">
+                                <input
+                                  type="checkbox"
+                                  checked={isSelected}
+                                  onChange={() => toggleSelectProduct(product.id)}
+                                  className="w-4 h-4 rounded accent-ozo-red cursor-pointer"
+                                />
+                              </td>
+
+                              {/* Product Details */}
                               <td className="p-3.5">
-                                <div className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1">
-                                  {product.name}
-                                </div>
-                                <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 font-semibold">
-                                  {product.brand && (
-                                    <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-white/5 rounded">
-                                      Brand: {product.brand}
-                                    </span>
+                                <div className="flex items-center gap-3">
+                                  {product.image_url ? (
+                                    <img
+                                      src={product.image_url}
+                                      alt={product.name}
+                                      className="w-10 h-10 object-contain rounded-lg border border-gray-200 dark:border-white/5 p-0.5 bg-white dark:bg-black/20 shrink-0"
+                                      loading="lazy"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 rounded-lg bg-gray-100 dark:bg-white/5 flex items-center justify-center shrink-0">
+                                      <Package className="w-5 h-5 text-gray-400" />
+                                    </div>
                                   )}
-                                  <span className="text-gray-400">•</span>
-                                  <span>ID: {product.id.slice(0, 8)}...</span>
+                                  <div className="min-w-0">
+                                    <div className="font-bold text-gray-900 dark:text-white text-sm line-clamp-1" title={product.name}>
+                                      {product.name}
+                                    </div>
+                                    <div className="flex items-center gap-2 mt-1 text-xs text-gray-500 font-semibold flex-wrap">
+                                      {product.brand && (
+                                        <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-white/5 rounded text-[11px]">
+                                          Brand: {product.brand}
+                                        </span>
+                                      )}
+                                      {product.barcode && (
+                                        <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-white/5 rounded text-[10px] text-gray-400">
+                                          #{product.barcode}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </div>
                               </td>
 
+                              {/* City Stock Status - 1-Click Interactive Toggle */}
                               <td className="p-3.5 text-center">
                                 <button
+                                  type="button"
                                   disabled={isSaving}
-                                  onClick={() => handleLocalOverrideChange(product.id, 'is_available', !local.is_available)}
-                                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
-                                    local.is_available
-                                      ? 'bg-green-50 dark:bg-green-950/20 text-green-600 hover:bg-green-100 border border-green-200/50'
-                                      : 'bg-red-50 dark:bg-red-950/20 text-red-600 hover:bg-red-100 border border-red-200/50'
+                                  onClick={() => handleInstantToggleAvailability(product, effectiveAvailable)}
+                                  title={`Click to mark as ${effectiveAvailable ? 'Out of Stock' : 'In Stock'} in ${selectedCityForVisibility}`}
+                                  className={`group px-3 py-1.5 rounded-full text-xs font-black transition-all inline-flex items-center gap-1.5 shadow-2xs border cursor-pointer active:scale-95 ${
+                                    effectiveAvailable
+                                      ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-600 dark:text-emerald-400 border-emerald-200/60 dark:border-emerald-900/30 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'
+                                      : 'bg-rose-50 dark:bg-rose-950/20 text-rose-600 dark:text-rose-400 border-rose-200/60 dark:border-rose-900/30 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'
                                   }`}
                                 >
-                                  {local.is_available ? 'Available' : 'Hidden'}
-                                  {!hasOverride && <span className="ml-1 text-[8px] opacity-60 font-medium">(global)</span>}
+                                  <span className={`w-2 h-2 rounded-full ${effectiveAvailable ? 'bg-emerald-500' : 'bg-rose-500 animate-pulse'}`} />
+                                  <span>{effectiveAvailable ? 'IN STOCK' : 'OUT OF STOCK'}</span>
+                                  <span className="text-[9px] opacity-60 font-medium">
+                                    {hasOverride ? '(city)' : '(global)'}
+                                  </span>
                                 </button>
                               </td>
 
+                              {/* Featured Toggle */}
                               <td className="p-3.5 text-center">
                                 <input
                                   type="checkbox"
@@ -1151,11 +1554,13 @@ const Cities = () => {
                                 />
                               </td>
 
+                              {/* Base Prices */}
                               <td className="p-3.5 text-sm font-semibold text-gray-500">
                                 <div>Price: ₹{parseFloat(product.price).toFixed(2)}</div>
                                 <div>MRP: ₹{parseFloat(product.mrp).toFixed(2)}</div>
                               </td>
 
+                              {/* City Overrides */}
                               <td className="p-3.5">
                                 <div className="flex gap-2">
                                   <div className="w-24">
@@ -1185,19 +1590,20 @@ const Cities = () => {
                                 </div>
                               </td>
 
+                              {/* Actions */}
                               <td className="p-3.5 text-right">
                                 <div className="flex items-center justify-end gap-1.5">
                                   <button
                                     onClick={() => handleSaveProductOverride(product)}
                                     disabled={isSaving}
-                                    className={`p-2 rounded-xl text-white shadow-sm transition-all ${
+                                    className={`p-2 rounded-xl text-white shadow-xs transition-all ${
                                       isSaving
                                         ? 'bg-gray-400 dark:bg-zinc-800'
                                         : hasOverride
                                         ? 'bg-blue-650 hover:bg-blue-600'
                                         : 'bg-green-600 hover:bg-green-700'
                                     }`}
-                                    title={hasOverride ? "Update Custom Settings" : "Save Custom settings"}
+                                    title={hasOverride ? "Update Custom Pricing" : "Save Custom Pricing"}
                                   >
                                     {isSaving ? (
                                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -1210,7 +1616,7 @@ const Cities = () => {
                                       onClick={() => handleResetProductOverride(product)}
                                       disabled={isSaving}
                                       className="p-2 bg-red-50 dark:bg-red-950/20 text-red-600 dark:text-red-400 hover:bg-red-100 rounded-xl transition-all"
-                                      title="Reset to Base Settings"
+                                      title="Reset to Base Global Settings"
                                     >
                                       <RotateCcw className="w-4 h-4" />
                                     </button>
@@ -1226,26 +1632,29 @@ const Cities = () => {
                 )}
               </div>
 
-              {/* Product pagination */}
-              {prodTotalCount > 8 && (
-                <div className="flex items-center justify-between p-4 border border-gray-150 dark:border-white/5 rounded-2xl bg-gray-50/20 dark:bg-transparent">
-                  <button
-                    disabled={prodPage === 1 || loadingVisProducts}
-                    onClick={() => setProdPage(prev => Math.max(prev - 1, 1))}
-                    className="px-4 py-2 text-xs font-bold border border-gray-200 dark:border-white/5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 transition-all text-gray-650 dark:text-gray-300"
-                  >
-                    Previous
-                  </button>
+              {/* Product Pagination Bar */}
+              {prodTotalCount > 0 && (
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 border border-gray-150 dark:border-white/5 rounded-2xl bg-gray-50/30 dark:bg-transparent">
+                  <div className="flex items-center gap-2">
+                    <button
+                      disabled={prodPage === 1 || loadingVisProducts}
+                      onClick={() => setProdPage(prev => Math.max(prev - 1, 1))}
+                      className="px-4 py-2 text-xs font-bold border border-gray-200 dark:border-white/5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 transition-all text-gray-650 dark:text-gray-300 shadow-2xs"
+                    >
+                      Previous
+                    </button>
+                    <button
+                      disabled={prodPage * prodPageSize >= prodTotalCount || loadingVisProducts}
+                      onClick={() => setProdPage(prev => prev + 1)}
+                      className="px-4 py-2 text-xs font-bold border border-gray-200 dark:border-white/5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 transition-all text-gray-650 dark:text-gray-300 shadow-2xs"
+                    >
+                      Next
+                    </button>
+                  </div>
+
                   <span className="text-xs font-bold text-gray-500">
-                    Showing {(prodPage - 1) * 8 + 1} - {Math.min(prodPage * 8, prodTotalCount)} of {prodTotalCount} products
+                    Showing {(prodPage - 1) * prodPageSize + 1} - {Math.min(prodPage * prodPageSize, prodTotalCount)} of {prodTotalCount} products (Page {prodPage} of {Math.max(1, Math.ceil(prodTotalCount / prodPageSize))})
                   </span>
-                  <button
-                    disabled={prodPage * 8 >= prodTotalCount || loadingVisProducts}
-                    onClick={() => setProdPage(prev => prev + 1)}
-                    className="px-4 py-2 text-xs font-bold border border-gray-200 dark:border-white/5 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 disabled:opacity-40 transition-all text-gray-650 dark:text-gray-300"
-                  >
-                    Next
-                  </button>
                 </div>
               )}
             </div>
