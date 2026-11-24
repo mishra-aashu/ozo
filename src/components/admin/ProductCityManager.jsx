@@ -61,7 +61,7 @@ export default function ProductCityManager({ productId, productName, onSaveSucce
           .order('name', { ascending: true }),
         supabase
           .from('marts')
-          .select('id, name, slug, city_slug, is_active, service_radius_km')
+          .select('id, name, slug, city_slug, is_active, address')
           .eq('is_active', true)
           .order('name', { ascending: true }),
         supabase
@@ -710,7 +710,7 @@ export default function ProductCityManager({ productId, productName, onSaveSucce
                                   {mart.name}
                                 </span>
                                 <span className="text-[10px] text-gray-400 font-medium">
-                                  Radius: {mart.service_radius_km || 10} km
+                                  {mart.address ? mart.address.split(',')[0] : 'Dark Store Hub'}
                                 </span>
                               </div>
 
