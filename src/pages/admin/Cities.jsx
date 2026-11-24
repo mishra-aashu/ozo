@@ -104,6 +104,36 @@ const Cities = () => {
   const [selectedProdIds, setSelectedProdIds] = useState(new Set())
   const [isBulkOperating, setIsBulkOperating] = useState(false)
 
+  // City PCA Catalog isolation state
+  const [cityPcaCount, setCityPcaCount] = useState(null)
+  const [totalMasterCount, setTotalMasterCount] = useState(0)
+
+  // Emergency Out-of-Stock All State
+  const [showMarkAllOosModal, setShowMarkAllOosModal] = useState(false)
+  const [isMarkingAllOos, setIsMarkingAllOos] = useState(false)
+  const [allOosConfirmInput, setAllOosConfirmInput] = useState('')
+  const [allOosAcknowledged, setAllOosAcknowledged] = useState(false)
+  const [allOosProgress, setAllOosProgress] = useState(null)
+
+  // Mark All In-Stock State
+  const [showMarkAllInStockModal, setShowMarkAllInStockModal] = useState(false)
+  const [isMarkingAllInStock, setIsMarkingAllInStock] = useState(false)
+  const [allInStockAcknowledged, setAllInStockAcknowledged] = useState(false)
+
+  // Add Products from Global Master Catalogue Modal State
+  const [showAddFromGlobalModal, setShowAddFromGlobalModal] = useState(false)
+  const [globalModalSearch, setGlobalModalSearch] = useState('')
+  const [globalModalCategory, setGlobalModalCategory] = useState('all')
+  const [globalModalBrand, setGlobalModalBrand] = useState('all')
+  const [globalModalPage, setGlobalModalPage] = useState(1)
+  const [globalModalPageSize, setGlobalModalPageSize] = useState(25)
+  const [globalModalProducts, setGlobalModalProducts] = useState([])
+  const [globalModalTotalCount, setGlobalModalTotalCount] = useState(0)
+  const [loadingGlobalModal, setLoadingGlobalModal] = useState(false)
+  const [selectedGlobalProdIds, setSelectedGlobalProdIds] = useState(new Set())
+  const [isAddingFromGlobal, setIsAddingFromGlobal] = useState(false)
+  const [isImportingAll, setIsImportingAll] = useState(false)
+
   // Brands Tab State
   const [brandSearch, setBrandSearch] = useState('')
   const [visBrands, setVisBrands] = useState([])
@@ -248,15 +278,49 @@ const Cities = () => {
     }
   }, [cities])
 
-  // Fetch Visibility Products with advanced filtering and pagination
+  // Fetch Visibility Products with city isolation and advanced SQL filtering
   const fetchVisibilityProducts = async () => {
     if (!selectedCityForVisibility) return
     setLoadingVisProducts(true)
     try {
+      // 1. Check if this city has products configured in PCA
+      const { count: pcaCount, error: countErr } = await supabase
+        .from('product_city_availability')
+        .select('*', { count: 'exact', head: true })
+        .eq('city_slug', selectedCityForVisibility)
+
+      if (countErr) console.warn('PCA count check error:', countErr)
+      setCityPcaCount(pcaCount || 0)
+
+      // Fetch total master products count once for UI stats
+      if (totalMasterCount === 0) {
+        const { count: masterCount } = await supabase
+          .from('products')
+          .select('*', { count: 'exact', head: true })
+        if (masterCount) setTotalMasterCount(masterCount)
+      }
+
+      // If a newly added city has 0 products configured, isolate it completely (do not leak other cities' products)
+      if (!pcaCount || pcaCount === 0) {
+        setVisProducts([])
+        setProdTotalCount(0)
+        setVisPcaMap({})
+        setLocalOverrides({})
+        setLoadingVisProducts(false)
+        return
+      }
+
+      // 2. Query products configured specifically for this city via product_city_availability!inner
       let query = supabase
         .from('products')
-        .select('id, name, brand, barcode, price, mrp, category_id, is_available, is_featured, quantity_available, image_url', { count: 'exact' })
-      
+        .select(`
+          id, name, brand, barcode, price, mrp, category_id, is_available, is_featured, quantity_available, image_url,
+          product_city_availability!inner(
+            id, city_slug, is_available, is_featured, is_upcoming, city_price, city_mrp, city_ozo_price
+          )
+        `, { count: 'exact' })
+        .eq('product_city_availability.city_slug', selectedCityForVisibility)
+
       if (prodSearch.trim()) {
         const term = prodSearch.trim()
         query = query.or(`name.ilike.%${term}%,brand.ilike.%${term}%,barcode.ilike.%${term}%`)
@@ -268,106 +332,333 @@ const Cities = () => {
         query = query.eq('brand', prodBrand)
       }
 
-      // City-specific stock status pre-filter
-      if (prodStockStatus === 'out-of-stock') {
-        const { data: oosPca } = await supabase
-          .from('product_city_availability')
-          .select('product_id')
-          .eq('city_slug', selectedCityForVisibility)
-          .eq('is_available', false)
-        const oosCityIds = (oosPca || []).map(r => r.product_id)
-
-        const { data: truePca } = await supabase
-          .from('product_city_availability')
-          .select('product_id')
-          .eq('city_slug', selectedCityForVisibility)
-          .eq('is_available', true)
-        const trueCityIds = new Set((truePca || []).map(r => r.product_id))
-
-        const { data: globalOos } = await supabase
-          .from('products')
-          .select('id')
-          .eq('is_available', false)
-        const effectiveGlobalOos = (globalOos || []).map(r => r.id).filter(id => !trueCityIds.has(id))
-
-        const allOosIds = Array.from(new Set([...oosCityIds, ...effectiveGlobalOos]))
-        if (allOosIds.length === 0) {
-          setVisProducts([])
-          setProdTotalCount(0)
-          setVisPcaMap({})
-          setLocalOverrides({})
-          setLoadingVisProducts(false)
-          return
-        }
-        query = query.in('id', allOosIds)
-      } else if (prodStockStatus === 'in-stock') {
-        const { data: oosPca } = await supabase
-          .from('product_city_availability')
-          .select('product_id')
-          .eq('city_slug', selectedCityForVisibility)
-          .eq('is_available', false)
-        const oosCityIds = (oosPca || []).map(r => r.product_id)
-        if (oosCityIds.length > 0) {
-          query = query.not('id', 'in', `(${oosCityIds.join(',')})`)
-        }
+      // Filter city stock status in SQL directly to maintain exact page size (100 items = 100 items)
+      if (prodStockStatus === 'in-stock') {
+        query = query.eq('product_city_availability.is_available', true)
+      } else if (prodStockStatus === 'out-of-stock') {
+        query = query.eq('product_city_availability.is_available', false)
       }
-      
+
       const start = (prodPage - 1) * prodPageSize
       const end = start + prodPageSize - 1
-      
+
       const { data, count, error } = await query
         .range(start, end)
         .order('name')
-        
+
       if (error) throw error
-      
-      let fetchedProducts = data || []
-      
-      // Fetch city overrides for these products
-      if (fetchedProducts.length > 0) {
-        const pIds = fetchedProducts.map(p => p.id)
-        const { data: pcaData, error: pcaError } = await supabase
-          .from('product_city_availability')
-          .select('*')
-          .eq('city_slug', selectedCityForVisibility)
-          .in('product_id', pIds)
-          
-        const map = {}
-        const overrides = {}
-        if (!pcaError && pcaData) {
-          pcaData.forEach(row => {
-            map[row.product_id] = row
-            overrides[row.product_id] = {
-              is_available: row.is_available,
-              is_featured: row.is_featured,
-              city_price: row.city_price !== null && row.city_price !== undefined ? row.city_price.toString() : '',
-              city_mrp: row.city_mrp !== null && row.city_mrp !== undefined ? row.city_mrp.toString() : ''
-            }
-          })
-        }
 
-        if (prodStockStatus === 'in-stock') {
-          fetchedProducts = fetchedProducts.filter(p => {
-            const row = map[p.id]
-            const isAvail = row ? row.is_available : p.is_available
-            return isAvail !== false
-          })
-        }
+      const fetchedProducts = data || []
+      const map = {}
+      const overrides = {}
 
-        setVisProducts(fetchedProducts)
-        setProdTotalCount(count || 0)
-        setVisPcaMap(map)
-        setLocalOverrides(overrides)
-      } else {
-        setVisProducts([])
-        setProdTotalCount(0)
-        setVisPcaMap({})
-        setLocalOverrides({})
-      }
+      fetchedProducts.forEach(product => {
+        const pcaList = product.product_city_availability
+        const pca = Array.isArray(pcaList) ? pcaList[0] : pcaList
+        if (pca) {
+          map[product.id] = pca
+          overrides[product.id] = {
+            is_available: pca.is_available,
+            is_featured: pca.is_featured,
+            city_price: pca.city_price !== null && pca.city_price !== undefined ? pca.city_price.toString() : '',
+            city_mrp: pca.city_mrp !== null && pca.city_mrp !== undefined ? pca.city_mrp.toString() : ''
+          }
+        }
+      })
+
+      setVisProducts(fetchedProducts)
+      setProdTotalCount(count || 0)
+      setVisPcaMap(map)
+      setLocalOverrides(overrides)
     } catch (err) {
       console.error('Error fetching visibility products:', err)
+      toast.error('Error loading products: ' + err.message)
     } finally {
       setLoadingVisProducts(false)
+    }
+  }
+
+  // Fetch Master Global Catalogue for "Add Products from Global Catalogue" Modal
+  const fetchGlobalModalProducts = async () => {
+    setLoadingGlobalModal(true)
+    try {
+      let query = supabase
+        .from('products')
+        .select('id, name, brand, barcode, price, mrp, category_id, image_url, is_available', { count: 'exact' })
+
+      if (globalModalSearch.trim()) {
+        const term = globalModalSearch.trim()
+        query = query.or(`name.ilike.%${term}%,brand.ilike.%${term}%,barcode.ilike.%${term}%`)
+      }
+      if (globalModalCategory !== 'all') {
+        query = query.eq('category_id', globalModalCategory)
+      }
+      if (globalModalBrand !== 'all') {
+        query = query.eq('brand', globalModalBrand)
+      }
+
+      const start = (globalModalPage - 1) * globalModalPageSize
+      const end = start + globalModalPageSize - 1
+
+      const { data, count, error } = await query
+        .range(start, end)
+        .order('name')
+
+      if (error) throw error
+
+      setGlobalModalProducts(data || [])
+      setGlobalModalTotalCount(count || 0)
+    } catch (err) {
+      console.error('Error fetching global catalogue in modal:', err)
+      toast.error('Failed to load master catalogue')
+    } finally {
+      setLoadingGlobalModal(false)
+    }
+  }
+
+  // Add selected products from global catalogue to this city
+  const handleAddSelectedFromGlobal = async () => {
+    if (selectedGlobalProdIds.size === 0 || !selectedCityForVisibility) {
+      toast.error('Please select at least one product')
+      return
+    }
+    setIsAddingFromGlobal(true)
+    const toastId = toast.loading(`Adding ${selectedGlobalProdIds.size} products to ${selectedCityForVisibility}...`)
+
+    try {
+      const ids = Array.from(selectedGlobalProdIds)
+      const CHUNK_SIZE = 500
+
+      for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+        const chunk = ids.slice(i, i + CHUNK_SIZE)
+        const rows = chunk.map(id => ({
+          product_id: id,
+          city_slug: selectedCityForVisibility,
+          is_available: true,
+          updated_at: new Date().toISOString()
+        }))
+
+        const { error } = await supabase
+          .from('product_city_availability')
+          .upsert(rows, { onConflict: 'product_id,city_slug' })
+
+        if (error) throw error
+      }
+
+      toast.success(`Successfully added ${ids.length} products to ${selectedCityForVisibility}!`, { id: toastId })
+      setSelectedGlobalProdIds(new Set())
+      setShowAddFromGlobalModal(false)
+      await fetchVisibilityProducts()
+    } catch (err) {
+      console.error('Error adding products from global catalogue:', err)
+      toast.error('Failed to add products: ' + err.message, { id: toastId })
+    } finally {
+      setIsAddingFromGlobal(false)
+    }
+  }
+
+  // Import entire master catalogue to this city (1-click helper)
+  const handleImportAllCatalogToCity = async () => {
+    if (!selectedCityForVisibility) return
+    const confirmed = window.confirm(
+      `Are you sure you want to import ALL active products from the global master catalogue into "${selectedCityForVisibility}"?\n\nThis will configure all products as available for this city.`
+    )
+    if (!confirmed) return
+
+    setIsImportingAll(true)
+    const toastId = toast.loading(`Importing active catalogue into ${selectedCityForVisibility}...`)
+
+    try {
+      // 1. Try atomic PostgreSQL RPC first
+      const { error: rpcErr } = await supabase.rpc('mark_all_products_city_in_stock', {
+        p_city_slug: selectedCityForVisibility
+      })
+
+      if (!rpcErr) {
+        toast.success(`Success! All active products imported to ${selectedCityForVisibility}.`, { id: toastId })
+        await fetchVisibilityProducts()
+        return
+      }
+
+      // 2. Fallback: chunked queue (500 per batch)
+      const { data: allProds, error: fetchErr } = await supabase
+        .from('products')
+        .select('id')
+        .eq('is_available', true)
+
+      if (fetchErr) throw fetchErr
+
+      const total = allProds?.length || 0
+      const CHUNK_SIZE = 500
+      for (let i = 0; i < total; i += CHUNK_SIZE) {
+        const chunk = allProds.slice(i, i + CHUNK_SIZE)
+        const rows = chunk.map(p => ({
+          product_id: p.id,
+          city_slug: selectedCityForVisibility,
+          is_available: true,
+          updated_at: new Date().toISOString()
+        }))
+
+        const { error: upsertErr } = await supabase
+          .from('product_city_availability')
+          .upsert(rows, { onConflict: 'product_id,city_slug' })
+
+        if (upsertErr) throw upsertErr
+        await new Promise(r => setTimeout(r, 10))
+      }
+
+      toast.success(`Imported ${total} products to ${selectedCityForVisibility}!`, { id: toastId })
+      await fetchVisibilityProducts()
+    } catch (err) {
+      console.error('Import all products error:', err)
+      toast.error('Import failed: ' + err.message, { id: toastId })
+    } finally {
+      setIsImportingAll(false)
+    }
+  }
+
+  // Remove a product from this city (deletes from PCA)
+  const handleRemoveProductFromCity = async (productId, productName) => {
+    if (!window.confirm(`Remove "${productName}" from ${selectedCityForVisibility}?`)) return
+    try {
+      const { error } = await supabase
+        .from('product_city_availability')
+        .delete()
+        .eq('city_slug', selectedCityForVisibility)
+        .eq('product_id', productId)
+
+      if (error) throw error
+      toast.success(`Removed from ${selectedCityForVisibility}`)
+      await fetchVisibilityProducts()
+    } catch (err) {
+      toast.error('Failed to remove: ' + err.message)
+    }
+  }
+
+  // Atomic Emergency Out-of-Stock for entire city without frontend freeze
+  const handleMarkAllOutOfStock = async () => {
+    if (!selectedCityForVisibility) return
+    setIsMarkingAllOos(true)
+    const toastId = toast.loading(`Marking ALL products in ${selectedCityForVisibility} as OUT OF STOCK...`)
+
+    try {
+      // 1. Try atomic PostgreSQL RPC first (instant, 0ms frontend execution)
+      const { data: rpcCount, error: rpcError } = await supabase.rpc('mark_all_products_city_out_of_stock', {
+        p_city_slug: selectedCityForVisibility
+      })
+
+      if (!rpcError) {
+        toast.success(`Success! All products in ${selectedCityForVisibility} are now OUT OF STOCK.`, { id: toastId })
+        setShowMarkAllOosModal(false)
+        setAllOosConfirmInput('')
+        setAllOosAcknowledged(false)
+        await fetchVisibilityProducts()
+        return
+      }
+
+      console.warn('RPC mark_all_products_city_out_of_stock not found, using chunked queue fallback:', rpcError)
+
+      // 2. High-performance chunked queue fallback (500 per batch with live progress)
+      const { data: allProducts, error: fetchErr } = await supabase
+        .from('products')
+        .select('id')
+
+      if (fetchErr || !allProducts || allProducts.length === 0) {
+        throw new Error('Failed to retrieve products: ' + (fetchErr?.message || 'Empty list'))
+      }
+
+      const total = allProducts.length
+      const CHUNK_SIZE = 500
+      let processed = 0
+
+      for (let i = 0; i < total; i += CHUNK_SIZE) {
+        const chunk = allProducts.slice(i, i + CHUNK_SIZE)
+        const upsertRows = chunk.map(p => ({
+          product_id: p.id,
+          city_slug: selectedCityForVisibility,
+          is_available: false,
+          updated_at: new Date().toISOString()
+        }))
+
+        const { error: upsertErr } = await supabase
+          .from('product_city_availability')
+          .upsert(upsertRows, { onConflict: 'product_id,city_slug' })
+
+        if (upsertErr) throw upsertErr
+
+        processed += chunk.length
+        setAllOosProgress({ current: processed, total, percent: Math.round((processed / total) * 100) })
+        await new Promise(r => setTimeout(r, 10))
+      }
+
+      toast.success(`Done! ${processed} products in ${selectedCityForVisibility} are now OUT OF STOCK.`, { id: toastId })
+      setShowMarkAllOosModal(false)
+      setAllOosConfirmInput('')
+      setAllOosAcknowledged(false)
+      setAllOosProgress(null)
+      await fetchVisibilityProducts()
+    } catch (err) {
+      console.error('Failed to mark all out of stock:', err)
+      toast.error('Failed to mark out of stock: ' + err.message, { id: toastId })
+    } finally {
+      setIsMarkingAllOos(false)
+    }
+  }
+
+  // Restore entire city products to In Stock
+  const handleMarkAllInStock = async () => {
+    if (!selectedCityForVisibility) return
+    setIsMarkingAllInStock(true)
+    const toastId = toast.loading(`Restoring all products in ${selectedCityForVisibility} to IN STOCK...`)
+
+    try {
+      const { error: rpcError } = await supabase.rpc('mark_all_products_city_in_stock', {
+        p_city_slug: selectedCityForVisibility
+      })
+
+      if (!rpcError) {
+        toast.success(`Done! All products in ${selectedCityForVisibility} are now IN STOCK.`, { id: toastId })
+        setShowMarkAllInStockModal(false)
+        setAllInStockAcknowledged(false)
+        await fetchVisibilityProducts()
+        return
+      }
+
+      // Fallback chunked queue
+      const { data: allProducts, error: fetchErr } = await supabase
+        .from('products')
+        .select('id')
+
+      if (fetchErr || !allProducts) throw fetchErr
+
+      const total = allProducts.length
+      const CHUNK_SIZE = 500
+      for (let i = 0; i < total; i += CHUNK_SIZE) {
+        const chunk = allProducts.slice(i, i + CHUNK_SIZE)
+        const upsertRows = chunk.map(p => ({
+          product_id: p.id,
+          city_slug: selectedCityForVisibility,
+          is_available: true,
+          updated_at: new Date().toISOString()
+        }))
+
+        const { error: upsertErr } = await supabase
+          .from('product_city_availability')
+          .upsert(upsertRows, { onConflict: 'product_id,city_slug' })
+
+        if (upsertErr) throw upsertErr
+        await new Promise(r => setTimeout(r, 10))
+      }
+
+      toast.success(`Done! All products in ${selectedCityForVisibility} are now IN STOCK.`, { id: toastId })
+      setShowMarkAllInStockModal(false)
+      setAllInStockAcknowledged(false)
+      await fetchVisibilityProducts()
+    } catch (err) {
+      console.error('Failed to mark all in stock:', err)
+      toast.error('Failed: ' + err.message, { id: toastId })
+    } finally {
+      setIsMarkingAllInStock(false)
     }
   }
 
@@ -413,6 +704,23 @@ const Cities = () => {
       return () => clearTimeout(delay)
     }
   }, [prodSearch])
+
+  // Triggers for Global Modal
+  useEffect(() => {
+    if (showAddFromGlobalModal) {
+      fetchGlobalModalProducts()
+    }
+  }, [showAddFromGlobalModal, globalModalPage, globalModalCategory, globalModalBrand, globalModalPageSize])
+
+  useEffect(() => {
+    if (showAddFromGlobalModal) {
+      const delay = setTimeout(() => {
+        setGlobalModalPage(1)
+        fetchGlobalModalProducts()
+      }, 400)
+      return () => clearTimeout(delay)
+    }
+  }, [globalModalSearch])
 
   // Bulk Selection Handlers
   const toggleSelectProduct = (productId) => {
@@ -1263,8 +1571,48 @@ const Cities = () => {
                     )}
                   </div>
 
-                  {/* Actions & Refresh */}
-                  <div className="flex items-center gap-2 w-full md:w-auto justify-end">
+                  {/* Actions & Buttons */}
+                  <div className="flex items-center gap-2 w-full md:w-auto justify-end flex-wrap">
+                    {/* Add Products from Global Catalogue Button */}
+                    <button
+                      onClick={() => {
+                        setShowAddFromGlobalModal(true)
+                        fetchGlobalModalProducts()
+                      }}
+                      className="px-3.5 py-2 rounded-xl bg-gradient-ozo text-white font-black text-xs shadow-ozo hover:shadow-ozo-lg transition-all flex items-center gap-1.5 active:scale-95"
+                      title="Add products from global master catalogue into this city"
+                    >
+                      <Plus className="w-4 h-4 stroke-[3px]" />
+                      <span>+ Add Products From Global Catalogue</span>
+                    </button>
+
+                    {/* Emergency Mark All Out of Stock Button */}
+                    <button
+                      onClick={() => {
+                        setShowMarkAllOosModal(true)
+                        setAllOosConfirmInput('')
+                        setAllOosAcknowledged(false)
+                      }}
+                      className="px-3 py-2 rounded-xl border border-red-200 dark:border-red-900/50 bg-red-50 hover:bg-red-100 dark:bg-red-950/30 text-red-600 dark:text-red-400 font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                      title="Emergency: Mark all products in this city out of stock"
+                    >
+                      <AlertOctagon className="w-4 h-4 text-red-600 dark:text-red-400 stroke-[2.5px]" />
+                      <span>Mark All Out of Stock</span>
+                    </button>
+
+                    {/* Restore All In Stock Button */}
+                    <button
+                      onClick={() => {
+                        setShowMarkAllInStockModal(true)
+                        setAllInStockAcknowledged(false)
+                      }}
+                      className="px-3 py-2 rounded-xl border border-emerald-200 dark:border-emerald-900/50 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs transition-all shadow-xs flex items-center gap-1.5 active:scale-95"
+                      title="Restore all products in this city to in-stock"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 stroke-[2.5px]" />
+                      <span>Mark All In Stock</span>
+                    </button>
+
                     <button
                       onClick={() => fetchVisibilityProducts()}
                       disabled={loadingVisProducts}
@@ -1427,11 +1775,45 @@ const Cities = () => {
                     <span className="text-sm font-semibold text-gray-500">Loading catalog for {selectedCityForVisibility}...</span>
                   </div>
                 ) : visProducts.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <AlertCircle className="w-10 h-10 text-gray-400 mb-2" />
-                    <h4 className="text-sm font-bold text-gray-700 dark:text-white">No products found</h4>
-                    <p className="text-xs text-gray-500 mt-1">Try refining search parameters or filters.</p>
-                  </div>
+                  cityPcaCount === 0 && !prodSearch.trim() && prodCategory === 'all' && prodBrand === 'all' ? (
+                    <div className="flex flex-col items-center justify-center py-16 px-6 text-center">
+                      <div className="w-16 h-16 rounded-3xl bg-ozo-red/10 flex items-center justify-center text-ozo-red mb-4 shadow-sm">
+                        <Package className="w-8 h-8" />
+                      </div>
+                      <h4 className="text-xl font-black text-gray-900 dark:text-white mb-2">
+                        No products added to {cities.find(c => c.slug === selectedCityForVisibility)?.name || selectedCityForVisibility} yet
+                      </h4>
+                      <p className="text-sm text-gray-500 dark:text-gray-400 max-w-md mb-6 leading-relaxed">
+                        To avoid showing other cities' stock, add your products in this city directly from the master catalogue.
+                      </p>
+                      <div className="flex flex-wrap items-center justify-center gap-3">
+                        <button
+                          onClick={() => {
+                            setShowAddFromGlobalModal(true)
+                            fetchGlobalModalProducts()
+                          }}
+                          className="px-6 py-3 rounded-2xl bg-gradient-ozo text-white font-black text-sm shadow-ozo hover:shadow-ozo-lg transition-all flex items-center gap-2 active:scale-95"
+                        >
+                          <Plus className="w-4.5 h-4.5 stroke-[3px]" />
+                          <span>Add your products in this city from global catalogue</span>
+                        </button>
+                        <button
+                          onClick={handleImportAllCatalogToCity}
+                          disabled={isImportingAll}
+                          className="px-5 py-3 rounded-2xl bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300 font-bold text-sm transition-all flex items-center gap-2"
+                        >
+                          {isImportingAll ? <Loader2 className="w-4 h-4 animate-spin text-ozo-red" /> : <Layers className="w-4 h-4" />}
+                          <span>Import Entire Master Catalogue</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-16 text-center">
+                      <AlertCircle className="w-10 h-10 text-gray-400 mb-2" />
+                      <h4 className="text-sm font-bold text-gray-700 dark:text-white">No products found</h4>
+                      <p className="text-xs text-gray-500 mt-1">Try refining search parameters or filters.</p>
+                    </div>
+                  )
                 ) : (
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
