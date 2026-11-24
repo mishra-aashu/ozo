@@ -305,6 +305,11 @@ const applyCityOverrides = (products, citySlug) => {
 
     const isUpcoming = (launchModeEnabled && !isAvailable) ? true : isUpcomingRaw;
 
+    // Hide out-of-stock products for this city on Home page
+    if (!isAvailable) {
+      return null;
+    }
+
     const priceVal = pca?.city_price !== null && pca?.city_price !== undefined
       ? parseFloat(pca.city_price)
       : parseFloat(product.price);

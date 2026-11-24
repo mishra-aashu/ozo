@@ -348,7 +348,13 @@ export function useProductPagination() {
         }
       }
 
-      // Sort: in-stock first, out-of-stock / upcoming last
+      // Filter out products that are out of stock for this city in consumer browsing
+      formatted = formatted.filter(product => {
+        if (product.is_available === false) return false;
+        return true;
+      });
+
+      // Sort: in-stock first, upcoming last
       formatted.sort((a, b) => {
         const aOOS = !a.is_available || (a.quantity_available !== undefined && a.quantity_available === 0) || a.is_upcoming;
         const bOOS = !b.is_available || (b.quantity_available !== undefined && b.quantity_available === 0) || b.is_upcoming;
