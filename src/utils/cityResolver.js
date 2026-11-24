@@ -60,12 +60,8 @@ export function resolveCity(input, citiesList = null) {
     ? citiesList
     : []
 
-  if (activeCities.length === 0 && typeof useLocationStore !== 'undefined') {
-    try {
-      activeCities = useLocationStore.getState?.()?.activeCities || []
-    } catch (e) {
-      activeCities = []
-    }
+  if (activeCities.length === 0 && typeof window !== 'undefined') {
+    activeCities = window.__ozo_active_cities || []
   }
 
   if (!activeCities || activeCities.length === 0) return null
