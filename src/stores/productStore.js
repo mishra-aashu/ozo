@@ -92,9 +92,9 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
       ? (pcaList.find(row => row.city_slug === citySlug) || null)
       : (citySlug && pcaList ? pcaList : null)
 
-    const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-      ? pca.is_available
-      : product.is_available
+    const isAvailable = citySlug
+      ? (pca && pca.is_available === true)
+      : (product.is_available ?? false)
 
     const isUpcomingRaw = pca && pca.is_upcoming !== null && pca.is_upcoming !== undefined
       ? pca.is_upcoming
@@ -105,7 +105,6 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
 
     const isUpcoming = (launchModeEnabled && !isAvailable) ? true : isUpcomingRaw
 
-    if (!isAvailable && !isAdminOrMart && !includeUnavailable) return null
     if (!isAvailable && !isAdminOrMart) return null
 
     const sellingPriceVal = pca?.city_price !== null && pca?.city_price !== undefined

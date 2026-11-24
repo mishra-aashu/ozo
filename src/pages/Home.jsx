@@ -295,9 +295,12 @@ const applyCityOverrides = (products, citySlug) => {
       ? pcaList.find(row => row.city_slug === citySlug)
       : null;
 
-    const isAvailable = pca && pca.is_available !== null && pca.is_available !== undefined
-      ? pca.is_available
-      : product.is_available;
+    // Strict City Isolation:
+    // If browsing a city, product MUST have a PCA record marked is_available = true.
+    // Products not in this city or is_available !== true are strictly unavailable.
+    const isAvailable = citySlug
+      ? (pca && pca.is_available === true)
+      : (product.is_available ?? false);
 
     const isUpcomingRaw = pca && pca.is_upcoming !== null && pca.is_upcoming !== undefined
       ? pca.is_upcoming
@@ -305,7 +308,7 @@ const applyCityOverrides = (products, citySlug) => {
 
     const isUpcoming = (launchModeEnabled && !isAvailable) ? true : isUpcomingRaw;
 
-    // Hide out-of-stock products for this city on Home page
+    // Hide out-of-stock and non-city products for this city on Home page
     if (!isAvailable) {
       return null;
     }
