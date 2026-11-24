@@ -56,7 +56,7 @@ export default function ProductCityManager({ productId, productName, onSaveSucce
           .single(),
         supabase
           .from('operating_cities')
-          .select('id, name, slug, state, is_active')
+          .select('id, name, slug, code, state, is_active')
           .eq('is_active', true)
           .order('name', { ascending: true }),
         supabase
@@ -525,9 +525,14 @@ export default function ProductCityManager({ productId, productName, onSaveSucce
                     <div className="flex flex-wrap items-center gap-2">
                       <label 
                         htmlFor={`city-assign-${city.slug}`}
-                        className="font-bold text-sm text-gray-900 dark:text-white cursor-pointer hover:text-ozo-red transition-colors"
+                        className="font-bold text-sm text-gray-900 dark:text-white cursor-pointer hover:text-ozo-red transition-colors flex items-center gap-1.5"
                       >
-                        {city.name}
+                        <span>{city.name}</span>
+                        {city.code && (
+                          <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20" title={`City Code: ${city.code}`}>
+                            [{city.code}]
+                          </span>
+                        )}
                       </label>
                       <span className="text-[10px] font-semibold text-gray-400 capitalize px-2 py-0.5 rounded bg-gray-100 dark:bg-white/5">
                         State: {city.state}
