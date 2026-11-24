@@ -93,7 +93,8 @@ function ProductCard({ product, variant = 'default', index }) {
   //   - is_available is explicitly false, OR
   //   - quantity_available is a real number AND equals 0 (NOT null — null means "untracked / unlimited")
   const isQtyOOS = selectedProduct?.quantity_available !== null && selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0;
-  const isUpcoming = (launchConfig?.launch_mode_enabled && (!selectedProduct?.is_available || isQtyOOS))
+  const isOutOfStock = selectedProduct?.is_available === false || isQtyOOS;
+  const isUpcoming = (launchConfig?.launch_mode_enabled && isOutOfStock)
     ? true
     : (selectedProduct?.is_upcoming || false);
   const handleNotifyMe = async (e) => {
@@ -164,6 +165,11 @@ function ProductCard({ product, variant = 'default', index }) {
       e.stopPropagation()
     }
 
+    if (isOutOfStock) {
+      toast.error(`${selectedProduct?.name || 'Item'} is currently out of stock in your city`)
+      return
+    }
+
     // If no city has been selected/confirmed, prompt user to pick their city first.
     // The modal will auto-add the product once they confirm a city.
     if (!selectedCitySlug) {
@@ -188,6 +194,11 @@ function ProductCard({ product, variant = 'default', index }) {
     if (e) {
       e.preventDefault()
       e.stopPropagation()
+    }
+
+    if (isOutOfStock) {
+      toast.error(`${selectedProduct?.name || 'Item'} is currently out of stock in your city`)
+      return
     }
 
     if (cartItemId) {
@@ -437,17 +448,7 @@ function ProductCard({ product, variant = 'default', index }) {
               />
             </button>
           </div>
-          {quantity > 0 ? (
-            <div className="flex items-center gap-3 bg-ozo-green text-white rounded-xl p-1.5 shadow-lg shadow-ozo-green/20">
-              <button onClick={handleDecrement} aria-label="Decrease quantity" className="p-1.5 hover:bg-white/20 rounded-lg active:scale-90 transition-all">
-                <Minus className="w-4 h-4 stroke-[3px]" />
-              </button>
-              <span className="font-black min-w-[24px] text-center">{quantity}</span>
-              <button onClick={handleIncrement} aria-label="Increase quantity" className="p-1.5 hover:bg-white/20 rounded-lg active:scale-90 transition-all">
-                <Plus className="w-4 h-4 stroke-[3px]" />
-              </button>
-            </div>
-          ) : !selectedProduct?.is_available || isQtyOOS ? (
+          {isOutOfStock ? (
             <div className="flex flex-col items-end gap-1.5">
               {isUpcoming ? (
                 <span className="text-[10px] font-black uppercase text-amber-500 dark:text-amber-400 tracking-wider flex items-center gap-1">
@@ -484,17 +485,27 @@ function ProductCard({ product, variant = 'default', index }) {
                 </button>
               )}
             </div>
+          ) : quantity > 0 ? (
+            <div className="flex items-center gap-3 bg-ozo-green text-white rounded-xl p-1.5 shadow-lg shadow-ozo-green/20">
+              <button onClick={handleDecrement} aria-label="Decrease quantity" className="p-1.5 hover:bg-white/20 rounded-lg active:scale-90 transition-all">
+                <Minus className="w-4 h-4 stroke-[3px]" />
+              </button>
+              <span className="font-black min-w-[24px] text-center">{quantity}</span>
+              <button onClick={handleIncrement} aria-label="Increase quantity" className="p-1.5 hover:bg-white/20 rounded-lg active:scale-90 transition-all">
+                <Plus className="w-4 h-4 stroke-[3px]" />
+              </button>
+            </div>
           ) : (
             <button
               onClick={handleAddToCart}
-              disabled={!selectedProduct?.is_available || !selectedProduct?.price}
+              disabled={isOutOfStock || !selectedProduct?.price}
               className={`px-8 py-3 rounded-2xl font-black text-sm uppercase tracking-widest transition-all ${
-                !selectedProduct?.is_available || !selectedProduct?.price
+                isOutOfStock || !selectedProduct?.price
                   ? 'bg-gray-100 dark:bg-white/5 text-gray-400 cursor-not-allowed shadow-none opacity-60'
                   : 'bg-gradient-ozo text-white shadow-ozo shadow-ozo-red/20 hover:scale-105 active:scale-95'
               }`}
             >
-              {!selectedProduct?.is_available ? 'OOS' : 'Add'}
+              Add
             </button>
           )}
         </div>
@@ -587,21 +598,21 @@ function ProductCard({ product, variant = 'default', index }) {
           width={300}
           loading="lazy"
           className={`w-full h-full object-contain p-1 sm:p-2 group-hover:scale-105 transition-transform duration-500 ${
-            !selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0) ? 'grayscale opacity-60 contrast-75' : ''
+            isOutOfStock ? 'grayscale opacity-50 contrast-75' : ''
           }`}
           containerClassName="w-full h-full"
         />
 
-        {(!selectedProduct?.is_available || (selectedProduct?.quantity_available !== undefined && selectedProduct.quantity_available === 0)) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/5 pointer-events-none select-none">
-            <div className="flex flex-col items-center gap-0.5">
+        {isOutOfStock && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[1px] pointer-events-none select-none z-10 transition-all rounded-lg sm:rounded-xl">
+            <div className="flex flex-col items-center gap-1">
               {isUpcoming ? (
-                <div className="bg-amber-500 text-white font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-lg tracking-wider uppercase border border-white/10">
-                  Soon
+                <div className="bg-amber-500 text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] px-2 py-0.5 rounded-full shadow-lg tracking-wider uppercase border border-white/20 whitespace-nowrap">
+                  Listing Soon
                 </div>
               ) : (
-                <div className="bg-ozo-red/90 text-white font-black text-[7px] sm:text-[9px] px-1.5 py-0.5 rounded shadow-lg tracking-wider uppercase border border-white/10">
-                  OOS
+                <div className="bg-ozo-red text-white font-black text-[8px] xs:text-[9px] sm:text-[10px] px-2.5 py-1 rounded-full shadow-lg tracking-widest uppercase border border-white/20 whitespace-nowrap">
+                  OUT OF STOCK
                 </div>
               )}
             </div>
