@@ -1465,37 +1465,22 @@ const MartHome = () => {
       ...displayMandi.map(p => p.id),
       ...displayBudgetProducts.map(p => p.id)
     ]);
-    const filtered = bestsellerProducts.filter(p => !excludedIds.has(p.id));
+    const inStock = bestsellerProducts.filter(p => 
+      !excludedIds.has(p.id) && 
+      p.is_available && 
+      !(p.quantity_available !== null && p.quantity_available === 0)
+    );
 
-    const inStock = filtered.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-    const outOfStock = filtered.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
+    return seededSort(inStock, shuffleSeed).slice(0, 10);
+  }, [bestsellerProducts, displayStealDeals, displayMandi, displayBudgetProducts, shuffleSeed]);
 
-    const shuffledInStock = seededSort(inStock, shuffleSeed);
-
-    let result = [...shuffledInStock, ...outOfStock];
-    if (result.length < 10 && bestsellerProducts.length > 0) {
-      const duplicates = bestsellerProducts.filter(p => excludedIds.has(p.id));
-      const shuffledDuplicates = seededSort(duplicates, shuffleSeed);
-      result = [...result, ...shuffledDuplicates];
-    }
-
-    // Pad with featuredProducts or other products if we have fewer than 10 items to prevent empty spaces in rows
-    if (result.length < 10) {
-      const existingIds = new Set(result.map(p => p.id));
-      const candidates = (featuredProducts || []).filter(p => p.is_available && !existingIds.has(p.id) && !excludedIds.has(p.id));
-      const shuffledCandidates = seededSort(candidates, shuffleSeed);
-      result = [...result, ...shuffledCandidates];
-    }
-
-    return result.slice(0, 10);
-  }, [bestsellerProducts, featuredProducts, displayStealDeals, displayMandi, displayBudgetProducts, shuffleSeed]);
   const filteredCategoryProducts = useMemo(() => {
     const isUpcoming = (p) => {
       const isQtyOOS = p.quantity_available !== null && p.quantity_available !== undefined && p.quantity_available === 0;
       const isOOS = !p.is_available || isQtyOOS;
       return (launchConfig?.launch_mode_enabled && isOOS) ? true : (p.is_upcoming || false);
     };
-    return (categoryProducts || []).filter(p => !isUpcoming(p));
+    return (categoryProducts || []).filter(p => !isUpcoming(p) && p.is_available);
   }, [categoryProducts, launchConfig]);
 
   const fullFeaturedList = useMemo(() => {
@@ -1504,39 +1489,14 @@ const MartHome = () => {
 
     if (selectedFeaturedCategory === 'all') {
       const inStock = baseList.filter(p => p.is_available && !(p.quantity_available !== null && p.quantity_available === 0));
-      const outOfStock = baseList.filter(p => !p.is_available || (p.quantity_available !== null && p.quantity_available === 0));
-
-      const shuffledInStock = seededSort(inStock, shuffleSeed);
-      let result = [...shuffledInStock, ...outOfStock];
-
-      // Pad with bestsellerProducts or other available products if we have fewer than 15 items
-      if (result.length < 15) {
-        const existingIds = new Set(result.map(p => p.id));
-        const fallbackPool = [
-          ...(bestsellerProducts || []),
-          ...(stealDealsData || []),
-          ...(budgetProductsData || []),
-          ...(summerSpecialsProductsData || []),
-          ...(mandiProductsData || [])
-        ];
-        const candidates = fallbackPool.filter(p => p && p.is_available && !existingIds.has(p.id));
-        const shuffledCandidates = seededSort(candidates, shuffleSeed);
-        result = [...result, ...shuffledCandidates];
-      }
-
-      return result;
+      return seededSort(inStock, shuffleSeed);
     }
 
-    return baseList;
+    return baseList.filter(p => p.is_available);
   }, [
     selectedFeaturedCategory,
     featuredProducts,
     filteredCategoryProducts,
-    bestsellerProducts,
-    stealDealsData,
-    budgetProductsData,
-    summerSpecialsProductsData,
-    mandiProductsData,
     shuffleSeed
   ]);
 
