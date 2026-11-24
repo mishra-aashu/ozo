@@ -2492,6 +2492,394 @@ const Cities = () => {
             </div>
           </>
         )}
+
+        {/* Emergency Mark All Out of Stock Modal */}
+        {showMarkAllOosModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-[#18181f] rounded-3xl border border-red-200 dark:border-red-900/50 shadow-2xl max-w-lg w-full overflow-hidden"
+            >
+              <div className="p-6 bg-red-50/50 dark:bg-red-950/20 border-b border-red-150 dark:border-red-900/40 flex items-start gap-4">
+                <div className="p-3 bg-red-100 dark:bg-red-900/40 rounded-2xl text-red-600 dark:text-red-400 shrink-0">
+                  <AlertOctagon className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-red-900 dark:text-red-200">
+                    Emergency: Mark All Products Out of Stock
+                  </h3>
+                  <p className="text-xs text-red-700/80 dark:text-red-300/80 mt-1">
+                    City: <span className="font-bold underline uppercase">{selectedCityForVisibility}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 text-amber-900 dark:text-amber-200 text-xs space-y-1.5">
+                  <div className="font-black flex items-center gap-1.5 uppercase text-amber-700 dark:text-amber-400">
+                    <AlertCircle className="w-4 h-4" /> Immediate Impact Warning
+                  </div>
+                  <p>• Every single product in <span className="font-bold">{selectedCityForVisibility}</span> will immediately show <span className="font-bold text-red-600">OUT OF STOCK</span> across the entire store and app.</p>
+                  <p>• Customers will NOT be able to add items or place orders for this city.</p>
+                  <p>• Runs safely in an atomic server query or non-blocking batch queue.</p>
+                </div>
+
+                {allOosProgress && (
+                  <div className="p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-150 dark:border-white/5 space-y-2">
+                    <div className="flex justify-between text-xs font-bold text-gray-700 dark:text-gray-200">
+                      <span>Queue Progress</span>
+                      <span>{allOosProgress.current} / {allOosProgress.total} ({allOosProgress.percent}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-200 dark:bg-white/10 h-2.5 rounded-full overflow-hidden">
+                      <div
+                        className="bg-red-600 h-full rounded-full transition-all duration-300"
+                        style={{ width: `${allOosProgress.percent}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-3 pt-2">
+                  <label className="flex items-start gap-2.5 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={allOosAcknowledged}
+                      onChange={(e) => setAllOosAcknowledged(e.target.checked)}
+                      disabled={isMarkingAllOos}
+                      className="mt-0.5 w-4.5 h-4.5 rounded accent-red-600 cursor-pointer"
+                    />
+                    <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 select-none">
+                      I understand this will make all products unavailable to customers in {selectedCityForVisibility}.
+                    </span>
+                  </label>
+
+                  <div>
+                    <label className="block text-[11px] font-bold uppercase text-gray-400 mb-1">
+                      Type <span className="text-red-600 font-mono font-bold select-all">{selectedCityForVisibility}</span> or CONFIRM:
+                    </label>
+                    <input
+                      type="text"
+                      value={allOosConfirmInput}
+                      onChange={(e) => setAllOosConfirmInput(e.target.value)}
+                      disabled={isMarkingAllOos}
+                      placeholder={selectedCityForVisibility}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#121217] text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-red-500 dark:text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-gray-50/70 dark:bg-white/[0.02] border-t border-gray-150 dark:border-white/5 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={isMarkingAllOos}
+                  onClick={() => setShowMarkAllOosModal(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    isMarkingAllOos ||
+                    !allOosAcknowledged ||
+                    (allOosConfirmInput.trim().toLowerCase() !== selectedCityForVisibility.toLowerCase() &&
+                     allOosConfirmInput.trim().toUpperCase() !== 'CONFIRM')
+                  }
+                  onClick={handleMarkAllOutOfStock}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-red-600 hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg shadow-red-600/20 transition-all flex items-center gap-2 active:scale-95"
+                >
+                  {isMarkingAllOos ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating in Queue...</span>
+                    </>
+                  ) : (
+                    <>
+                      <AlertOctagon className="w-4 h-4" />
+                      <span>Confirm & Mark All Out of Stock</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Mark All In Stock Confirmation Modal */}
+        {showMarkAllInStockModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-[#18181f] rounded-3xl border border-emerald-200 dark:border-emerald-900/50 shadow-2xl max-w-lg w-full overflow-hidden"
+            >
+              <div className="p-6 bg-emerald-50/50 dark:bg-emerald-950/20 border-b border-emerald-150 dark:border-emerald-900/40 flex items-start gap-4">
+                <div className="p-3 bg-emerald-100 dark:bg-emerald-900/40 rounded-2xl text-emerald-600 dark:text-emerald-400 shrink-0">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-emerald-900 dark:text-emerald-200">
+                    Mark All Products In Stock
+                  </h3>
+                  <p className="text-xs text-emerald-700/80 dark:text-emerald-300/80 mt-1">
+                    City: <span className="font-bold underline uppercase">{selectedCityForVisibility}</span>
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-4">
+                <p className="text-xs text-gray-600 dark:text-gray-300 leading-relaxed">
+                  This will mark all active products as <span className="font-bold text-emerald-600">IN STOCK</span> for <span className="font-bold">{selectedCityForVisibility}</span>. Customers browsing in this city will immediately be able to purchase products.
+                </p>
+
+                <label className="flex items-start gap-2.5 cursor-pointer pt-2">
+                  <input
+                    type="checkbox"
+                    checked={allInStockAcknowledged}
+                    onChange={(e) => setAllInStockAcknowledged(e.target.checked)}
+                    disabled={isMarkingAllInStock}
+                    className="mt-0.5 w-4.5 h-4.5 rounded accent-emerald-600 cursor-pointer"
+                  />
+                  <span className="text-xs font-semibold text-gray-700 dark:text-gray-300 select-none">
+                    I confirm that I want to mark all products in {selectedCityForVisibility} back in stock.
+                  </span>
+                </label>
+              </div>
+
+              <div className="p-4 bg-gray-50/70 dark:bg-white/[0.02] border-t border-gray-150 dark:border-white/5 flex items-center justify-end gap-3">
+                <button
+                  type="button"
+                  disabled={isMarkingAllInStock}
+                  onClick={() => setShowMarkAllInStockModal(false)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  disabled={isMarkingAllInStock || !allInStockAcknowledged}
+                  onClick={handleMarkAllInStock}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed text-white shadow-lg shadow-emerald-600/20 transition-all flex items-center gap-2 active:scale-95"
+                >
+                  {isMarkingAllInStock ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Updating...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Confirm & Mark All In Stock</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Add Products from Global Master Catalogue Modal */}
+        {showAddFromGlobalModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-white dark:bg-[#18181f] rounded-3xl border border-gray-150 dark:border-white/10 shadow-2xl max-w-4xl w-full max-h-[90vh] flex flex-col overflow-hidden"
+            >
+              {/* Modal Header */}
+              <div className="p-6 border-b border-gray-150 dark:border-white/5 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 dark:text-white flex items-center gap-2">
+                    <Package className="w-5 h-5 text-ozo-red" />
+                    Add Products from Global Master Catalogue
+                  </h3>
+                  <p className="text-xs text-gray-500 mt-1">
+                    Select products from master catalog to make available in <span className="font-bold text-ozo-red underline uppercase">{selectedCityForVisibility}</span>
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowAddFromGlobalModal(false)}
+                  className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-white/5 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Filters Bar */}
+              <div className="p-4 bg-gray-50/70 dark:bg-white/[0.02] border-b border-gray-150 dark:border-white/5 grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="relative">
+                  <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Search name, brand, barcode..."
+                    value={globalModalSearch}
+                    onChange={(e) => setGlobalModalSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#121217] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-ozo-red dark:text-white"
+                  />
+                </div>
+                <select
+                  value={globalModalCategory}
+                  onChange={(e) => {
+                    setGlobalModalCategory(e.target.value)
+                    setGlobalModalPage(1)
+                  }}
+                  className="px-3 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#121217] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-ozo-red dark:text-white cursor-pointer"
+                >
+                  <option value="all">All Categories</option>
+                  {visCategories.map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+                <select
+                  value={globalModalBrand}
+                  onChange={(e) => {
+                    setGlobalModalBrand(e.target.value)
+                    setGlobalModalPage(1)
+                  }}
+                  className="px-3 py-2 rounded-xl border border-gray-250 dark:border-white/10 bg-white dark:bg-[#121217] text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-ozo-red dark:text-white cursor-pointer"
+                >
+                  <option value="all">All Brands</option>
+                  {visBrands.map(b => (
+                    <option key={b} value={b}>{b}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Global Products List Table */}
+              <div className="flex-1 overflow-y-auto p-4">
+                {loadingGlobalModal ? (
+                  <div className="flex flex-col items-center justify-center py-16 gap-3">
+                    <Loader2 className="w-8 h-8 animate-spin text-ozo-red" />
+                    <span className="text-xs font-bold text-gray-500">Loading master catalogue...</span>
+                  </div>
+                ) : globalModalProducts.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-16 text-center">
+                    <AlertCircle className="w-10 h-10 text-gray-400 mb-2" />
+                    <span className="text-sm font-bold text-gray-700 dark:text-white">No products found</span>
+                    <span className="text-xs text-gray-500 mt-1">Try different search keywords or filters.</span>
+                  </div>
+                ) : (
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-gray-150 dark:border-white/5 text-[11px] font-bold text-gray-400 uppercase tracking-wider">
+                        <th className="p-3 w-10 text-center">
+                          <input
+                            type="checkbox"
+                            checked={globalModalProducts.length > 0 && globalModalProducts.every(p => selectedGlobalProdIds.has(p.id))}
+                            onChange={() => {
+                              const allSelected = globalModalProducts.every(p => selectedGlobalProdIds.has(p.id))
+                              setSelectedGlobalProdIds(prev => {
+                                const next = new Set(prev)
+                                if (allSelected) {
+                                  globalModalProducts.forEach(p => next.delete(p.id))
+                                } else {
+                                  globalModalProducts.forEach(p => next.add(p.id))
+                                }
+                                return next
+                              })
+                            }}
+                            className="w-4 h-4 rounded accent-ozo-red cursor-pointer"
+                          />
+                        </th>
+                        <th className="p-3">Product</th>
+                        <th className="p-3">Brand</th>
+                        <th className="p-3">Base Price</th>
+                        <th className="p-3">MRP</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-150 dark:divide-white/5 text-xs">
+                      {globalModalProducts.map(p => {
+                        const isSelected = selectedGlobalProdIds.has(p.id)
+                        return (
+                          <tr
+                            key={p.id}
+                            onClick={() => {
+                              setSelectedGlobalProdIds(prev => {
+                                const next = new Set(prev)
+                                if (next.has(p.id)) next.delete(p.id)
+                                else next.add(p.id)
+                                return next
+                              })
+                            }}
+                            className={`hover:bg-gray-50/80 dark:hover:bg-white/[0.02] cursor-pointer transition-colors ${
+                              isSelected ? 'bg-ozo-red/5' : ''
+                            }`}
+                          >
+                            <td className="p-3 text-center" onClick={(e) => e.stopPropagation()}>
+                              <input
+                                type="checkbox"
+                                checked={isSelected}
+                                onChange={() => {
+                                  setSelectedGlobalProdIds(prev => {
+                                    const next = new Set(prev)
+                                    if (next.has(p.id)) next.delete(p.id)
+                                    else next.add(p.id)
+                                    return next
+                                  })
+                                }}
+                                className="w-4 h-4 rounded accent-ozo-red cursor-pointer"
+                              />
+                            </td>
+                            <td className="p-3 font-semibold text-gray-800 dark:text-gray-200">
+                              <div className="flex items-center gap-2.5">
+                                {p.image_url && (
+                                  <img src={p.image_url} alt="" className="w-8 h-8 object-contain rounded-lg border border-gray-100 dark:border-white/10 shrink-0" />
+                                )}
+                                <span className="line-clamp-1">{p.name}</span>
+                              </div>
+                            </td>
+                            <td className="p-3 text-gray-500">{p.brand || '-'}</td>
+                            <td className="p-3 font-bold text-gray-900 dark:text-white">₹{p.price}</td>
+                            <td className="p-3 text-gray-400 line-through">₹{p.mrp}</td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+
+              {/* Modal Pagination & Footer */}
+              <div className="p-4 border-t border-gray-150 dark:border-white/5 bg-gray-50/70 dark:bg-white/[0.02] flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="text-xs text-gray-500 font-semibold">
+                  {selectedGlobalProdIds.size} products selected | Total available: {globalModalTotalCount}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    disabled={globalModalPage <= 1}
+                    onClick={() => setGlobalModalPage(p => Math.max(1, p - 1))}
+                    className="px-3 py-1.5 rounded-xl border border-gray-250 dark:border-white/10 text-xs font-bold disabled:opacity-30"
+                  >
+                    Prev
+                  </button>
+                  <span className="text-xs font-bold px-2">Page {globalModalPage} of {Math.ceil(globalModalTotalCount / globalModalPageSize) || 1}</span>
+                  <button
+                    disabled={globalModalPage >= Math.ceil(globalModalTotalCount / globalModalPageSize)}
+                    onClick={() => setGlobalModalPage(p => p + 1)}
+                    className="px-3 py-1.5 rounded-xl border border-gray-250 dark:border-white/10 text-xs font-bold disabled:opacity-30"
+                  >
+                    Next
+                  </button>
+
+                  <button
+                    onClick={handleAddSelectedFromGlobal}
+                    disabled={selectedGlobalProdIds.size === 0 || isAddingFromGlobal}
+                    className="ml-3 px-5 py-2.5 rounded-xl bg-gradient-ozo text-white font-bold text-xs shadow-ozo hover:shadow-ozo-lg disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-1.5 active:scale-95"
+                  >
+                    {isAddingFromGlobal ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4 stroke-[3px]" />}
+                    <span>Add {selectedGlobalProdIds.size > 0 ? selectedGlobalProdIds.size : ''} to {selectedCityForVisibility}</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </AnimatePresence>
     </div>
   )
