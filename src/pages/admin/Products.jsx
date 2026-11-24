@@ -433,7 +433,7 @@ WHERE id = '${editingProduct.id}';`
       try {
         const { data: cityData } = await supabaseAdmin
           .from('operating_cities')
-          .select('id, name, slug, state')
+          .select('id, name, slug, code, state')
           .eq('is_active', true)
           .order('name', { ascending: true })
         setOperatingCities(cityData || [])
