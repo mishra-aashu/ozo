@@ -105,7 +105,8 @@ const formatProductsWithCity = (data, citySlug, includeUnavailable = true, allow
 
     const isUpcoming = (launchModeEnabled && !isAvailable) ? true : isUpcomingRaw
 
-    if (!isAvailable && !includeUnavailable) return null
+    if (!isAvailable && !isAdminOrMart && !includeUnavailable) return null
+    if (!isAvailable && !isAdminOrMart) return null
 
     const sellingPriceVal = pca?.city_price !== null && pca?.city_price !== undefined
       ? parseFloat(pca.city_price)
