@@ -3,8 +3,6 @@
 // Reads entirely from database (operating_cities) via activeCities list or locationStore.
 // Supports: Case insensitivity, Code matching, Alias matching, Substring matching, and Levenshtein Typo Tolerance.
 
-import { useLocationStore } from '../stores/locationStore'
-
 /**
  * Calculates string similarity using Levenshtein distance (0.0 to 1.0)
  */
