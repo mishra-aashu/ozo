@@ -700,8 +700,12 @@ function ProductCard({ product, variant = 'default', index }) {
           </div>
 
           {/* Add Button - Compact responsive width */}
-          <div className="w-[46px] xs:w-[54px] sm:w-[68px] md:w-[76px] flex-shrink-0">
-            {quantity > 0 ? (
+          <div className="w-[54px] xs:w-[62px] sm:w-[76px] md:w-[86px] flex-shrink-0">
+            {isOutOfStock ? (
+              <div className="w-full py-1 xs:py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-black text-[7px] xs:text-[8px] sm:text-[9.5px] uppercase tracking-wider text-center bg-red-50 dark:bg-red-950/40 text-ozo-red border border-ozo-red/20 select-none shadow-sm flex items-center justify-center whitespace-nowrap">
+                {isUpcoming ? 'SOON' : 'OUT OF STOCK'}
+              </div>
+            ) : quantity > 0 ? (
               <div className="flex items-center justify-between bg-emerald-600 dark:bg-emerald-600 text-white rounded-lg sm:rounded-xl py-0.5 px-0.5 xs:py-1 xs:px-1 sm:py-1.5 sm:px-1.5 shadow-md shadow-emerald-600/10">
                 <button
                   onClick={handleDecrement}
@@ -719,16 +723,12 @@ function ProductCard({ product, variant = 'default', index }) {
                   <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3px] text-white" />
                 </button>
               </div>
-            ) : !selectedProduct?.is_available || isQtyOOS ? (
-              <div className="text-[7.5px] xs:text-[8px] sm:text-[10px] font-bold uppercase text-ozo-red text-center py-1 select-none leading-none">
-                OOS
-              </div>
             ) : (
               <button
                 onClick={handleAddToCart}
-                disabled={!selectedProduct?.is_available || isQtyOOS || !Number(selectedProduct?.price)}
+                disabled={isOutOfStock || !Number(selectedProduct?.price)}
                 className={`w-full py-1 xs:py-1.5 sm:py-2 rounded-lg sm:rounded-xl font-black text-[9px] xs:text-[10px] sm:text-xs uppercase tracking-wider transition-all flex flex-col items-center justify-center gap-0.5 shadow-sm hover:shadow-md ${
-                  !selectedProduct?.is_available || isQtyOOS || !Number(selectedProduct?.price)
+                  isOutOfStock || !Number(selectedProduct?.price)
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed shadow-none opacity-60'
                     : 'bg-ozo-red hover:bg-ozo-red-dark text-white hover:shadow-lg hover:shadow-ozo-red/20 active:scale-95'
                 }`}

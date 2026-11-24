@@ -538,3 +538,69 @@ GRANT EXECUTE ON FUNCTION public.create_order_secure(
     NUMERIC, NUMERIC, JSONB, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR, VARCHAR,
     TEXT, UUID, NUMERIC, NUMERIC, NUMERIC
 ) TO authenticated, service_role;
+
+-- 3. Atomic emergency Out-of-Stock for entire city without frontend loops
+CREATE OR REPLACE FUNCTION public.mark_all_products_city_out_of_stock(
+  p_city_slug TEXT
+)
+RETURNS INT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_count INT := 0;
+BEGIN
+  IF NOT (SELECT is_admin()) THEN
+    RAISE EXCEPTION 'Unauthorized: Admin role required.';
+  END IF;
+
+  IF p_city_slug IS NULL OR trim(p_city_slug) = '' THEN
+    RAISE EXCEPTION 'Invalid city slug.';
+  END IF;
+
+  -- Upsert all active products into product_city_availability as is_available = false
+  INSERT INTO public.product_city_availability (product_id, city_slug, is_available, updated_at)
+  SELECT id, p_city_slug, false, NOW()
+  FROM public.products
+  ON CONFLICT (product_id, city_slug) DO UPDATE
+  SET is_available = false, updated_at = NOW();
+
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+  RETURN v_count;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.mark_all_products_city_out_of_stock(TEXT) TO authenticated, service_role;
+
+-- 4. Atomic In-Stock for entire city
+CREATE OR REPLACE FUNCTION public.mark_all_products_city_in_stock(
+  p_city_slug TEXT
+)
+RETURNS INT
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+DECLARE
+  v_count INT := 0;
+BEGIN
+  IF NOT (SELECT is_admin()) THEN
+    RAISE EXCEPTION 'Unauthorized: Admin role required.';
+  END IF;
+
+  IF p_city_slug IS NULL OR trim(p_city_slug) = '' THEN
+    RAISE EXCEPTION 'Invalid city slug.';
+  END IF;
+
+  INSERT INTO public.product_city_availability (product_id, city_slug, is_available, updated_at)
+  SELECT id, p_city_slug, true, NOW()
+  FROM public.products
+  ON CONFLICT (product_id, city_slug) DO UPDATE
+  SET is_available = true, updated_at = NOW();
+
+  GET DIAGNOSTICS v_count = ROW_COUNT;
+  RETURN v_count;
+END;
+$$;
+
+GRANT EXECUTE ON FUNCTION public.mark_all_products_city_in_stock(TEXT) TO authenticated, service_role;
+
