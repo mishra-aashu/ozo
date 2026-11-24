@@ -1947,10 +1947,10 @@ WHERE id = '${editingProduct.id}';`
                                           setDrawerTab('inventory')
                                         }}
                                         className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[8px] font-semibold bg-gray-100 text-gray-400 dark:bg-white/5 dark:text-gray-500 hover:bg-gray-200 dark:hover:bg-white/10 cursor-pointer transition-colors" 
-                                        title={`${city.name}: Not in catalog (Click to configure)`}
+                                        title={`${city.name} [${city.code || 'N/A'}]: Not in catalog (Click to configure)`}
                                       >
                                         <span className="w-1.5 h-1.5 rounded-full bg-gray-300 dark:bg-gray-600" />
-                                        {city.name.split(',')[0]}
+                                        {city.code || city.name.split(',')[0]}
                                       </span>
                                     )
                                   }
@@ -1967,10 +1967,10 @@ WHERE id = '${editingProduct.id}';`
                                           ? 'bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800/30 hover:bg-emerald-100' 
                                           : 'bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/30 dark:text-red-400 dark:border-red-800/30 hover:bg-red-100'
                                       }`} 
-                                      title={`${city.name}: ${pca.is_available ? 'Live In Stock' : 'Out of Stock'} (Click to manage)`}
+                                      title={`${city.name} [${city.code || 'N/A'}]: ${pca.is_available ? 'Live In Stock' : 'Out of Stock'} (Click to manage)`}
                                     >
                                       <span className={`w-1.5 h-1.5 rounded-full ${pca.is_available ? 'bg-emerald-500' : 'bg-red-500'}`} />
-                                      {city.name.split(',')[0]}: {pca.is_available ? 'In' : 'Out'}
+                                      {city.code || city.name.split(',')[0]}: {pca.is_available ? 'In' : 'Out'}
                                     </span>
                                   )
                                 })}
