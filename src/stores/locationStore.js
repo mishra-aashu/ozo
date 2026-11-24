@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase'
 import toast from 'react-hot-toast'
 import { reverseGeocode, resolveAddressToCoordinates } from '../lib/geocoding'
 import { GEOFENCE_DEFAULTS } from '../config/deliveryDefaults'
+import { resolveCity } from '../utils/cityResolver'
 
 
 const getDistanceKm = (lat1, lon1, lat2, lon2) => {
@@ -101,10 +102,13 @@ export const useLocationStore = create(
               ...c,
               service_radius_km: Math.max(parseFloat(c.service_radius_km) || 25.0, 25.0)
             }))
+            if (typeof window !== 'undefined') {
+              window.__ozo_active_cities = sanitizedCities
+            }
 
-                        const currentSlug = get().selectedCitySlug || get().browsingCitySlug || get().deliveryCitySlug
-            const isValid = sanitizedCities.some(c => c.slug === currentSlug)
-            const resolvedSlug = isValid ? currentSlug : null
+            const currentSlug = get().selectedCitySlug || get().browsingCitySlug || get().deliveryCitySlug
+            const matched = resolveCity(currentSlug, sanitizedCities)
+            const resolvedSlug = matched ? matched.slug : null
 
             set({ 
               activeCities: sanitizedCities,
@@ -289,20 +293,23 @@ export const useLocationStore = create(
           localStorage.setItem('ozo_delivery_address', JSON.stringify(address));
         }
       },
-      setSelectedCitySlug: (selectedCitySlug) => set({ 
-        selectedCitySlug, 
-        browsingCitySlug: selectedCitySlug || get().browsingCitySlug 
-      }),
+      setSelectedCitySlug: (selectedCitySlug) => {
+        const activeCities = get().activeCities || []
+        const matched = resolveCity(selectedCitySlug, activeCities)
+        const canonical = matched ? matched.slug : selectedCitySlug
+        set({ 
+          selectedCitySlug: canonical, 
+          browsingCitySlug: canonical || get().browsingCitySlug 
+        })
+      },
       setBrowsingCitySlug: (slug) => {
         if (!slug) {
           set({ browsingCitySlug: null });
           return;
         }
 
-        const cleanSlug = slug.toLowerCase().trim();
         const activeCities = get().activeCities || [];
-
-        const matched = activeCities.find(c => c.slug.toLowerCase() === cleanSlug);
+        const matched = resolveCity(slug, activeCities);
 
         if (matched) {
           set({
