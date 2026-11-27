@@ -10,6 +10,44 @@ import { useWebRTC } from '../../hooks/useWebRTC'
 import { useDoctorStore } from '../../stores/doctorStore'
 import toast from 'react-hot-toast'
 
+const DOSAGE_PRESETS = [
+  '1-0-1',
+  '1-0-0',
+  '0-0-1',
+  '1-1-1',
+  '0-1-0',
+  '1-1-1-1',
+  'SOS',
+  'Once Daily',
+  'Once Weekly',
+  'Every 8 Hours',
+  'Every 12 Hours'
+]
+
+const DURATION_PRESETS = [
+  '1 Day',
+  '2 Days',
+  '3 Days',
+  '5 Days',
+  '7 Days',
+  '10 Days',
+  '14 Days',
+  '1 Month',
+  '2 Months',
+  '3 Months',
+  'Till Follow-up'
+]
+
+const INSTRUCTION_PRESETS = [
+  'After food',
+  'Before food',
+  'With food',
+  'At bedtime',
+  'Early morning',
+  'Before sleep',
+  'As directed'
+]
+
 export default function DoctorTeleconsultWorkstation({ 
   appointment, 
   onClose, 
@@ -23,16 +61,16 @@ export default function DoctorTeleconsultWorkstation({
   const [selectedPdfPreview, setSelectedPdfPreview] = useState(null)
   const [showEndCallModal, setShowEndCallModal] = useState(false)
 
-  // Prescription State
+  // Prescription State (empty by default, not prefilled)
   const [diagnosis, setDiagnosis] = useState(
     appointment?.symptoms || appointment?.symptoms_description 
       ? `Evaluation for: ${appointment.symptoms || appointment.symptoms_description}` 
-      : 'Clinical Teleconsultation'
+      : ''
   )
-  const [generalAdvice, setGeneralAdvice] = useState('Take adequate bed rest, stay hydrated with warm water.')
+  const [generalAdvice, setGeneralAdvice] = useState('')
   const [followUpDate, setFollowUpDate] = useState('')
   const [medicines, setMedicines] = useState([
-    { name: '', dosage: '1-0-1', duration: '5 Days', instructions: 'After food' }
+    { name: '', dosage: '', duration: '', instructions: '', customDosage: '', customDuration: '', customInstructions: '' }
   ])
   const [isSubmittingRx, setIsSubmittingRx] = useState(false)
   const [rxIssuedSuccess, setRxIssuedSuccess] = useState(false)
@@ -125,7 +163,10 @@ export default function DoctorTeleconsultWorkstation({
 
   // Prescription Helper
   const handleAddMedicine = () => {
-    setMedicines([...medicines, { name: '', dosage: '1-0-1', duration: '5 Days', instructions: 'After food' }])
+    setMedicines([
+      ...medicines, 
+      { name: '', dosage: '', duration: '', instructions: '', customDosage: '', customDuration: '', customInstructions: '' }
+    ])
   }
 
   const handleUpdateMedicine = (index, field, value) => {
@@ -135,7 +176,10 @@ export default function DoctorTeleconsultWorkstation({
   }
 
   const handleRemoveMedicine = (index) => {
-    if (medicines.length === 1) return
+    if (medicines.length === 1) {
+      setMedicines([{ name: '', dosage: '', duration: '', instructions: '', customDosage: '', customDuration: '', customInstructions: '' }])
+      return
+    }
     setMedicines(medicines.filter((_, idx) => idx !== index))
   }
 
@@ -146,7 +190,15 @@ export default function DoctorTeleconsultWorkstation({
       return
     }
 
-    const validMeds = medicines.filter(m => m.name.trim().length > 0)
+    const validMeds = medicines
+      .filter(m => m.name && m.name.trim().length > 0)
+      .map(m => ({
+        name: m.name.trim(),
+        dosage: m.dosage === '__custom__' ? (m.customDosage || '').trim() : (m.dosage || '').trim(),
+        duration: m.duration === '__custom__' ? (m.customDuration || '').trim() : (m.duration || '').trim(),
+        instructions: m.instructions === '__custom__' ? (m.customInstructions || '').trim() : (m.instructions || '').trim()
+      }))
+
     if (validMeds.length === 0) {
       toast.error('Add at least one medicine to the prescription')
       return
