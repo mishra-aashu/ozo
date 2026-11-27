@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { NavLink, useLocation, Link } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { 
@@ -17,6 +17,7 @@ import { useAuthStore } from '../../stores/authStore'
 import { useCareStore } from '../../stores/careStore'
 import { useLocationStore } from '../../stores/locationStore'
 import { prefetchRoute } from '../../utils/routePrefetch'
+import { isAppointmentActive, isAppointmentToday } from '../../utils/careAppointmentUtils'
 
 export default function BottomNavCare() {
   const location = useLocation()
@@ -25,13 +26,44 @@ export default function BottomNavCare() {
   const { addressDetails, nearestCity } = useLocationStore()
   const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad'
   const [showEmergencyModal, setShowEmergencyModal] = useState(false)
+  const [, setTick] = useState(0)
+  const [dismissedTokens, setDismissedTokens] = useState(() => {
+    try {
+      return JSON.parse(sessionStorage.getItem('ozo_dismissed_token_banners') || '[]')
+    } catch {
+      return []
+    }
+  })
 
-  // Active appointments: booked or in consultation
-  const activeAppointments = myAppointments?.filter(
-    a => a.status === 'booked' || a.status === 'in_consultation'
-  ) || []
+  // Periodically check every 30s so banner auto-hides as soon as slot or time is over
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTick(t => t + 1)
+    }, 30000)
+    return () => clearInterval(timer)
+  }, [])
+
+  const handleDismissTokenBanner = (e, appointmentId) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!appointmentId) return
+    setDismissedTokens(prev => {
+      if (prev.includes(appointmentId)) return prev
+      const next = [...prev, appointmentId]
+      try {
+        sessionStorage.setItem('ozo_dismissed_token_banners', JSON.stringify(next))
+      } catch {}
+      return next
+    })
+  }
+
+  // Active appointments: strictly filter out any appointments whose slot or date is over
+  const activeAppointments = myAppointments?.filter(isAppointmentActive) || []
   const activeTokensCount = activeAppointments.length
-  const latestActiveAppointment = activeAppointments[0] || null
+
+  // For the banner, prioritize today's active live token
+  const todayActive = activeAppointments.find(isAppointmentToday)
+  const latestActiveAppointment = todayActive || activeAppointments[0] || null
 
   const isCurrentPath = (path) => {
     const current = location.pathname
@@ -50,7 +82,10 @@ export default function BottomNavCare() {
     return current === path
   }
 
+  const isDismissed = latestActiveAppointment && dismissedTokens.includes(latestActiveAppointment.id)
+
   const shouldShowTokenBanner = latestActiveAppointment && 
+    !isDismissed &&
     !location.pathname.startsWith('/care/my-appointments') &&
     !location.pathname.startsWith('/care/book-appointment')
 

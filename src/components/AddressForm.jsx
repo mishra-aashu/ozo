@@ -165,7 +165,7 @@ function SearchableSelect({
         {label} {required && <span className="text-ozo-red">*</span>}
       </label>
       <div className="relative flex items-center">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
           <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}>
             <IconComponent size={16} />
           </div>
@@ -193,7 +193,7 @@ function SearchableSelect({
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full pl-13 pr-10 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all font-bold disabled:opacity-50"
+          className="w-full pl-14 pr-10 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all font-bold disabled:opacity-50"
         />
         {searchQuery && (
           <button
@@ -203,7 +203,7 @@ function SearchableSelect({
               onChange(null)
               setIsOpen(true)
             }}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:hover:text-white flex items-center justify-center transition-colors"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:hover:text-white flex items-center justify-center transition-colors z-10"
           >
             <span className="text-sm font-bold leading-none">×</span>
           </button>
@@ -1200,7 +1200,7 @@ export default function AddressForm({
               Receiver's Name *
             </label>
             <div className="relative flex items-center">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                 <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
                   <User size={16} />
                 </div>
@@ -1209,7 +1209,7 @@ export default function AddressForm({
                 type="text"
                 value={formData.receiver_name || ''}
                 onChange={(e) => updateField('receiver_name', e.target.value)}
-                className="w-full pl-13 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
+                className="w-full pl-14 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
                 placeholder="e.g. Aashu Mishra"
                 required
               />
@@ -1220,7 +1220,7 @@ export default function AddressForm({
               Receiver's Phone *
             </label>
             <div className="relative flex items-center">
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                 <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
                   <Phone size={16} />
                 </div>
@@ -1229,7 +1229,7 @@ export default function AddressForm({
                 type="tel"
                 value={formData.receiver_phone || ''}
                 onChange={(e) => updateField('receiver_phone', e.target.value)}
-                className="w-full pl-13 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
+                className="w-full pl-14 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
                 placeholder="10-digit mobile number"
                 required
               />
@@ -1429,7 +1429,7 @@ export default function AddressForm({
                 }
               </label>
               <div className="relative flex items-center">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none z-10">
                   <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
                     <FileText size={16} />
                   </div>
@@ -1438,7 +1438,7 @@ export default function AddressForm({
                   type="text"
                   value={formData.address_line1 || ''}
                   onChange={(e) => updateField('address_line1', e.target.value)}
-                  className="w-full pl-13 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
+                  className="w-full pl-14 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
                   placeholder={housePlaceholder}
                   required
                 />

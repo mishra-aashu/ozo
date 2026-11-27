@@ -511,7 +511,7 @@ const LocationPicker = ({ isOpen, onClose }) => {
 
             {showForm ? (
               /* Address Form View */
-              <div className="flex-1 overflow-y-auto p-6 md:p-7 space-y-6 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-6 md:p-7 space-y-6 scrollbar-hide pb-16">
                 <form onSubmit={handleSaveForm} className="space-y-6">
                   {!recipientType ? (
                     <div className="text-center py-12 animate-fadeIn space-y-8">
