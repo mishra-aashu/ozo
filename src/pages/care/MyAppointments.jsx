@@ -213,151 +213,104 @@ export default function MyAppointments() {
             </Link>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3.5">
             {myAppointments.map((apt) => {
               const doctor = apt.care_doctors
               const rx = apt.care_prescriptions?.[0] || apt.care_prescriptions
+              const isVideoConsult = apt.consultation_type === 'teleconsult' || apt.consultation_mode === 'teleconsult'
 
               return (
                 <div 
                   key={apt.id}
-                  className="bg-white dark:bg-[#121820] rounded-2xl p-5 border border-slate-200/90 dark:border-white/10 shadow-sm transition-all hover:shadow-md"
+                  onClick={() => setSelectedDetailApt(apt)}
+                  className="bg-white dark:bg-[#121820] rounded-2xl p-4 sm:p-5 border border-slate-200/90 dark:border-white/10 shadow-xs hover:shadow-md hover:border-emerald-500/40 transition-all cursor-pointer group flex flex-col justify-between gap-3"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-white/5">
-                    <div className="flex items-center gap-4">
+                  {/* Top Row: Token, Doctor, Specialty, Status & Ref */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-center gap-3.5 min-w-0">
                       {/* Token Big Badge */}
-                      <div className="w-14 h-14 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex flex-col items-center justify-center text-emerald-700 dark:text-emerald-300 shrink-0">
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Token</span>
-                        <span className="text-xl font-black">#{apt.token_number || '1'}</span>
+                      <div className="w-13 h-13 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/60 flex flex-col items-center justify-center text-emerald-700 dark:text-emerald-300 shrink-0 shadow-xs group-hover:scale-105 transition-transform">
+                        <span className="text-[9px] font-bold uppercase tracking-wider">Token</span>
+                        <span className="text-lg font-black">#{apt.token_number || '1'}</span>
                       </div>
 
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
                             Dr. {doctor?.full_name || 'Specialist Doctor'}
                           </h2>
-                          <span className="text-xs text-slate-400">• {doctor?.specialty_slug?.replace('_', ' ')}</span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 text-slate-600 dark:text-slate-300 capitalize shrink-0">
+                            {doctor?.specialty_slug?.replace(/_/g, ' ') || 'General'}
+                          </span>
+                          <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-md shrink-0 ${
+                            isVideoConsult 
+                              ? 'bg-sky-50 dark:bg-sky-950/50 text-sky-600 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800/50' 
+                              : 'bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400'
+                          }`}>
+                            {isVideoConsult ? '📹 Video' : '🏥 OPD'}
+                          </span>
                         </div>
-                        <p className="text-xs text-slate-500 mt-0.5">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5 truncate">
                           {doctor?.clinic_name} • {doctor?.clinic_address}
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1.5">
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1 shrink-0">
                       {getStatusBadge(apt.status, apt)}
-                      <span className="text-[11px] font-mono text-slate-400">Ref: {apt.appointment_number}</span>
+                      <span className="text-[10px] font-mono text-slate-400">Ref: {apt.appointment_number}</span>
                     </div>
                   </div>
 
-                  {/* Details row */}
-                  <div className="pt-4 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
-                    <div>
-                      <span className="text-slate-400 block">Date & Slot:</span>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5 flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                  {/* Bottom Concise Summary & Action Bar */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <div className="flex flex-wrap items-center gap-2.5 text-slate-600 dark:text-slate-300 text-[11px] sm:text-xs">
+                      <span className="flex items-center gap-1 font-semibold text-slate-800 dark:text-slate-200">
+                        <Calendar className="w-3.5 h-3.5 text-emerald-500" />
                         {apt.appointment_date} ({apt.time_slot})
                       </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block">Patient Name:</span>
-                      <span className="font-semibold text-slate-800 dark:text-slate-200 mt-0.5">
-                        {apt.patient_name} {apt.patient_age ? `(${apt.patient_age}y)` : ''}
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-slate-400 block">Consultation Fee:</span>
-                      <span className="font-bold text-emerald-600 dark:text-emerald-400 mt-0.5 block">
+                      <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                      <span className="hidden sm:inline">Patient: <strong className="text-slate-800 dark:text-slate-200 font-semibold">{apt.patient_name}</strong></span>
+                      <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
                         ₹{apt.consultation_fee || 500}
                         <span className="text-[10px] font-normal text-slate-400 ml-1">({apt.payment_status || 'Pay at clinic'})</span>
                       </span>
                     </div>
 
-                    <div>
-                      <span className="text-slate-400 block">Symptoms / Note:</span>
-                      <span className="text-slate-600 dark:text-slate-300 truncate mt-0.5 block">
-                        {apt.symptoms || apt.symptoms_description || 'General Checkup'}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Attached Documents Pills */}
-                  {apt.attachments && apt.attachments.length > 0 && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-white/5 flex items-center gap-2 flex-wrap text-xs">
-                      <span className="text-[11px] font-bold text-slate-400 flex items-center gap-1">
-                        <Paperclip size={12} /> Uploaded Records:
-                      </span>
-                      {apt.attachments.map((file, fIdx) => (
-                        <a
-                          key={fIdx}
-                          href={file.url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-[11px] text-slate-700 dark:text-slate-300 font-medium transition-colors"
-                        >
-                          <Eye size={11} className="text-emerald-500" />
-                          <span className="max-w-[130px] truncate">{file.name}</span>
-                        </a>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Action Bar */}
-                  <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      {/* Teleconsult Dedicated Video Call Action */}
-                      {(apt.consultation_type === 'teleconsult' || apt.consultation_mode === 'teleconsult') && (apt.status === 'booked' || apt.status === 'in_consultation') && !isAppointmentOver(apt) && (
+                    {/* Action buttons (click stopped from bubbling if needed) */}
+                    <div className="flex items-center gap-2 ml-auto" onClick={(e) => e.stopPropagation()}>
+                      {/* Teleconsult Live Video Link */}
+                      {isVideoConsult && (apt.status === 'booked' || apt.status === 'in_consultation') && !isAppointmentOver(apt) && (
                         <Link
                           to={`/care/room/${apt.id}`}
-                          className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950 transition-all hover:scale-105"
+                          className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-[11px] font-bold flex items-center gap-1 shadow-sm transition-all hover:scale-105"
                         >
-                          <Video className="w-4 h-4 animate-pulse" /> Join Video Consultation
+                          <Video className="w-3.5 h-3.5 animate-pulse" /> Join Video
                         </Link>
                       )}
 
-              {rx ? (
+                      {/* Rx Ready Indicator / Button */}
+                      {rx ? (
                         <button
-                          onClick={() => setSelectedRx({ ...rx, care_doctors: rx.care_doctors || doctor, appointment: apt })}
-                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                          type="button"
+                          onClick={() => setSelectedDetailApt(apt)}
+                          className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/25 text-[11px] font-bold flex items-center gap-1 transition-colors cursor-pointer"
                         >
-                          <FileText className="w-3.5 h-3.5" /> View Digital Rx
+                          <FileText className="w-3 h-3 text-emerald-500" /> View Rx
                         </button>
-                      ) : apt.status === 'booked' && apt.consultation_type !== 'teleconsult' && apt.consultation_mode !== 'teleconsult' && !isAppointmentOver(apt) ? (
-                        <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
-                          Rx will be available here right after doctor consultation
-                        </span>
                       ) : null}
 
-                      {rx && (
-                        <button
-                          onClick={() => navigate('/care/order-medicines', { state: { preselectedRx: rx } })}
-                          className="px-3 py-1.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center gap-1.5 hover:opacity-90"
-                        >
-                          <ShoppingBag className="w-3.5 h-3.5" /> Order Medicines (1-Click)
-                        </button>
-                      )}
-
-                      {/* Print Token Slip Button */}
+                      {/* Primary View Details Button */}
                       <button
-                        onClick={() => handlePrintTokenSlip(apt)}
-                        className="px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-white/10 hover:border-emerald-500/50 text-slate-600 dark:text-slate-300 hover:text-emerald-600 dark:hover:text-emerald-400 text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer"
-                        title="Print Token Slip"
+                        type="button"
+                        onClick={() => setSelectedDetailApt(apt)}
+                        className="px-3 py-1.5 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 text-xs font-bold flex items-center gap-1 hover:bg-emerald-600 dark:hover:bg-emerald-500 dark:hover:text-white transition-colors cursor-pointer shadow-xs"
                       >
-                        <Printer size={13} />
-                        <span>Print Slip</span>
+                        <span>View Details</span>
+                        <ChevronRight size={13} className="group-hover:translate-x-0.5 transition-transform" />
                       </button>
                     </div>
-
-                    {apt.status === 'booked' && !isAppointmentOver(apt) && (
-                      <button
-                        onClick={() => handleCancel(apt.id)}
-                        className="text-xs text-rose-500 hover:text-rose-700 font-semibold px-2 py-1 cursor-pointer"
-                      >
-                        Cancel Token
-                      </button>
-                    )}
                   </div>
                 </div>
               )
@@ -365,6 +318,21 @@ export default function MyAppointments() {
           </div>
         )}
       </div>
+
+      {/* FULL APPOINTMENT DETAILS & FACED ANY ISSUE MODAL */}
+      <AppointmentDetailModal
+        appointment={selectedDetailApt}
+        isOpen={Boolean(selectedDetailApt)}
+        onClose={() => setSelectedDetailApt(null)}
+        onViewRx={(rx) => {
+          setSelectedRx({ 
+            ...rx, 
+            care_doctors: rx.care_doctors || selectedDetailApt?.care_doctors, 
+            appointment: selectedDetailApt 
+          })
+        }}
+        onPrintSlip={(apt) => handlePrintTokenSlip(apt)}
+      />
 
       {/* Digital Prescription Modal (Screen View) */}
       {selectedRx && (
