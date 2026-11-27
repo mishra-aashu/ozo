@@ -3,7 +3,7 @@ import {
   Mic, MicOff, Video as VideoIcon, VideoOff, MonitorUp, PhoneOff, 
   Maximize2, Minimize2, FileText, Image as ImageIcon, Eye, Download, 
   ShieldCheck, AlertCircle, Plus, Trash2, Clock, CheckCircle2, ChevronRight,
-  ExternalLink, User, X, RefreshCw
+  ExternalLink, User, X, RefreshCw, Copy, Activity, Share2
 } from 'lucide-react'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { useDoctorStore } from '../../stores/doctorStore'
@@ -64,6 +64,17 @@ export default function DoctorTeleconsultWorkstation({
     isInitiator: true, // Doctor creates the SDP offer
     userName: `Dr. ${doctor?.full_name || 'Practitioner'}`
   })
+
+  const copyRoomId = () => {
+    navigator.clipboard.writeText(roomId)
+    toast.success('Room ID copied to clipboard!')
+  }
+
+  const copyPatientLink = () => {
+    const link = `${window.location.origin}/care/my-appointments`
+    navigator.clipboard.writeText(link)
+    toast.success('Patient consultation link copied!')
+  }
 
   // Attach local stream to video tag
   useEffect(() => {
@@ -148,47 +159,57 @@ export default function DoctorTeleconsultWorkstation({
       className="fixed inset-0 z-50 bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden"
     >
       {/* 1. TOP STATUS BAR */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white font-bold text-xs">
+      <header className="h-16 bg-slate-900/95 backdrop-blur-md border-b border-slate-800/80 px-4 sm:px-6 flex items-center justify-between shrink-0 shadow-sm z-30">
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-extrabold text-xs shadow-md shadow-emerald-500/20 shrink-0">
             OPD
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold text-sm text-white">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-bold text-sm sm:text-base text-white truncate font-display">
                 Teleconsultation: {appointment?.patient_name}
               </span>
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-800">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 shrink-0">
                 Token #{appointment?.token_number || '1'}
               </span>
-              <span className="text-xs text-slate-400 hidden sm:inline">
-                ({appointment?.patient_age ? `${appointment.patient_age} yrs, ` : ''}{appointment?.patient_gender || 'Patient'})
+              <span className="text-xs text-slate-400 font-medium px-2 py-0.5 rounded-md bg-slate-800/60 border border-slate-700/50 hidden md:inline shrink-0">
+                {appointment?.patient_age ? `${appointment.patient_age} yrs, ` : ''}{appointment?.patient_gender || 'Patient'}
               </span>
             </div>
-            <span className="text-[11px] text-slate-400 block font-mono">
-              Room ID: {roomId}
-            </span>
+            <div className="flex items-center gap-2 mt-0.5">
+              <span className="text-[11px] text-slate-400 font-mono truncate">
+                Room: {roomId}
+              </span>
+              <button
+                type="button"
+                onClick={copyRoomId}
+                className="text-slate-400 hover:text-emerald-400 p-0.5 transition-colors cursor-pointer"
+                title="Copy Room ID"
+              >
+                <Copy size={11} />
+              </button>
+            </div>
           </div>
         </div>
 
         {/* Call Timer & Status Indicator */}
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80">
-            <div className={`w-2 h-2 rounded-full ${
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800/90 border border-slate-700/80 shadow-inner">
+            <div className={`w-2 h-2 rounded-full shrink-0 ${
               connectionState === 'connected' 
                 ? 'bg-emerald-400 animate-pulse' 
                 : connectionState === 'connecting'
                 ? 'bg-amber-400 animate-ping'
                 : 'bg-rose-500'
             }`} />
-            <span className="text-xs font-mono font-bold text-slate-200">
-              {connectionState === 'connected' ? formattedDuration : connectionState}
+            <span className="text-xs font-mono font-bold text-slate-200 capitalize">
+              {connectionState === 'connected' ? formattedDuration : `${connectionState}...`}
             </span>
           </div>
 
           <button
             onClick={toggleFullscreen}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-slate-800/60 hover:bg-slate-800 border border-slate-700/50 text-slate-300 hover:text-white transition-all cursor-pointer"
             title="Toggle Fullscreen"
           >
             {isFullscreen ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
@@ -196,7 +217,7 @@ export default function DoctorTeleconsultWorkstation({
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:border-rose-500/40 border border-slate-700/50 text-slate-300 hover:text-rose-400 transition-all cursor-pointer"
             title="Close Desk"
           >
             <X size={18} />
@@ -208,10 +229,10 @@ export default function DoctorTeleconsultWorkstation({
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         
         {/* LEFT STAGE: WEBRTC VIDEO STAGE (65% width) */}
-        <div className="flex-1 bg-black relative flex flex-col justify-between overflow-hidden p-3 sm:p-4">
+        <div className="flex-1 bg-[#090d14] relative flex flex-col justify-between overflow-hidden p-3 sm:p-5">
           
           {/* Main Remote Video (Patient) */}
-          <div className="flex-1 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden flex items-center justify-center">
+          <div className="flex-1 rounded-3xl bg-slate-900/90 border border-slate-800/90 relative overflow-hidden flex items-center justify-center shadow-2xl">
             <video 
               ref={remoteVideoRef} 
               autoPlay 
@@ -219,25 +240,38 @@ export default function DoctorTeleconsultWorkstation({
               className={`w-full h-full object-cover ${!remoteStream ? 'hidden' : ''}`}
             />
             {!remoteStream && (
-              <div className="text-center p-6 space-y-3">
-                <div className="w-16 h-16 rounded-full bg-slate-800 flex items-center justify-center mx-auto text-slate-500 animate-pulse">
-                  <User size={32} />
+              <div className="text-center p-6 sm:p-8 space-y-4 max-w-md mx-auto">
+                <div className="relative inline-flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
+                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/70 flex items-center justify-center text-emerald-400 relative z-10 shadow-2xl">
+                    <User size={38} className="text-slate-300" />
+                  </div>
                 </div>
-                <div>
-                  <h4 className="text-sm font-bold text-white">Waiting for Patient to Connect...</h4>
-                  <p className="text-xs text-slate-400 mt-1 max-w-sm">
-                    {appointment.patient_name} has received the link to join token #{appointment.token_number}. Once they join, their video will appear here automatically.
+                <div className="space-y-1.5">
+                  <h4 className="text-base sm:text-lg font-bold text-white font-display">Waiting for Patient to Connect...</h4>
+                  <p className="text-xs text-slate-400 leading-relaxed">
+                    <span className="text-slate-200 font-semibold">{appointment.patient_name}</span> has received the teleconsult link for Token #{appointment.token_number}. Once they enter the room, live audio and video will activate automatically.
                   </p>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-300 text-xs">
-                  <div className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
-                  <span>Signaling Channel Active</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
+                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold shadow-xs">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>Signaling Channel Active</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyPatientLink}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                  >
+                    <Share2 size={12} />
+                    <span>Copy Patient Join Link</span>
+                  </button>
                 </div>
               </div>
             )}
 
             {/* Floating Doctor Self-Stream PiP */}
-            <div className="absolute top-4 right-4 w-32 h-24 sm:w-44 sm:h-32 rounded-xl bg-slate-950 border-2 border-slate-700/80 shadow-2xl overflow-hidden z-20">
+            <div className="absolute top-4 right-4 w-36 h-28 sm:w-48 sm:h-36 rounded-2xl bg-slate-950 border border-slate-700/80 shadow-2xl overflow-hidden z-20 ring-1 ring-black/50 group">
               <video 
                 ref={localVideoRef} 
                 autoPlay 
@@ -246,100 +280,109 @@ export default function DoctorTeleconsultWorkstation({
                 className={`w-full h-full object-cover ${isVideoDisabled ? 'hidden' : ''}`}
               />
               {isVideoDisabled && (
-                <div className="w-full h-full flex items-center justify-center bg-slate-900 text-slate-500 text-xs font-bold">
-                  Camera Off
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-500 text-xs font-bold gap-1">
+                  <VideoOff size={18} />
+                  <span>Camera Off</span>
                 </div>
               )}
-              <span className="absolute bottom-1 left-2 text-[9px] font-bold text-white bg-black/60 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                You (Dr)
-              </span>
+              <div className="absolute bottom-1.5 left-2 bg-slate-900/85 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-sm">
+                <div className={`w-1.5 h-1.5 rounded-full ${isAudioMuted ? 'bg-rose-400' : 'bg-emerald-400'}`} />
+                <span>You (Dr)</span>
+              </div>
             </div>
 
             {/* Error Message Toast in stage */}
             {errorMessage && (
-              <div className="absolute top-4 left-4 p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-200 text-xs flex items-center gap-2 max-w-md z-30">
-                <AlertCircle size={16} className="shrink-0" />
+              <div className="absolute top-4 left-4 p-3 rounded-2xl bg-rose-950/90 border border-rose-800/90 text-rose-200 text-xs flex items-center gap-2 max-w-md z-30 shadow-xl backdrop-blur-md">
+                <AlertCircle size={16} className="shrink-0 text-rose-400" />
                 <span>{errorMessage}</span>
               </div>
             )}
 
             {/* Chief Complaints Overlay Pill */}
-            <div className="absolute bottom-4 left-4 bg-slate-950/80 backdrop-blur-md border border-slate-800 p-2.5 rounded-xl max-w-sm text-xs z-10 hidden sm:block">
-              <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider block">Patient Reported Symptoms:</span>
-              <p className="text-slate-200 font-medium truncate mt-0.5">
+            <div className="absolute bottom-4 left-4 bg-slate-900/90 backdrop-blur-md border border-slate-800/90 p-3 rounded-2xl max-w-md text-xs z-10 hidden sm:block shadow-xl">
+              <div className="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400 uppercase tracking-wider mb-1">
+                <Activity size={12} />
+                <span>Patient Reported Symptoms</span>
+              </div>
+              <p className="text-slate-100 font-medium truncate">
                 {appointment.symptoms || appointment.symptoms_description || 'General Health Examination'}
               </p>
             </div>
           </div>
 
-          {/* Floating Calling Control Bar */}
-          <div className="mt-3 flex items-center justify-center gap-3 shrink-0">
-            {/* Audio Mute/Unmute */}
-            <button
-              onClick={toggleAudio}
-              className={`p-3.5 rounded-2xl font-bold transition-all shadow-lg ${
-                isAudioMuted 
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-white'
-              }`}
-              title={isAudioMuted ? 'Unmute Mic' : 'Mute Mic'}
-            >
-              {isAudioMuted ? <MicOff size={20} /> : <Mic size={20} />}
-            </button>
+          {/* Floating Dock Calling Control Bar */}
+          <div className="mt-4 flex items-center justify-center shrink-0">
+            <div className="px-4 py-2 rounded-3xl bg-slate-900/95 backdrop-blur-xl border border-slate-800/90 shadow-2xl shadow-black/80 flex items-center gap-2.5 sm:gap-3">
+              {/* Audio Mute/Unmute */}
+              <button
+                onClick={toggleAudio}
+                className={`w-11 h-11 rounded-2xl font-bold transition-all shadow-md flex items-center justify-center active:scale-95 cursor-pointer ${
+                  isAudioMuted 
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 hover:bg-rose-500/30' 
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/60'
+                }`}
+                title={isAudioMuted ? 'Unmute Mic' : 'Mute Mic'}
+              >
+                {isAudioMuted ? <MicOff size={19} /> : <Mic size={19} />}
+              </button>
 
-            {/* Video Enable/Disable */}
-            <button
-              onClick={toggleVideo}
-              className={`p-3.5 rounded-2xl font-bold transition-all shadow-lg ${
-                isVideoDisabled 
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-white'
-              }`}
-              title={isVideoDisabled ? 'Turn Camera On' : 'Turn Camera Off'}
-            >
-              {isVideoDisabled ? <VideoOff size={20} /> : <VideoIcon size={20} />}
-            </button>
+              {/* Video Enable/Disable */}
+              <button
+                onClick={toggleVideo}
+                className={`w-11 h-11 rounded-2xl font-bold transition-all shadow-md flex items-center justify-center active:scale-95 cursor-pointer ${
+                  isVideoDisabled 
+                    ? 'bg-rose-500/20 text-rose-400 border border-rose-500/40 hover:bg-rose-500/30' 
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/60'
+                }`}
+                title={isVideoDisabled ? 'Turn Camera On' : 'Turn Camera Off'}
+              >
+                {isVideoDisabled ? <VideoOff size={19} /> : <VideoIcon size={19} />}
+              </button>
 
-            {/* Screen Share */}
-            <button
-              onClick={toggleScreenShare}
-              className={`p-3.5 rounded-2xl font-bold transition-all shadow-lg ${
-                isScreenSharing 
-                  ? 'bg-sky-600 hover:bg-sky-500 text-white' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-slate-300'
-              }`}
-              title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen with Patient'}
-            >
-              <MonitorUp size={20} />
-            </button>
+              {/* Screen Share */}
+              <button
+                onClick={toggleScreenShare}
+                className={`w-11 h-11 rounded-2xl font-bold transition-all shadow-md flex items-center justify-center active:scale-95 cursor-pointer ${
+                  isScreenSharing 
+                    ? 'bg-sky-500 text-white shadow-sky-500/30 border border-sky-400' 
+                    : 'bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700/60'
+                }`}
+                title={isScreenSharing ? 'Stop Screen Share' : 'Share Screen with Patient'}
+              >
+                <MonitorUp size={19} />
+              </button>
 
-            {/* End Consultation Button */}
-            <button
-              onClick={() => {
-                if (window.confirm('Are you sure you want to conclude this video consultation?')) {
-                  endCall()
-                  onClose()
-                }
-              }}
-              className="px-5 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950 transition-all"
-            >
-              <PhoneOff size={18} />
-              <span>Conclude Call</span>
-            </button>
+              <div className="h-6 w-px bg-slate-700/60 mx-0.5" />
+
+              {/* End Consultation Button */}
+              <button
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to conclude this video consultation?')) {
+                    endCall()
+                    onClose()
+                  }
+                }}
+                className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950/60 active:scale-95 transition-all cursor-pointer"
+              >
+                <PhoneOff size={17} />
+                <span>Conclude Call</span>
+              </button>
+            </div>
           </div>
         </div>
 
         {/* RIGHT INTERACTIVE PANEL (35% width, Tabbed: Records | Rx Studio | Notes) */}
         <div className="w-full lg:w-[420px] bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-800 flex flex-col shrink-0">
           
-          {/* Sub Navigation Tabs */}
-          <div className="flex border-b border-slate-800 text-xs font-bold shrink-0">
+          {/* Sub Navigation Segmented Tabs */}
+          <div className="p-2.5 bg-slate-950/70 border-b border-slate-800/80 flex gap-1.5 shrink-0">
             <button
               onClick={() => setActiveSideTab('records')}
-              className={`flex-1 py-3 text-center border-b-2 flex items-center justify-center gap-1.5 transition-colors ${
+              className={`flex-1 py-2 px-2.5 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeSideTab === 'records'
-                  ? 'border-emerald-500 text-emerald-400 bg-slate-950/40'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
               }`}
             >
               <ImageIcon size={14} />
@@ -348,10 +391,10 @@ export default function DoctorTeleconsultWorkstation({
 
             <button
               onClick={() => setActiveSideTab('rx')}
-              className={`flex-1 py-3 text-center border-b-2 flex items-center justify-center gap-1.5 transition-colors ${
+              className={`flex-1 py-2 px-2.5 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeSideTab === 'rx'
-                  ? 'border-emerald-500 text-emerald-400 bg-slate-950/40'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
               }`}
             >
               <FileText size={14} />
@@ -360,10 +403,10 @@ export default function DoctorTeleconsultWorkstation({
 
             <button
               onClick={() => setActiveSideTab('notes')}
-              className={`flex-1 py-3 text-center border-b-2 flex items-center justify-center gap-1.5 transition-colors ${
+              className={`flex-1 py-2 px-2.5 rounded-xl text-center font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
                 activeSideTab === 'notes'
-                  ? 'border-emerald-500 text-emerald-400 bg-slate-950/40'
-                  : 'border-transparent text-slate-400 hover:text-slate-200'
+                  ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-sm'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 border border-transparent'
               }`}
             >
               <Clock size={14} />
@@ -373,7 +416,7 @@ export default function DoctorTeleconsultWorkstation({
 
           {/* TAB 1: PATIENT ATTACHED RECORDS & LAB REPORTS */}
           {activeSideTab === 'records' && (
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-xs">
+            <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs">
               <div>
                 <h4 className="font-bold text-white text-sm">Patient Uploaded Documents</h4>
                 <p className="text-slate-400 text-[11px] mt-0.5">
@@ -382,12 +425,16 @@ export default function DoctorTeleconsultWorkstation({
               </div>
 
               {attachments.length === 0 ? (
-                <div className="py-16 text-center text-slate-500">
-                  <FileText size={36} className="mx-auto mb-2 opacity-30" />
-                  <p className="font-semibold">No documents attached</p>
-                  <p className="text-[11px] text-slate-600 mt-1">
-                    Patient did not attach external lab reports or photos for this booking.
-                  </p>
+                <div className="py-14 px-6 text-center rounded-2xl bg-slate-950/50 border border-dashed border-slate-800/90 space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-slate-800/80 border border-slate-700/60 flex items-center justify-center mx-auto text-emerald-400/80">
+                    <FileText size={22} />
+                  </div>
+                  <div>
+                    <h5 className="font-bold text-white text-xs">No Medical Records Attached</h5>
+                    <p className="text-[11px] text-slate-400 mt-1 leading-relaxed">
+                      Patient did not attach external lab reports or imaging photos for this consultation.
+                    </p>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">
