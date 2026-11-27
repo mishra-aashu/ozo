@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, Calendar, Clock, MapPin, Stethoscope, FileText, 
@@ -24,6 +25,28 @@ export default function MyAppointments() {
 
   const [searchPhone, setSearchPhone] = useState(user?.phone || user?.user_metadata?.phone || '')
   const [selectedRx, setSelectedRx] = useState(null)
+  const [printingTokenApt, setPrintingTokenApt] = useState(null)
+
+  const handlePrintRx = () => {
+    document.body.classList.add('hide-root-on-print')
+    setTimeout(() => {
+      window.print()
+      setTimeout(() => {
+        document.body.classList.remove('hide-root-on-print')
+      }, 500)
+    }, 100)
+  }
+
+  const handlePrintTokenSlip = (apt) => {
+    setPrintingTokenApt(apt)
+    document.body.classList.add('hide-root-on-print')
+    setTimeout(() => {
+      window.print()
+      setTimeout(() => {
+        document.body.classList.remove('hide-root-on-print')
+      }, 500)
+    }, 100)
+  }
 
   useEffect(() => {
     applyThemeVariables()

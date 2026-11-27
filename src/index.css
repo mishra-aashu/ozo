@@ -841,13 +841,18 @@ body {
     print-color-adjust: exact !important;
   }
 
-  /* Hide the React root element to ensure screen layout doesn't print */
-  #root {
+  /* Hide the React root element when printing a dedicated portal document */
+  body:has(#print-invoice-container) #root,
+  body:has(#print-prescription-container) #root,
+  body:has(#print-token-container) #root,
+  body.hide-root-on-print #root {
     display: none !important;
   }
 
-  /* Show only the portal invoice container at full page width */
-  #print-invoice-container {
+  /* Show only the portal invoice or prescription container at full page width */
+  #print-invoice-container,
+  #print-prescription-container,
+  #print-token-container {
     display: block !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -859,7 +864,7 @@ body {
 
   @page {
     size: A4;
-    margin: 15mm 12mm;
+    margin: 12mm 15mm;
   }
 }
 
