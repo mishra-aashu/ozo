@@ -3,8 +3,9 @@ import {
   Mic, MicOff, Video as VideoIcon, VideoOff, MonitorUp, PhoneOff, 
   Maximize2, Minimize2, FileText, Image as ImageIcon, Eye, Download, 
   ShieldCheck, AlertCircle, Plus, Trash2, Clock, CheckCircle2, ChevronRight,
-  ExternalLink, User, X, RefreshCw, Copy, Activity, Share2
+  ExternalLink, User, X, RefreshCw, Copy, Activity, Share2, GripVertical
 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { useDoctorStore } from '../../stores/doctorStore'
 import toast from 'react-hot-toast'
@@ -42,6 +43,7 @@ export default function DoctorTeleconsultWorkstation({
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
   const workstationRef = useRef(null)
+  const stageContainerRef = useRef(null)
 
   const roomId = appointment?.meeting_room_id || `care-room-${appointment?.appointment_number?.toLowerCase() || appointment?.id}`
 
@@ -232,7 +234,10 @@ export default function DoctorTeleconsultWorkstation({
         <div className="flex-1 bg-[#090d14] relative flex flex-col justify-between overflow-hidden p-3 sm:p-5">
           
           {/* Main Remote Video (Patient) */}
-          <div className="flex-1 rounded-3xl bg-slate-900/90 border border-slate-800/90 relative overflow-hidden flex items-center justify-center shadow-2xl">
+          <div 
+            ref={stageContainerRef}
+            className="flex-1 rounded-3xl bg-slate-900/90 border border-slate-800/90 relative overflow-hidden flex items-center justify-center shadow-2xl"
+          >
             <video 
               ref={remoteVideoRef} 
               autoPlay 
@@ -270,26 +275,37 @@ export default function DoctorTeleconsultWorkstation({
               </div>
             )}
 
-            {/* Floating Doctor Self-Stream PiP */}
-            <div className="absolute top-4 right-4 w-36 h-28 sm:w-48 sm:h-36 rounded-2xl bg-slate-950 border border-slate-700/80 shadow-2xl overflow-hidden z-20 ring-1 ring-black/50 group">
+            {/* Draggable Doctor Self-Stream PiP */}
+            <motion.div 
+              drag
+              dragConstraints={stageContainerRef}
+              dragElastic={0.08}
+              dragMomentum={false}
+              whileDrag={{ scale: 1.04, zIndex: 50 }}
+              className="absolute top-4 right-4 w-36 h-28 sm:w-48 sm:h-36 rounded-2xl bg-slate-950 border border-slate-700/80 shadow-2xl overflow-hidden z-20 ring-1 ring-black/50 group cursor-grab active:cursor-grabbing select-none touch-none"
+            >
               <video 
                 ref={localVideoRef} 
                 autoPlay 
                 playsInline 
                 muted 
-                className={`w-full h-full object-cover ${isVideoDisabled ? 'hidden' : ''}`}
+                className={`w-full h-full object-cover pointer-events-none ${isVideoDisabled ? 'hidden' : ''}`}
               />
               {isVideoDisabled && (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-500 text-xs font-bold gap-1">
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-500 text-xs font-bold gap-1 pointer-events-none">
                   <VideoOff size={18} />
                   <span>Camera Off</span>
                 </div>
               )}
-              <div className="absolute bottom-1.5 left-2 bg-slate-900/85 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-sm">
+              {/* Drag Grip Handle Hint on hover */}
+              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1 rounded-md text-white/70 pointer-events-none">
+                <GripVertical size={13} />
+              </div>
+              <div className="absolute bottom-1.5 left-2 bg-slate-900/85 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-sm pointer-events-none">
                 <div className={`w-1.5 h-1.5 rounded-full ${isAudioMuted ? 'bg-rose-400' : 'bg-emerald-400'}`} />
                 <span>You (Dr)</span>
               </div>
-            </div>
+            </motion.div>
 
             {/* Error Message Toast in stage */}
             {errorMessage && (
