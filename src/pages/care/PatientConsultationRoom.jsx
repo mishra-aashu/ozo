@@ -133,82 +133,101 @@ export default function PatientConsultationRoom() {
 
   const doctor = appointment.care_doctors
   const attachments = Array.isArray(appointment.attachments) ? appointment.attachments : []
+  const isDisconnected = connectionState === 'disconnected' || connectionState === 'ended' || connectionState === 'closed' || connectionState === 'failed'
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-950 text-slate-100 flex flex-col font-sans overflow-hidden">
       
       {/* 1. TOP HEADER */}
-      <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0">
-        <div className="flex items-center gap-3">
+      <header className="h-14 bg-slate-900 border-b border-slate-800 px-3 sm:px-4 flex items-center justify-between shrink-0 z-30">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <button
             type="button"
             onClick={() => {
               if (connectionState === 'connected') {
                 setShowLeaveModal(true)
               } else {
+                endCall()
                 navigate('/care/my-appointments')
               }
             }}
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer shrink-0"
             title="Back to Appointments"
           >
             <ArrowLeft size={18} />
           </button>
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs shrink-0">
               <Stethoscope size={16} />
             </div>
-            <div>
+            <div className="min-w-0">
               <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-white">
+                <span className="font-bold text-xs sm:text-sm text-white truncate">
                   Dr. {doctor?.full_name || 'Specialist Doctor'}
                 </span>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-800 shrink-0">
                   Token #{appointment.token_number}
                 </span>
               </div>
-              <span className="text-[11px] text-slate-400 block">
+              <span className="text-[10px] sm:text-[11px] text-slate-400 truncate block">
                 {doctor?.qualification || 'Medical Practitioner'} • {doctor?.clinic_name}
               </span>
             </div>
           </div>
         </div>
 
-        {/* Status & Timer */}
-        <div className="flex items-center gap-2.5">
-          <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80">
-            <div className={`w-2 h-2 rounded-full ${
+        {/* Status & Timer & Actions */}
+        <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 px-2.5 sm:px-3 py-1 rounded-xl bg-slate-800/80 border border-slate-700/80 shadow-inner">
+            <div className={`w-2 h-2 rounded-full shrink-0 ${
               connectionState === 'connected' 
                 ? 'bg-emerald-400 animate-pulse' 
                 : connectionState === 'connecting'
                 ? 'bg-amber-400 animate-ping'
                 : 'bg-rose-500'
             }`} />
-            <span className="text-xs font-mono font-bold text-slate-200">
+            <span className="text-[11px] sm:text-xs font-mono font-bold text-slate-200 capitalize">
               {connectionState === 'connected' ? formattedDuration : connectionState}
             </span>
           </div>
 
+          {/* Quick Leave Button when Disconnected */}
+          {isDisconnected && (
+            <button
+              type="button"
+              onClick={() => {
+                endCall()
+                navigate('/care/my-appointments')
+              }}
+              className="px-3 py-1 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-rose-950 transition-all cursor-pointer animate-pulse"
+              title="Leave Consultation Room"
+            >
+              <PhoneOff size={13} />
+              <span>Leave VC</span>
+            </button>
+          )}
+
           <button
             onClick={() => setActiveSideDrawer(!activeSideDrawer)}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 ${
+            className={`px-2.5 sm:px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors flex items-center gap-1.5 cursor-pointer ${
               activeSideDrawer
-                ? 'bg-emerald-600 border-emerald-500 text-white'
+                ? 'bg-emerald-600 border-emerald-500 text-white shadow-md'
                 : 'bg-slate-800 border-slate-700 text-slate-300 hover:text-white'
             }`}
           >
             <FileText size={14} />
-            <span>Records & Rx</span>
+            <span className="hidden sm:inline">Records & Rx</span>
+            <span className="sm:hidden">Rx</span>
           </button>
         </div>
       </header>
 
       {/* 2. MAIN STAGE */}
-      <div className="flex-1 flex overflow-hidden relative">
+      <div className="flex-1 flex overflow-hidden relative min-h-0">
         
         {/* Video Frame */}
-        <div className="flex-1 bg-black relative flex flex-col justify-between p-3 sm:p-4">
-          <div className="flex-1 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden flex items-center justify-center">
+        <div className="flex-1 bg-black relative flex flex-col p-2 sm:p-3 min-h-0 overflow-hidden">
+          <div className="flex-1 rounded-2xl bg-slate-900 border border-slate-800 relative overflow-hidden flex items-center justify-center min-h-0">
             <video 
               ref={remoteVideoRef} 
               autoPlay 
@@ -274,48 +293,147 @@ export default function PatientConsultationRoom() {
                 </div>
                 <button
                   onClick={() => setActiveSideDrawer(true)}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shrink-0"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shrink-0 cursor-pointer"
                 >
                   View Rx
                 </button>
               </div>
             )}
-          </div>
 
-          {/* Floating Controls */}
-          <div className="mt-3 flex items-center justify-center gap-3 shrink-0">
-            <button
-              onClick={toggleAudio}
-              className={`p-3.5 rounded-2xl font-bold transition-all shadow-lg ${
-                isAudioMuted 
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-white'
-              }`}
-              title={isAudioMuted ? 'Unmute' : 'Mute'}
-            >
-              {isAudioMuted ? <MicOff size={20} /> : <Mic size={20} />}
-            </button>
+            {/* Floating Controls Dock (Always visible & elevated, never cut off) */}
+            {!isDisconnected && (
+              <div className="absolute bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 sm:gap-3 bg-slate-900/95 backdrop-blur-md px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl border border-slate-700/80 shadow-2xl">
+                <button
+                  type="button"
+                  onClick={toggleAudio}
+                  className={`p-2.5 sm:p-3 rounded-xl font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
+                    isAudioMuted 
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/40' 
+                      : 'bg-slate-800 hover:bg-slate-700 text-white'
+                  }`}
+                  title={isAudioMuted ? 'Unmute microphone' : 'Mute microphone'}
+                >
+                  {isAudioMuted ? <MicOff size={18} /> : <Mic size={18} />}
+                </button>
 
-            <button
-              onClick={toggleVideo}
-              className={`p-3.5 rounded-2xl font-bold transition-all shadow-lg ${
-                isVideoDisabled 
-                  ? 'bg-rose-600 hover:bg-rose-500 text-white' 
-                  : 'bg-slate-800 hover:bg-slate-700 text-white'
-              }`}
-              title={isVideoDisabled ? 'Turn Camera On' : 'Turn Camera Off'}
-            >
-              {isVideoDisabled ? <VideoOff size={20} /> : <VideoIcon size={20} />}
-            </button>
+                <button
+                  type="button"
+                  onClick={toggleVideo}
+                  className={`p-2.5 sm:p-3 rounded-xl font-bold transition-all shadow-md active:scale-95 cursor-pointer ${
+                    isVideoDisabled 
+                      ? 'bg-rose-600 hover:bg-rose-500 text-white shadow-rose-900/40' 
+                      : 'bg-slate-800 hover:bg-slate-700 text-white'
+                  }`}
+                  title={isVideoDisabled ? 'Turn Camera On' : 'Turn Camera Off'}
+                >
+                  {isVideoDisabled ? <VideoOff size={18} /> : <VideoIcon size={18} />}
+                </button>
 
-            <button
-              type="button"
-              onClick={() => setShowLeaveModal(true)}
-              className="px-5 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950 transition-all cursor-pointer active:scale-95"
-            >
-              <PhoneOff size={18} />
-              <span>Leave Call</span>
-            </button>
+                <div className="h-6 w-px bg-slate-700/60 mx-0.5" />
+
+                <button
+                  type="button"
+                  onClick={() => setShowLeaveModal(true)}
+                  className="px-4 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950/60 transition-all cursor-pointer active:scale-95"
+                >
+                  <PhoneOff size={16} />
+                  <span>Leave Call</span>
+                </button>
+              </div>
+            )}
+
+            {/* CALL DISCONNECTED / CONCLUDED OVERLAY (Shows automatically when doctor ends or call disconnects) */}
+            {isDisconnected && (
+              <div className="absolute inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 15 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
+                  className="relative max-w-md w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-rose-950/40 text-center overflow-hidden"
+                >
+                  {/* Decorative ambient radial glow */}
+                  <div className="absolute -top-16 -right-16 w-36 h-36 bg-rose-500/15 rounded-full blur-2xl pointer-events-none" />
+                  <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+                  <div className="relative">
+                    {/* Icon Badge */}
+                    <div className="w-16 h-16 rounded-3xl bg-gradient-to-br from-rose-500/20 to-red-600/10 border border-rose-500/30 flex items-center justify-center text-rose-400 mx-auto mb-4 shadow-inner">
+                      <PhoneOff size={28} className="stroke-[2.2]" />
+                    </div>
+
+                    <h3 className="text-xl font-bold text-white font-display mb-1.5">
+                      {connectionState === 'ended' ? 'Consultation Concluded' : 'Video Call Disconnected'}
+                    </h3>
+                    <p className="text-xs text-slate-300 leading-relaxed mb-5 max-w-xs mx-auto">
+                      {connectionState === 'ended'
+                        ? `Dr. ${doctor?.full_name || 'Your doctor'} has concluded this teleconsultation session.`
+                        : `The live video consultation with Dr. ${doctor?.full_name || 'your doctor'} has ended.`}
+                    </p>
+
+                    {/* Session Summary Snapshot */}
+                    <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/90 mb-5 text-left space-y-2">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400">Doctor:</span>
+                        <span className="font-semibold text-white">Dr. {doctor?.full_name || 'Practitioner'}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400">Call Duration:</span>
+                        <span className="font-mono font-bold text-emerald-400">{formattedDuration}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="text-slate-400">Digital Prescription:</span>
+                        {livePrescription ? (
+                          <span className="font-semibold text-emerald-400 flex items-center gap-1 text-[11px]">
+                            <FileText size={12} /> Issued ({livePrescription.diagnosis})
+                          </span>
+                        ) : (
+                          <span className="text-amber-400 font-medium text-[11px]">
+                            Viewable in Appointments
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Prominent Action Buttons */}
+                    <div className="space-y-2.5">
+                      {livePrescription && (
+                        <button
+                          type="button"
+                          onClick={() => setActiveSideDrawer(true)}
+                          className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer active:scale-95"
+                        >
+                          <FileText size={15} />
+                          <span>View Digital Prescription</span>
+                        </button>
+                      )}
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          endCall()
+                          navigate('/care/my-appointments')
+                        }}
+                        className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-950/60 active:scale-95 transition-all cursor-pointer"
+                      >
+                        <PhoneOff size={15} />
+                        <span>Leave Consultation Room</span>
+                      </button>
+
+                      {connectionState !== 'ended' && (
+                        <button
+                          type="button"
+                          onClick={() => window.location.reload()}
+                          className="w-full py-2 px-3 text-slate-400 hover:text-white text-xs font-medium flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                        >
+                          <RefreshCw size={12} />
+                          <span>Accidental Disconnect? Reconnect</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </div>
         </div>
 
