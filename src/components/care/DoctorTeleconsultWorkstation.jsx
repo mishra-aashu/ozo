@@ -689,36 +689,133 @@ export default function DoctorTeleconsultWorkstation({
                         )}
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 text-[11px]">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px]">
+                        {/* Dosage Dropdown */}
                         <div>
-                          <span className="text-[11px] font-semibold text-slate-300 block mb-1">Dosage</span>
-                          <input 
-                            type="text"
-                            placeholder="1-0-1"
-                            value={med.dosage}
-                            onChange={(e) => handleUpdateMedicine(idx, 'dosage', e.target.value)}
-                            className="w-full bg-slate-900/90 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-                          />
+                          <label className="text-[11px] font-semibold text-slate-300 block mb-1">Dosage</label>
+                          <select
+                            value={DOSAGE_PRESETS.includes(med.dosage) ? med.dosage : (med.dosage ? '__custom__' : '')}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '__custom__') {
+                                handleUpdateMedicine(idx, 'dosage', med.customDosage || '__custom__')
+                              } else {
+                                handleUpdateMedicine(idx, 'dosage', val)
+                              }
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-inner"
+                          >
+                            <option value="" className="bg-slate-900 text-slate-400">Select Dosage</option>
+                            <option value="1-0-1" className="bg-slate-900 text-white">1-0-1 (Morning & Night)</option>
+                            <option value="1-0-0" className="bg-slate-900 text-white">1-0-0 (Morning only)</option>
+                            <option value="0-0-1" className="bg-slate-900 text-white">0-0-1 (Night only)</option>
+                            <option value="1-1-1" className="bg-slate-900 text-white">1-1-1 (Thrice daily)</option>
+                            <option value="0-1-0" className="bg-slate-900 text-white">0-1-0 (Afternoon only)</option>
+                            <option value="1-1-1-1" className="bg-slate-900 text-white">1-1-1-1 (4 times daily)</option>
+                            <option value="SOS" className="bg-slate-900 text-white">SOS (As needed)</option>
+                            <option value="Once Daily" className="bg-slate-900 text-white">Once Daily</option>
+                            <option value="Once Weekly" className="bg-slate-900 text-white">Once Weekly</option>
+                            <option value="Every 8 Hours" className="bg-slate-900 text-white">Every 8 Hours</option>
+                            <option value="Every 12 Hours" className="bg-slate-900 text-white">Every 12 Hours</option>
+                            <option value="__custom__" className="bg-slate-900 text-emerald-400 font-semibold">+ Custom Dosage...</option>
+                          </select>
+                          {(med.dosage === '__custom__' || (med.dosage && !DOSAGE_PRESETS.includes(med.dosage))) && (
+                            <input
+                              type="text"
+                              placeholder="Type custom dosage"
+                              value={med.dosage === '__custom__' ? (med.customDosage || '') : med.dosage}
+                              onChange={(e) => {
+                                handleUpdateMedicine(idx, 'customDosage', e.target.value)
+                                handleUpdateMedicine(idx, 'dosage', e.target.value || '__custom__')
+                              }}
+                              className="mt-1.5 w-full bg-slate-950 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-inner"
+                              autoFocus
+                            />
+                          )}
                         </div>
+
+                        {/* Duration Dropdown */}
                         <div>
-                          <span className="text-[11px] font-semibold text-slate-300 block mb-1">Duration</span>
-                          <input 
-                            type="text"
-                            placeholder="5 Days"
-                            value={med.duration}
-                            onChange={(e) => handleUpdateMedicine(idx, 'duration', e.target.value)}
-                            className="w-full bg-slate-900/90 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-                          />
+                          <label className="text-[11px] font-semibold text-slate-300 block mb-1">Duration</label>
+                          <select
+                            value={DURATION_PRESETS.includes(med.duration) ? med.duration : (med.duration ? '__custom__' : '')}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '__custom__') {
+                                handleUpdateMedicine(idx, 'duration', med.customDuration || '__custom__')
+                              } else {
+                                handleUpdateMedicine(idx, 'duration', val)
+                              }
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-inner"
+                          >
+                            <option value="" className="bg-slate-900 text-slate-400">Select Duration</option>
+                            <option value="1 Day" className="bg-slate-900 text-white">1 Day</option>
+                            <option value="2 Days" className="bg-slate-900 text-white">2 Days</option>
+                            <option value="3 Days" className="bg-slate-900 text-white">3 Days</option>
+                            <option value="5 Days" className="bg-slate-900 text-white">5 Days</option>
+                            <option value="7 Days" className="bg-slate-900 text-white">7 Days (1 Week)</option>
+                            <option value="10 Days" className="bg-slate-900 text-white">10 Days</option>
+                            <option value="14 Days" className="bg-slate-900 text-white">14 Days (2 Weeks)</option>
+                            <option value="1 Month" className="bg-slate-900 text-white">1 Month</option>
+                            <option value="2 Months" className="bg-slate-900 text-white">2 Months</option>
+                            <option value="3 Months" className="bg-slate-900 text-white">3 Months</option>
+                            <option value="Till Follow-up" className="bg-slate-900 text-white">Till Follow-up</option>
+                            <option value="__custom__" className="bg-slate-900 text-emerald-400 font-semibold">+ Custom Duration...</option>
+                          </select>
+                          {(med.duration === '__custom__' || (med.duration && !DURATION_PRESETS.includes(med.duration))) && (
+                            <input
+                              type="text"
+                              placeholder="Type custom duration"
+                              value={med.duration === '__custom__' ? (med.customDuration || '') : med.duration}
+                              onChange={(e) => {
+                                handleUpdateMedicine(idx, 'customDuration', e.target.value)
+                                handleUpdateMedicine(idx, 'duration', e.target.value || '__custom__')
+                              }}
+                              className="mt-1.5 w-full bg-slate-950 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-inner"
+                              autoFocus
+                            />
+                          )}
                         </div>
+
+                        {/* Instructions Dropdown */}
                         <div>
-                          <span className="text-[11px] font-semibold text-slate-300 block mb-1">Instructions</span>
-                          <input 
-                            type="text"
-                            placeholder="After meals"
-                            value={med.instructions}
-                            onChange={(e) => handleUpdateMedicine(idx, 'instructions', e.target.value)}
-                            className="w-full bg-slate-900/90 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
-                          />
+                          <label className="text-[11px] font-semibold text-slate-300 block mb-1">Instructions</label>
+                          <select
+                            value={INSTRUCTION_PRESETS.includes(med.instructions) ? med.instructions : (med.instructions ? '__custom__' : '')}
+                            onChange={(e) => {
+                              const val = e.target.value
+                              if (val === '__custom__') {
+                                handleUpdateMedicine(idx, 'instructions', med.customInstructions || '__custom__')
+                              } else {
+                                handleUpdateMedicine(idx, 'instructions', val)
+                              }
+                            }}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 cursor-pointer shadow-inner"
+                          >
+                            <option value="" className="bg-slate-900 text-slate-400">Select Instructions</option>
+                            <option value="After food" className="bg-slate-900 text-white">After food</option>
+                            <option value="Before food" className="bg-slate-900 text-white">Before food (Empty stomach)</option>
+                            <option value="With food" className="bg-slate-900 text-white">With food</option>
+                            <option value="At bedtime" className="bg-slate-900 text-white">At bedtime</option>
+                            <option value="Early morning" className="bg-slate-900 text-white">Early morning</option>
+                            <option value="Before sleep" className="bg-slate-900 text-white">Before sleep</option>
+                            <option value="As directed" className="bg-slate-900 text-white">As directed by doctor</option>
+                            <option value="__custom__" className="bg-slate-900 text-emerald-400 font-semibold">+ Custom Instruction...</option>
+                          </select>
+                          {(med.instructions === '__custom__' || (med.instructions && !INSTRUCTION_PRESETS.includes(med.instructions))) && (
+                            <input
+                              type="text"
+                              placeholder="Type instructions"
+                              value={med.instructions === '__custom__' ? (med.customInstructions || '') : med.instructions}
+                              onChange={(e) => {
+                                handleUpdateMedicine(idx, 'customInstructions', e.target.value)
+                                handleUpdateMedicine(idx, 'instructions', e.target.value || '__custom__')
+                              }}
+                              className="mt-1.5 w-full bg-slate-950 border border-emerald-500/40 rounded-lg px-2.5 py-1.5 text-xs text-white placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-emerald-500 shadow-inner"
+                              autoFocus
+                            />
+                          )}
                         </div>
                       </div>
                     </div>
@@ -728,14 +825,37 @@ export default function DoctorTeleconsultWorkstation({
 
               {/* General Advice */}
               <div>
-                <label className="font-bold text-slate-200 text-xs block mb-1.5">Dietary & General Advice</label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="font-bold text-slate-200 text-xs">Dietary & General Advice</label>
+                  <span className="text-[10px] text-slate-400">Optional</span>
+                </div>
                 <textarea 
                   rows={2}
                   value={generalAdvice}
                   onChange={(e) => setGeneralAdvice(e.target.value)}
-                  placeholder="Drink warm water, avoid oily food, complete antibiotic course..."
+                  placeholder="e.g. Drink warm water, avoid oily food, complete antibiotic course..."
                   className="w-full bg-slate-800/90 border border-slate-700/90 rounded-xl p-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 text-xs placeholder-slate-400 leading-relaxed shadow-inner"
                 />
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  {[
+                    'Drink warm water & stay hydrated',
+                    'Avoid cold, oily & spicy foods',
+                    'Complete the full medicine course',
+                    'Adequate bed rest for 2-3 days',
+                    'Light, easily digestible meals'
+                  ].map((tip) => (
+                    <button
+                      key={tip}
+                      type="button"
+                      onClick={() => {
+                        setGeneralAdvice(prev => prev ? (prev.includes(tip) ? prev : `${prev}. ${tip}`) : tip)
+                      }}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-emerald-400 border border-slate-700/60 transition-all cursor-pointer"
+                    >
+                      + {tip}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Follow Up Date */}
