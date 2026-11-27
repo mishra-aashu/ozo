@@ -173,10 +173,12 @@ export default function CareHome() {
                     : 'bg-white/90 dark:bg-[#161e27]/90 border-gray-200 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 hover:shadow-md'
                 }`}
               >
-                <div 
-                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white mb-2 shadow-md bg-gradient-to-br ${spec.gradient} group-hover:scale-105 transition-transform shrink-0`}
-                >
-                  <SpecialtyIcon slug={spec.slug} size={22} />
+                <div className="w-12 h-12 sm:w-13 sm:h-13 flex items-center justify-center mb-2 relative shrink-0 group-hover:scale-110 group-hover:-translate-y-0.5 transition-all duration-200">
+                  <div 
+                    className="absolute inset-1 rounded-2xl blur-md opacity-20 dark:opacity-30 group-hover:opacity-45 transition-opacity duration-200 pointer-events-none" 
+                    style={{ backgroundColor: spec.accentColor }} 
+                  />
+                  <SpecialtyIcon slug={spec.slug} size={42} className="relative z-10 drop-shadow-sm" />
                 </div>
                 <div className="w-full min-w-0 flex items-center justify-center min-h-[32px]">
                   <span className="text-xs sm:text-[13px] font-display font-bold text-gray-900 dark:text-white leading-tight text-center break-words line-clamp-2">
