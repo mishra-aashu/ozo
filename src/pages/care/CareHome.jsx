@@ -122,7 +122,7 @@ export default function CareHome() {
       </section>
 
       {/* 2. MEDICAL SPECIALTIES GRID */}
-      <section className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-6 sm:py-10 overflow-hidden">
+      <section className="max-w-7xl mx-auto px-3 xs:px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-4 sm:mb-6">
           <div>
             <div className="flex items-center gap-2">
@@ -159,31 +159,29 @@ export default function CareHome() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-8 xl:grid-cols-10 gap-2.5 sm:gap-3.5">
+        <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 xl:grid-cols-7 2xl:grid-cols-8 gap-3 sm:gap-3.5">
           {(showAllSpecialties ? CARE_SPECIALTIES : CARE_SPECIALTIES.slice(0, 8)).map((spec) => {
             const isSelected = selectedSpecialty === spec.slug
             return (
               <button
                 key={spec.slug}
                 onClick={() => setSelectedSpecialty(isSelected ? 'all' : spec.slug)}
-                className={`p-3 sm:p-4 rounded-2xl sm:rounded-3xl border transition-all text-center flex flex-col items-center justify-between group active:scale-95 min-w-0 overflow-hidden cursor-pointer ${
+                title={`${spec.title} - ${spec.subtitle || spec.description || ''}`}
+                className={`p-3.5 sm:p-4 rounded-2xl sm:rounded-3xl border transition-all text-center flex flex-col items-center justify-center group active:scale-95 min-w-0 cursor-pointer ${
                   isSelected
                     ? 'border-emerald-500 bg-emerald-500/10 ring-2 ring-emerald-500/20 shadow-md scale-[1.02]'
                     : 'bg-white/90 dark:bg-[#161e27]/90 border-gray-200 dark:border-white/10 hover:border-emerald-500/40 dark:hover:border-emerald-500/40 hover:shadow-md'
                 }`}
               >
                 <div 
-                  className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center text-white mb-2 shadow-md bg-gradient-to-br ${spec.gradient} group-hover:scale-110 transition-transform shrink-0`}
+                  className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center text-white mb-2 shadow-md bg-gradient-to-br ${spec.gradient} group-hover:scale-105 transition-transform shrink-0`}
                 >
-                  <SpecialtyIcon slug={spec.slug} size={20} />
+                  <SpecialtyIcon slug={spec.slug} size={22} />
                 </div>
-                <div className="w-full min-w-0">
-                  <h4 className="text-[11px] sm:text-xs font-display font-black text-gray-900 dark:text-white leading-tight truncate">
+                <div className="w-full min-w-0 flex items-center justify-center min-h-[32px]">
+                  <span className="text-xs sm:text-[13px] font-display font-bold text-gray-900 dark:text-white leading-tight text-center break-words line-clamp-2">
                     {spec.title}
-                  </h4>
-                  <p className="text-[9px] sm:text-[10px] font-sans font-medium text-gray-400 mt-0.5 truncate">
-                    {spec.subtitle || spec.badge}
-                  </p>
+                  </span>
                 </div>
               </button>
             )
