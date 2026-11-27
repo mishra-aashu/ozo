@@ -485,33 +485,33 @@ const LocationPicker = ({ isOpen, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: '100%' }}
             transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-            className="fixed top-0 right-0 bottom-0 w-full max-w-[450px] bg-white dark:bg-[#0d0d0d] z-[101] overflow-hidden flex flex-col border-l border-gray-100 dark:border-white/5 shadow-[-20px_0_50px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_50px_rgba(0,0,0,0.4)] text-gray-800 dark:text-white"
+            className="fixed top-0 right-0 bottom-0 w-full max-w-[460px] bg-gray-50 dark:bg-[#0f0f12] z-[101] overflow-hidden flex flex-col border-l border-gray-100 dark:border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.1)] dark:shadow-[-20px_0_50px_rgba(0,0,0,0.5)] text-gray-800 dark:text-white"
           >
             {/* Header */}
-            <div className="p-8 border-b border-gray-100 dark:border-white/5 flex items-center justify-between bg-white/80 dark:bg-[#0d0d0d]/80 backdrop-blur-md sticky top-0 z-10">
+            <div className="p-6 md:p-7 border-b border-gray-100 dark:border-white/10 flex items-center justify-between bg-white/80 dark:bg-[#0f0f12]/90 backdrop-blur-xl sticky top-0 z-10">
               <div>
-                <h2 className="text-2xl font-black text-gray-900 dark:text-white font-display">
+                <h2 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white font-display tracking-tight">
                   {showForm ? (editingAddressId ? 'Edit Address' : 'Add Address') : 'Select Location'}
                 </h2>
-                <p className="text-xs text-ozo-gray dark:text-gray-400 font-medium">
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-medium mt-0.5">
                   {showForm ? 'Enter your complete address details' : 'To see items available in your area'}
                 </p>
               </div>
               <button 
                 onClick={showForm ? () => { setShowForm(false); setShowMapPicker(false); } : onClose}
-                className="p-3 rounded-2xl bg-gray-50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-all group"
+                className="w-10 h-10 rounded-2xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 border border-transparent dark:border-white/5 flex items-center justify-center transition-all group active:scale-95"
               >
                 {showForm ? (
-                  <ArrowLeft size={24} className="text-gray-400 group-hover:text-ozo-red transition-colors" />
+                  <ArrowLeft size={20} className="text-gray-500 dark:text-gray-300 group-hover:text-ozo-red transition-colors" />
                 ) : (
-                  <X size={24} className="text-gray-400 group-hover:text-ozo-red transition-colors" />
+                  <X size={20} className="text-gray-500 dark:text-gray-300 group-hover:text-ozo-red transition-colors" />
                 )}
               </button>
             </div>
 
             {showForm ? (
               /* Address Form View */
-              <div className="flex-1 overflow-y-auto p-8 space-y-6 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-6 md:p-7 space-y-6 scrollbar-hide">
                 <form onSubmit={handleSaveForm} className="space-y-6">
                   {!recipientType ? (
                     <div className="text-center py-12 animate-fadeIn space-y-8">
@@ -574,19 +574,30 @@ const LocationPicker = ({ isOpen, onClose }) => {
                   ) : (
                     <div className="space-y-6 animate-fadeIn">
                       {/* Recipient Details Header */}
-                      <div className="p-4 bg-red-50/20 dark:bg-white/[0.02] border border-red-500/10 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3 animate-fadeIn">
-                        <div>
-                          <p className="text-[9px] font-black text-gray-500 uppercase tracking-wider">Recipient Mode</p>
-                          <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">
-                            {recipientType === 'myself' 
-                              ? `For Myself (${profile?.full_name || 'Your Name'} - ${profile?.phone_number || profile?.phone || 'No Phone'})` 
-                              : 'For Someone Else'}
-                          </p>
+                      <div className="p-3.5 bg-white dark:bg-[#161619] border border-gray-100 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3.5 shadow-sm">
+                        <div className="flex items-center gap-3.5 min-w-0">
+                          <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                            recipientType === 'myself'
+                              ? 'bg-blue-500/10 text-blue-400'
+                              : 'bg-indigo-500/10 text-indigo-400'
+                          }`}>
+                            {recipientType === 'myself' ? <User size={20} /> : <Users size={20} />}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+                              Recipient Mode
+                            </span>
+                            <p className="text-xs font-black text-gray-900 dark:text-white truncate mt-0.5">
+                              {recipientType === 'myself' 
+                                ? `For Myself (${profile?.full_name || 'Your Name'} - ${profile?.phone_number || profile?.phone || 'No Phone'})` 
+                                : 'For Someone Else'}
+                            </p>
+                          </div>
                         </div>
                         <button
                           type="button"
                           onClick={() => setRecipientType(null)}
-                          className="text-[10px] font-black uppercase tracking-wider text-ozo-red hover:underline"
+                          className="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-[11px] font-bold text-ozo-red border border-transparent dark:border-white/5 transition-all shrink-0 hover:scale-105 active:scale-95"
                         >
                           Change
                         </button>
@@ -606,17 +617,17 @@ const LocationPicker = ({ isOpen, onClose }) => {
                       />
 
                       {/* Form Submission Actions */}
-                      <div className="flex gap-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                      <div className="flex gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
                         <button
                           type="button"
                           onClick={() => { setShowForm(false); setShowMapPicker(false); }}
-                          className="flex-1 py-4 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black rounded-2xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-xs text-center"
+                          className="flex-1 py-3.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-bold rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-all text-xs text-center"
                         >
                           Cancel
                         </button>
                         <button
                           type="submit"
-                          className="flex-1 py-4 bg-gradient-ozo text-white font-black rounded-2xl shadow-ozo hover:scale-[1.02] transition-all text-xs text-center"
+                          className="flex-1 py-3.5 bg-gradient-ozo text-white font-black rounded-2xl shadow-ozo hover:scale-[1.02] active:scale-[0.98] transition-all text-xs text-center"
                         >
                           Save & Select
                         </button>
@@ -995,8 +1006,8 @@ const LocationPicker = ({ isOpen, onClose }) => {
             )}
 
             {/* Footer */}
-            <div className="p-8 bg-gray-50 dark:bg-[#0d0d0d] border-t border-gray-100 dark:border-white/5">
-              <p className="text-center text-[10px] text-ozo-gray dark:text-gray-500 font-black uppercase tracking-[0.2em] leading-relaxed">
+            <div className="p-6 bg-gray-50/50 dark:bg-[#0c0c0e] border-t border-gray-100 dark:border-white/5">
+              <p className="text-center text-[10px] text-gray-400 dark:text-gray-500 font-extrabold uppercase tracking-[0.2em] leading-relaxed">
                 Your location helps us find <br /> the nearest <span className="notranslate" translate="no">OZO</span> stores
               </p>
             </div>

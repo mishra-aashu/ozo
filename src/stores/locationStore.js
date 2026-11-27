@@ -1136,8 +1136,28 @@ export const showServiceabilityModal = (cityName, pincode, onConfirm = null) => 
 };
 
 // Pure helper — resolves the currently active city slug for catalog queries.
-// Priority: browsingCitySlug > selectedCitySlug > deliveryCitySlug > null
+// Priority: URL path > browsingCitySlug > selectedCitySlug > deliveryCitySlug > null
 export const getActiveCitySlug = () => {
+  if (typeof window !== 'undefined') {
+    const pathParts = window.location.pathname.split('/').filter(Boolean);
+    if (pathParts.length > 0) {
+      const firstSegment = pathParts[0].toLowerCase();
+      const nonCityRoutes = [
+        'admin', 'cart', 'checkout', 'orders', 'profile', 'search',
+        'login', 'signup', 'auth', 'terms', 'privacy', 'about',
+        'contact', 'delivery-partner', 'mart-partner', 'help',
+        'products', 'categories', 'orders-history', 'notifications', 'settings'
+      ];
+      if (!nonCityRoutes.includes(firstSegment)) {
+        const state = useLocationStore.getState();
+        const matched = (state.activeCities || []).find(c => c.slug?.toLowerCase() === firstSegment);
+        if (matched) return matched.slug;
+        const resolved = resolveCity(firstSegment, state.activeCities);
+        if (resolved?.slug) return resolved.slug;
+        return firstSegment;
+      }
+    }
+  }
   const state = useLocationStore.getState();
   return state.browsingCitySlug || state.selectedCitySlug || state.deliveryCitySlug || null;
 };

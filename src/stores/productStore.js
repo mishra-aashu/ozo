@@ -1163,7 +1163,7 @@ export const useProductStore = create((set, get) => ({
     const controller = new AbortController()
     const signal = options.signal || controller.signal
 
-    const citySlug = getActiveCitySlug()
+    const citySlug = options.citySlug || getActiveCitySlug()
     const cacheKey = `home_${citySlug || 'default'}`
     const cached = getCachedData(cacheKey) || getCachedData('home_default')
 

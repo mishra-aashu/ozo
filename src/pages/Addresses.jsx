@@ -655,19 +655,30 @@ const Addresses = () => {
                 ) : (
                   <div className="space-y-5 animate-fadeIn">
                     {/* Recipient Details Header */}
-                    <div className="p-4 bg-red-50/20 dark:bg-white/[0.02] border border-red-500/10 dark:border-white/5 rounded-2xl flex items-center justify-between gap-3 animate-fadeIn">
-                      <div>
-                        <p className="text-[9px] font-black text-gray-500 uppercase tracking-wider">Recipient Mode</p>
-                        <p className="text-xs font-bold text-gray-800 dark:text-gray-200 mt-0.5">
-                          {recipientType === 'myself' 
-                            ? `For Myself (${profile?.full_name || 'Your Name'} - ${profile?.phone_number || profile?.phone || 'No Phone'})` 
-                            : 'For Someone Else'}
-                        </p>
+                    <div className="p-3.5 bg-white dark:bg-[#161619] border border-gray-100 dark:border-white/10 rounded-2xl flex items-center justify-between gap-3.5 shadow-sm">
+                      <div className="flex items-center gap-3.5 min-w-0">
+                        <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${
+                          recipientType === 'myself'
+                            ? 'bg-blue-500/10 text-blue-400'
+                            : 'bg-indigo-500/10 text-indigo-400'
+                        }`}>
+                          {recipientType === 'myself' ? <User size={20} /> : <Users size={20} />}
+                        </div>
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">
+                            Recipient Mode
+                          </span>
+                          <p className="text-xs font-black text-gray-900 dark:text-white truncate mt-0.5">
+                            {recipientType === 'myself' 
+                              ? `For Myself (${profile?.full_name || 'Your Name'} - ${profile?.phone_number || profile?.phone || 'No Phone'})` 
+                              : 'For Someone Else'}
+                          </p>
+                        </div>
                       </div>
                       <button
                         type="button"
                         onClick={() => setRecipientType(null)}
-                        className="text-[10px] font-black uppercase tracking-wider text-ozo-red hover:underline"
+                        className="px-3.5 py-1.5 rounded-xl bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-[11px] font-bold text-ozo-red border border-transparent dark:border-white/5 transition-all shrink-0 hover:scale-105 active:scale-95"
                       >
                         Change
                       </button>
@@ -703,17 +714,17 @@ const Addresses = () => {
                     </div>
 
                     {/* Form Actions */}
-                    <div className="flex justify-end gap-4 pt-4 border-t border-gray-100 dark:border-white/5">
+                    <div className="flex justify-end gap-3 pt-4 border-t border-gray-100 dark:border-white/10">
                       <button
                         type="button"
                         onClick={() => setIsModalOpen(false)}
-                        className="px-6 py-3.5 bg-gray-50 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-black rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-all text-sm"
+                        className="px-6 py-3.5 bg-gray-100 dark:bg-white/5 text-gray-700 dark:text-gray-300 font-bold rounded-2xl hover:bg-gray-200 dark:hover:bg-white/10 border border-transparent dark:border-white/10 transition-all text-xs"
                       >
                         Cancel
                       </button>
                       <button
                         type="submit"
-                        className="px-10 py-3.5 bg-gradient-ozo text-white font-black rounded-xl shadow-ozo hover:scale-105 transition-all text-sm"
+                        className="px-8 py-3.5 bg-gradient-ozo text-white font-black rounded-2xl shadow-ozo hover:scale-[1.02] active:scale-[0.98] transition-all text-xs"
                       >
                         Save Address
                       </button>

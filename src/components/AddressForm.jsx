@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike, DoorOpen, Bell, BellOff, GraduationCap } from 'lucide-react'
+import { Home, Briefcase, MapPin, Map as MapIcon, ChevronUp, ChevronDown, ChevronRight, Loader2, Route, Info, Search, FileText, Phone, User, Check, Navigation, Star, Bike, DoorOpen, Bell, BellOff, GraduationCap } from 'lucide-react'
 import { findCityByPincode, findMatchingActiveCity, checkDeliveryZoneStatus, checkPincodeServiceable, useLocationStore } from '../stores/locationStore'
 import { reverseGeocode, extractCoordinatesFromUrl } from '../lib/geocoding'
 import toast from 'react-hot-toast'
@@ -103,6 +103,8 @@ function SearchableSelect({
   disabled = false,
   customAllowed = true,
   icon: IconComponent = MapPin,
+  iconColor = "text-emerald-400",
+  iconBg = "bg-emerald-500/10",
   noOptionsMessage = "No matching options found"
 }) {
   const [isOpen, setIsOpen] = useState(false)
@@ -162,9 +164,11 @@ function SearchableSelect({
       <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
         {label} {required && <span className="text-ozo-red">*</span>}
       </label>
-      <div className="relative">
-        <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/30 pointer-events-none">
-          <IconComponent size={14} />
+      <div className="relative flex items-center">
+        <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+          <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${iconBg} ${iconColor}`}>
+            <IconComponent size={16} />
+          </div>
         </div>
         <input
           type="text"
@@ -189,7 +193,7 @@ function SearchableSelect({
           onFocus={() => setIsOpen(true)}
           placeholder={placeholder}
           disabled={disabled}
-          className="w-full pl-10 pr-10 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50/50 dark:bg-white/5 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold disabled:opacity-50"
+          className="w-full pl-13 pr-10 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all font-bold disabled:opacity-50"
         />
         {searchQuery && (
           <button
@@ -199,23 +203,30 @@ function SearchableSelect({
               onChange(null)
               setIsOpen(true)
             }}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-white/60 transition-colors"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-gray-100 dark:bg-white/5 hover:bg-gray-200 dark:hover:bg-white/10 text-gray-400 hover:text-gray-600 dark:hover:text-white flex items-center justify-center transition-colors"
           >
-            <span className="text-sm font-bold">×</span>
+            <span className="text-sm font-bold leading-none">×</span>
           </button>
         )}
       </div>
 
       {isOpen && !disabled && (
-        <div className="absolute left-0 right-0 mt-1 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-800 rounded-xl shadow-2xl z-[1050] max-h-56 overflow-y-auto divide-y divide-gray-100 dark:divide-zinc-850 scrollbar-hide ring-1 ring-black/10 dark:ring-white/10">
+        <div className="absolute left-0 right-0 mt-2 bg-white dark:bg-[#18181c] border border-gray-100 dark:border-white/10 rounded-2xl shadow-2xl z-[1050] max-h-64 overflow-y-auto divide-y divide-gray-100 dark:divide-white/5 scrollbar-hide backdrop-blur-xl">
           {customAllowed && searchQuery.trim() && !exactMatch && (
             <button
               type="button"
               onClick={handleCustomSelect}
-              className="w-full text-left px-4 py-2.5 bg-white dark:bg-zinc-900 hover:bg-gray-50 dark:hover:bg-zinc-800/80 flex items-center justify-between transition-colors text-xs font-bold text-ozo-red border-b border-gray-100 dark:border-zinc-850"
+              className="w-full text-left p-3.5 bg-red-500/5 hover:bg-red-500/10 flex items-center justify-between transition-colors text-xs font-bold text-ozo-red border-b border-gray-100 dark:border-white/5"
             >
-              <span>Use custom: "{searchQuery}"</span>
-              <span className="text-[10px] bg-red-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold text-red-500">Custom</span>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-red-500/10 text-ozo-red flex items-center justify-center shrink-0">
+                  <MapPin size={16} />
+                </div>
+                <span className="truncate">Use custom: "{searchQuery}"</span>
+              </div>
+              <span className="text-[10px] bg-red-500/10 px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold text-red-500 shrink-0">
+                Custom
+              </span>
             </button>
           )}
 
@@ -225,46 +236,46 @@ function SearchableSelect({
                 key={opt.id || opt.name}
                 type="button"
                 onClick={() => handleOptionSelect(opt)}
-                className={`w-full text-left px-4 py-2.5 flex flex-col transition-colors ${
-                  opt.isCampus
-                    ? 'bg-red-50/60 hover:bg-red-50 dark:bg-red-500/10 dark:hover:bg-red-500/15 border-l-2 border-ozo-red'
-                    : opt.isCore
-                    ? 'bg-amber-50/50 hover:bg-amber-50 dark:bg-amber-500/10 dark:hover:bg-amber-500/15'
-                    : 'bg-white hover:bg-gray-50 dark:bg-zinc-900 dark:hover:bg-zinc-800/80'
-                }`}
+                className="w-full text-left p-3 flex items-center gap-3.5 hover:bg-gray-50 dark:hover:bg-white/5 transition-all group"
               >
-                <div className="flex items-center justify-between w-full gap-2">
-                  <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 font-sans">
-                    <SuggestionIcon type={opt.type} isCampus={opt.isCampus} className="w-3.5 h-3.5 shrink-0" />
-                    {opt.isCampus && <Star size={11} className="text-ozo-red fill-ozo-red shrink-0" />}
-                    <span className={opt.isCampus ? 'text-ozo-red font-black' : opt.isCore ? 'text-amber-600 dark:text-amber-400 font-bold' : ''}>
-                      {opt.name}
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                  opt.isCampus ? 'bg-red-500/10 text-red-400' :
+                  opt.isCore ? 'bg-amber-500/10 text-amber-400' :
+                  opt.type === 'gali' ? 'bg-emerald-500/10 text-emerald-400' :
+                  'bg-blue-500/10 text-blue-400'
+                }`}>
+                  <SuggestionIcon type={opt.type} isCampus={opt.isCampus} className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-gray-900 dark:text-white flex items-center gap-1.5 truncate">
+                      {opt.isCampus && <Star size={11} className="text-ozo-red fill-ozo-red shrink-0" />}
+                      <span className={opt.isCampus ? 'text-ozo-red font-black' : opt.isCore ? 'text-amber-500 font-bold' : ''}>
+                        {opt.name}
+                      </span>
+                      {opt.isBikeOnly && <Bike size={12} className="text-amber-500 shrink-0" />}
                     </span>
-                    {opt.isBikeOnly && <Bike size={12} className="text-amber-500 shrink-0" />}
-                  </span>
-                  {opt.badgeText && (
-                    <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider shrink-0 ${
-                      opt.isCampus
-                        ? 'bg-ozo-red/10 text-ozo-red border border-ozo-red/20'
-                        : 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                    }`}>
-                      {opt.badgeText}
+                    {opt.badgeText && (
+                      <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider shrink-0 ${
+                        opt.isCampus
+                          ? 'bg-red-500/10 text-red-400 border border-red-500/20'
+                          : 'bg-amber-500/10 text-amber-500 border border-amber-500/20'
+                      }`}>
+                        {opt.badgeText}
+                      </span>
+                    )}
+                  </div>
+                  {opt.subtitle && (
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400 block truncate mt-0.5">
+                      {opt.subtitle}
                     </span>
                   )}
                 </div>
-                {opt.subtitle && (
-                  <span className={`text-[10px] mt-0.5 ${
-                    opt.isCampus 
-                      ? 'text-red-700/80 dark:text-red-400/80 font-medium' 
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`}>
-                    {opt.subtitle}
-                  </span>
-                )}
+                <ChevronRight size={16} className="text-gray-400 group-hover:text-ozo-red group-hover:translate-x-0.5 transition-all shrink-0 opacity-40 group-hover:opacity-100" />
               </button>
             ))
           ) : (
-            <div className="px-4 py-3 bg-white dark:bg-zinc-900 text-xs text-gray-400 dark:text-zinc-500 text-center font-semibold">
+            <div className="p-4 text-xs text-gray-400 text-center font-semibold">
               {noOptionsMessage}
             </div>
           )}
@@ -1184,37 +1195,41 @@ export default function AddressForm({
       {/* 2. Contact Details (Receiver Name/Phone) */}
       {showContactFields && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
               Receiver's Name *
             </label>
-            <div className="relative">
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/20 pointer-events-none">
-                <User size={14} />
+            <div className="relative flex items-center">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="w-8 h-8 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0">
+                  <User size={16} />
+                </div>
               </div>
               <input
                 type="text"
                 value={formData.receiver_name || ''}
                 onChange={(e) => updateField('receiver_name', e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50/50 dark:bg-white/5 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
+                className="w-full pl-13 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
                 placeholder="e.g. Aashu Mishra"
                 required
               />
             </div>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
               Receiver's Phone *
             </label>
-            <div className="relative">
-              <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/20 pointer-events-none">
-                <Phone size={14} />
+            <div className="relative flex items-center">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0">
+                  <Phone size={16} />
+                </div>
               </div>
               <input
                 type="tel"
                 value={formData.receiver_phone || ''}
                 onChange={(e) => updateField('receiver_phone', e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50/50 dark:bg-white/5 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
+                className="w-full pl-13 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
                 placeholder="10-digit mobile number"
                 required
               />
@@ -1225,55 +1240,67 @@ export default function AddressForm({
 
       {/* 3. Address Type Selector */}
       {!activeLinkAutofill && (
-        <div>
-          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+        <div className="space-y-2">
+          <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
             Save Address As
           </label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-3 gap-2.5">
             {[
-              { label: 'Home', icon: Home },
-              { label: 'Work', icon: Briefcase },
-              { label: 'Other', icon: MapPin }
-            ].map(({ label: lbl, icon: Icon }) => (
-              <button
-                key={lbl}
-                type="button"
-                onClick={() => updateField('label', lbl)}
-                className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${
-                  formData.label === lbl
-                    ? 'border-ozo-red bg-red-500/5 text-ozo-red shadow-sm'
-                    : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-550 hover:border-gray-300 dark:hover:border-white/20'
-                }`}
-              >
-                <Icon size={12} />
-                {lbl}
-              </button>
-            ))}
+              { label: 'Home', icon: Home, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+              { label: 'Work', icon: Briefcase, color: 'text-sky-400', bg: 'bg-sky-500/10' },
+              { label: 'Other', icon: MapPin, color: 'text-purple-400', bg: 'bg-purple-500/10' }
+            ].map(({ label: lbl, icon: Icon, color, bg }) => {
+              const isSelected = formData.label === lbl
+              return (
+                <button
+                  key={lbl}
+                  type="button"
+                  onClick={() => updateField('label', lbl)}
+                  className={`py-3 px-3 rounded-2xl border text-xs font-bold transition-all flex items-center justify-center gap-2 group ${
+                    isSelected
+                      ? 'bg-white/[0.08] dark:bg-[#1e1e24] border-white/20 shadow-md ring-1 ring-white/10 text-white'
+                      : 'bg-white/[0.02] dark:bg-[#161619] border-gray-200 dark:border-white/5 hover:border-white/10 text-gray-500 dark:text-gray-400 hover:text-white'
+                  }`}
+                >
+                  <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-transform group-hover:scale-110 ${
+                    isSelected ? `${bg} ${color}` : 'bg-white/5 text-gray-400'
+                  }`}>
+                    <Icon size={14} />
+                  </div>
+                  <span>{lbl}</span>
+                </button>
+              )
+            })}
           </div>
         </div>
       )}
 
       {/* 4. Address Information Fields */}
       {!activeLinkAutofill && (
-        <div className="space-y-4 pt-2 relative z-20">
-          <div className="flex items-center justify-between pb-1 border-b border-gray-150 dark:border-zinc-800">
-          <span className="text-[10px] font-black uppercase tracking-widest text-ozo-red">
-            Address Information
-          </span>
-        </div>
+        <div className="space-y-4 pt-1 relative z-20">
+          <div className="flex items-center gap-2.5 pb-2 border-b border-gray-100 dark:border-white/[0.06]">
+            <div className="w-7 h-7 rounded-lg bg-red-500/10 text-ozo-red flex items-center justify-center shrink-0">
+              <MapPin size={14} />
+            </div>
+            <span className="text-xs font-black uppercase tracking-wider text-gray-700 dark:text-gray-300">
+              Address Information
+            </span>
+          </div>
 
-        {/* City & Pincode Chips */}
-        <div className="space-y-1.5">
+        {/* City & Pincode Selection Cards */}
+        <div className="space-y-2">
           <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
             Delivery City & Pincode <span className="text-ozo-red">*</span>
           </label>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {serviceableCities.map(item => {
               const currentPin = (formData.pincode || '').toString().trim()
               const currentCity = (formData.city || '').toLowerCase().trim()
-              const isSelected = 
-                (currentCity && (currentCity === item.cityName.toLowerCase() || item.cityName.toLowerCase().includes(currentCity))) ||
-                (currentPin && item.allowedPincodes.includes(currentPin))
+              
+              const isSelected = currentCityObj?.id 
+                ? (item.id === currentCityObj.id || item.slug === currentCityObj.slug)
+                : (currentCity && item.cityName.toLowerCase() === currentCity) ||
+                  (currentPin && item.allowedPincodes.includes(currentPin))
 
               return (
                 <button
@@ -1334,15 +1361,28 @@ export default function AddressForm({
                       })
                     }
                   }}
-                  className={`px-3.5 py-2.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`p-3 rounded-2xl border text-left transition-all flex items-center gap-3 relative group ${
                     isSelected
-                      ? 'border-ozo-red bg-red-500/10 text-ozo-red shadow-sm'
-                      : 'border-gray-200 dark:border-white/10 bg-gray-50/50 dark:bg-white/5 text-gray-600 dark:text-gray-300 hover:border-gray-300'
+                      ? 'bg-red-500/10 border-ozo-red/50 text-white shadow-md shadow-red-500/5'
+                      : 'bg-white/[0.02] dark:bg-[#161619] border-gray-200 dark:border-white/5 hover:border-white/10 text-gray-700 dark:text-gray-300 hover:text-white'
                   }`}
                 >
-                  <MapPin size={12} className={isSelected ? 'text-ozo-red' : 'text-gray-400'} />
-                  {item.displayLabel}
-                  {isSelected && <Check size={11} className="text-ozo-red shrink-0" />}
+                  <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-transform group-hover:scale-105 ${
+                    isSelected ? 'bg-ozo-red text-white' : 'bg-white/5 text-gray-400'
+                  }`}>
+                    <MapPin size={16} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-black truncate text-gray-900 dark:text-white">{item.cityName}</p>
+                    <p className="text-[10px] text-gray-500 dark:text-gray-400 font-medium truncate mt-0.5">
+                      {item.allowedPincodes.length > 0 ? item.allowedPincodes.join(', ') : item.pincode || 'Available'}
+                    </p>
+                  </div>
+                  {isSelected && (
+                    <div className="w-5 h-5 rounded-full bg-ozo-red text-white flex items-center justify-center shrink-0 shadow-sm animate-in fade-in">
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                  )}
                 </button>
               )
             })}
@@ -1358,6 +1398,8 @@ export default function AddressForm({
           onChange={handleLocalitySelect}
           required={true}
           icon={isBCE ? GraduationCap : Home}
+          iconColor="text-emerald-400"
+          iconBg="bg-emerald-500/10"
           noOptionsMessage="No localities found. Type to use custom area."
         />
 
@@ -1373,26 +1415,30 @@ export default function AddressForm({
               required={false}
               disabled={!formData.address_line2}
               icon={isBCE ? GraduationCap : Route}
+              iconColor="text-indigo-400"
+              iconBg="bg-indigo-500/10"
               noOptionsMessage={isBCE ? "No hostels found. Type custom block name." : "No streets recorded in this area. Type custom details above."}
             />
 
             {/* House details */}
-            <div>
-              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400">
                 {isBCE 
                   ? <>Room No. / Wing / Floor <span className="text-ozo-red">*</span></>
                   : <>Flat / House No. / Building / Lodge <span className="text-ozo-red">*</span></>
                 }
               </label>
-              <div className="relative">
-                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/20 pointer-events-none">
-                  <FileText size={14} />
+              <div className="relative flex items-center">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <div className="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center shrink-0">
+                    <FileText size={16} />
+                  </div>
                 </div>
                 <input
                   type="text"
                   value={formData.address_line1 || ''}
                   onChange={(e) => updateField('address_line1', e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-white dark:bg-black/20 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all font-semibold"
+                  className="w-full pl-13 pr-4 py-3 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all font-bold"
                   placeholder={housePlaceholder}
                   required
                 />
@@ -1409,28 +1455,32 @@ export default function AddressForm({
               required={false}
               disabled={!formData.address_line2}
               icon={MapPin}
+              iconColor="text-purple-400"
+              iconBg="bg-purple-500/10"
               noOptionsMessage="No matching landmarks. Type to enter a custom landmark."
             />
 
             {/* Pin Info Banner */}
             {radiusMetrics && (
-              <div className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-start gap-2.5 transition-all shadow-sm ${
+              <div className={`p-3.5 rounded-2xl border text-xs font-semibold flex items-start gap-3 transition-all shadow-sm ${
                 radiusMetrics.isValid 
-                  ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-400' 
-                  : 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-400'
+                  ? 'bg-emerald-500/5 dark:bg-emerald-500/10 border-emerald-500/20 text-emerald-700 dark:text-emerald-300' 
+                  : 'bg-blue-500/5 dark:bg-blue-500/10 border-blue-500/20 text-blue-700 dark:text-blue-300'
               }`}>
                 {radiusMetrics.isValid ? (
                   <>
-                    <Check size={16} className="shrink-0 text-emerald-500 mt-0.5" />
+                    <div className="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <Check size={16} strokeWidth={3} />
+                    </div>
                     <div>
-                      <p className="font-extrabold text-sm mb-0.5">
+                      <p className="font-extrabold text-sm mb-0.5 text-gray-900 dark:text-white">
                         ✓ Address Verified {
                           radiusMetrics.type === 'street' ? `on Street: ${radiusMetrics.name}` :
                           radiusMetrics.type === 'landmark' ? `near Landmark: ${radiusMetrics.name}` :
                           `inside ${currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}`
                         }
                       </p>
-                      <p className="text-[11px] font-medium leading-relaxed opacity-90">
+                      <p className="text-[11px] font-medium leading-relaxed opacity-85">
                         Coordinates matched successfully (approx. {Math.round(radiusMetrics.distance)} meters from {
                           radiusMetrics.type === 'street' ? 'street' :
                           radiusMetrics.type === 'landmark' ? 'landmark' :
@@ -1441,16 +1491,18 @@ export default function AddressForm({
                   </>
                 ) : (
                   <>
-                    <Info size={16} className="shrink-0 text-blue-500 mt-0.5" />
+                    <div className="w-7 h-7 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center shrink-0 mt-0.5">
+                      <Info size={16} />
+                    </div>
                     <div>
-                      <p className="font-extrabold text-sm mb-0.5">
+                      <p className="font-extrabold text-sm mb-0.5 text-gray-900 dark:text-white">
                         ℹ️ Location Pin Info for {
                           radiusMetrics.type === 'street' ? `Street: ${radiusMetrics.name}` :
                           radiusMetrics.type === 'landmark' ? `Landmark: ${radiusMetrics.name}` :
                           `${currentLocality.name_hi ? `${currentLocality.name} (${currentLocality.name_hi})` : currentLocality.name}`
                         }
                       </p>
-                      <p className="text-[11px] font-medium leading-relaxed opacity-90">
+                      <p className="text-[11px] font-medium leading-relaxed opacity-85">
                         This pinned location is {Math.round(radiusMetrics.distance)} meters from the {
                           radiusMetrics.type === 'street' ? 'street' :
                           radiusMetrics.type === 'landmark' ? 'landmark' :
@@ -1476,8 +1528,8 @@ export default function AddressForm({
       {(formData.address_line2 || activeLinkAutofill) && (
         <div className="space-y-4 relative z-10">
           {/* Notes */}
-          <div>
-            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 mb-1.5 flex items-center justify-between">
+          <div className="space-y-2">
+            <label className="block text-xs font-semibold text-gray-500 dark:text-gray-400 flex items-center justify-between">
               <span>Delivery Notes / Instructions (Optional)</span>
               {currentGali && currentGali.vehicle_restriction === 'bike_only' && (
                 <span className="text-[10px] bg-amber-500/15 dark:bg-amber-500/25 text-amber-600 dark:text-amber-400 font-extrabold px-2 py-0.5 rounded-full uppercase tracking-wider flex items-center gap-1">
@@ -1488,14 +1540,14 @@ export default function AddressForm({
             <textarea
               value={formData.notes || ''}
               onChange={(e) => updateField('notes', e.target.value)}
-              className="w-full px-4 py-2.5 border border-gray-200 dark:border-white/10 rounded-xl bg-gray-50/50 dark:bg-white/5 text-sm text-gray-800 dark:text-white focus:outline-none focus:ring-1 focus:ring-ozo-red placeholder:text-gray-400 dark:placeholder:text-white/20 transition-all resize-none h-16 font-medium"
+              className="w-full p-4 border border-gray-200 dark:border-white/10 rounded-2xl bg-white dark:bg-[#161619] text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-white/25 focus:ring-2 focus:ring-white/10 transition-all resize-none h-20 font-medium"
               placeholder={currentGali && currentGali.vehicle_restriction === 'bike_only' 
                 ? "This street is narrow, bike delivery only. Any specific instructions?" 
                 : "e.g. Ring bell, leave at gate, or call on arrival..."}
             />
 
             {/* Quick-tap suggestions */}
-            <div className="flex flex-wrap gap-2 mt-2">
+            <div className="flex flex-wrap gap-2 pt-1">
               {[
                 'Call on arrival',
                 'Leave at gate',
@@ -1520,10 +1572,10 @@ export default function AddressForm({
                         updateField('notes', parts.join(', '))
                       }
                     }}
-                    className={`px-3 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
+                    className={`px-3.5 py-1.5 rounded-xl border text-[11px] font-bold transition-all ${
                       isSelected
-                        ? 'border-ozo-red bg-red-500/5 text-ozo-red shadow-sm'
-                        : 'border-gray-200 dark:border-white/10 bg-transparent text-gray-550 hover:border-gray-305 dark:text-gray-300 dark:hover:border-white/25'
+                        ? 'border-white/20 bg-white/10 text-white shadow-sm ring-1 ring-white/10'
+                        : 'border-gray-200 dark:border-white/5 bg-white/[0.02] dark:bg-[#161619] text-gray-500 dark:text-gray-400 hover:text-white hover:border-white/10'
                     }`}
                   >
                     {label}

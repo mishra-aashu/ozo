@@ -17,9 +17,9 @@ export const useDoctorStore = create((set, get) => ({
   issuedPrescriptions: [],
   isLoadingPrescriptions: false,
 
-  // =============================================
+  
   // 1. DOCTOR PROFILE & REGISTRATION
-  // =============================================
+  
 
   fetchDoctorProfile: async () => {
     set({ isLoading: true })
@@ -191,9 +191,7 @@ export const useDoctorStore = create((set, get) => ({
     }
   },
 
-  // =============================================
   // 3. CLINICAL DIGITAL PRESCRIPTIONS (Rx)
-  // =============================================
 
   createPrescription: async (appointment, rxData) => {
     const { doctor } = get()

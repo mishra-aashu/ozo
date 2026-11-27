@@ -285,20 +285,23 @@ const MART_COLOR_PRESETS = [
 
 const applyCityOverrides = (products, citySlug) => {
   if (!products || products.length === 0) return [];
+  const targetCitySlug = citySlug || getActiveCitySlug();
   const launchConfig = useCartStore.getState().launchConfig;
   const launchModeEnabled = !!launchConfig?.launch_mode_enabled;
 
   return products.map(product => {
     if (!product) return null;
     const pcaList = product.product_city_availability;
-    const pca = citySlug && Array.isArray(pcaList)
-      ? pcaList.find(row => row.city_slug === citySlug)
+    const pca = targetCitySlug
+      ? (Array.isArray(pcaList)
+          ? pcaList.find(row => row.city_slug === targetCitySlug)
+          : (pcaList && (pcaList.city_slug === targetCitySlug || !pcaList.city_slug) ? pcaList : null))
       : null;
 
     // Strict City Isolation:
     // If browsing a city, product MUST have a PCA record marked is_available = true.
     // Products not in this city or is_available !== true are strictly unavailable.
-    const isAvailable = citySlug
+    const isAvailable = targetCitySlug
       ? (pca && pca.is_available === true)
       : (product.is_available ?? false);
 
@@ -397,7 +400,7 @@ const MartHome = () => {
   const { t } = useTranslation()
   const selectedCitySlug = useLocationStore(state => state.selectedCitySlug)
   const browsingCitySlug = useLocationStore(state => state.browsingCitySlug)
-  const activeCitySlug = browsingCitySlug || selectedCitySlug
+  const activeCitySlug = (city || browsingCitySlug || selectedCitySlug || getActiveCitySlug() || '').toLowerCase() || null
   const isLocationInitialized = useLocationStore(state => state.isLocationInitialized)
   const setSelectedCitySlug = useLocationStore(state => state.setSelectedCitySlug)
 
@@ -694,31 +697,58 @@ const MartHome = () => {
           categoryIds = [...categoryIds, ...subcategories.map(s => s.id)];
         }
 
-        // 2. Fetch products in those categories
-        const citySlug = getActiveCitySlug();
+        // 2. Fetch products in those categories with strict city isolation
+        const citySlug = activeCitySlug || getActiveCitySlug();
         let productsQuery = supabase
           .from('products')
-          .select(`
-            *,
-            category:categories (
-              id,
-              name,
-              slug,
-              parent_id,
-              is_active
-            ),
-            product_city_availability(
-              city_slug,
-              city_price,
-              city_mrp,
-              is_available,
-              is_featured,
-              is_upcoming
-            )
-          `)
           .not('image_url', 'is', null)
           .not('image_url', 'ilike', '%raw.githubusercontent.com%')
           .not('image_url', 'ilike', '%logo_transparent.png%');
+
+        if (citySlug) {
+          productsQuery = productsQuery
+            .select(`
+              *,
+              category:categories (
+                id,
+                name,
+                slug,
+                parent_id,
+                is_active
+              ),
+              product_city_availability!inner(
+                city_slug,
+                city_price,
+                city_mrp,
+                is_available,
+                is_featured,
+                is_upcoming
+              )
+            `)
+            .eq('product_city_availability.city_slug', citySlug)
+            .eq('product_city_availability.is_available', true);
+        } else {
+          productsQuery = productsQuery
+            .select(`
+              *,
+              category:categories (
+                id,
+                name,
+                slug,
+                parent_id,
+                is_active
+              ),
+              product_city_availability(
+                city_slug,
+                city_price,
+                city_mrp,
+                is_available,
+                is_featured,
+                is_upcoming
+              )
+            `)
+            .eq('is_available', true);
+        }
 
         const { data: rawProducts, error: prodError } = await productsQuery
           .in('category_id', categoryIds)
@@ -844,7 +874,7 @@ const MartHome = () => {
     async (signal) => {
       // Delay fetching until locationStore has initialized selectedCitySlug
       if (!isLocationInitialized && !activeCitySlug) return
-      const res = await fetchHomePageData({ signal })
+      const res = await fetchHomePageData({ signal, citySlug: activeCitySlug })
       if (!res?.success) {
         throw res?.error || new Error('Failed to load homepage data')
       }
@@ -2562,6 +2592,25 @@ const MartHome = () => {
               [...Array(5)].map((_, i) => (
                 <div key={i} className="h-80 bg-white dark:bg-white/5 rounded-3xl animate-pulse" />
               ))
+            ) : displayBestsellers.length === 0 ? (
+              <div className="col-span-full py-12 px-6 rounded-3xl bg-white dark:bg-[#111] border border-dashed border-gray-200 dark:border-white/10 text-center flex flex-col items-center justify-center shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center mb-3">
+                  <Sparkles className="w-7 h-7" />
+                </div>
+                <h4 className="text-base font-black text-gray-900 dark:text-white mb-1.5 uppercase tracking-tight">
+                  No Bestsellers in {homeCityName || 'this city'} yet
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md font-medium leading-relaxed mb-4">
+                  We are on our way to add fresh trending products here! Check back shortly or explore available categories.
+                </p>
+                <button
+                  onClick={() => setIsRequestModalOpen(true)}
+                  className="px-5 py-2.5 rounded-xl text-xs font-bold bg-ozo-red hover:bg-ozo-red-dark text-white transition-all shadow-md active:scale-95 flex items-center gap-1.5"
+                >
+                  <Plus size={14} />
+                  <span>Request a Product for {homeCityName || 'Your City'}</span>
+                </button>
+              </div>
             ) : (
               displayBestsellers.map((product, idx) => (
                 <ProductCard key={product.id} product={product} index={idx} />
@@ -2634,8 +2683,34 @@ const MartHome = () => {
                 <div key={i} className="h-80 bg-white dark:bg-white/5 rounded-3xl animate-pulse" />
               ))
             ) : displayedFeaturedProducts.length === 0 ? (
-              <div className="col-span-full py-12 text-center text-gray-500 font-bold">
-                No products found in this category.
+              <div className="col-span-full py-14 px-6 rounded-3xl bg-white dark:bg-[#111] border border-dashed border-gray-200 dark:border-white/10 text-center flex flex-col items-center justify-center my-2 shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-ozo-red/10 text-ozo-red flex items-center justify-center mb-3 shadow-inner">
+                  <Package className="w-7 h-7" />
+                </div>
+                <h4 className="text-base font-black text-gray-900 dark:text-white mb-1.5 uppercase tracking-tight">
+                  No products in this category yet
+                </h4>
+                <p className="text-xs text-gray-500 dark:text-gray-400 max-w-md font-medium leading-relaxed mb-4">
+                  We are on the way to add fresh products for {homeCityName || 'your city'} in this category. Check back soon!
+                </p>
+                <div className="flex flex-wrap items-center justify-center gap-2.5">
+                  {selectedFeaturedCategory !== 'all' && (
+                    <button
+                      onClick={() => setSelectedFeaturedCategory('all')}
+                      className="px-5 py-2.5 rounded-xl text-xs font-bold bg-ozo-red hover:bg-ozo-red-dark text-white transition-all shadow-md active:scale-95 flex items-center gap-1.5"
+                    >
+                      <span>View All Available Products</span>
+                      <ArrowRight size={14} />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsRequestModalOpen(true)}
+                    className="px-5 py-2.5 rounded-xl text-xs font-bold bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/15 text-gray-800 dark:text-white transition-all shadow-sm active:scale-95 flex items-center gap-1.5"
+                  >
+                    <Plus size={14} />
+                    <span>Request Items</span>
+                  </button>
+                </div>
               </div>
             ) : (
               displayedFeaturedProducts.map((product, idx) => (
