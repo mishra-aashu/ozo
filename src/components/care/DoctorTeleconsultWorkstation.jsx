@@ -5,7 +5,7 @@ import {
   ShieldCheck, AlertCircle, Plus, Trash2, Clock, CheckCircle2, ChevronRight,
   ExternalLink, User, X, RefreshCw, Copy, Activity, Share2, GripVertical
 } from 'lucide-react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { useDoctorStore } from '../../stores/doctorStore'
 import toast from 'react-hot-toast'
@@ -21,6 +21,7 @@ export default function DoctorTeleconsultWorkstation({
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [selectedImagePreview, setSelectedImagePreview] = useState(null)
   const [selectedPdfPreview, setSelectedPdfPreview] = useState(null)
+  const [showEndCallModal, setShowEndCallModal] = useState(false)
 
   // Prescription State
   const [diagnosis, setDiagnosis] = useState(
@@ -238,7 +239,14 @@ export default function DoctorTeleconsultWorkstation({
           </button>
 
           <button
-            onClick={onClose}
+            type="button"
+            onClick={() => {
+              if (connectionState === 'connected') {
+                setShowEndCallModal(true)
+              } else {
+                onClose()
+              }
+            }}
             className="p-2 rounded-xl bg-slate-800/60 hover:bg-rose-500/20 hover:border-rose-500/40 border border-slate-700/50 text-slate-300 hover:text-rose-400 transition-all cursor-pointer"
             title="Close Desk"
           >
@@ -410,12 +418,8 @@ export default function DoctorTeleconsultWorkstation({
 
               {/* End Consultation Button */}
               <button
-                onClick={() => {
-                  if (window.confirm('Are you sure you want to conclude this video consultation?')) {
-                    endCall()
-                    onClose()
-                  }
-                }}
+                type="button"
+                onClick={() => setShowEndCallModal(true)}
                 className="px-5 py-2.5 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950/60 active:scale-95 transition-all cursor-pointer"
               >
                 <PhoneOff size={17} />
