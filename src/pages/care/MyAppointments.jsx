@@ -8,6 +8,7 @@ import {
 import { useCareStore } from '../../stores/careStore'
 import { useAuthStore } from '../../stores/authStore'
 import toast from 'react-hot-toast'
+import { isAppointmentOver } from '../../utils/careAppointmentUtils'
 
 export default function MyAppointments() {
   const navigate = useNavigate()
@@ -47,7 +48,29 @@ export default function MyAppointments() {
     }
   }
 
-  const getStatusBadge = (status) => {
+  const getStatusBadge = (status, apt) => {
+    if (apt && isAppointmentOver(apt)) {
+      if (status === 'cancelled' || status === 'canceled') {
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-500 dark:bg-white/5 dark:text-slate-400">
+            Cancelled
+          </span>
+        )
+      }
+      if (status === 'completed') {
+        return (
+          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+            ✓ Consultation Completed
+          </span>
+        )
+      }
+      return (
+        <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-600 dark:bg-white/10 dark:text-slate-400 border border-slate-200 dark:border-white/10">
+          ⏱️ Slot Ended (Past)
+        </span>
+      )
+    }
+
     switch (status) {
       case 'booked':
         return (
@@ -197,7 +220,7 @@ export default function MyAppointments() {
                     </div>
 
                     <div className="flex sm:flex-col items-center sm:items-end justify-between gap-1.5">
-                      {getStatusBadge(apt.status)}
+                      {getStatusBadge(apt.status, apt)}
                       <span className="text-[11px] font-mono text-slate-400">Ref: {apt.appointment_number}</span>
                     </div>
                   </div>
@@ -260,7 +283,7 @@ export default function MyAppointments() {
                   <div className="mt-4 pt-3 border-t border-slate-100 dark:border-white/5 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
                       {/* Teleconsult Dedicated Video Call Action */}
-                      {(apt.consultation_type === 'teleconsult' || apt.consultation_mode === 'teleconsult') && (apt.status === 'booked' || apt.status === 'in_consultation') && (
+                      {(apt.consultation_type === 'teleconsult' || apt.consultation_mode === 'teleconsult') && (apt.status === 'booked' || apt.status === 'in_consultation') && !isAppointmentOver(apt) && (
                         <Link
                           to={`/care/room/${apt.id}`}
                           className="px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-950 transition-all hover:scale-105"
@@ -276,7 +299,7 @@ export default function MyAppointments() {
                         >
                           <FileText className="w-3.5 h-3.5" /> View Digital Rx
                         </button>
-                      ) : apt.status === 'booked' && apt.consultation_type !== 'teleconsult' && apt.consultation_mode !== 'teleconsult' ? (
+                      ) : apt.status === 'booked' && apt.consultation_type !== 'teleconsult' && apt.consultation_mode !== 'teleconsult' && !isAppointmentOver(apt) ? (
                         <span className="text-xs text-amber-600 dark:text-amber-400 font-medium">
                           Rx will be available here right after doctor consultation
                         </span>
@@ -292,7 +315,7 @@ export default function MyAppointments() {
                       )}
                     </div>
 
-                    {apt.status === 'booked' && (
+                    {apt.status === 'booked' && !isAppointmentOver(apt) && (
                       <button
                         onClick={() => handleCancel(apt.id)}
                         className="text-xs text-rose-500 hover:text-rose-700 font-semibold px-2 py-1"

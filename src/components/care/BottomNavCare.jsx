@@ -145,30 +145,42 @@ export default function BottomNavCare() {
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
             className="fixed bottom-[calc(84px+env(safe-area-inset-bottom,0px))] left-1/2 w-max max-w-[calc(100%-1.5rem)] z-50 select-none"
           >
-            <Link
-              to="/care/my-appointments"
-              className="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-slate-900/95 dark:bg-[#121820]/95 text-white backdrop-blur-md shadow-2xl border border-emerald-500/40 hover:border-emerald-500 transition-all group"
-            >
-              <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center font-display font-black text-xs shrink-0 shadow-sm animate-pulse">
-                #{latestActiveAppointment.token_number || '1'}
-              </div>
+            <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-slate-900/95 dark:bg-[#121820]/95 text-white backdrop-blur-md shadow-2xl border border-emerald-500/40 hover:border-emerald-500 transition-all group">
+              <Link
+                to="/care/my-appointments"
+                className="flex items-center gap-2.5 min-w-0"
+              >
+                <div className="w-7 h-7 rounded-full bg-emerald-500 text-white flex items-center justify-center font-display font-black text-xs shrink-0 shadow-sm animate-pulse">
+                  #{latestActiveAppointment.token_number || '1'}
+                </div>
 
-              <div className="text-left pr-1 min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-                  <p className="text-[11px] font-display font-black leading-tight text-white truncate">
-                    Live Token Confirmed
+                <div className="text-left pr-1 min-w-0">
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+                    <p className="text-[11px] font-display font-black leading-tight text-white truncate">
+                      {isAppointmentToday(latestActiveAppointment) ? 'Live Token Confirmed' : 'Upcoming Token'}
+                    </p>
+                  </div>
+                  <p className="text-[10px] text-slate-300 font-sans truncate max-w-[170px]">
+                    {latestActiveAppointment.time_slot || 'In Clinic Queue'}
                   </p>
                 </div>
-                <p className="text-[10px] text-slate-300 font-sans truncate max-w-[190px]">
-                  {latestActiveAppointment.time_slot || 'In Clinic Queue'}
-                </p>
-              </div>
 
-              <div className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-emerald-500 transition-colors flex items-center justify-center shrink-0">
-                <ChevronRight size={13} className="text-white" />
-              </div>
-            </Link>
+                <div className="w-6 h-6 rounded-full bg-white/10 group-hover:bg-emerald-500 transition-colors flex items-center justify-center shrink-0">
+                  <ChevronRight size={13} className="text-white" />
+                </div>
+              </Link>
+
+              <button
+                type="button"
+                onClick={(e) => handleDismissTokenBanner(e, latestActiveAppointment.id)}
+                className="w-5 h-5 rounded-full bg-white/5 hover:bg-white/20 text-slate-400 hover:text-white flex items-center justify-center transition-colors shrink-0 ml-1"
+                title="Dismiss"
+                aria-label="Dismiss banner"
+              >
+                <X size={11} />
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>

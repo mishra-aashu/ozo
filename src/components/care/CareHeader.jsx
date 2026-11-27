@@ -38,6 +38,7 @@ import VerticalDropdownHeader from '../VerticalDropdownHeader'
 import OzoLogo from '../OzoLogo'
 import UserAvatar from '../UserAvatar'
 import toast from 'react-hot-toast'
+import { isAppointmentActive } from '../../utils/careAppointmentUtils'
 
 export default function CareHeader() {
   const navigate = useNavigate()
@@ -132,7 +133,7 @@ export default function CareHeader() {
   const isServiceManager = profile?.role === 'service_manager' || hasAdminPermission
 
   const activeCityName = addressDetails?.city || nearestCity?.name || 'Aurangabad, Bihar'
-  const activeTokensCount = myAppointments?.filter(a => a.status === 'booked' || a.status === 'in_consultation').length || 0
+  const activeTokensCount = myAppointments?.filter(isAppointmentActive).length || 0
 
   const quickMedicalSuggestions = [
     { title: 'General Physician (Fever & Cold)', query: 'General Physician', icon: '🩺' },
