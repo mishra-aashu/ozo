@@ -811,6 +811,108 @@ export default function DoctorTeleconsultWorkstation({
           </div>
         </div>
       )}
+
+      {/* 5. CONCLUDE CALL CONFIRMATION MODAL */}
+      <AnimatePresence>
+        {showEndCallModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 14 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="relative max-w-md w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-rose-950/50 overflow-hidden"
+            >
+              {/* Decorative radial glows */}
+              <div className="absolute -top-14 -right-14 w-36 h-36 bg-rose-500/15 rounded-full blur-2xl pointer-events-none" />
+              <div className="absolute -bottom-14 -left-14 w-36 h-36 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative">
+                {/* Header Icon & Close button */}
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-13 h-13 rounded-2xl bg-gradient-to-br from-rose-500/20 to-red-600/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner">
+                    <PhoneOff size={24} className="stroke-[2.2]" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowEndCallModal(false)}
+                    className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/80 transition-colors cursor-pointer"
+                    title="Dismiss"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                {/* Title & Prompt */}
+                <h3 className="text-lg font-bold text-white font-display mb-1.5">
+                  Conclude Video Consultation?
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Are you sure you want to conclude this video consultation with{' '}
+                  <span className="font-semibold text-white">
+                    {appointment?.patient_name || 'the patient'}
+                  </span>
+                  ? This will terminate the live video session for all participants.
+                </p>
+
+                {/* Session Snapshot Card */}
+                <div className="p-3.5 rounded-2xl bg-slate-950/70 border border-slate-800/90 mb-4 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Consultation Duration:</span>
+                    <span className="font-mono font-bold text-emerald-400">
+                      {connectionState === 'connected' ? formattedDuration : 'Active Session'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-400">Prescription Status:</span>
+                    {rxIssuedSuccess ? (
+                      <span className="font-semibold text-emerald-400 flex items-center gap-1 text-[11px]">
+                        <CheckCircle2 size={13} /> Digital Rx Issued
+                      </span>
+                    ) : (
+                      <span className="text-amber-400 font-medium text-[11px] flex items-center gap-1">
+                        <AlertCircle size={13} /> Not yet issued
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {!rxIssuedSuccess && (
+                  <div className="text-[11px] text-amber-200/90 mb-5 flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 p-2.5 rounded-xl leading-relaxed">
+                    <AlertCircle size={14} className="shrink-0 mt-0.5 text-amber-400" />
+                    <span>
+                      You have not generated a prescription yet. You can keep the call open to write and send digital Rx in the right panel.
+                    </span>
+                  </div>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowEndCallModal(false)}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs border border-slate-700/60 transition-all cursor-pointer text-center"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowEndCallModal(false)
+                      endCall()
+                      onClose()
+                    }}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-950/60 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <PhoneOff size={15} />
+                    <span>Conclude Call</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }

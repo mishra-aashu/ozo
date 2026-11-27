@@ -5,6 +5,7 @@ import {
   ShieldCheck, AlertCircle, Clock, FileText, ShoppingBag, Eye, X, 
   ExternalLink, Stethoscope, RefreshCw, Sparkles
 } from 'lucide-react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useWebRTC } from '../../hooks/useWebRTC'
 import { supabase } from '../../lib/supabase'
 import toast from 'react-hot-toast'
@@ -18,6 +19,7 @@ export default function PatientConsultationRoom() {
   const [hasPermissions, setHasPermissions] = useState(false)
   const [activeSideDrawer, setActiveSideDrawer] = useState(false)
   const [livePrescription, setLivePrescription] = useState(null)
+  const [showLeaveModal, setShowLeaveModal] = useState(false)
 
   const localVideoRef = useRef(null)
   const remoteVideoRef = useRef(null)
@@ -138,13 +140,20 @@ export default function PatientConsultationRoom() {
       {/* 1. TOP HEADER */}
       <header className="h-14 bg-slate-900 border-b border-slate-800 px-4 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-3">
-          <Link
-            to="/care/my-appointments"
-            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white"
+          <button
+            type="button"
+            onClick={() => {
+              if (connectionState === 'connected') {
+                setShowLeaveModal(true)
+              } else {
+                navigate('/care/my-appointments')
+              }
+            }}
+            className="p-1.5 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors cursor-pointer"
             title="Back to Appointments"
           >
             <ArrowLeft size={18} />
-          </Link>
+          </button>
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xs">
               <Stethoscope size={16} />
@@ -300,13 +309,9 @@ export default function PatientConsultationRoom() {
             </button>
 
             <button
-              onClick={() => {
-                if (window.confirm('Do you want to leave the consultation room?')) {
-                  endCall()
-                  navigate('/care/my-appointments')
-                }
-              }}
-              className="px-5 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950 transition-all"
+              type="button"
+              onClick={() => setShowLeaveModal(true)}
+              className="px-5 py-3.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs flex items-center gap-2 shadow-lg shadow-rose-950 transition-all cursor-pointer active:scale-95"
             >
               <PhoneOff size={18} />
               <span>Leave Call</span>
@@ -396,6 +401,66 @@ export default function PatientConsultationRoom() {
           </div>
         )}
       </div>
+      {/* LEAVE CONSULTATION MODAL */}
+      <AnimatePresence>
+        {showLeaveModal && (
+          <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 14 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 14 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="relative max-w-md w-full bg-slate-900/95 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-rose-950/40 overflow-hidden"
+            >
+              <div className="absolute -top-12 -right-12 w-36 h-36 bg-rose-500/15 rounded-full blur-2xl pointer-events-none" />
+
+              <div className="relative">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-rose-500/20 to-red-600/10 border border-rose-500/30 flex items-center justify-center text-rose-400 shadow-inner">
+                    <PhoneOff size={22} className="stroke-[2.2]" />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowLeaveModal(false)}
+                    className="p-1.5 text-slate-400 hover:text-white rounded-xl hover:bg-slate-800/80 transition-colors"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <h3 className="text-lg font-bold text-white font-display mb-1.5">
+                  Leave Consultation Room?
+                </h3>
+                <p className="text-xs text-slate-300 leading-relaxed mb-4">
+                  Are you sure you want to disconnect from Dr. {doctor?.full_name || 'Specialist'}? You can view any prescriptions issued directly in your Appointments dashboard.
+                </p>
+
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowLeaveModal(false)}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-semibold text-xs border border-slate-700/60 transition-all cursor-pointer text-center"
+                  >
+                    Stay in Call
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowLeaveModal(false)
+                      endCall()
+                      navigate('/care/my-appointments')
+                    }}
+                    className="flex-1 py-2.5 px-4 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-rose-950/60 active:scale-95 transition-all cursor-pointer"
+                  >
+                    <PhoneOff size={15} />
+                    <span>Leave Call</span>
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
