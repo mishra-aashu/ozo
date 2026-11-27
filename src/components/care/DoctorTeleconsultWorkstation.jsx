@@ -45,6 +45,26 @@ export default function DoctorTeleconsultWorkstation({
   const workstationRef = useRef(null)
   const stageContainerRef = useRef(null)
 
+  // Draggable PiP Corner Snap State
+  const [pipCorner, setPipCorner] = useState('top-right') // 'top-right' | 'top-left' | 'bottom-left' | 'bottom-right'
+
+  const cyclePipCorner = (e) => {
+    if (e) e.stopPropagation()
+    setPipCorner(prev => {
+      if (prev === 'top-right') return 'top-left'
+      if (prev === 'top-left') return 'bottom-left'
+      if (prev === 'bottom-left') return 'bottom-right'
+      return 'top-right'
+    })
+  }
+
+  const cornerClasses = {
+    'top-right': 'top-5 right-5',
+    'top-left': 'top-5 left-5',
+    'bottom-left': 'bottom-20 left-5',
+    'bottom-right': 'bottom-20 right-5'
+  }
+
   const roomId = appointment?.meeting_room_id || `care-room-${appointment?.appointment_number?.toLowerCase() || appointment?.id}`
 
   const {
@@ -233,56 +253,59 @@ export default function DoctorTeleconsultWorkstation({
         {/* LEFT STAGE: WEBRTC VIDEO STAGE (65% width) */}
         <div className="flex-1 bg-[#090d14] relative flex flex-col justify-between overflow-hidden p-3 sm:p-5">
           
-          {/* Main Remote Video (Patient) */}
+          {/* Main Remote Video (Patient) & Overlay Stage */}
           <div 
             ref={stageContainerRef}
-            className="flex-1 rounded-3xl bg-slate-900/90 border border-slate-800/90 relative overflow-hidden flex items-center justify-center shadow-2xl"
+            className="flex-1 rounded-3xl bg-slate-900/90 border border-slate-800/90 relative flex items-center justify-center shadow-2xl"
           >
-            <video 
-              ref={remoteVideoRef} 
-              autoPlay 
-              playsInline 
-              className={`w-full h-full object-cover ${!remoteStream ? 'hidden' : ''}`}
-            />
-            {!remoteStream && (
-              <div className="text-center p-6 sm:p-8 space-y-4 max-w-md mx-auto">
-                <div className="relative inline-flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
-                  <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/70 flex items-center justify-center text-emerald-400 relative z-10 shadow-2xl">
-                    <User size={38} className="text-slate-300" />
+            {/* Rounded clipping mask for patient video ONLY */}
+            <div className="absolute inset-0 rounded-3xl overflow-hidden flex items-center justify-center">
+              <video 
+                ref={remoteVideoRef} 
+                autoPlay 
+                playsInline 
+                className={`w-full h-full object-cover ${!remoteStream ? 'hidden' : ''}`}
+              />
+              {!remoteStream && (
+                <div className="text-center p-6 sm:p-8 space-y-4 max-w-md mx-auto">
+                  <div className="relative inline-flex items-center justify-center">
+                    <div className="absolute inset-0 rounded-full bg-emerald-500/20 blur-xl animate-pulse" />
+                    <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700/70 flex items-center justify-center text-emerald-400 relative z-10 shadow-2xl">
+                      <User size={38} className="text-slate-300" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="text-base sm:text-lg font-bold text-white font-display">Waiting for Patient to Connect...</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      <span className="text-slate-200 font-semibold">{appointment.patient_name}</span> has received the teleconsult link for Token #{appointment.token_number}. Once they enter the room, live audio and video will activate automatically.
+                    </p>
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold shadow-xs">
+                      <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                      <span>Signaling Channel Active</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={copyPatientLink}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      <Share2 size={12} />
+                      <span>Copy Patient Join Link</span>
+                    </button>
                   </div>
                 </div>
-                <div className="space-y-1.5">
-                  <h4 className="text-base sm:text-lg font-bold text-white font-display">Waiting for Patient to Connect...</h4>
-                  <p className="text-xs text-slate-400 leading-relaxed">
-                    <span className="text-slate-200 font-semibold">{appointment.patient_name}</span> has received the teleconsult link for Token #{appointment.token_number}. Once they enter the room, live audio and video will activate automatically.
-                  </p>
-                </div>
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 pt-1">
-                  <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 text-emerald-400 text-xs font-semibold shadow-xs">
-                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                    <span>Signaling Channel Active</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={copyPatientLink}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    <Share2 size={12} />
-                    <span>Copy Patient Join Link</span>
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
 
-            {/* Draggable Doctor Self-Stream PiP */}
+            {/* Draggable & Snapable Doctor Self-Stream PiP (Never Clipped) */}
             <motion.div 
               drag
               dragConstraints={stageContainerRef}
-              dragElastic={0.08}
+              dragElastic={0}
               dragMomentum={false}
               whileDrag={{ scale: 1.04, zIndex: 50 }}
-              className="absolute top-4 right-4 w-36 h-28 sm:w-48 sm:h-36 rounded-2xl bg-slate-950 border border-slate-700/80 shadow-2xl overflow-hidden z-20 ring-1 ring-black/50 group cursor-grab active:cursor-grabbing select-none touch-none"
+              className={`absolute ${cornerClasses[pipCorner] || 'top-5 right-5'} w-44 h-32 sm:w-56 sm:h-40 rounded-2xl bg-slate-950 border-2 border-slate-600/90 hover:border-emerald-500/70 shadow-2xl overflow-hidden z-30 ring-2 ring-black/80 group cursor-grab active:cursor-grabbing select-none touch-none transition-shadow`}
             >
               <video 
                 ref={localVideoRef} 
@@ -292,18 +315,32 @@ export default function DoctorTeleconsultWorkstation({
                 className={`w-full h-full object-cover pointer-events-none ${isVideoDisabled ? 'hidden' : ''}`}
               />
               {isVideoDisabled && (
-                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-500 text-xs font-bold gap-1 pointer-events-none">
-                  <VideoOff size={18} />
+                <div className="w-full h-full flex flex-col items-center justify-center bg-slate-900 text-slate-400 text-xs font-bold gap-1 pointer-events-none">
+                  <VideoOff size={20} className="text-slate-500" />
                   <span>Camera Off</span>
                 </div>
               )}
-              {/* Drag Grip Handle Hint on hover */}
-              <div className="absolute top-1.5 right-1.5 opacity-0 group-hover:opacity-100 transition-opacity bg-black/60 backdrop-blur-md p-1 rounded-md text-white/70 pointer-events-none">
-                <GripVertical size={13} />
-              </div>
-              <div className="absolute bottom-1.5 left-2 bg-slate-900/85 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-sm pointer-events-none">
-                <div className={`w-1.5 h-1.5 rounded-full ${isAudioMuted ? 'bg-rose-400' : 'bg-emerald-400'}`} />
-                <span>You (Dr)</span>
+
+              {/* PiP Header: Status badge & Corner Snap Controls */}
+              <div className="absolute top-1.5 inset-x-2 flex items-center justify-between pointer-events-auto">
+                <div className="bg-slate-900/90 backdrop-blur-md px-2 py-0.5 rounded-lg border border-white/10 text-[10px] font-bold text-white flex items-center gap-1.5 shadow-sm">
+                  <div className={`w-1.5 h-1.5 rounded-full ${isAudioMuted ? 'bg-rose-400' : 'bg-emerald-400 animate-pulse'}`} />
+                  <span>You (Dr)</span>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={cyclePipCorner}
+                    className="bg-slate-900/90 hover:bg-emerald-600 text-slate-300 hover:text-white p-1 rounded-lg border border-white/10 transition-colors shadow-sm cursor-pointer"
+                    title="Move to next corner (or drag anywhere)"
+                  >
+                    <Maximize2 size={11} />
+                  </button>
+                  <div className="bg-slate-900/90 text-slate-400 p-1 rounded-lg border border-white/10 opacity-70 group-hover:opacity-100 transition-opacity">
+                    <GripVertical size={11} />
+                  </div>
+                </div>
               </div>
             </motion.div>
 
@@ -550,13 +587,13 @@ export default function DoctorTeleconsultWorkstation({
 
               {/* Diagnosis Field */}
               <div>
-                <label className="font-bold text-slate-300 block mb-1">Clinical Diagnosis *</label>
+                <label className="font-bold text-slate-200 text-xs block mb-1.5">Clinical Diagnosis *</label>
                 <input 
                   type="text"
                   value={diagnosis}
                   onChange={(e) => setDiagnosis(e.target.value)}
                   placeholder="e.g. Acute Pharyngitis with Viral Fever"
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs"
+                  className="w-full bg-slate-800/90 border border-slate-700/90 rounded-xl px-3.5 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 text-xs placeholder-slate-400 transition-all shadow-inner"
                   required
                 />
               </div>
@@ -564,67 +601,67 @@ export default function DoctorTeleconsultWorkstation({
               {/* Medicines List */}
               <div className="space-y-2.5">
                 <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-300">Prescribed Medicines *</label>
+                  <label className="font-bold text-slate-200 text-xs">Prescribed Medicines *</label>
                   <button
                     type="button"
                     onClick={handleAddMedicine}
-                    className="text-[11px] text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1"
+                    className="text-xs text-emerald-400 hover:text-emerald-300 font-bold flex items-center gap-1 cursor-pointer transition-colors"
                   >
-                    <Plus size={12} /> Add Medicine
+                    <Plus size={13} /> Add Medicine
                   </button>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2.5">
                   {medicines.map((med, idx) => (
-                    <div key={idx} className="p-2.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                    <div key={idx} className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700/80 space-y-2.5 shadow-sm">
                       <div className="flex items-center justify-between gap-2">
                         <input 
                           type="text"
                           placeholder="Medicine Name (e.g. Paracetamol 650mg)"
                           value={med.name}
                           onChange={(e) => handleUpdateMedicine(idx, 'name', e.target.value)}
-                          className="flex-1 bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                          className="flex-1 bg-slate-900/90 border border-slate-700/90 rounded-xl px-3 py-2 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 placeholder-slate-400"
                         />
                         {medicines.length > 1 && (
                           <button
                             type="button"
                             onClick={() => handleRemoveMedicine(idx)}
-                            className="p-1.5 text-slate-500 hover:text-rose-400"
+                            className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors cursor-pointer"
                           >
-                            <Trash2 size={13} />
+                            <Trash2 size={14} />
                           </button>
                         )}
                       </div>
 
                       <div className="grid grid-cols-3 gap-2 text-[11px]">
                         <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">Dosage</span>
+                          <span className="text-[11px] font-semibold text-slate-300 block mb-1">Dosage</span>
                           <input 
                             type="text"
                             placeholder="1-0-1"
                             value={med.dosage}
                             onChange={(e) => handleUpdateMedicine(idx, 'dosage', e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-300"
+                            className="w-full bg-slate-900/90 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
                           />
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">Duration</span>
+                          <span className="text-[11px] font-semibold text-slate-300 block mb-1">Duration</span>
                           <input 
                             type="text"
                             placeholder="5 Days"
                             value={med.duration}
                             onChange={(e) => handleUpdateMedicine(idx, 'duration', e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-300"
+                            className="w-full bg-slate-900/90 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
                           />
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 block mb-0.5">Instructions</span>
+                          <span className="text-[11px] font-semibold text-slate-300 block mb-1">Instructions</span>
                           <input 
                             type="text"
                             placeholder="After meals"
                             value={med.instructions}
                             onChange={(e) => handleUpdateMedicine(idx, 'instructions', e.target.value)}
-                            className="w-full bg-slate-900 border border-slate-800 rounded px-2 py-1 text-slate-300"
+                            className="w-full bg-slate-900/90 border border-slate-700/90 rounded-lg px-2.5 py-1.5 text-xs text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500"
                           />
                         </div>
                       </div>
@@ -635,24 +672,24 @@ export default function DoctorTeleconsultWorkstation({
 
               {/* General Advice */}
               <div>
-                <label className="font-bold text-slate-300 block mb-1">Dietary & General Advice</label>
+                <label className="font-bold text-slate-200 text-xs block mb-1.5">Dietary & General Advice</label>
                 <textarea 
                   rows={2}
                   value={generalAdvice}
                   onChange={(e) => setGeneralAdvice(e.target.value)}
                   placeholder="Drink warm water, avoid oily food, complete antibiotic course..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs"
+                  className="w-full bg-slate-800/90 border border-slate-700/90 rounded-xl p-3 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 text-xs placeholder-slate-400 leading-relaxed shadow-inner"
                 />
               </div>
 
               {/* Follow Up Date */}
               <div>
-                <label className="font-bold text-slate-300 block mb-1">Recommended Follow-up (Optional)</label>
+                <label className="font-bold text-slate-200 text-xs block mb-1.5">Recommended Follow-up (Optional)</label>
                 <input 
                   type="date"
                   value={followUpDate}
                   onChange={(e) => setFollowUpDate(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-emerald-500 text-xs"
+                  className="w-full bg-slate-800/90 border border-slate-700/90 rounded-xl px-3.5 py-2.5 text-white font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 text-xs cursor-pointer shadow-inner"
                 />
               </div>
 
@@ -660,7 +697,7 @@ export default function DoctorTeleconsultWorkstation({
               <button
                 type="submit"
                 disabled={isSubmittingRx}
-                className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950 transition-all disabled:opacity-50"
+                className="w-full py-3.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/60 active:scale-[0.99] transition-all disabled:opacity-50 cursor-pointer"
               >
                 {isSubmittingRx ? (
                   <>
