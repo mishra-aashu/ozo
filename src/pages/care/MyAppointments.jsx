@@ -4,12 +4,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { 
   ArrowLeft, Calendar, Clock, MapPin, Stethoscope, FileText, 
   CheckCircle, AlertCircle, ShoppingBag, Phone, Search, X, Printer,
-  Video, Paperclip, Eye
+  Video, Paperclip, Eye, ChevronRight, Headphones
 } from 'lucide-react'
 import { useCareStore } from '../../stores/careStore'
 import { useAuthStore } from '../../stores/authStore'
 import toast from 'react-hot-toast'
 import { isAppointmentOver } from '../../utils/careAppointmentUtils'
+import AppointmentDetailModal from '../../components/care/AppointmentDetailModal'
 
 export default function MyAppointments() {
   const navigate = useNavigate()
@@ -25,6 +26,7 @@ export default function MyAppointments() {
 
   const [searchPhone, setSearchPhone] = useState(user?.phone || user?.user_metadata?.phone || '')
   const [selectedRx, setSelectedRx] = useState(null)
+  const [selectedDetailApt, setSelectedDetailApt] = useState(null)
   const [printingTokenApt, setPrintingTokenApt] = useState(null)
 
   const handlePrintRx = () => {
